@@ -1,0 +1,83 @@
+{
+    "info": {
+        "author": "Chris Routh",
+        "author_email": "chris@routh.io",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Framework :: Django",
+            "Framework :: Django :: 2.0",
+            "Framework :: Django :: 2.1",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": ".. django_bleachfields documentation master file, created by startproject.\n   You can adapt this file completely to your liking, but it should at least\n   contain the root `toctree` directive.\n\n=================================================\nWelcome to django_bleachfields's documentation!\n=================================================\n\n:Version: 0.1.17\n:Source: https://gitlab.routh.io/open-source/django-bleachfields\n:Keywords: ``django`` ``bleach`` ``input`` ``html`` ``fields``\n:PythonVersion: 3.6+\n\n|build-status| |requirements| |coverage|\n\n|python-versions| |django-versions| |pypi-version|\n\nSanitise HTML input from API Endpoints or Views\n\n.. contents::\n\n.. section-numbering::\n\nFeatures\n========\n\n* Leverages the power of ``bleach`` to filter model fields\n* Supports input from any source as the filtering is triggered by model save\n\nInstallation\n============\n\nRequirements\n------------\n\n* Python 3.6 or above\n* setuptools 30.3.0 or above\n* Django 2.0 or above\n\n\nInstall\n-------\n\nInstall ``django_bleachfields`` via ``pip``:\n\n.. code-block:: bash\n\n   pip install django_bleachfields\n\nAdd Django BleachFields to ``INSTALLED_APPS``:\n\n.. code-block:: python\n\n   INSTALLED_APPS = [\n       # ...\n       'django_bleachfields',\n       # ...\n   ]\n\nConfigure\n---------\n\nThis field passes the expected arguments for bleach through to the bleach command directly. We will try to\nkeep the docs in line with the latest bleach version, however these parameters are subject to change based on the\ndevelopment of bleach. More on `bleach.readthedocs.io <https://bleach.readthedocs.io/en/latest/clean.html>`_\n\n\n\nUsage\n=====\n\nDjango BleachFields subclass the Django TextField and CharField classes, and take any parameters available to them.\n\nYou can optionally configure the field globally in your Django Settings:\n\n.. code-block:: python\n\n   \"\"\"\n   Empty dict example, showing all parameters available, and unset.\n   \"\"\"\n   BLEACHFIELDS = {\n       'tags': None,\n       'attributes': None,\n       'styles': None,\n       'protocols': None,\n       'strip': None,\n       'strip_comments': None\n   }\n\n\n.. code-block:: python\n\n   \"\"\"\n   Fully configured dict to show all settings. All arguments are optional.\n   \"\"\"\n   BLEACHFIELDS = {\n       'tags': [\n           'a', 'abbr', 'acronym', 'b', 'blockquote', 'code',\n           'em', 'i', 'li', 'ol', 'strong', 'ul'\n       ],\n       'attributes': {'a': ['href', 'title'], 'abbr': ['title'], 'acronym': ['title']},\n       'styles': ['font-weight', 'text-decoration', 'line-height'],\n       'protocols': ['http', 'https', 'mailto'],\n       'strip': True,\n       'strip_comments': False\n   }\n\n\nAnd you can override specific parameters for each model that uses Django BleachField. Parameters not set here will inherit from\nthe global settings or from bleach itself. Review the `bleach documentation <https://bleach.readthedocs.io/en/latest/clean.html#allowed-tags-tags>`_\nfor the bleach default arguments.\n\n``models.py``:\n\n.. code-block:: python\n\n   \"\"\"\n   A minimal Models.py usage example\n   \"\"\"\n\n   from django.db.models import Model\n   from django_bleachfields.fields import BleachedTextField, BleachedCharField\n\n   class UserSubmission(Model):\n       title = BleachedCharField()\n       description = BleachedTextField()\n       body = BleachedTextField()\n\n\nAdvanced Usage\n==============\n\nDjango BleachFields can be used however you like, but we recommend that your global defaults be a minimum\nallowed set of tags, or simply be setup to strip everything. If your project only allows HTML tags in certain\nTextFields for example, it implies that you'll have a number of CharFields and TextFields where you want HTML\nto be stripped out.\n\nYou can define allowed tags when defining a field directly in the model, however you may also define addition\ndefaults with unique variable names in your Django Settings, and use that var on any TextField that allows those\ntags. The fields check to see if any arguments are set in the `field_args` parameter, and only overrides the\ndefault arguments if you've passed the same argument again. So you can use additive and subtractive magic to\nsimplify your code as much as possible. Just remember the Wizards Second Rule! (Especially when using subtractive\nmagic)\n\n    | \u201cThe Second Rule is that the greatest harm can result from the best intentions.  It sounds a paradox, but kindness and good intentions can be an insidious path to destruction. Sometimes doing what seems right is wrong and can cause harm.  The only counter to it is knowledge, wisdom, forethought, and understanding the First Rule.  Even then, that is not always enough.\u201d\n    |\n    | *-- Zedd Zu'l Zorander*\n    | *Stone of Tears, Terry Goodkind*\n\nAn Additive example\n-------------------\n\n``settings.py``:\n\n.. code-block:: python\n\n   \"\"\"\n   Default dict that strips all HTML, with a permissive dict for certain fields.\n   \"\"\"\n   BLEACHFIELDS = {\n       'tags': [],\n       'attributes': {},\n       'styles': [],\n       'protocols': [],\n       'strip': True,\n       'strip_comments': True\n   }\n\n   PERMISSIVE_BLEACHFIELDS = {\n       'tags': ['b', 'em', 'i', 'strong', 'span', 'style'],\n       'attributes': {'span': ['style']},\n       'styles': ['text-decoration', 'font-weight'],\n       'strip_comments': False\n   }\n\n``models.py``:\n\n.. code-block:: python\n\n   \"\"\"\n   A models.py usage example with Additive magic\n   \"\"\"\n\n   from django.db.models import Model\n   from django.conf import settings\n   from django_bleachfields.fields import BleachedTextField, BleachedCharField\n\n   class UserSubmission(Model):\n       title = BleachedCharField()\n       description = BleachedTextField()\n       body = BleachedTextField(field_args=settings.PERMISSIVE_BLEACHFIELDS)\n\n.. |build-status| image:: https://gitlab.routh.io/open-source/django-bleachfields/badges/master/pipeline.svg\n    :target: https://gitlab.routh.io/open-source/django-bleachfields/commits/master\n\n.. |requirements| image:: https://requires.io/enterprise/Routhinator/django_bleachfields/requirements.svg?branch=master\n    :target: https://requires.io/enterprise/Routhinator/django_bleachfields/requirements/?branch=master\n    :alt: Requirements status\n\n.. |coverage| image:: https://gitlab.routh.io/open-source/django-bleachfields/badges/master/coverage.svg\n    :target: https://gitlab.routh.io/open-source/django-bleachfields/commits/master\n    :alt: Coverage status\n\n.. |python-versions| image:: https://img.shields.io/pypi/pyversions/django_bleachfields.svg\n\n.. |django-versions| image:: https://img.shields.io/pypi/djversions/django_bleachfields.svg\n\n.. |pypi-version| image:: https://img.shields.io/pypi/v/django_bleachfields.svg",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.routh.io/open-source/django-bleachfields.git",
+        "keywords": "django,bleach,input,html,fields",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django-bleachfields",
+        "package_url": "https://pypi.org/project/django-bleachfields/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-bleachfields/",
+        "project_urls": {
+            "Homepage": "https://gitlab.routh.io/open-source/django-bleachfields.git"
+        },
+        "release_url": "https://pypi.org/project/django-bleachfields/0.1.17/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Easily use bleach with Django models, templates and DRF serializers",
+        "version": "0.1.17"
+    },
+    "last_serial": 4587928,
+    "releases": {
+        "0.1.17": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "55f118bc1fafc404f68b93e882fd42cd",
+                    "sha256": "b48fa9daf4421a9a029e611979addb988d7eee6043913a3ae60e27a4ca2a673c"
+                },
+                "downloads": -1,
+                "filename": "django_bleachfields-0.1.17.tar.gz",
+                "has_sig": false,
+                "md5_digest": "55f118bc1fafc404f68b93e882fd42cd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8249,
+                "upload_time": "2018-12-12T00:25:17",
+                "url": "https://files.pythonhosted.org/packages/54/1f/bc619fbd0e78636ffa7c4fa74756e96620e8e21b42d013bb21ea0bb0fbe4/django_bleachfields-0.1.17.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "55f118bc1fafc404f68b93e882fd42cd",
+                "sha256": "b48fa9daf4421a9a029e611979addb988d7eee6043913a3ae60e27a4ca2a673c"
+            },
+            "downloads": -1,
+            "filename": "django_bleachfields-0.1.17.tar.gz",
+            "has_sig": false,
+            "md5_digest": "55f118bc1fafc404f68b93e882fd42cd",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 8249,
+            "upload_time": "2018-12-12T00:25:17",
+            "url": "https://files.pythonhosted.org/packages/54/1f/bc619fbd0e78636ffa7c4fa74756e96620e8e21b42d013bb21ea0bb0fbe4/django_bleachfields-0.1.17.tar.gz"
+        }
+    ]
+}

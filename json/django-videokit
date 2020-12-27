@@ -1,0 +1,141 @@
+{
+    "info": {
+        "author": "Philip Streck",
+        "author_email": "philip.streck@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Software Development :: Libraries"
+        ],
+        "description": "Installation\n============\n\n1. Install ffmpeg\n2. Install mediainfo\n3. Install celery\n4. Install django-videokit 'pip install django-videokit'\n5. Add 'videokit' to your INSTALLED_APPS\n\nUsage Overview\n==============\nSettings\n--------\nDefine MEDIA_ROOT and MEDIA_URL, example:\n\n.. code-block:: python\n\n    MEDIA_ROOT = os.path.join(BASE_DIR, 'media-uploads')\n    MEDIA_URL = '/media/'\n\nURLs\n----\nAdd the media URL to your project's urls.py, example:\n\n.. code-block:: python\n\n    from django.conf import settings\n    from django.conf.urls import url\n    from django.conf.urls.static import static\n    from django.contrib import admin\n\n    urlpatterns = [\n        ...\n    ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)\n\nCelery\n------\nConfigure celery by creating celery.py in your projects application folder, details can be found at: http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html , or see example below:\n\n.. code-block:: python\n\n    from __future__ import absolute_import, unicode_literals\n    import os\n    from celery import Celery\n\n    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'example.settings')\n\n    app = Celery('example')\n    app.config_from_object('django.conf:settings', namespace='CELERY')\n    app.autodiscover_tasks()\n    app.conf.broker_url = 'redis://localhost:6379/0'\n\n    @app.task(bind=True)\n    def debug_task(self):\n        print('Request: {0!r}'.format(self.request))\n    \nVideoField\n----------\nVideoField is a class very similar in nature to Django's out of the box ImageField. It allows you to upload a video file, retrieve video file properties, and generate thumbnails.\n\nUsing VideoField In Your Model\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n.. code-block:: python\n\n    from django.db import models\n\n    from videokit.models import VideoField\n\n    class MediaItem(models.Model):\n        video = VideoField( upload_to = upload_to, null = True, blank = True, \n                            width_field = 'video_width', height_field = 'video_height',\n                            rotation_field = 'video_rotation',\n                            mimetype_field = 'video_mimetype',\n                            duration_field = 'video_duration',\n                            thumbnail_field = 'video_thumbnail')\n        video_width = models.IntegerField(null = True, blank = True)\n        video_height = models.IntegerField(null = True, blank = True)\n        video_rotation = models.FloatField(null = True, blank = True)\n        video_mimetype = models.CharField(max_length = 32, null = True, blank = True)\n        video_duration = models.IntegerField(null = True, blank = True)\n        video_thumbnail = models.ImageField(null = True, blank = True)\n\nDefined fields such as width_field, and height_field are optional but recommended. Using these fields ensures that the video properties are stored in the database rather than computed from the file.\n\nVideoSpecField\n--------------\nVideoSpecField is a class that leverages ffmpeg to convert videos to other formats. Currently there is support for mp4, ogg and webm files.\n\nUsing VideoSpecField In Your Model\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n.. code-block:: python\n\n    from django.db import models\n\n    from videokit.models import VideoField\n\n    class MediaItem(models.Model):\n        video = VideoField( upload_to = upload_to, null = True, blank = True, \n                            width_field = 'video_width', height_field = 'video_height',\n                            rotation_field = 'video_rotation',\n                            mimetype_field = 'video_mimetype',\n                            duration_field = 'video_duration',\n                            thumbnail_field = 'video_thumbnail')\n        video_width = models.IntegerField(null = True, blank = True)\n        video_height = models.IntegerField(null = True, blank = True)\n        video_rotation = models.FloatField(null = True, blank = True)\n        video_mimetype = models.CharField(max_length = 32, null = True, blank = True)\n        video_duration = models.IntegerField(null = True, blank = True)\n        video_thumbnail = models.ImageField(null = True, blank = True)\n\n        video_mp4 = VideoSpecField(source = 'video', format = 'mp4')\n        video_ogg = VideoSpecField(source = 'video', format = 'ogg')\n        video_webm = VideoSpecField(source = 'video', format = 'webm')\n\nGeneration of files is performed by a celery task when the file is accessed for the first time. You can check the status of the file by calling the generated method on VideoSpecField.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/pstreck/django-videokit",
+        "keywords": "django video development",
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "django-videokit",
+        "package_url": "https://pypi.org/project/django-videokit/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/django-videokit/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/pstreck/django-videokit"
+        },
+        "release_url": "https://pypi.org/project/django-videokit/0.0.4/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Video storage and processing for Django",
+        "version": "0.0.4"
+    },
+    "last_serial": 2921230,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8676f9a4f06e83a4c2e185b97d1f6410",
+                    "sha256": "8f7f3ff2141960a4ed9875f2d044908b4f93d4809bab1ac045b536624467eaec"
+                },
+                "downloads": -1,
+                "filename": "django-videokit-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8676f9a4f06e83a4c2e185b97d1f6410",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5407,
+                "upload_time": "2017-02-19T03:23:14",
+                "url": "https://files.pythonhosted.org/packages/87/87/7dd7d554b8e2ec685b2fe668d1f2d7d30c3181ac5d4c81bf7dfc29e8a3f6/django-videokit-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d2f7d08b49400e04aafe6c9694d0c0b9",
+                    "sha256": "9f4be8f4e5d6f855965bd0f93e0e037d04c501119b1c98e397090efae3991949"
+                },
+                "downloads": -1,
+                "filename": "django-videokit-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d2f7d08b49400e04aafe6c9694d0c0b9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6979,
+                "upload_time": "2017-02-19T23:50:35",
+                "url": "https://files.pythonhosted.org/packages/d3/ae/a5584abea17da8a7e16770141aa16c30b331de6bcbf937e2a1499c0f902c/django-videokit-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7461d4bc034ea36734474515e9fa2d9d",
+                    "sha256": "7d2a9a72ef90fc5dc72cd2398eb2580fcef460f25d3b994d01b194f7386fadac"
+                },
+                "downloads": -1,
+                "filename": "django-videokit-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7461d4bc034ea36734474515e9fa2d9d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6986,
+                "upload_time": "2017-02-20T00:06:25",
+                "url": "https://files.pythonhosted.org/packages/48/2b/241c753e09816e6a26037760cdc971ebf8d98ab5164e1c61b263004a4920/django-videokit-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b8fd290c0b8d58446b958cbf8d356bf6",
+                    "sha256": "95a08b6a3887ea37aca7265330381e5e4bf9811cbf93d6987495ed488343cc71"
+                },
+                "downloads": -1,
+                "filename": "django-videokit-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b8fd290c0b8d58446b958cbf8d356bf6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7005,
+                "upload_time": "2017-06-02T19:09:17",
+                "url": "https://files.pythonhosted.org/packages/2d/d3/fada5c6f8a7de054ec392362d86149330d99f17e36ca10c41d516eabf278/django-videokit-0.0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b8fd290c0b8d58446b958cbf8d356bf6",
+                "sha256": "95a08b6a3887ea37aca7265330381e5e4bf9811cbf93d6987495ed488343cc71"
+            },
+            "downloads": -1,
+            "filename": "django-videokit-0.0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "b8fd290c0b8d58446b958cbf8d356bf6",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7005,
+            "upload_time": "2017-06-02T19:09:17",
+            "url": "https://files.pythonhosted.org/packages/2d/d3/fada5c6f8a7de054ec392362d86149330d99f17e36ca10c41d516eabf278/django-videokit-0.0.4.tar.gz"
+        }
+    ]
+}

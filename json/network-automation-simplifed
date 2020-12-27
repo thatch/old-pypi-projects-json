@@ -1,0 +1,191 @@
+{
+    "info": {
+        "author": "Cox Communications Inc.",
+        "author_email": "jason.cole@cox.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: System :: Networking"
+        ],
+        "description": "<img style=\"float: left;\" src=\"./samples/input/cox.png\">\n\n# Network Automation Simplified - NAMS\nDemonstrations are available within the Docker Container using Jupyter notebooks.\n\n## Summary \n\n\n\nSuppose you must implement a network change.  You probably have a standard sequence of steps you typically follow.  You may be able to predict the steps you'll need to perform solely from experience.  You may have a formalized document detailing the sequence of tasks consisting of 4, 6 or 10 steps, depending on what you're doing. For example, your typical steps are probably similar to the pseudocode written below:\n\n**Pre Change**\n> Collect and save 'show commands' \n\n> Validate the router's health \n\n**Apply the Configuration**\n> Paste in the configurations \n\n> Examine the 'diff'\n\n> 'Commit'\n\n**Post Change**\n\n> Allow convergence\n\n> Validate the router's health \n\n> Collect and save 'show commands' \n\n> (optional) 'confirm' or 'rollback'  \n\n\nYou can probably come up with several other tasks for different use-cases, all of which would likely be a slight variation of this. For instance, rather than 'commiting' the configuration, you may only want to perform a 'diff' to see what the change *would* look like. You may only want to collect 'show commands' to verify a configuration exists or to collect IGP adjacency information, or you may want to only perform health checks, because you're validating the functionality of every configured protocol on the node as you're testing a new version of code.  \n\nTasks like these, and the templatized sequence of these tasks, is provided by the NAMS library. The ncclient, Nornir and Jsnapy libraries are abstracted from the user to provide a simple interface for network automation.  As an introduction, explore the demo below to see a typical use-case; but don't stop there, because there are a variety of other notebooks demonstrating simple *and* advanced capabilities of NAMS.  You'll be surprised how much you can do with so few lines of code.  \n\n## Installation\nDownload via **'pip'** or deploy as a **Docker Container**.  The **Docker Container is recommended**.  It allows 20+ pre-built Jupyter notebooks to be readily available via an interactive web-interface.  Without the container, the notebook samples are viewable from within the Git repository, but they will be non-interactive and will not display results.  The container will have NAMS, SSH, Jupyter and HTTP installed.  It is also configured with lab and production router hostnames, as well as Linux aliases, to simplify administration. SSH allows direct container access over the network and HTTP allows easy log retrieval.  Because containers are transferable between hosts, host X can be used for development and the container can be copied to host Y for production.  Below is a summary of why the docker container is recommended:\n\n1. Simplifies installation \n2. Shortens development time\n3. Enables sharing\n4. Transferability \n5. Shell execution (see samples)\n\n### Python Package\nIf you prefer not to use the Docker Container, the Python package is available on PyPi.\n\n```\n# requires >= Python3.7\npip install network-automation-simplifed\n```\n\nhttps://pypi.org/project/network-automation-simplifed/\n\n### Docker\n\n*Important*: the docker container will only save host data stored in the \"/home\" and \"/svr/nams\" directories.  All other data will be lost upon reboot/shutdown.\n\n##### Linux\n```\napt-get install docker\napt-get install docker-compose\ngit clone <project path>\ncd <project name>/docker\nsudo bash build.sh\n```\n\n##### Mac\n```\n# if 'brew' is installed\nbrew install docker             \nbrew install docker-compose\nbrew install docker-machine\ngit clone <project path>\ncd <project name>/docker\nbash build.sh\n```\n\n##### Authentication\n\n| Defaults |  Shell  |   SSH   | Jupyter |  HTTP |\n|:--------:|:-------:|:-------:|:-------:|:-----:|\n| username |  root   | admin   |   n/a   |  n/a  |\n| password | install | install |  n/a    |  n/a  |\n| port     |   n/a   | 10000   | 10001   | 10002 |  \n\n##### Interfaces\n\n| Service | Client Interface | Example                       |\n|---------|------------------|-------------------------------|\n| Linux   | host's shell     | docker exec -it nams bash     |\n| SSH     | ssh client       | ssh \\<user\\>@\\<host_ip\\> -p 10000 |\n| Jupyter | web browser      | http://\\<host_ip\\>:10001        |\n| HTTP    | web browser      | http://\\<host_ip\\>:10002        |\n\n##### Problems\nIts possible that the host's Docker instance will provision a subnet for containers that overlaps with devices you are attempting to connect via nams.  If this is the case, the host requires static routes to the device subnets to override routing via the docker container route. For examples, if Docker assigns a container subnet of '172.17.0.0/16' and the you attempt to connect to device with the IP address of '172.17.248.1/32', the host will blackhole the traffic.  \n\n## Why Another Library? \nThere are several existing tools written to perform network automation such as Ansible, NAPALM, Nornir, etc.  Each tool has has strengths in different categories. This Python library leverages those strengths, for a more flexible and simpler solution with less development time required.\n\nThe following Python libraries are leveraged by NAMS:\n\n* ncclient\n* Nornir\n* Jsnapy \n\n#### ncclient\nncclient is Python library for interfacing with a NETCONF device.  ncclient is leveraged by tools like Jsnapy and Ansible.  It is vendor neutral and provides a 'raw', or unabstracted interface.  The downside of working with ncclient is that it requires the user to perform inventory management, multiprocessing, error-handling, encoding conversions, file saving, etc. \n\nhttps://ncclient.readthedocs.io/en/latest/index.html\n\n#### Nornir\nNornir is a relatively new Python framework developed by the same creators of NAPALM and netmiko.  It's primary role is to provide inventory management and multiprocessing for APIs like ncclient, NAPALM, netmiko, and others.  One downfall of Nornir the ability to integrate Jsnapy.  This is a critical component for health checks on Juniper devices.  Because Nornir is an Open framework, a component of the framework, like inventory, can be re-used by others.  Nornir's inventory is re-used by NAMS.\n\nhttps://nornir.readthedocs.io/en/stable/\n\n#### Jsnapy\nJsnapy is an excellent Python tool for executing health checks against JunOS platforms.  It abstracts netconf requests and responses, by allowing test case definitions via a 'yaml' file.  In the yaml file, various parameters state parameters of 'show' output can be validated.  When a response is received and the test case passes, the node is considered health (vice versa for a failure).  Jsnapy uses ncclient to interface with a device.  \n\nhttps://github.com/Juniper/jsnapy\n\n#### NAPALM\nNAPALM is unified API for multi-vendor network environments.  It translates high-level 'orders' into CLI commands.  Additionally, it returns output as Python objects e.g. lists, dictionaries, etc. for easy parsing. This output is the same for all vendors.  However, because there are so many results that would have to be translated into Python objects, not all commands are supported.  Additionally, some vendors have support than others.  The majority of support is in EOS systems which are uncommon to most network environments.  To workaround this, the developers allow interfacing with devices through Netconf or netmiko without translating results but while performing with error handling.  In a network domain of Juniper routers, it makes more sense to avoid the NAPALM API and leverage Juniper's Jsnapy interface with ncclient.  This is because Jsnapy cannot easily be integrated into NAPALM without developer involvement.\n\nhttps://napalm.readthedocs.io/en/latest/\n\n#### Ansible\nAnsible is a YAML driven, network automation solution that supports native commands and Netconf for multiple vendors.  It has an excellent inventory system for device management and generating configurations.  YAML is a simple 'language' that users interface with; this hides the underlying Python code.  Because of YAML abstraction, Ansible sacrifices flexibility.  YAML is also not a 'programming language'.  This can make seemingly simple tasks quite difficult to 'program' or even impossible.  Another downside of Ansible is that an operation is executed on *all* routers before the next operation is performed. Examples below describe some scenarios that become quite challenging or impossible with Ansible:\n\n1. *Group Operations*:  Executing multiple operations on a single router before moving to the next.  Additionally, user prompting at each device.\n\n\n2. *Conditional Operations*: Suppose you want you want to get the configuration from all routers, find routers with 'X' configuration, and then make a change to only those select routers. \n\n\n3. *Speed*: Each operation requires a new SSH / NETCONF session.  Suppose you have two tasks (1) get configuration (2) edit configuration.  Each operation requires a new session.  \n\nhttps://docs.ansible.com/\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://srcrepo.coxsweng.com/bmd/ip/automation/cox_nams",
+        "keywords": "ncclient,nornir,jsnapy",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "network-automation-simplifed",
+        "package_url": "https://pypi.org/project/network-automation-simplifed/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/network-automation-simplifed/",
+        "project_urls": {
+            "Homepage": "https://srcrepo.coxsweng.com/bmd/ip/automation/cox_nams"
+        },
+        "release_url": "https://pypi.org/project/network-automation-simplifed/0.0.3/",
+        "requires_dist": [
+            "jsnapy",
+            "xmltodict",
+            "nornir",
+            "recordclass"
+        ],
+        "requires_python": ">=3.7",
+        "summary": "Network Automation Simplified",
+        "version": "0.0.3"
+    },
+    "last_serial": 5941639,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "97bd1dabb5b42ab5afca8565a7f68da7",
+                    "sha256": "352181857b221baa163ce2dfe2ff262efb3061e8fcd5d8cf4ed54b5706c8d991"
+                },
+                "downloads": -1,
+                "filename": "network_automation_simplifed-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "97bd1dabb5b42ab5afca8565a7f68da7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 19278,
+                "upload_time": "2019-09-27T17:32:10",
+                "url": "https://files.pythonhosted.org/packages/1c/51/78f9e665dec098038c24a87a1bb0214440a1e98a05987b450d0fbf2272ca/network_automation_simplifed-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "08fc0276f4289a54de32f592b480423d",
+                    "sha256": "3818ede6f83e847dc7ac483391bd58da1e96a1d81563413802177b7fa29161ba"
+                },
+                "downloads": -1,
+                "filename": "network-automation-simplifed-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "08fc0276f4289a54de32f592b480423d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 18402,
+                "upload_time": "2019-09-27T17:32:12",
+                "url": "https://files.pythonhosted.org/packages/91/1d/4b36b8afd43ba876c65132930dfa92004735b5ec916c54448cbef6c5fe71/network-automation-simplifed-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "79b469d420c6376b9e9c328618a120d3",
+                    "sha256": "eb198c7896ea8e4d422e1669aa37c9955f65c40fec6f7b671f277a5509a54863"
+                },
+                "downloads": -1,
+                "filename": "network_automation_simplifed-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "79b469d420c6376b9e9c328618a120d3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 19289,
+                "upload_time": "2019-09-27T17:55:29",
+                "url": "https://files.pythonhosted.org/packages/c8/a7/4757043d7a1cd6f37ac5e30adb28fddfb2156d918ca541a7702f84a6a5c8/network_automation_simplifed-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "020e379b31c37311117c0708b91c7aee",
+                    "sha256": "ec36b147334dff755574f8eb3eda8d9393fbc52fa546eb6b14910d3b97100304"
+                },
+                "downloads": -1,
+                "filename": "network-automation-simplifed-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "020e379b31c37311117c0708b91c7aee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 18413,
+                "upload_time": "2019-09-27T17:55:31",
+                "url": "https://files.pythonhosted.org/packages/ea/7d/a57e4ed5f08b11d99dd0e533435d7c782964c438fbb0dd7d71d4da7986d9/network-automation-simplifed-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "576e6c23ba80d7b4d8182242da15c1a2",
+                    "sha256": "40fdf4ee1c20ea2aeafba167cc38d446f5f99dd594d5cfe7c83e8839265a9771"
+                },
+                "downloads": -1,
+                "filename": "network_automation_simplifed-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "576e6c23ba80d7b4d8182242da15c1a2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 19557,
+                "upload_time": "2019-10-07T21:36:36",
+                "url": "https://files.pythonhosted.org/packages/33/58/09cb7beb3ab6f02b99e7aa5f8c12525b672d040f4a16a6b37b90ba187ee0/network_automation_simplifed-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0cb03d1c7e50a0f40288aa42711fc92f",
+                    "sha256": "963819d1bfa2cef0b8e3ef592a337d79774222d7da51b4b2a3bd677c469a3515"
+                },
+                "downloads": -1,
+                "filename": "network-automation-simplifed-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0cb03d1c7e50a0f40288aa42711fc92f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 18684,
+                "upload_time": "2019-10-07T21:36:38",
+                "url": "https://files.pythonhosted.org/packages/30/9a/2346fb746eecc09ee233a89ec22232f2ad2c69b3dfbe0173b195a384285e/network-automation-simplifed-0.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "576e6c23ba80d7b4d8182242da15c1a2",
+                "sha256": "40fdf4ee1c20ea2aeafba167cc38d446f5f99dd594d5cfe7c83e8839265a9771"
+            },
+            "downloads": -1,
+            "filename": "network_automation_simplifed-0.0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "576e6c23ba80d7b4d8182242da15c1a2",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7",
+            "size": 19557,
+            "upload_time": "2019-10-07T21:36:36",
+            "url": "https://files.pythonhosted.org/packages/33/58/09cb7beb3ab6f02b99e7aa5f8c12525b672d040f4a16a6b37b90ba187ee0/network_automation_simplifed-0.0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0cb03d1c7e50a0f40288aa42711fc92f",
+                "sha256": "963819d1bfa2cef0b8e3ef592a337d79774222d7da51b4b2a3bd677c469a3515"
+            },
+            "downloads": -1,
+            "filename": "network-automation-simplifed-0.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "0cb03d1c7e50a0f40288aa42711fc92f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7",
+            "size": 18684,
+            "upload_time": "2019-10-07T21:36:38",
+            "url": "https://files.pythonhosted.org/packages/30/9a/2346fb746eecc09ee233a89ec22232f2ad2c69b3dfbe0173b195a384285e/network-automation-simplifed-0.0.3.tar.gz"
+        }
+    ]
+}

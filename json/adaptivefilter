@@ -1,0 +1,259 @@
+{
+    "info": {
+        "author": "Chris Wright",
+        "author_email": "chris@inkyspider.co.uk",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python",
+            "Topic :: Adaptive Technologies",
+            "Topic :: Scientific/Engineering :: Artificial Intelligence",
+            "Topic :: Software Development"
+        ],
+        "description": "Adaptive-filter\n===============\nA python library and set of CLI tools to simplify iterative adaptive filter implementation and experimentation.\n\nConsole Commands\n================\nThis package provides ``generate_data`` and ``plot_error_data`` console commands. ``generate_data`` takes one or more ``yaml`` configuration files as input. Filter instances defined in this configuration file will then be run and an error and weights csv data file generated for analysis or plotting with the ``plot_error_data`` command.\n\n``plot_error_data``\n-------------------\nThe ``plot_error_data`` command takes a list of error csv files and an attribute hierarchy to filter and group filter isntance data and plot them on a graph. The last attribute passed to the ``--attribute_hierarchy`` CLI option will be used to select multiple error data sets to plot on the same figure. Preceeding labels will sort the data into those groups in the specified order. For example, ``plot_error_data *error.csv --attribute_hierarchy decay_mode gain decay_zero_point`` will produce a multiplot of decay_zero_points for each decay mode, for each gain.\n\nYAML Format\n===========\nCommon features of the CLI tools include specifying audio files, filter settings, and parameters to iterate.\n\nAudio Files\n-----------\nThe ``AudioFile`` class can be initialised with the following yaml fragment::\n\n    path: \"path/to/audio.wav\"     # Mandatory\n    channel: 1                    # Optional - Default: 0\n    start_frame: 44100            # Optional - Default: 0 / first frame of file\n    end_frame: 88200              # Optional - Default: last frame of file\n\n\nFilter Weight Amplitude Envelope\n--------------------------------\nThe ``AmplitudeEnvelope`` class, which is passed to an ``InitialWeights`` class, can be initialised with the following yaml fragment::\n\n    decay_mode: \"linear-db\"       # Optional - Default: zeros\n    decay_start_point: 200        # Optional - Default: 0\n    decay_zero_point: 1000        # Optional - Default: end of envelope\n\n\nInitial Filter Weights\n----------------------\nThe ``InitialWeights`` class is used to customise the initial filter weights used by the adaptive filter. The settings for the initial weights can be defined with the following yaml fragment::\n\n    mode: \"random\"                # Optional - Default: random\n    gain: 0.1                     # Optional - Default: 1\n    envelope:                     # Optional - Default: default envelope arguments\n        # AmplitudeEnvelope arguments\n\n\nAdaptive Filter Settings\n------------------------\nThe ``FilterInstance`` class aggregates the classes above to manage adapting the filter to the provided impulse file. Filter properties can be specified with the following yaml fragment::\n\n    learning_rate: 1.0\n    filter_length: 100            # Optional - Default: impulse_file frame count\n    iterations: 1000\n    read_block_increment: 8       # Optional - Default: 1\n    weight_log_count: 8\n    initial_weights:              # Optional - Default: default initial weights arguments\n        # InitialWeights arguments \n\nSingle Run Example\n------------------\nThe following yaml will trigger one run of the filter and generate its coresponding results::\n\n    input_file:\n        path: \"path/to/source.wav\"    # eg. 44.1kHz sample rate, 20 seconds long\n        start_frame: 44100            # Start 1 second into file \n        \n    impulse_file:\n        path: \"path/to/impulse.wav\"   # eg. 1 second long\n        end_frame: 11025              # Truncate impulse to speed up convolution\n        \n    filter_settings:\n        learning_rate: 1.0\n        filter_length: 2000           # Shorten filter to speed up total run\n        iterations: 1000\n        read_block_increment: 8\n        weight_log_count: 8\n        initial_weights:\n            noise_mode: \"random\"\n            gain: 0.01\n            envelope:\n                decay_mode: \"linear-db\"\n                decay_zero_point: 1100    # Drop to zero after 10% of impulse length\n\nIteration Hierarchy\n-------------------\nIn order to allow for multiple variables to be changed iteratively, a description of how variables are changed and when is needed. The hierarchy shows which variables change most or least frequently (variables with higher status change less frequently):\n\n1. Input file\n    1. Path\n    2. Channel\n    3. Start-frame/end-frame - *If both are being varied, they must have the same number of options to be iterated as pairs*\n2. Impulse file - *Internal hierarchy same as input file*\n3. Filter initial weights\n    1. Decay mode\n    2. Gain\n    3. Decay start point\n    4. Decay zero point\n4. Filter learning rate\n5. Read block increment\n\nIt should be noted that the total number of filter runs will equal the product of the number of options for each variable.",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/inkychris/adaptive-filter",
+        "keywords": "adaptive,signal-processing",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "adaptivefilter",
+        "package_url": "https://pypi.org/project/adaptivefilter/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/adaptivefilter/",
+        "release_url": "https://pypi.org/project/adaptivefilter/0.12/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Adaptive filter orchestration library for iteratively running adaptive filters with varying parameters",
+        "version": "0.12"
+    },
+    "last_serial": 3687297,
+    "releases": {
+        "0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac3e62c5a90567e7748ac9117bff38e8",
+                    "sha256": "dbffb16ad58a23aed85fc441fb2e8c0755a1314f37943fc7a3a59a79c846fdc3"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ac3e62c5a90567e7748ac9117bff38e8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13695,
+                "upload_time": "2018-03-17T18:46:39",
+                "url": "https://files.pythonhosted.org/packages/27/a1/94a24ecb91a61336109d5f8dc20bd58acc06a504d917b9a06ab4e8cf28cb/adaptivefilter-0.10.tar.gz"
+            }
+        ],
+        "0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0ecfae29f61c5b3fc2e560aa0251dc2e",
+                    "sha256": "62c941c0cb334f76c264358e19ea08fd799bc93390c84ba4a840299df010e50d"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0ecfae29f61c5b3fc2e560aa0251dc2e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13765,
+                "upload_time": "2018-03-17T21:22:43",
+                "url": "https://files.pythonhosted.org/packages/29/da/36c8456c4880e37a95831e205a407d81d0481b1cf51df8e7192e13211cab/adaptivefilter-0.11.tar.gz"
+            }
+        ],
+        "0.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4112195da5aaaf86df1a975a1ab582c5",
+                    "sha256": "cf2caf1e6517ee984f5f8ec2c6d96ab7c675aba193217de4f75b68dcce7247ea"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4112195da5aaaf86df1a975a1ab582c5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 15876,
+                "upload_time": "2018-03-20T10:50:11",
+                "url": "https://files.pythonhosted.org/packages/2d/4e/18aa4c16ad8c8d372593353add01213800ed02fc1780d4b375dee9d77459/adaptivefilter-0.12.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "64ea6f3054a5b8b0f6bc04892e946a5d",
+                    "sha256": "a70232a287a48740a45998bea8625d25df8c0e0b5d45fc47bc343106b551b60a"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "64ea6f3054a5b8b0f6bc04892e946a5d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8412,
+                "upload_time": "2018-03-13T02:02:01",
+                "url": "https://files.pythonhosted.org/packages/8e/22/239677a1ecd5b9f4dafa30b68b6b1d1574c96d9c66715006c11c00d99ea8/adaptivefilter-0.2.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12083cb491303d0fe9b38b5638d8f5ee",
+                    "sha256": "65395a17611ec51c5b9b96300dba4e428926f0f9a687186ccf482dee25227fa9"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "12083cb491303d0fe9b38b5638d8f5ee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8420,
+                "upload_time": "2018-03-13T02:04:31",
+                "url": "https://files.pythonhosted.org/packages/50/75/5093ff48f136a63ef528cad33b674f662cc2f278100f2d3ce927db3805e8/adaptivefilter-0.3.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18d8231a655816d70a0096a386618bce",
+                    "sha256": "1d14efdc11b9e5e9f6f55b185c3a1368fee3f3eb7b910e2d225d40da641f4ef0"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18d8231a655816d70a0096a386618bce",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8431,
+                "upload_time": "2018-03-13T02:40:45",
+                "url": "https://files.pythonhosted.org/packages/c5/78/0d171be2838ef1b7a19e87357e1f2c4514d1bc879a215a776266834cc1ba/adaptivefilter-0.4.tar.gz"
+            }
+        ],
+        "0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cd62d8a42ad015d419f588f78cf3618a",
+                    "sha256": "087c129906d0af864a20be4ae9cc6ae351a2d84c155b7e25fd58f29227847101"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cd62d8a42ad015d419f588f78cf3618a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8153,
+                "upload_time": "2018-03-13T16:01:07",
+                "url": "https://files.pythonhosted.org/packages/77/6a/e27ecda2842bb07445eb48bf40de5923cfc47a800bebd529a321c5904b05/adaptivefilter-0.5.tar.gz"
+            }
+        ],
+        "0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7ccdf094a526f7c7bd7e8e98c7861e79",
+                    "sha256": "89e95fbd3e1d8a9971622ec91c2789e64d086bdb1f33b399670673d3eb0cac76"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7ccdf094a526f7c7bd7e8e98c7861e79",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8408,
+                "upload_time": "2018-03-16T19:06:06",
+                "url": "https://files.pythonhosted.org/packages/f1/88/79f66dfd51a061359ff3ce951624691a0319d03f2f87f2bb991a03f374c8/adaptivefilter-0.6.tar.gz"
+            }
+        ],
+        "0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "28d85029aa35547fbfca15b810388386",
+                    "sha256": "383f3c6d529a34ceedf8e3c0cc8a70666d7105dd52ab091b4bc969b8203ca018"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "28d85029aa35547fbfca15b810388386",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13470,
+                "upload_time": "2018-03-16T21:25:36",
+                "url": "https://files.pythonhosted.org/packages/e2/57/f2fa9a602859ac4c3c7e7d0494f2c05ec8014414fe6e09e4390096945146/adaptivefilter-0.7.tar.gz"
+            }
+        ],
+        "0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "52edba7d96c4c79238ff16132861f84d",
+                    "sha256": "a4540bd19e855d5c8494639dd3383c9ab5debcd5a23689fbbb01080cb8977a56"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "52edba7d96c4c79238ff16132861f84d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13680,
+                "upload_time": "2018-03-17T13:28:56",
+                "url": "https://files.pythonhosted.org/packages/8b/57/997f8f31ca2655d651b4f5627faa5c1f9399868574ef2b6299536372635d/adaptivefilter-0.8.tar.gz"
+            }
+        ],
+        "0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2db365dec092542306849c680f4a3d0b",
+                    "sha256": "54bfa5b258d24462ed4943a95e21ee395bdc880f1f68d944e894dcba9cbb74fc"
+                },
+                "downloads": -1,
+                "filename": "adaptivefilter-0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2db365dec092542306849c680f4a3d0b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13684,
+                "upload_time": "2018-03-17T18:13:35",
+                "url": "https://files.pythonhosted.org/packages/0b/2b/611962bfeff2084bd3b26533c0d8c3e3cd88196d687b74e59205c7d2e04c/adaptivefilter-0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4112195da5aaaf86df1a975a1ab582c5",
+                "sha256": "cf2caf1e6517ee984f5f8ec2c6d96ab7c675aba193217de4f75b68dcce7247ea"
+            },
+            "downloads": -1,
+            "filename": "adaptivefilter-0.12.tar.gz",
+            "has_sig": false,
+            "md5_digest": "4112195da5aaaf86df1a975a1ab582c5",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 15876,
+            "upload_time": "2018-03-20T10:50:11",
+            "url": "https://files.pythonhosted.org/packages/2d/4e/18aa4c16ad8c8d372593353add01213800ed02fc1780d4b375dee9d77459/adaptivefilter-0.12.tar.gz"
+        }
+    ]
+}

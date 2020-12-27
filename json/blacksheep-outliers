@@ -1,0 +1,125 @@
+{
+    "info": {
+        "author": "Ruggles Lab",
+        "author_email": "lili.blumenberg@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: MacOS",
+            "Operating System :: Unix",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# BlackSheep\n##### A tool for differential extreme-value analysis\n\n### Installation\nWith pip\n```bash\npip install blacksheep-outliers\n```\nWith conda\n```bash\nconda install -c bioconda blacksheep-outliers\n```\n\n### Requirements\npandas  \nnumpy  \nmatplotlib  \nseaborn  \nscipy  \nscikit-learn  \n\n\n### Usage\n##### In python\n```python\nimport deva\n\n# Read in data\nvalues_file = '' #insert values file here\nannotations_file = '' #insert annotations file here\nvalues = deva.read_in_values(values_file)\nannotations = deva.read_in_values(annotations_file)\n\n# Binarize annotation columns\nannotations = deva.binarize_annotations(annotations)\n\n# Run outliers comparative analysis\noutliers, qvalues = deva.run_outliers(\n    values, annotations, \n    save_outlier_table=True,\n    save_qvalues=True, \n    save_comparison_summaries=True\n)\n\n# Pull out results\nqvalues_table = qvalues.df\nvis_table = outliers.frac_table\n\n# Make heatmaps for significant genes\nfor col in annotations.columns:\n    axs = deva.plot_heatmap(annotations, qvalues_table, col, vis_table, savefig=True)\n\n# Normalize values\nphospho = deva.read_in_values('') #Fill in file here\nprotein = deva.read_in_values('') #Fill in file here\n\n\n```\n\n##### Command line interface\n*Example*\n```bash\ndeva binarize annotations.tsv --output_prefix annotations_test\ndeva outliers values.csv annotations_test.binarized.tsv --output_prefix test \\\n--write_outlier_table --write_comparison_summaries --write_gene_list \\\n--make_heatmaps\n```\n\n*Full help*\nJust make the outliers table:\n```bash\nusage: deva outliers_table [-h] [--output_prefix OUTPUT_PREFIX] [--iqrs IQRS]\n                           [--up_or_down {up,down}] [--ind_sep IND_SEP]\n                           [--do_not_aggregate] [--write_frac_table]\n                           values\n\nTakes a table of values and converts to a table of outlier counts.\n\npositional arguments:\n  values                File path to input values. Columns must be samples,\n                        genes must be sites or genes. Only .tsv and .csv\n                        accepted.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  --output_prefix OUTPUT_PREFIX\n                        Output prefix for writing files. Default outliers.\n  --iqrs IQRS           Number of interquartile ranges (IQRs) above or below\n                        the median to consider a value an outlier. Default is\n                        1.5 IQRs.\n  --up_or_down {up,down}\n                        Whether to look for up or down outliers. Choices are\n                        up or down. Default up.\n  --ind_sep IND_SEP     If site labels have a parent molecule (e.g. a gene\n                        name such as ATM) and a site identifier (e.g. S365)\n                        this is the delimiter between the two elements.\n                        Default is -\n  --do_not_aggregate    Use flag if you do not want to sum outliers based on\n                        site prefixes.\n  --write_frac_table    Use flag if you want to write a table with fraction of\n                        values per site, per sample that are outliers. Will\n                        not be written by default. Useful for visualization.\n```\n\nBinarize the columns in an annotations table. \n**Warning: do not include non-categorical columns, or columns you don't want binarized. You'll\n end up with a huge un-wieldly table. **\n```bash\nusage: deva binarize [-h] [--output_prefix OUTPUT_PREFIX] annotations\n\nTakes an annotation table where some columns may have more than 2 possible\nvalues (not including empty/null values) and outputs an annotation table with\nonly two values per annotation. Propagates null values.\n\npositional arguments:\n  annotations           Annotation table with samples as rows and annotation\n                        labels as columns.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  --output_prefix OUTPUT_PREFIX\n                        Output prefix for writing files. Default outliers.\n```\n\nCompare all the groups described in columns of an annotation table using outlier counts\n```bash\nusage: deva compare_groups [-h] [--output_prefix OUTPUT_PREFIX]\n                           [--frac_filter FRAC_FILTER]\n                           [--write_comparison_summaries] [--iqrs IQRS]\n                           [--up_or_down {up,down}] [--write_gene_list]\n                           [--make_heatmaps] [--fdr FDR]\n                           [--red_or_blue {red,blue}]\n                           [--annotation_colors ANNOTATION_COLORS]\n                           outliers_table annotations\n\nTakes an annotation table and outlier count table (output of outliers_table)\nand outputs qvalues from a statistical test that looks for enrichment of\noutlier values in each group in the annotation table. For each value in each\ncomparison, the qvalue table will have 1 column, if there are any genes in\nthat comparison.\n\npositional arguments:\n  outliers_table        Table of outlier counts (output of outliers_table).\n                        Must be .tsv or .csv file, with outlier and non-\n                        outlier counts as columns, and genes/sites as rows.\n  annotations           Table of annotations. Must be .csv or .tsv. Samples as\n                        rows and comparisons as columns. Comparisons must have\n                        only unique values (not including missing values). If\n                        there are more options than that, you can use binarize\n                        to prepare the table.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  --output_prefix OUTPUT_PREFIX\n                        Output prefix for writing files. Default outliers.\n  --frac_filter FRAC_FILTER\n                        The minimum fraction of samples per group that must\n                        have an outlier in a gene toconsider that gene in the\n                        analysis. This is used to prevent a high number of\n                        outlier values in 1 sample from driving a low qvalue.\n                        Default 0.3\n  --write_comparison_summaries\n                        Use flag to write a separate file for each column in\n                        the annotations table, with outlier counts in each\n                        group, p-values and q-values in each group.\n  --iqrs IQRS           Number of IQRs used to define outliers in the input\n                        count table. Optional.\n  --up_or_down {up,down}\n                        Whether input outlier table represents up or down\n                        outliers. Needed for output file labels. Default up\n  --write_gene_list     Use flag to write a list of significantly enriched\n                        genes for each value in each comparison. If used, need\n                        an fdr threshold as well.\n  --make_heatmaps       Use flag to draw a heatmap of signficantly enriched\n                        genes for each value in each comparison. If used, need\n                        an fdr threshold as well.\n  --fdr FDR             FDR cut off to use for signficantly enriched gene\n                        lists and heatmaps. Default 0.05\n  --red_or_blue {red,blue}\n                        If --make_heatmaps is called, color of values to draw\n                        on heatmap. Default red.\n  --annotation_colors ANNOTATION_COLORS\n                        File with color map to use for annotation header if\n                        --make_heatmaps is used. Must have a 'value color'\n                        format for each value in annotations. Any value not\n                        represented will be assigned a new color.\n```\n\nMake heatmaps visualizing enriched genes for each group in an annotation table\n```bash\nusage: deva visualize [-h] [--output_prefix OUTPUT_PREFIX]\n                      [--annotations_to_show ANNOTATIONS_TO_SHOW [ANNOTATIONS_TO_SHOW ...]]\n                      [--fdr FDR] [--red_or_blue {red,blue}]\n                      [--annotation_colors ANNOTATION_COLORS]\n                      [--write_gene_list]\n                      comparison_qvalues annotations visualization_table\n                      comparison_of_interest\n\nUsed to make custom heatmaps from significant genes.\n\npositional arguments:\n  comparison_qvalues    Table of qvalues, output from compare_groups. Must be\n                        .csv or .tsv. Has genes/sites as rows and comparison\n                        values as columns.\n  annotations           Table of annotations used to generate qvalues.\n  visualization_table   Values to visualize in heatmap. Samples as columns and\n                        genes/sites as rows. Using outlier fraction table is\n                        recommended, but original values can also be used if\n                        no aggregation was used.\n  comparison_of_interest\n                        Name of column in qvalues table from which to\n                        visualize significant genes.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  --output_prefix OUTPUT_PREFIX\n                        Output prefix for writing files. Default outliers.\n  --annotations_to_show ANNOTATIONS_TO_SHOW [ANNOTATIONS_TO_SHOW ...]\n                        Names of columns from the annotation table to show in\n                        the header of the heatmap. Default is all columns.\n  --fdr FDR             FDR threshold to use to select genes to visualize.\n                        Default 0.05\n  --red_or_blue {red,blue}\n                        Color of values to draw on heatmap. Default red.\n  --annotation_colors ANNOTATION_COLORS\n                        File with color map to use for annotation header. Must\n                        have a line with 'value color' format for each value\n                        in annotations. Any value not represented will be\n                        assigned a new color.\n  --write_gene_list     Use flag to write a list of significantly enriched\n                        genes for each value in each comparison.\n```\n\nRun the whole pipeline: call outliers, perform comparisons on all groups in an annotation table\n, optionally make heatmaps for each group. \n```bash\nusage: deva outliers [-h] [--output_prefix OUTPUT_PREFIX] [--iqrs IQRS]\n                     [--up_or_down {up,down}] [--do_not_aggregate]\n                     [--write_outlier_table] [--write_frac_table]\n                     [--ind_sep IND_SEP] [--frac_filter FRAC_FILTER]\n                     [--write_comparison_summaries] [--fdr FDR]\n                     [--write_gene_list] [--make_heatmaps]\n                     [--red_or_blue {red,blue}]\n                     [--annotation_colors ANNOTATION_COLORS]\n                     values annotations\n\nRuns whole outliers pipeline. Has options to output every possible output.\n\npositional arguments:\n  values                File path to input values. Samples are columns and\n                        genes/sites are rows. Only .tsv and .csv accepted.\n  annotations           File path to annotation values. Rows are sample names,\n                        header is different annotations. e.g. mutation status.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  --output_prefix OUTPUT_PREFIX\n                        Output prefix for writing files. Default outliers.\n  --iqrs IQRS           Number of inter-quartile ranges (IQRs) above or below\n                        the median to consider a value an outlier. Default is\n                        1.5.\n  --up_or_down {up,down}\n                        Whether to look for up or down outliers. Choices are\n                        up or down. Default up.\n  --do_not_aggregate    Use flag if you do not want to sum outliers based on\n                        site prefixes.\n  --write_outlier_table\n                        Use flag to write a table of outlier counts.\n  --write_frac_table    Use flag if you want to write a table with fraction of\n                        values per site per sample that are outliers. Useful\n                        for custom visualization.\n  --ind_sep IND_SEP     If site labels have a parent molecule (e.g. a gene\n                        name such as ATM) and a site identifier (e.g. S365)\n                        this is the delimiter between the two elements.\n                        Default is -\n  --frac_filter FRAC_FILTER\n                        The minimum fraction of samples per group that must\n                        have an outlier in a gene toconsider that gene in the\n                        analysis. This is used to prevent a high number of\n                        outlier values in 1 sample from driving a low qvalue.\n                        Default 0.3\n  --write_comparison_summaries\n                        Use flag to write a separate file for each column in\n                        the annotations table, with outlier counts in each\n                        group, p-values and q-values in each group.\n  --fdr FDR             FDR threshold to use to select genes to visualize.\n                        Default 0.05\n  --write_gene_list     Use flag to write a list of significantly enriched\n                        genes for each value in each comparison.\n  --make_heatmaps       Use flag to draw a heatmap of significantly enriched\n                        genes for each value in each comparison. If used, need\n                        an fdr threshold as well.\n  --red_or_blue {red,blue}\n                        Color of values to draw on heatmap. Default red.\n  --annotation_colors ANNOTATION_COLORS\n                        File with color map to use for annotation header. Must\n                        have a line with 'value color' format for each value\n                        in annotations. Any value not represented will be\n                        assigned a new color.\n``` \n\nFor finding the value differences that cannot be explained by a different data level. For example\n, this can be used to find out variation due to differential phosphorylation (phospho as\n target_values) not due to protein abundance variation (protein as normalizer_values).  \n **Warning: Row IDs between the two tables must match**  \n```bash\nusage: deva normalize [-h] [--ind_sep IND_SEP] [--output_prefix OUTPUT_PREFIX]\n                      target_values normalizer_values\n\nTakes a target table and a normalizer table, and returns a normalized target\ntable. Builds a regularized linear model for each line in the target table\nusing the matching row ID in the normalizer table, and finds the residuals of\nthat model for each value. for example, this could be used to normalize\nphospho-peptide data by protein abundance data; resulting values will reflect\nonly abundance differences due to phosphorylation changes, not peptide\nabundances. Another use could be normalizing RNA by CNA.\n\npositional arguments:\n  target_values         Table of values to be normalized. Sites/genes as rows,\n                        samples as columns. Row identifiers must be unique.\n  normalizer_values     Table of values to use for normalization. Sites/genes\n                        as rows, samples as columns. Row identifiers must be\n                        unique, and must match the pre-ind_sep part of the\n                        target values identifiers.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  --ind_sep IND_SEP     Separator used in index if target is site specific.\n                        Row IDs before ind_sep in the target must match the\n                        row IDs in normalizer_values. If row IDs already\n                        match, leave blank.\n  --output_prefix OUTPUT_PREFIX\n                        Prefix for output file. Suffix will be\n                        '.normalized.tsv'\n\n```\n\nFor a more thorough vignette, refer to our [supplementary notebooks](https://github.com\n/ruggleslab/blacksheep_supp) \n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ruggleslab/blackSheep/",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "blacksheep-outliers",
+        "package_url": "https://pypi.org/project/blacksheep-outliers/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/blacksheep-outliers/",
+        "project_urls": {
+            "Homepage": "https://github.com/ruggleslab/blackSheep/"
+        },
+        "release_url": "https://pypi.org/project/blacksheep-outliers/0.0.1/",
+        "requires_dist": [
+            "pandas (>=0.24.2)",
+            "numpy (>=1.16.4)",
+            "scipy (>=1.2.1)",
+            "matplotlib (>=3.1.0)",
+            "seaborn (>=0.9.0)",
+            "scikit-learn (>=0.21.2)"
+        ],
+        "requires_python": "",
+        "summary": "A package for differential extreme values analysis",
+        "version": "0.0.1"
+    },
+    "last_serial": 5682676,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "429af74bd2f5f6290889a170de04fb83",
+                    "sha256": "18c01ee19cbb39939f0327ff3d65ca24708683462967c11182a7a16c5b813e8a"
+                },
+                "downloads": -1,
+                "filename": "blacksheep_outliers-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "429af74bd2f5f6290889a170de04fb83",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 27717,
+                "upload_time": "2019-08-14T23:00:10",
+                "upload_time_iso_8601": "2019-08-14T23:00:10.284659Z",
+                "url": "https://files.pythonhosted.org/packages/db/1d/a279eaf8f7142ed4d60f64a534270705d5fde177c2c52d5ecbd9e78ef236/blacksheep_outliers-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "179d321187f2d509036e5c999076b1dd",
+                    "sha256": "23cdfc90986d13d1dc6ada91fb509b6614b02eccd7c597ffa758fb5d7d2d1d49"
+                },
+                "downloads": -1,
+                "filename": "blacksheep-outliers-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "179d321187f2d509036e5c999076b1dd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 23993,
+                "upload_time": "2019-08-14T23:00:14",
+                "upload_time_iso_8601": "2019-08-14T23:00:14.653935Z",
+                "url": "https://files.pythonhosted.org/packages/cf/c0/0bbfb6e3916723ed4f164b55b61158e6170206885f28a9201cc93d0a6027/blacksheep-outliers-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "429af74bd2f5f6290889a170de04fb83",
+                "sha256": "18c01ee19cbb39939f0327ff3d65ca24708683462967c11182a7a16c5b813e8a"
+            },
+            "downloads": -1,
+            "filename": "blacksheep_outliers-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "429af74bd2f5f6290889a170de04fb83",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 27717,
+            "upload_time": "2019-08-14T23:00:10",
+            "upload_time_iso_8601": "2019-08-14T23:00:10.284659Z",
+            "url": "https://files.pythonhosted.org/packages/db/1d/a279eaf8f7142ed4d60f64a534270705d5fde177c2c52d5ecbd9e78ef236/blacksheep_outliers-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "179d321187f2d509036e5c999076b1dd",
+                "sha256": "23cdfc90986d13d1dc6ada91fb509b6614b02eccd7c597ffa758fb5d7d2d1d49"
+            },
+            "downloads": -1,
+            "filename": "blacksheep-outliers-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "179d321187f2d509036e5c999076b1dd",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 23993,
+            "upload_time": "2019-08-14T23:00:14",
+            "upload_time_iso_8601": "2019-08-14T23:00:14.653935Z",
+            "url": "https://files.pythonhosted.org/packages/cf/c0/0bbfb6e3916723ed4f164b55b61158e6170206885f28a9201cc93d0a6027/blacksheep-outliers-0.0.1.tar.gz"
+        }
+    ]
+}

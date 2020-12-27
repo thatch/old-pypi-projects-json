@@ -1,0 +1,93 @@
+{
+    "info": {
+        "author": "cdp",
+        "author_email": "sucpandu@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: System :: Logging"
+        ],
+        "description": "# Installation\n\n```\npip install splunk-hec-handler\n```\n\n# Features\n1. Log messages to Splunk via HTTP Event Collector (HEC).\nSee [Splunk HEC Documentation](http://docs.splunk.com/Documentation/Splunk/latest/Data/AboutHEC)\n2. All messages are logged as '_json' sourcetype by default.\n3. A dictionary with 'log_level' and 'message' keys are constructed for logging records of type string.\n\n![String log record representation in Splunk](https://github.com/vavarachen/splunk_http_handler/blob/master/resources/str_record.png)\n\n4. Dictionary objects are preserved as JSON.\n\n![Dictionary log record representation in Splunk](https://github.com/vavarachen/splunk_http_handler/blob/master/resources/dict_record.png)\n\n5. If log record (dict) does not contains a 'time' field,  one is added with the value set to current time.\n\n# Examples\n\n## Basic\n```python\nimport logging\nfrom splunk_hec_handler import SplunkHecHandler\nlogger = logging.getLogger('SplunkHecHandlerExample')\nlogger.setLevel(logging.DEBUG)\n\n# If using self-signed certificate, set ssl_verify to False\n# If using http, set proto to http\nsplunk_handler = SplunkHecHandler('splunkfw.domain.tld',\n                    'EA33046C-6FEC-4DC0-AC66-4326E58B54C3',\n                    port=8888, proto='https', ssl_verify=True,\n                    source=\"HEC_example\")\nlogger.addHandler(splunk_handler)\n```\n\nFollowing should result in a Splunk entry with _time set to current timestamp.\n\n```python\nlogger.info(\"Testing Splunk HEC Info message\")\n```\n\n![Basic Example](https://github.com/vavarachen/splunk_http_handler/blob/master/resources/basic_example.png)\n\nFollowing should result in a Splunk entry of Monday, 08/06/2018 4:33:43 AM, and contain two\ncustom fields (color, api_endpoint).  Custom fields can be seen in verbose mode. \n\n```python\ndict_obj = {'time': 1533530023, 'fields': {'color': 'yellow', 'api_endpoint': '/results'},\n                    'user': 'foobar', 'app': 'my demo', 'severity': 'low', 'error codes': [1, 23, 34, 456]}\nlogger.error(dict_obj)\n```\n\n![Fields Example](https://github.com/vavarachen/splunk_http_handler/blob/master/resources/fields_example.png)\n\n:warning: In order to use custom fields, 'sourcetype' property must be specified in the event \nand sourcetype definition must enable *indexed field extractions*.\n\n\nSee http://dev.splunk.com/view/event-collector/SP-CAAAE6P for 'fields'\n\n## Advanced\nUsing 'fields', many of the metadata fields associated with an event can be changed from the default.  Additionally, new\nfields, which are not part of the event, can be also added.\n\nIn the following example, we are sending events to two different indexes (see \"Select Allowed Indexes (optional)\" setting)\nand overriding 'host', 'source', 'sourcetype' fields, while adding some new fields ('color', 'api_endpoint').\n\n```python\nimport logging\nfrom splunk_hec_handler import SplunkHecHandler\n\nlogger = logging.getLogger('SplunkHecHandlerExample')\nlogger.setLevel(logging.DEBUG)\n\nstream_handler = logging.StreamHandler()\nstream_handler.level = logging.DEBUG\nlogger.addHandler(stream_handler)\n\ntoken = \"EA33046C-6FEC-4DC0-AC66-4326E58B54C3'\nsplunk_handler = SplunkHecHandler('splunkfw.domain.tld',\n                                 token, index=\"hec\",\n                                 port=8080, proto='https', ssl_verify=False\n                                 source=\"evtx2json\", sourcetype='xxxxxxxx_json')\nlogger.addHandler(splunk_handler)\n\n\ndict_obj = {'fields': {'color': 'yellow', 'api_endpoint': '/results', 'host': 'app01', 'index':'hec'},\n            'user': 'foobar', 'app': 'my demo', 'severity': 'low', 'error codes': [1, 23, 34, 456]}\nlogger.info(dict_obj)\n\nlog_summary_evt = {'fields': {'index': 'adhoc', 'sourcetype': '_json', 'source': 'adv_example'}, 'exit code': 0, 'events logged': 100}\nlogger.debug(log_summary_evt)\n```\n\n![Advanced Fields Example](https://github.com/vavarachen/splunk_http_handler/blob/master/resources/advanced_example.png)\n\n\n# Todo\n1. Event acknowledgement support",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/vavarachen/splunk_hec_handler",
+        "keywords": "",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "cdphandler-splunk",
+        "package_url": "https://pypi.org/project/cdphandler-splunk/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/cdphandler-splunk/",
+        "project_urls": {
+            "Homepage": "https://github.com/vavarachen/splunk_hec_handler"
+        },
+        "release_url": "https://pypi.org/project/cdphandler-splunk/1.1.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A Python logging handler to sends logs to Splunk using HTTP event collector (HEC)",
+        "version": "1.1.0"
+    },
+    "last_serial": 5996255,
+    "releases": {
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a3655eb63dc09323028a391093c870ec",
+                    "sha256": "48ba7a0502483e6866462a162f7c1baa2fe3ce267afb3bdb4137f7d61b1e5592"
+                },
+                "downloads": -1,
+                "filename": "cdphandler_splunk-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a3655eb63dc09323028a391093c870ec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5361,
+                "upload_time": "2019-10-18T15:44:19",
+                "upload_time_iso_8601": "2019-10-18T15:44:19.274985Z",
+                "url": "https://files.pythonhosted.org/packages/0a/86/f6ecbc9d9ada5e17b9c1d6b26fbd9b67da552d00f5de65338f8a89fb9067/cdphandler_splunk-1.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a3655eb63dc09323028a391093c870ec",
+                "sha256": "48ba7a0502483e6866462a162f7c1baa2fe3ce267afb3bdb4137f7d61b1e5592"
+            },
+            "downloads": -1,
+            "filename": "cdphandler_splunk-1.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a3655eb63dc09323028a391093c870ec",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5361,
+            "upload_time": "2019-10-18T15:44:19",
+            "upload_time_iso_8601": "2019-10-18T15:44:19.274985Z",
+            "url": "https://files.pythonhosted.org/packages/0a/86/f6ecbc9d9ada5e17b9c1d6b26fbd9b67da552d00f5de65338f8a89fb9067/cdphandler_splunk-1.1.0.tar.gz"
+        }
+    ]
+}

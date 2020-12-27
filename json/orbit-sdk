@@ -1,0 +1,105 @@
+{
+    "info": {
+        "author": "Bynder",
+        "author_email": "integrations@bynder.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "Bynder Orbit Python SDK\n=======================\n\nThe main goal of this SDK is to speed up the integration of Bynder Orbit\nusers who use Python. Making it easier to connect to the Bynder Orbit\nAPI (`documentation <https://app.swaggerhub.com/apis/Bynder_BV/Orbit/1.0.0>`_) and execute requests on it.\n\nRequirements and dependencies\n-----------------------------\n\nThe Python SDK requires the following in order to fully work:\n\n-  ``Python >= 3.6``, older versions of Python won't work.\n\nPip should handle all the dependencies automatically.\n\nInstallation\n------------\n\nThis SDK depends on a few libraries in order to work, installing it with\npip should take care of everything automatically.\n\nBefore you install the SDK we recommend you to setup a virtual\nenvironment:\n\n.. code:: bash\n\n    virtualenv -p python3.6 venv  # create virtual environment\n    source venv/bin/activate      # activate virtual environment\n\nAfter you have successfully setup a virtual environment you can install\nthe SDK with `pip <https://pip.pypa.io/en/stable/installing/>`__. Run\nthe following command while your virtual environment is active.\n\n.. code:: bash\n\n    pip install orbit-sdk\n\nTo use the SDK, you have to import it at the top of your file:\n\n.. code:: python\n\n    from orbit_sdk import (OrbitClient, Configuration, Token)\n\nHow to use it\n-------------\n\nThis is a simple example on how to retrieve data from Orbit. For a more\ndetailed example of implementation refer to the `sample\ncode <https://github.com/Bynder/orbit-python-sdk/blob/master/example/app.py>`__.\n\nBefore executing any request to the Bynder Orbit API we need to\ninstantiate the **OrbitClient** class. The **OrbitClient** expects a\n**Configuration** and optionally a callback. The configuration can be\nused to configure the client. The callback is a function you can create\nyourself which needs to accept a token as a parameter. Your callback\nfunction will be executed when your access\\_token is expired and a new\none is generated using auto refresh. This allows you to keep track of\nthe latest access and refresh tokens.\n\n.. code:: python\n\n        api_configuration = Configuration(\n            client_id=config.get('ORBIT_API', 'client_id'),\n            client_secret=config.get('ORBIT_API', 'client_secret'),\n            redirect_uri=config.get('ORBIT_API', 'redirect_uri')\n        )\n\n        def callback_func(token):\n            print('New access token: {}'.format(token.access_token))\n            print('New refresh token: {}'.format(token.refresh_token))\n\n        orbit_client = OrbitClient(\n            configuration=api_configuration,\n            callback=callback_func\n        )\n\nWe encourage you to store the tokens in a `configuration\nfile <https://docs.python.org/3/library/configparser.html>`__ or as\nenvrioment variables. This will help you to keep your credentials safe.\n\nAfter getting the **OrbitClient** configured successfully we need to get\nan instance of the **AssetClient** in order to do any of the API calls\nrelative to the Bynder Orbit assets:\n\n.. code:: python\n\n         asset_client = orbit_client.asset_client\n\nAnd with this, we can start our request to the API, listed in the\n**Methods Available** section following. Short example of getting all\nthe **Assets**:\n\n.. code:: python\n\n        assets = asset_client.assets()\n\nThis call will return a list with all the Assets available in Bynder\nOrbit. Note that some of the calls accept a query array in order to\nfilter the results via the API call params. For instance, if we only\nwanted to retrieve **2 images** here is what the call would look like:\n\n.. code:: python\n\n        two_images = asset_client.assets({\n            'limit': 2,\n            'extension': 'jpeg,png'\n        })\n\nMethods Available\n-----------------\n\nThese are the methods currently available on the **Bynder Orbit Python\nSDK**.\n\nOrbitClient:\n^^^^^^^^^^^^\n\nThe OrbitClient can be used to generate an authorize url and to create\ntokens which you can use to make API requests. If you have valid tokens\nyou can get the asset\\_client to execute API requests relative to the\nAssets in Bynder Orbit.\n\n.. code:: python\n\n        asset_client\n        collection_client\n        user_client\n        tag_client\n        account()\n        authorize_url(code_verifier, state)\n        token(code, code_verifier)\n\nAssetClient:\n^^^^^^^^^^^^\n\nAll calls related to the assets in Bynder Orbit can be executed using\nthe AssetClient.\n\n.. code:: python\n\n        assets()\n        asset_by_id(asset_id)\n        delete(asset_id)\n        permanent_preview_url(asset_id)\n        download_url(asset_id)\n        upload_file(file_path, name)\n\nCollectionClient:\n^^^^^^^^^^^^^^^^^\n\nAll calls related to the collections in Bynder Orbit can be executed using\nthe CollectionClient.\n\n.. code:: python\n\n        collections()\n        collection_by_id(collection_id)\n\nUserClient:\n^^^^^^^^^^^\n\nAll calls related to users in Bynder Orbit can be executed using\nthe UserClient.\n\n.. code:: python\n\n        current_user()\n\nTagClient:\n^^^^^^^^^^\n\nAll calls related to tags in Bynder Orbit can be executed using\nthe TagClient.\n\n.. code:: python\n\n        tags()\n\nTests\n-----\n\nYou can run the tests by using the command below. This will install the\npackages required and execute the tests for all the clients.\n\n.. code:: bash\n\n    make test\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://www.bynder.com/en/orbit/",
+        "keywords": "bynder,dam,orbit",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "orbit-sdk",
+        "package_url": "https://pypi.org/project/orbit-sdk/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/orbit-sdk/",
+        "project_urls": {
+            "Homepage": "https://www.bynder.com/en/orbit/"
+        },
+        "release_url": "https://pypi.org/project/orbit-sdk/0.0.2/",
+        "requires_dist": [
+            "requests (==2.18.4)",
+            "python-dateutil (==2.6.1)",
+            "boto3"
+        ],
+        "requires_python": "",
+        "summary": "Bynder Orbit SDK can be used to speed up the integration of Orbit in Python",
+        "version": "0.0.2"
+    },
+    "last_serial": 3717282,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f98530139fa8fceea1371ef982ce06a",
+                    "sha256": "c1255fba0713739b82fb712ddaf58174e5fcfea927b34578d05ab0bf2d4ad932"
+                },
+                "downloads": -1,
+                "filename": "orbit_sdk-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3f98530139fa8fceea1371ef982ce06a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 15223,
+                "upload_time": "2018-01-31T09:32:40",
+                "url": "https://files.pythonhosted.org/packages/d1/75/a51836f1f2c4f4edaa0c895c602686e84f8b22196f532cf06ac0f53f4139/orbit_sdk-0.0.1-py3-none-any.whl"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3c8c7d9d248665035f85c3881226b1a8",
+                    "sha256": "235448ed48851460bf3a6536ee5b93c153e4992c589c304ba7592ed24cc0a418"
+                },
+                "downloads": -1,
+                "filename": "orbit_sdk-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3c8c7d9d248665035f85c3881226b1a8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 23752,
+                "upload_time": "2018-03-29T14:49:34",
+                "url": "https://files.pythonhosted.org/packages/fa/37/41c5d0fc6c78a2180705dac8c39b7c2ad6c88d1823fa3592350296fa272d/orbit_sdk-0.0.2-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3c8c7d9d248665035f85c3881226b1a8",
+                "sha256": "235448ed48851460bf3a6536ee5b93c153e4992c589c304ba7592ed24cc0a418"
+            },
+            "downloads": -1,
+            "filename": "orbit_sdk-0.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "3c8c7d9d248665035f85c3881226b1a8",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 23752,
+            "upload_time": "2018-03-29T14:49:34",
+            "url": "https://files.pythonhosted.org/packages/fa/37/41c5d0fc6c78a2180705dac8c39b7c2ad6c88d1823fa3592350296fa272d/orbit_sdk-0.0.2-py3-none-any.whl"
+        }
+    ]
+}

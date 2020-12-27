@@ -1,0 +1,189 @@
+{
+    "info": {
+        "author": "Pawel Krawczyk",
+        "author_email": "pawel.krawczyk@hush.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "Programming Language :: Python",
+            "Topic :: Security :: Cryptography",
+            "Topic :: Software Development :: Libraries"
+        ],
+        "description": "This module provides pure Python implementation of authenticated encryption mode OCB (Offset Codebook Mode) using AES block cipher. OCB offers confidentiality, integrity and authenticity of data in single encryption step and using single interface. It's alternative to traditional modes (like CTR or CBC) with separate HMAC calculation.\n\nData representation\n-------------------\nThe module operates on _bytearray_ objects. Key, nonce, header and plaintext should be passed to OCB as bytearrays. \n\n\t>>> plaintext = bytearray('The Magic Words are Squeamish Ossifrage')\n\t>>> header = bytearray('Recipient: john.doe@example.com')\n\t>>> key = bytearray().fromhex('A45F5FDEA5C088D1D7C8BE37CABC8C5C')\n\t>>> nonce = bytearray(range(16))\n\t\nLoading\n-------\nLoad a block cipher and OCB mode:\n\n\t>>> from ocb.aes import AES\n\t>>> from ocb import OCB\n\nThe OCB module provides built-in AES implementation, but other block ciphers can be used as well. \n\nInitalize OCB-AES cipher objects:\n\n\t>>> aes = AES(128)\n\t>>> ocb = OCB(aes)\n\nParameters\n----------\nOCB has two parameters: _key_ and _nonce_. Key will be typically 128, 192 or 256 bit AES key: \n\n\t>>> key = bytearray().fromhex('A45F5FDEA5C088D1D7C8BE37CABC8C5C')\n\t>>> ocb.setKey(key)\n\nNonce doesn't need to be random and it can be based on counter. Nonce **must** be selected as a new value for each message encrypted. Nonce has to be the same length as underlying cipher block length, typically 128 bits:\n\n\t>>> nonce = bytearray(range(16))\n\t>>> ocb.setNonce(nonce)\n\t\t\nEncryption\n----------\nInput _plaintext_ of arbitrary length. This block will be encrypted and its integrity protected:\n\n\t>>> plaintext = bytearray('The Magic Words are Squeamish Ossifrage')\n\t\nOptional, plaintext _header_ of arbitrary length. This block will **not** be encrypted, but its integrity will be protected:\n\n\t>>> header = bytearray('Recipient: john.doe@example.com')\n\nEncryption method over _plaintext_ and _header_ returns ciphertext and _authentication tag_. The tag protects integrity of both plaintext and header.\n\n\t>>> (tag,ciphertext) = ocb.encrypt(plaintext, header)\n\t>>> tag\n\tbytearray(b')\\xc9vx\\xda\\xc9Z\\x80)\\xfe@\\xd9)\\x8d\\x86\\x91')\n\t>>> ciphertext\n\tbytearray(b'3D\\xdf\\x01\\xf3;\\xe8\\x87\\x84@\\xef\\xac\\xbcyK:J_3} \\x9e\\x889\\xcd\\xa4NvW\\x88\\xc1}5\\x9a\\x8b\\xc3\\x82\\xd9Z')\n\nEncryption will reset _nonce_ status, so that it needs to be set to a new value.\n\nDecryption\n----------\nDecryption needs OCB object with _key_ and _nonce_ set. The decrypt method takes _header_, _ciphertext_ and _tag_ on input. It returns a tuple of decrypted plaintext and flag indicating whether input data was not tampered with. \n\t\n\t>>> (is_authentic, plaintext2) = ocb.decrypt(header, ciphertext, tag)\n\t>>> is_authentic\n\tTrue\n\t>>> str(plaintext2)\n\t'The Magic Words are Squeamish Ossifrage'\n\nThe flag will be set to _False_ and plaintext will be empty if ciphertext is modified:\n\n\t>>> ciphertext[3] = 0\n\t>>> ocb.decrypt(header, ciphertext, tag)\n\t(False, [])\n\nThe same happens if header is modified (even ciphertext was not):\n\n\t>>> header[3] = 0\n\t>>> ocb.decrypt(header, ciphertext, tag)\n\t(False, [])\n\nReferences\n==========\n* [The OCB Authenticated-Encryption Algorithm](http://datatracker.ietf.org/doc/draft-krovetz-ocb/?include_text=1) (Internet draft)\n* [OCB Mode](http://en.wikipedia.org/wiki/OCB_mode) (Wikipedia)",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://pypi.python.org/pypi/pyocb",
+        "keywords": null,
+        "license": "GNU General Public License v3 or later (GPLv3+)",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "pyocb",
+        "package_url": "https://pypi.org/project/pyocb/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/pyocb/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://pypi.python.org/pypi/pyocb"
+        },
+        "release_url": "https://pypi.org/project/pyocb/1.2/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "OCB-AES authenticated encryption for Python",
+        "version": "1.2"
+    },
+    "last_serial": 797486,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5de21d7b8250a103f4a3634eaec99bbb",
+                    "sha256": "0a66f2e3160178d033971fa664bf529736eddbd74fcc1c643c8590c2aceb8252"
+                },
+                "downloads": -1,
+                "filename": "pyocb-1.0.win32.exe",
+                "has_sig": true,
+                "md5_digest": "5de21d7b8250a103f4a3634eaec99bbb",
+                "packagetype": "bdist_wininst",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 211121,
+                "upload_time": "2012-05-28T00:21:15",
+                "url": "https://files.pythonhosted.org/packages/37/00/3024beb29a7bb448e6c96af2061002eeb702548ad584160a0324848f4519/pyocb-1.0.win32.exe"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dcf5e24d552ff20059a99d91c0c124df",
+                    "sha256": "a0116d5ecc7950247c9694cd6df0a0b190dc576caaa8abaff3928b0e1ef54366"
+                },
+                "downloads": -1,
+                "filename": "pyocb-1.0.zip",
+                "has_sig": true,
+                "md5_digest": "dcf5e24d552ff20059a99d91c0c124df",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13748,
+                "upload_time": "2012-05-28T00:20:11",
+                "url": "https://files.pythonhosted.org/packages/da/60/32c66f522a8d9b0efc65f76a734801613a49596f961cd7129db9b55d8910/pyocb-1.0.zip"
+            }
+        ],
+        "1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3ebc81e45266834219e4b5180523202",
+                    "sha256": "8a44ce6af517a1cc95404622af54c88d3a1d2bf55d81a5e4aa6324d040947d42"
+                },
+                "downloads": -1,
+                "filename": "pyocb-1.1.win32.exe",
+                "has_sig": true,
+                "md5_digest": "c3ebc81e45266834219e4b5180523202",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 212858,
+                "upload_time": "2012-05-28T23:20:29",
+                "url": "https://files.pythonhosted.org/packages/f5/86/4e81c649ad7ffe73991bea453d33e2e12f5f24f79a0554ea2a9afbead627/pyocb-1.1.win32.exe"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "baa067baec2ddede7374bc144b24f612",
+                    "sha256": "01423a67baacf2f46d7542597bdb3d6f2aa4b1e9628b8302de8143ade5648e5d"
+                },
+                "downloads": -1,
+                "filename": "pyocb-1.1.zip",
+                "has_sig": true,
+                "md5_digest": "baa067baec2ddede7374bc144b24f612",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15041,
+                "upload_time": "2012-05-28T23:20:15",
+                "url": "https://files.pythonhosted.org/packages/be/8e/970e89e936fd625ee108fb75690d8b78b3fe8c6e1b5c2a1d7099e1b5aaa4/pyocb-1.1.zip"
+            }
+        ],
+        "1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94b5b7327159bfab45dc0a68d7516beb",
+                    "sha256": "1845fc91a183cfcf9ac99bcb4d95777e272cf08dca31528f642923966128d3a0"
+                },
+                "downloads": -1,
+                "filename": "pyocb-1.2.win32.exe",
+                "has_sig": true,
+                "md5_digest": "94b5b7327159bfab45dc0a68d7516beb",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 213534,
+                "upload_time": "2012-05-29T20:58:55",
+                "url": "https://files.pythonhosted.org/packages/e8/a1/47bb45cf2a0fa3be017499597863fb9f75e7d8e1aa4f3be5bb2cab0cb4f7/pyocb-1.2.win32.exe"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d188303be5ddd8ec732926717afd0661",
+                    "sha256": "616e36726aef8a0964aa6f86b6a85b2b4067e0c69ba4c943ac34b4a977b290bf"
+                },
+                "downloads": -1,
+                "filename": "pyocb-1.2.zip",
+                "has_sig": true,
+                "md5_digest": "d188303be5ddd8ec732926717afd0661",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15562,
+                "upload_time": "2012-05-29T20:58:32",
+                "url": "https://files.pythonhosted.org/packages/08/bf/1802534cd46b83128239e72206c3daf7b55661bf5937e78a508c14e72052/pyocb-1.2.zip"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "94b5b7327159bfab45dc0a68d7516beb",
+                "sha256": "1845fc91a183cfcf9ac99bcb4d95777e272cf08dca31528f642923966128d3a0"
+            },
+            "downloads": -1,
+            "filename": "pyocb-1.2.win32.exe",
+            "has_sig": true,
+            "md5_digest": "94b5b7327159bfab45dc0a68d7516beb",
+            "packagetype": "bdist_wininst",
+            "python_version": "any",
+            "requires_python": null,
+            "size": 213534,
+            "upload_time": "2012-05-29T20:58:55",
+            "url": "https://files.pythonhosted.org/packages/e8/a1/47bb45cf2a0fa3be017499597863fb9f75e7d8e1aa4f3be5bb2cab0cb4f7/pyocb-1.2.win32.exe"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d188303be5ddd8ec732926717afd0661",
+                "sha256": "616e36726aef8a0964aa6f86b6a85b2b4067e0c69ba4c943ac34b4a977b290bf"
+            },
+            "downloads": -1,
+            "filename": "pyocb-1.2.zip",
+            "has_sig": true,
+            "md5_digest": "d188303be5ddd8ec732926717afd0661",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 15562,
+            "upload_time": "2012-05-29T20:58:32",
+            "url": "https://files.pythonhosted.org/packages/08/bf/1802534cd46b83128239e72206c3daf7b55661bf5937e78a508c14e72052/pyocb-1.2.zip"
+        }
+    ]
+}

@@ -1,0 +1,246 @@
+{
+    "info": {
+        "author": "Heena Kwag",
+        "author_email": "dotaitch@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.1",
+            "Programming Language :: Python :: 3.2",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "# SRTpy\n\n[SRT](https://etk.srail.co.kr) wrapper for Python.\n\nThis project was inspired from [korail2](https://github.com/carpedm20/korail2) of [carpedm20](https://carpedm20.github.io).\n\n## Requirements\n- *Python3+*\n\n## Installation\n\nTo install SRTpy, simply:\n\n    $ pip3 install SRTpy \n\nOr, you can also install manually:\n\n    $ git clone https://github.com/dotaitch/SRTpy.git\n    $ cd SRTpy\n    $ python3 setup.py install\n\n## Usage\n\n### 1. Login\n\nFirst, you need to create SRT object.\n\n```python\n>>> from SRTpy import Srt, Passenger, Adult, Child, Senior, Disability1_3, Disability4_6\n>>> srt = Srt(\"12345678\", YOUR_PASSWORD) # with membership number\n>>> srt = Srt(\"dotaitch@gmail.com\", YOUR_PASSWORD) # with email\n>>> srt = Srt(\"010-xxxx-yyyy\", YOUR_PASSWORD) # with phone number\n```\n\nIf you do not want login automatically, \n\n```python\n>>> srt = Srt(\"12345678\", YOUR_PASSWORD, auto_login=False)\n>>> srt.login()\nTrue\n```\n\n### 2. Search trains\n\nYou can search train schedules `search` and `search_allday` methods.\n`search` and `search_allday` return a list of Train objects.\n\n- `search` returns 10 results max.\n- `search_allday` returns all results after the time.\n- `search_allday` uses `search` repeatedly.\n\n`search` and `search_allday` methods take these arguments:\n\n- dep : A departure station  ex) '\uc218\uc11c', 'tntj'\n- arr : A arrival station  ex) '\uc6b8\uc0b0', 'dnftks'\n- (optional) date : A departure date in `yyyyMMdd` format  ex) '20170131'\n- (optional) time : A departure time in `hhmmss` format  ex) '133000'\n- (optional) passengers : List of Passenger Objects. None means 1 Adult. \n- (optional) seat_option : Seat options in Korean. Default value is '\uc77c\ubc18'.\n    - '\uc77c\ubc18'\n    - '\ud720\uccb4\uc5b4'\n    - '\uc804\ub3d9\ud720\uccb4\uc5b4'\n- (optional) train_type : A type of train. Default value is 'SRT'.\n    - '\uc804\uccb4', 'ALL'\n    - 'SRT'\n    - 'SRT+KTX'\n- (optional) include_no_seat : When it is True, a result includes trains which has no seats.\n\nBelow is a sample usage of `search`:\n\n```python\n>>> dep = 'tntj' # \uc218\uc11c \n>>> arr = 'dnftks' # \uc6b8\uc0b0\n>>> date = '20170131'\n>>> time = '133000'\n>>> trains = srt.search(dep, arr, date, time)\n[[SRT 337] 01\uc6d431\uc77c \uc218\uc11c(13:30)->\uc6b8\uc0b0(15:37) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [SRT 341] 01\uc6d431\uc77c \uc218\uc11c(14:30)->\uc6b8\uc0b0(16:26) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [SRT 343] 01\uc6d431\uc77c \uc218\uc11c(15:00)->\uc6b8\uc0b0(17:10) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [SRT 347] 01\uc6d431\uc77c \uc218\uc11c(16:00)->\uc6b8\uc0b0(18:01) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5]\n```\n\nWhen you want to see sold-out trains and others.\n\n```python\n>>> trains = srt.search('\ub3d9\ub300\uad6c', '\uc6b8\uc0b0', date, time, train_type='\uc804\uccb4', include_no_seat=True)\n[[KTX 127] 01\uc6d431\uc77c \ub3d9\ub300\uad6c(13:49)->\uc6b8\uc0b0(14:18) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [SRT 331] 01\uc6d431\uc77c \ub3d9\ub300\uad6c(14:12)->\uc6b8\uc0b0(14:36) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [KTX 129] 01\uc6d431\uc77c \ub3d9\ub300\uad6c(14:19)->\uc6b8\uc0b0(14:43) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [SRT 337] 01\uc6d431\uc77c \ub3d9\ub300\uad6c(15:14)->\uc6b8\uc0b0(15:37) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [KTX 135] 01\uc6d431\uc77c \ub3d9\ub300\uad6c(15:19)->\uc6b8\uc0b0(15:47) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [SRT 341] 01\uc6d431\uc77c \ub3d9\ub300\uad6c(16:02)->\uc6b8\uc0b0(16:26) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5,\n [KTX-\uc0b0\ucc9c 139] 01\uc6d431\uc77c \ub3d9\ub300\uad6c(16:14)->\uc6b8\uc0b0(16:43) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5]\n```\n\n#### 2-1. About `dep` and `arr` arguments\n\n`dep` and `arr` are the names of train stations.\n*You do not need to press Kor/Eng key to write train station's name in Korean.*\nIf the name is in English, then convert it to Korean.\n\n```python\n>>> srt.search(\"tntj\", \"dnftks\") # \uc218\uc11c, \uc6b8\uc0b0\n[[SRT 301] 12\uc6d425\uc77c \uc218\uc11c(05:30)->\uc6b8\uc0b0(07:41) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5, \n [SRT 305] 12\uc6d425\uc77c \uc218\uc11c(06:30)->\uc6b8\uc0b0(08:41) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5, \n ...,\n [SRT 331] 12\uc6d425\uc77c \uc218\uc11c(12:30)->\uc6b8\uc0b0(14:36) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5]\n\n>>> srt.search(\"dnftks\", \"ehdeorn\") # \uc6b8\uc0b0, \ub3d9\ub300\uad6c\n[[SRT 302] 12\uc6d425\uc77c \uc6b8\uc0b0(05:23)->\ub3d9\ub300\uad6c(05:48) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5, \n [SRT 306] 12\uc6d425\uc77c \uc6b8\uc0b0(06:23)->\ub3d9\ub300\uad6c(06:48) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5, \n ...,\n [SRT 336] 12\uc6d425\uc77c \uc6b8\uc0b0(13:53)->\ub3d9\ub300\uad6c(14:18) \ud2b9\uc2e4 \uc608\uc57d\uac00\ub2a5 / \uc77c\ubc18\uc2e4 \uc608\uc57d\uac00\ub2a5]\n```\n\n\n#### 2-2. About `passengers` argument\n\n`passengers` is a list(or tuple) of Passenger Objects.\nBy this, you can search for multiple passengers.\nThere are 5 types of Passengers: Adult, Child, Senior, Disability1_3, and Disability4_6.\n\n```python\n# for 1 adult, 1 child\n>>> psgrs = [Adult(), Child()]\n\n# for 2 adults, 1 child\n>>> psgrs = [Adult(2), Child(1)]\n# ditto. They are being added each other by same group.\n>>> psgrs = [Adult(), Adult(), Child()]\n\n# for 2 adults, 1 child, 1 senior\n>>> psgrs = [Adult(2), Child(), Senior()]\n\n# for 1 adult, It supports negative count or zero count. \n# But it uses passengers which the sum is greater than zero.\n>>> psgrs = [Adult(2), Adult(-1)]\n>>> psgrs = [Adult(), Senior(0)]\n\n# Nothing\n>>> psgrs = [Adult(0), Senior(0)]\n\n# then search or reserve train\n>>> trains = srt.search(dep, arr, date, time, passengers=psgrs)\n...\n>>> srt.reserve(trains[0], passengers=psgrs)\n...\n```\n\n### 3. Make a reservation\n\nYou can reserve trains with `reserve` method.\n`reserve` returns Reservation object.\n\n`reserve` methods take these arguments:\n\n- train : Train object that you want to reserve.\n- (optional) passengers : List of Passenger Objects. None means 1 Adult. \n- (optional) seat_option : Seat options in Korean. Default value is '\uc77c\ubc18'.\n    - '\uc77c\ubc18'\n    - '\ud720\uccb4\uc5b4'\n    - '\uc804\ub3d9\ud720\uccb4\uc5b4'\n- (optional) seat_location : Seat locations in Korean. Default value is '\uae30\ubcf8'.\n    - '\uae30\ubcf8'\n    - '1\uc778\uc11d(\ud2b9\uc2e4)'\n    - '\ucc3d\uce21'\n    - '\ub0b4\uce21'\n- (optional) general_seat : When it is True, you can reserve a general seat. When it is False, you can reserve a special seat.\n\nBelow is a sample usage of `reserve`:\n\n```python\n>>> trains = srt.search(dep, arr, date, time)\n>>> reservation = srt.reserve(trains[0])\n>>> reservation\n[SRT 337] 01\uc6d431\uc77c \uc218\uc11c(13:30)->\uc6b8\uc0b0(15:37) 1\ub9e4 - 46100\uc6d0\n```\n\nMultiple.\n\n```python\n>>> reservation = srt.reserve(trains[0], passengers=psgrs)\n>>> reservation\n[SRT 340] 01\uc6d431\uc77c \uc218\uc11c(13:30)->\uc6b8\uc0b0(15:37) 4\ub9e4 - 147500\uc6d0\n```\n\nYou can select the seat grade, general(True) or special(False) by general_seat argument.\n\n```python\n>>> srt.reserve(trains[0], passengers=psgrs, general_seat=True)\n```\n\n### 4. Show reservations ####\n\nYou can show your reservations by `reservations` variable.\nIt is a list of Reservation objects.\n\n```python\n>>> srt.reservations\n[[SRT 337] 01\uc6d431\uc77c \uc218\uc11c(13:30)->\uc6b8\uc0b0(15:37) 1\ub9e4 - 46100\uc6d0,\n [SRT 340] 01\uc6d431\uc77c \uc218\uc11c(13:30)->\uc6b8\uc0b0(15:37) 4\ub9e4 - 147500\uc6d0]\n```\n\nYou can see when the reservation is cancelled. \n\n```python\n>>> srt.reservations[0].cancel_time\ndatetime.datetime(2017, 1, 23, 5, 53, 51, 310966)\n```\n\nReservation object has `tickets` variable.\nIt is a list of Ticket objects.\n\n```python\n>>> reservation.tickets\n[\uc77c\ubc18\uc2e4 2\ud638\ucc284C (\uc5b4\ub978) - 46100\uc6d0,\n \uc77c\ubc18\uc2e4 2\ud638\ucc284D (\uc5b4\ub978) - 46100\uc6d0,\n \uc77c\ubc18\uc2e4 2\ud638\ucc285C (\uacbd\ub85c) - 32300\uc6d0,\n \uc77c\ubc18\uc2e4 2\ud638\ucc285D (\uc5b4\ub9b0\uc774) - 23000\uc6d0]\n```\n\n# To-do\n\n1. Cancel function\n\n# License\n\nSource codes are distributed under BSD license.\n\n# Author\n\nHeena Kwag / [@dotaitch](https://github.com/dotaitch)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/dotaitch/SRTpy",
+        "keywords": "SRT,srt,SRTpy,srtpy",
+        "license": "BSD License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "SRTpy",
+        "package_url": "https://pypi.org/project/SRTpy/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/SRTpy/",
+        "project_urls": {
+            "Homepage": "http://github.com/dotaitch/SRTpy"
+        },
+        "release_url": "https://pypi.org/project/SRTpy/0.1.1/",
+        "requires_dist": [
+            "requests",
+            "heconvert"
+        ],
+        "requires_python": "",
+        "summary": "SRT (https://etk.srail.co.kr) wrapper for Python",
+        "version": "0.1.1"
+    },
+    "last_serial": 4673386,
+    "releases": {
+        "0.0.1": [],
+        "0.0.2": [],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c30d061e8cb4aa87037c880d1853f438",
+                    "sha256": "5562f4540ea37d56a09faefb4018ca0669d920a7d6658a0d02f9e3c918f0e9b0"
+                },
+                "downloads": -1,
+                "filename": "SRTpy-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c30d061e8cb4aa87037c880d1853f438",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8911,
+                "upload_time": "2017-01-23T00:14:01",
+                "url": "https://files.pythonhosted.org/packages/44/91/b9108f3b0190d7a0187b3556e23aa5a8351ef014343b3195151a9de8cdbd/SRTpy-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "df1ee1ad6dbc562101d62e5d598daae9",
+                    "sha256": "9ae703f1c77f9072dd949ff21efac5ae70ced8dcfb6d70c6882e4cfc5b9aba58"
+                },
+                "downloads": -1,
+                "filename": "SRTpy-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "df1ee1ad6dbc562101d62e5d598daae9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8915,
+                "upload_time": "2017-01-23T00:34:02",
+                "url": "https://files.pythonhosted.org/packages/1a/af/0b1dc34365fdc33db4fdf3e96744aec9bf2e88e639b3fb6a6549c56d42ac/SRTpy-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8e8bd7d56c6db54655535c577ef6b1a",
+                    "sha256": "88a31ea2fff557dfa8571ca88854f61d1bd51b212a65673910bb5fbdcae9aa69"
+                },
+                "downloads": -1,
+                "filename": "SRTpy-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c8e8bd7d56c6db54655535c577ef6b1a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10657,
+                "upload_time": "2017-01-23T00:38:57",
+                "url": "https://files.pythonhosted.org/packages/42/09/920346665980a6726f6aabb2e909ba2b64b93ef7bdc6b7463def7173d928/SRTpy-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "832c8127fafeef5f29a8fb7e09df7574",
+                    "sha256": "0355c38efd091136909125ca673585f9d6f005191e9b44d988d5c3b83ea08912"
+                },
+                "downloads": -1,
+                "filename": "SRTpy-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "832c8127fafeef5f29a8fb7e09df7574",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10956,
+                "upload_time": "2017-02-03T16:40:46",
+                "url": "https://files.pythonhosted.org/packages/57/bc/f81917c47b3501c74b6675c91f3843ecaa9f670530b415df3813bcf211a8/SRTpy-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8385398ca5ef5892f401b0febf71447f",
+                    "sha256": "398659d244f63aa74719be00a89fd8ee6c3f6c333acc5d1026f00f063baae4a5"
+                },
+                "downloads": -1,
+                "filename": "SRTpy-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8385398ca5ef5892f401b0febf71447f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11318,
+                "upload_time": "2017-12-24T16:36:39",
+                "url": "https://files.pythonhosted.org/packages/e0/55/61678434a5ab8830c23b0fd4a97881d2d6e7a673bc05ff2ff4c28def021c/SRTpy-0.0.8.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d5cdb894247435e481d6fc86fc231c3d",
+                    "sha256": "0753f064c97e4c4d48e69f75bedd5b551ae683f1b2c3e503345d28cb68ad4029"
+                },
+                "downloads": -1,
+                "filename": "SRTpy-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d5cdb894247435e481d6fc86fc231c3d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13769,
+                "upload_time": "2018-12-19T16:19:46",
+                "url": "https://files.pythonhosted.org/packages/fd/9e/c45cc873ce64b6527e9bb984ae23e3ea2ffda8eea0fce00190db642ea6ce/SRTpy-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dde8165196dde3563a372dee00e5bcea",
+                    "sha256": "ddedf78bf776b086f9125b7213c9171629a585b157f065f1e5eb40a05e18b5ea"
+                },
+                "downloads": -1,
+                "filename": "SRTpy-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dde8165196dde3563a372dee00e5bcea",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18162,
+                "upload_time": "2019-01-08T15:46:46",
+                "url": "https://files.pythonhosted.org/packages/d9/9b/3f34cd28d66be5a6b55d2937745a1651a666bf2566aeb77caba6d18399b5/SRTpy-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af4913c2e2b49db712891aefdac3aace",
+                    "sha256": "e039e94d6a58fd1bc9165d67966af7f0c36271fc660e948da581ff72ca3a644f"
+                },
+                "downloads": -1,
+                "filename": "SRTpy-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "af4913c2e2b49db712891aefdac3aace",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14350,
+                "upload_time": "2019-01-08T15:48:33",
+                "url": "https://files.pythonhosted.org/packages/8f/fa/738df86bda06a7e3c882e414bf89bdc500b904cef52f6899f4be8b0f435b/SRTpy-0.1.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "dde8165196dde3563a372dee00e5bcea",
+                "sha256": "ddedf78bf776b086f9125b7213c9171629a585b157f065f1e5eb40a05e18b5ea"
+            },
+            "downloads": -1,
+            "filename": "SRTpy-0.1.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "dde8165196dde3563a372dee00e5bcea",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 18162,
+            "upload_time": "2019-01-08T15:46:46",
+            "url": "https://files.pythonhosted.org/packages/d9/9b/3f34cd28d66be5a6b55d2937745a1651a666bf2566aeb77caba6d18399b5/SRTpy-0.1.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "af4913c2e2b49db712891aefdac3aace",
+                "sha256": "e039e94d6a58fd1bc9165d67966af7f0c36271fc660e948da581ff72ca3a644f"
+            },
+            "downloads": -1,
+            "filename": "SRTpy-0.1.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "af4913c2e2b49db712891aefdac3aace",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 14350,
+            "upload_time": "2019-01-08T15:48:33",
+            "url": "https://files.pythonhosted.org/packages/8f/fa/738df86bda06a7e3c882e414bf89bdc500b904cef52f6899f4be8b0f435b/SRTpy-0.1.1.tar.gz"
+        }
+    ]
+}

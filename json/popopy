@@ -1,0 +1,152 @@
+{
+    "info": {
+        "author": "liudewang",
+        "author_email": "dewangdeven@163.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: MacOS",
+            "Operating System :: POSIX",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Utilities"
+        ],
+        "description": "# \u7f51\u6613POPO \u7b2c\u4e09\u65b9 Python SDK\n\n\u672c SDK \u501f\u9274\u4e86 wechatpy \u7684\u5f00\u6e90\u8bbe\u8ba1\u601d\u8def\u548c\u7ed3\u6784\uff0c\u590d\u7528\u4e86\u90e8\u5206 wechatpy \u7684\u5b9e\u73b0\u4ee3\u7801\uff0c\u611f\u8c22\u5f00\u6e90\u5206\u4eab\uff01\n\n\u5f00\u6e90\u501f\u9274\uff1ahttp://docs.wechatpy.org/zh_CN/master/index.html\n\n## \u529f\u80fd\u7279\u6027\n\n1. \u6d88\u606f\u7ba1\u7406 API\n2. \u83dc\u5355\u7ba1\u7406 API\n3. \u7528\u6237\u7ba1\u7406 API\n\n## \u5b89\u88c5\n\n\u63a8\u8350\u4f7f\u7528 pip \u8fdb\u884c\u5b89\u88c5:\n\n```bash\npip install popopy\n```\n\n\u5347\u7ea7\u7248\u672c\uff1a\n```bash\npip install -U popopy\n```\n\n\n\n## \u5feb\u901f\u4e0a\u624b\n\n### \u88ab\u52a8\u54cd\u5e94\n\n#### \u9a8c\u8bc1popo\u670d\u52a1\u5668\u7b7e\u540d\n\n```python\nfrom popopy.utils import check_sign\n\n# \u83b7\u53d6\u662f\u5426\u6210\u529f\u6807\u5fd7\nflag = check_sign(token, timestamp, nonce, signature)\n\n# \u9a8c\u8bc1\u6210\u529f\u65f6\uff0c\u5e94\u539f\u6837\u8fd4\u56de echostr \u53c2\u6570\u503c\u3002\n```\n\n#### \u89e3\u6790XML\u6d88\u606f\n\n```python\nfrom popopy.parser import parse_message\n\nmsg = parse_message(xml)\n```\n\n### \u88ab\u52a8\u56de\u590d\n#### \u56de\u590d\u6587\u672c\u6d88\u606f\n```python\nfrom popopy.replies import TextReply\n\nreply = TextReply(content='text reply', message=msg)\nxml = reply.render()\n```\n\n#### \u56de\u590d\u56fe\u7247\u6d88\u606f\n```python\nfrom popopy.replies import ImageReply\n\nreply = ImageReply(message=msg)\nreply.media_id = 'image media id'\nxml = reply.render()\n```\n\n#### \u56de\u590d\u56fe\u6587\u6d88\u606f\n```python\nfrom popopy.replies import PictextCollectionReply\n\nreply = PictextCollectionReply(message=msg)\nreply.media_id = 'media id'\nxml = reply.render()\n```\n\n### \u4e3b\u52a8\u8c03\u7528\n#### AccessToken\n\n\u5bf9\u4e8e AccessToken \u4f1a\u5728\u5185\u90e8\u81ea\u52a8\u5904\u7406\uff0c\u4e00\u822c\u5355\u7ebf\u7a0b\u60c5\u51b5\u4e0b\u60c5\u51b5\u4e0b\u5f00\u53d1\u8005\u4e0d\u9700\u8981\u624b\u52a8\u53bb\u64cd\u4f5c\uff0c\u4f46\u662f\u591a\u7ebf\u7a0b\u60c5\u51b5\u4e0b\uff08\u5982\u4f7f\u7528django, celery)\uff0c\u52a1\u5fc5\u4f7f\u7528\u6301\u4e45\u5316\u5b58\u50a8\u3002\u5982\u679c\u5f00\u53d1\u8005\u9700\u8981\u8bbf\u95ee AccessToken\uff0c\u53ef\u4ee5\u901a\u8fc7 client.access_token \u83b7\u53d6\u5230\n\n```python\nfrom popopy.client import PoPoClient\n\nclient = PoPoClient(appid=\"appid\", secret=\"secret\")\nprint(client.access_token)\n```\n\n\u5efa\u8bae\u4f7f\u7528redis\u4f5c\u4e3aaccess token \u7684\u6301\u4e45\u5316\u5b58\u50a8\u65b9\u6848\n```python\nfrom popopy.client import PoPoClient\nfrom popopy.session.redisstorage import RedisStorage\nfrom redis import Redis\n\nredis_client = Redis.from_url('redis://127.0.0.1:6379/0')\nsession_interface = RedisStorage(\n    redis_client,\n    prefix=\"popopy\"\n)\n\npopo_client = PoPoClient(\n    app_id,\n    secret,\n    session=session_interface\n)\n```\n\u4e5f\u53ef\u4ee5\u81ea\u5b9a\u4e49 Storage\uff0c\u8981\u4f7f\u7528 Storage\uff0c\u9996\u5148\u8981\u5b9e\u73b0\u81ea\u5b9a\u4e49\u7684 Storage\uff0c\u81ea\u5b9a\u4e49\u7684 Storage \u9700\u8981\u5b9e\u73b0 get \u3001 set \u548c delete\uff0c\u5177\u4f53\u793a\u4f8b\u5982\u4e0b\n```python\nfrom popopy.client import PoPoClient\nfrom popopy.session import SessionStorage\n\nclass CustomStorage(SessionStorage):\n\n    def __init__(self, *args, **kwargs):\n        pass\n\n    def get(self, key, default=None):\n        pass\n\n    def set(self, key, value, ttl=None):\n        pass\n\n    def delete(self, key):\n        pass\n\npopo_client = PoPoClient(\n    app_id,\n    secret,\n    session=CustomStorage()\n)\n```\n\n#### \u6d88\u606f\u53d1\u9001\n\n```python\nfrom popopy.client import PoPoClient\n\nclient = PoPoClient(appid=\"appid\", secret=\"secret\")\n\n# \u53d1\u9001\u6587\u672c\u6d88\u606f\nclient.message.send_text(user_id, \"text message\")\n\n# \u53d1\u9001\u56fe\u7247\u6d88\u606f\nclient.message.send_image(user_id, \"media id\")\n\n# \u53d1\u9001\u56fe\u6587\u6d88\u606f\nclient.message.send_articles(user_id, \"media id\")\n\n# \u53d1\u9001\u6a21\u677f\u6d88\u606f\ndata = {\n        \"first\": {\n            \"value\": \"\u606d\u559c\u4f60\u8d2d\u4e70\u6210\u529f\uff01\",\n            \"color\": \"#173177\"\n        },\n        \"keyword1\": \"\u5de7\u514b\u529b\",\n        \"keyword2\": {\n            \"value\": \"39.8\u5143\",\n            \"color\": \"#173177\"\n        },\n        \"keyword3\": {\n            \"value\": \"2014\u5e749\u670822\u65e5\",\n            \"color\": \"#173177\"\n        },\n        \"remark\": {\n            \"value\": \"\u6b22\u8fce\u518d\u6b21\u8d2d\u4e70\uff01\",\n            \"color\": \"#173177\"\n        }\nclient.message.send_template(user_id, template_id, data, url, webview, app_params)\n```\n\n#### \u81ea\u5b9a\u4e49\u83dc\u5355\n```python\nfrom popopy.client import PoPoClient\n\nmenu_data =  {\n     \"button\":[\n     {\t\n          \"type\":\"click\",\n          \"name\":\"\u4eca\u65e5\u6b4c\u66f2\",\n          \"key\":\"V1001_TODAY_MUSIC\"\n      },\n      {\n           \"name\":\"\u83dc\u5355\",\n           \"sub_button\":[\n           {\t\n               \"type\":\"view\",\n               \"name\":\"\u641c\u7d22\",\n               \"url\":\"http://www.soso.com/\"\n            },\n            {\n               \"type\":\"eview\",\n               \"name\":\"\u89c6\u9891\",\n               \"url\":\"http://v.qq.com/\"\n            },\n            {\n               \"type\":\"click\",\n               \"name\":\"\u8d5e\u4e00\u4e0b\u6211\u4eec\",\n               \"key\":\"V1001_GOOD\"\n            }]\n       },\n     {\t\n          \"type\":\"media_id\",\n          \"name\":\"\u53d1\u9001\u56fe\u7247\",\n          \"media_type\":\"image\",\n          \"media_id\":\"1000455\"\n      },\n     {\t\n          \"type\":\"media_id\",\n          \"name\":\"\u53d1\u9001\u56fe\u6587\",\n          \"media_type\":\"pictext_collection\",\n          \"media_id\":\"500115\"\n      }\n }\n\nclient = PoPoClient(appid=\"appid\", secret=\"secret\")\n\n# \u521b\u5efa\u83dc\u5355\nclient.menu.create(menu_data)\n\n# \u66f4\u65b0\u83dc\u5355\nclient.menu.update(menu_data)\n\n# \u5220\u9664\u83dc\u5355\nclient.menu.delete()\n```\n\n#### \u7528\u6237\u7ba1\u7406\n```python\nfrom popopy.client import PoPoClient\n\nclient = PoPoClient(appid=\"appid\", secret=\"secret\")\u3001\n\n# \u83b7\u53d6\u7528\u6237\u5217\u8868(next_openid\u975e\u5fc5\u586b)\uff0c\u63a5\u53e3\u6bcf\u6b21\u53ea\u8fd4\u56de\u6709\u9650\u6570\u91cf\u7684\u7528\u6237\u5217\u8868\nusers_list = client.user.get(next_openid)\n\n# \u5bfc\u5165\u5173\u6ce8\u7528\u6237\nusers_list = [[\"email\", \"\u5206\u7ec4\u540d\u5b57\"], [\"email2\", \"\u5206\u7ec4\u540d\u5b572\"]]\nclient.user.import_users(users_list)\n\n# \u90ae\u7bb1\u8f6copenid\nresult = client.user.email_transfer_openid(emial)\n\n# openid\u8f6c\u90ae\u7bb1\nresult = client.user.openid_transfer_email(openid)\n```\n\n####",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "POPO,popo",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "popopy",
+        "package_url": "https://pypi.org/project/popopy/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/popopy/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/popopy/0.0.4/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "POPO SDK for Python",
+        "version": "0.0.4"
+    },
+    "last_serial": 6265392,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e58b7651abe5925b8967888170503610",
+                    "sha256": "f2b00707d099f52b56d518a58897116d31e438c0ce50b4f9fc1608ed806f9bd3"
+                },
+                "downloads": -1,
+                "filename": "popopy-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e58b7651abe5925b8967888170503610",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19442,
+                "upload_time": "2019-12-09T07:44:08",
+                "upload_time_iso_8601": "2019-12-09T07:44:08.521103Z",
+                "url": "https://files.pythonhosted.org/packages/19/62/a48ff8a63de9bf97c5e98c97a09fb3adebaaf177ed75b0f7d95cd9ad6de8/popopy-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c2507b7d5a5394e567ede450eaf1bbb4",
+                    "sha256": "3d56bb93aa05f9c034c172a15278e7617040010a5d90bc05addbecb123e73be6"
+                },
+                "downloads": -1,
+                "filename": "popopy-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c2507b7d5a5394e567ede450eaf1bbb4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19398,
+                "upload_time": "2019-12-09T07:53:45",
+                "upload_time_iso_8601": "2019-12-09T07:53:45.450597Z",
+                "url": "https://files.pythonhosted.org/packages/ad/cb/42e1b7c188bb1f0e3afa7e6e445f292306163f2a0b99e9ea263cca4736af/popopy-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d6c489ba8ab647a9a63b5ea6f0ba4c4f",
+                    "sha256": "9b4253a642aada53c5321df49b35b13fd12140b0e5aa9cd4f86a6bf85825f1c3"
+                },
+                "downloads": -1,
+                "filename": "popopy-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d6c489ba8ab647a9a63b5ea6f0ba4c4f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20660,
+                "upload_time": "2019-12-09T08:43:57",
+                "upload_time_iso_8601": "2019-12-09T08:43:57.141722Z",
+                "url": "https://files.pythonhosted.org/packages/1e/1a/e04b41756f7ef1616d7e8c3962be389baf9ae468fc273a34138cbb3ccd9d/popopy-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "766d9045a819989da5b776c82332257f",
+                    "sha256": "157e7f092262d51673552b73e2ebef6b4875f9aae4a87ab0d3b7503b436cb359"
+                },
+                "downloads": -1,
+                "filename": "popopy-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "766d9045a819989da5b776c82332257f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20769,
+                "upload_time": "2019-12-09T08:59:24",
+                "upload_time_iso_8601": "2019-12-09T08:59:24.506052Z",
+                "url": "https://files.pythonhosted.org/packages/34/5f/526aea8b09bd3fa62e23a21e3186faf1a05b39923e1259e2d81ed2690b74/popopy-0.0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "766d9045a819989da5b776c82332257f",
+                "sha256": "157e7f092262d51673552b73e2ebef6b4875f9aae4a87ab0d3b7503b436cb359"
+            },
+            "downloads": -1,
+            "filename": "popopy-0.0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "766d9045a819989da5b776c82332257f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 20769,
+            "upload_time": "2019-12-09T08:59:24",
+            "upload_time_iso_8601": "2019-12-09T08:59:24.506052Z",
+            "url": "https://files.pythonhosted.org/packages/34/5f/526aea8b09bd3fa62e23a21e3186faf1a05b39923e1259e2d81ed2690b74/popopy-0.0.4.tar.gz"
+        }
+    ]
+}

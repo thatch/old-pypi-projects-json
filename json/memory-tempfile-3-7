@@ -1,0 +1,119 @@
+{
+    "info": {
+        "author": "mbello",
+        "author_email": "mbello@users.noreply.github.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# Forked to fix for Python 3.7\n\nThis repo has been (hopefully temporarily) forked to fix for Python 3.7. I have\nmade the fix available on PyPI as memory-tempfile-3-7.\n\n $ pip install memory-tempfile-3-7\n\n# Overview\n\nOften there is a need to temporarily save a file to 'disk' for the consumption of external tools. Or maybe you can pipe some input info to an external tool\nbut has no way of forcing such external tool to pipe its output straight to your software: **it wants to write a file to disk**.\nDisk operations are slow and if repeated too often can shorten the lifespan of underlying media.\n\nOn Linux, most distributions offer a /tmp directory BUT it is on physical media. However, modern distributions often offer at east two\nplaces where one can safely create temporary files in RAM: /dev/run/<uid>, /run/shm and /dev/shm\n\n/dev/run/<uid> is ideal for your temporary files. It is writable and readable only by your user.\n/dev/shm is usually world-readable and world-writable (just like /tmp), it is often used for IPC (inter process communication) but can also serve well as a temporary RAM-based tempdir\n\nThis module is very simple and tries not to reinvent the wheel. It will check /tmp to see if it in a ramdisk or not. And it will also check\nif you have other options where to place your temporary files/dirs on a memory-based file system like tmpfs or ramfs.\n\nWith this info you are well served by pythons builtin modules and external packages like pathlib or pyfilesystem2 to move on to do your things.   \n\n**To know more, I recommend the following links:**\nhttps://unix.stackexchange.com/questions/162900/what-is-this-folder-run-user-1000\nhttps://superuser.com/questions/45342/when-should-i-use-dev-shm-and-when-should-i-use-tmp\n\n\n# API\nThis module searches for paths hosted on filesystems of type belonging to MEM_BASED_FS ('tmpfs' or 'ramfs').\nPaths in SUITABLE_PATHS are searched and the first path found that exists and is stored on a filesystem whose type \nbelongs to MEM_BASED_FS will be used as the tempdir.\nIf no suitable path is found, then if fallback = True, we will fallback to default tempdir (as determined by tempfile stdlib). If fallback is a path, then we will default to it.\nIf fallback is false, a RunTimeError exception is raised.\n\nThe MemoryTempfile constructor has arguments that let you change how the algorith works.\nYou can change the order of paths (with preferred_paths), add new paths to the seach (with preferred_paths and/or with additional_paths) \nand you can exclude certain paths (with removed_paths).\nYou can change the filesystem types you accept (with filesystem_types) and specify whether or not to fallback to a vanilla tempdir as a last resort.\n\nThen, all methods available from tempfile stdlib are available through MemoryTempfile.\n\n# Usage\n\n## Example 1:\n\n    from memory_tempfile import MemoryTempfile\n    \n    tempfile = MemoryTempfile()\n    \n    with tempfile.TemporaryFile() as \n        # as usual...\n        \n## Example 2:\n\n    # We now do not want to use /dev/shm or /run/shm and no ramfs paths\n    # If /run/user/{uid} is available, we prefer it to /tmp\n    # And we want to try /var/run as a last resort\n    # If all fails, fallback to platform's tmp dir\n    \n    from memory_tempfile import MemoryTempfile\n    import memory_tempfile\n\n    # By the way, all paths with string {uid} will have it replaced with the user id\n    tempfile = MemoryTempfile(preferred_paths=['/run/user/{uid}'], remove_paths=['/dev/shm', '/run/shm'],\n                              additional_paths=['/var/run'], filesystem_types=['tmpfs'], fallback=True)\n    \n    if tempfile.found_mem_tempdir():\n        print('We could use any of the followig paths: {}'.format(tempfile.get_usable_mem_tempdir_paths()))\n        print('And we are using now: {}'.format(tempfile.gettempdir()))\n    \n    with tempfile.NamedTemporaryFile() as ntf:\n        # use it as usual...\n        pass\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mbello/memory-tempfile",
+        "keywords": "tempfile in RAM,tempfile in memory,file in memory,tempfs,ramdisk,/dev/shm,/run/user",
+        "license": "CC0-1.0",
+        "maintainer": "mbello",
+        "maintainer_email": "mbello@users.noreply.github.com",
+        "name": "memory-tempfile-3-7",
+        "package_url": "https://pypi.org/project/memory-tempfile-3-7/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/memory-tempfile-3-7/",
+        "project_urls": {
+            "Homepage": "https://github.com/mbello/memory-tempfile",
+            "Repository": "https://github.com/mbello/memory-tempfile"
+        },
+        "release_url": "https://pypi.org/project/memory-tempfile-3-7/2.1.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6,<4.0",
+        "summary": "Helper functions to identify and use paths on the OS (Linux-only for now) where RAM-based tempfiles can be created.",
+        "version": "2.1.0"
+    },
+    "last_serial": 5963932,
+    "releases": {
+        "2.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ebf484621237c19aea347dc7487cea12",
+                    "sha256": "b483a45ac2ee65da83c91b5ddd41413fae3cc2934c27b1ebbce8142d412085e8"
+                },
+                "downloads": -1,
+                "filename": "memory_tempfile_3_7-2.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ebf484621237c19aea347dc7487cea12",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4909,
+                "upload_time": "2019-10-12T11:17:51",
+                "upload_time_iso_8601": "2019-10-12T11:17:51.099123Z",
+                "url": "https://files.pythonhosted.org/packages/4a/c3/c9cd3d6ad9aa07eb68bfe12bc7d108e25eb25762bbb8161bd81fe66e5c8f/memory_tempfile_3_7-2.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3eeac83132db150fc5564ef54503ca87",
+                    "sha256": "75aeabaeb92cbff2bc4b40fb79618f8495273962af257bf909ecfe9d90e98e53"
+                },
+                "downloads": -1,
+                "filename": "memory-tempfile-3-7-2.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3eeac83132db150fc5564ef54503ca87",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4581,
+                "upload_time": "2019-10-12T11:17:48",
+                "upload_time_iso_8601": "2019-10-12T11:17:48.713263Z",
+                "url": "https://files.pythonhosted.org/packages/1c/a2/7b793e4dce4977cb0081cdfa4859b410ba560723a315bd275450386b97d8/memory-tempfile-3-7-2.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ebf484621237c19aea347dc7487cea12",
+                "sha256": "b483a45ac2ee65da83c91b5ddd41413fae3cc2934c27b1ebbce8142d412085e8"
+            },
+            "downloads": -1,
+            "filename": "memory_tempfile_3_7-2.1.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ebf484621237c19aea347dc7487cea12",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6,<4.0",
+            "size": 4909,
+            "upload_time": "2019-10-12T11:17:51",
+            "upload_time_iso_8601": "2019-10-12T11:17:51.099123Z",
+            "url": "https://files.pythonhosted.org/packages/4a/c3/c9cd3d6ad9aa07eb68bfe12bc7d108e25eb25762bbb8161bd81fe66e5c8f/memory_tempfile_3_7-2.1.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3eeac83132db150fc5564ef54503ca87",
+                "sha256": "75aeabaeb92cbff2bc4b40fb79618f8495273962af257bf909ecfe9d90e98e53"
+            },
+            "downloads": -1,
+            "filename": "memory-tempfile-3-7-2.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3eeac83132db150fc5564ef54503ca87",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6,<4.0",
+            "size": 4581,
+            "upload_time": "2019-10-12T11:17:48",
+            "upload_time_iso_8601": "2019-10-12T11:17:48.713263Z",
+            "url": "https://files.pythonhosted.org/packages/1c/a2/7b793e4dce4977cb0081cdfa4859b410ba560723a315bd275450386b97d8/memory-tempfile-3-7-2.1.0.tar.gz"
+        }
+    ]
+}

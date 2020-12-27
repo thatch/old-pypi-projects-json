@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "David Kovar",
+        "author_email": "dkovar@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "=============\nAnalyze MFT 3\n=============\n\nanalyzeMFT.py is designed to fully parse the MFT file from an NTFS filesystem\nand present the results as accurately as possible in multiple formats.\n\nNow using Python3!\n\nInstallation\n============\nYou should now be able to install analyzeMFT with pip:\n\n    pip install analyzeMFT\n\nAlternatively:\n\n    git clone https://github.com/dkovar/analyzeMFT.git\n    cd analyzeMFT\n    python setup.py install (or, just run it from that directory)\n\nUsage\n=====\nUsage: analyzeMFT.py [options]\n\nOptions:\n  -h, --help            show this help message and exit\n  -v, --version         report version and exit\n\nFile input options:\n\n  -f FILE, --file=FILE  read MFT from FILE\n\nFile output options:\n\n  -o FILE, --output=FILE\n                        write results to FILE\n  -c FILE, --csvtimefile=FILE\n                        write CSV format timeline file\n  -b FILE, --bodyfile=FILE\n                        write MAC information to bodyfile\n\nOptions specific to body files:\n\n  --bodystd             Use STD_INFO timestamps for body file rather than FN\n                        timestamps\n  --bodyfull            Use full path name + filename rather than just\n                        filename\n\nOther options:\n\n  -a, --anomaly         turn on anomaly detection\n  -l, --localtz         report times using local timezone\n  -e, --excel           print date/time in Excel friendly format\n  -d, --debug           turn on debugging output\n  -s, --saveinmemory    Save a copy of the decoded MFT in memory. Do not use\n                        for very large MFTs\n  -p, --progress        Show systematic progress reports.\n  -w, --windows-path    Use windows path separator when constructing the filepath instead of linux\n\nOutput\n======\n\nanalyzeMFT can produce output in CSV or bodyfile format.\n\nCSV output\n----------\nThe output is currently written in CSV format. Due to the fact that Excel\nautomatically determines the type of data in a column, it is recommended that\nyou write the output to a file without the .csv extension, open it in Excel, and\nset all the columns to \"Text\" rather than \"General\" when the import wizard\nstarts. Failure to do so will result in Excel formatting the columns in a way\nthat misrepresents the data.\n\nI could pad the data in such a way that forces Excel to set the column type correctly\nbut this might break other tools.\n\nGUI:\nYou can turn off all the GUI dependencies by setting the noGUI flag to 'True'. This is for installations that don't want to install the tk/tcl libraries.\n\nUpdate History\n==============\n[See CHANGES.txt]\n\nVersion 2.0.4:Minor tweaks to support external programs\nVersion 2.0.3:Restructured to support PyPi (pip)\nVersion 2.0.2:De-OOP'd MFT record parsing to reduce memory consumption\nVersion 2.0.1:Added L2T CSV and body file support back in, fixed some minor bugs along the way.\nMade full file path calculation more efficient\nVersion 2.0.0 Restructured layout to turn it into a module.\nMade it more OOP.\nImproved error handling and corrupt record detection\n\n------ Version 1 history follows ------\n\nVersion 1.0: Initial release\nVersion 1.1: Split parent folder reference and sequence into two fields. I'm still trying to figure out the\nsignificance of the parent folder sequence number, but I'm convinced that what some documentation\nrefers to as the parent folder record number is really two values - the parent folder record number\nand the parent folder sequence number.\nVersion 1.2: Fixed problem with non-printable characters in filenames. Any Unicode character is legal in a\nfilename, including newlines. This presented some problems in my output. Characters that do not\nrender well are now converted to hex and a note is added to the Notes column indicating this.\n(I've learned a lot about Unicode since I first wrote this.)\nAdded \"compile time\" flag to turn off the inclusion of any GUI related modules and libraries\nfor systems missing tk/tcl support. (Set noGUI to True in the code)\nVersion 1.3: Added new column to hold log entries relating to each record. For example, a note stating that\nsome characters in the filename were converted to hex as they could not be printed.\nVersion 1.4: Credit: Spencer Lynch. I was misusing the flags field in the MFT header. The first bit is\nActive/Inactive. The second bit is File/Folder.\nVersion 1.5: Fixed date/time reporting. I wasn't reporting useconds at all.\nAdded anomaly detection. Adds two columns:\nstd-fn-shift:  If Y, entry's FN create time is after the STD create time\nusec-zero: If Y, entry's STD create time's usec value is zero\nVersion 1.6: Various bug fixes\nVersion 1.7: Bodyfile support, with thanks to Dave Hull\nVersion 1.8: Added support for full path extraction, written by Kristinn Gudjonsson\nVersion 1.9: Added support for csv timeline output\nVersion 1.10: Just for Tom\nVersion 1.11: Fixed TSK bodyfile output\nVersion 1.12: Fix orphan file detection issue that caused recursion error (4/18/2013)\nVersion 1.13: Changed from walking all sequence numbers to pulling sequence number from MFT. Previous approach did not handle\ngaps well\nVersion 1.14: Made -o output optional if -b is specified. (Either/or)\nVersion 1.15: Added file size (real, not allocated) to bodyfile.\nAdded bodyfile option to include fullpath + filename rather than just filename\nAdded bodyfile option to use STD_INFO timestamps rather than FN timestamps\n\n\nVersion 2 history is in CHANGES.txt\n\n\n\n\n\n\nInspiration\n===========\nMy original inspiration was a combination of MFT Ripper (thus the current output format) and the\nSANS 508.1 study guide. I couldn't bear to read about NTFS structures again,\nparticularly since the information didn't \"stick\". I also wanted to learn Python\nso I figured that using it to tear apart the MFT file was a reasonably sized\nproject.\n\nMany of the variable names are taken directly from Brian Carrier's The Sleuth Kit. His code, plus his\nbook \"File System Forensic Analysis\", was very helpful in my efforts to write this code.\n\nThe output format is almost identical to Mark Menz's MFT Ripper. His tool really inspired me to learn\nmore about the structure of the MFT and to learn what additional information I could glean from\nthe data.\n\nI also am getting much more interested in timeline analysis and figured that really understanding the\nthe MFT and having a tool that could parse it might serve as a good foundation\nfor further research in that area.\n\n\nFuture work\n===========\n\n1) Figure out how to write the CSV file in a manner that forces Excel to interpret the date/time\nfields as text. If you add the .csv extension Excel will open the file without invoking the import\nwizard and the date fields are treated as \"General\" and the date is chopped leaving just the time.\n2) Add version switch\n3) Add \"mftr\" switch - produce MFT Ripper compatible output\n4) Add \"extract\" switch - extract or work on live MFT file\n5) Finish parsing all possible attributes\n6) Look into doing more timeline analysis with the information\n7) Improve the documentation so I can use the structures as a reference and reuse the code more effectively\n8) Clean up the code and, in particular, follow standard naming conventions\n9) There are two MFT entry flags that appear that I can't determine the significance of. These appear in\nthe output as Unknown1 and Unknown2\n10) Parse filename based on 'nspace' value in FN structure\n11) Test it and ensure that it works on all major Windows OS versions\n12) Output HTML as well as CSV\n13) If you specify a bad input filename and a good output filename, you get an\nerror about the output filename.\n\n\nUseful Documentation\n====================\n\n1) http://dubeyko.com/development/FileSystems/NTFS/ntfsdoc.pdf\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/eddsalkield/analyzeMFT3",
+        "keywords": "",
+        "license": "LICENSE.txt",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "analyzeMFT3",
+        "package_url": "https://pypi.org/project/analyzeMFT3/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/analyzeMFT3/",
+        "project_urls": {
+            "Homepage": "http://github.com/eddsalkield/analyzeMFT3"
+        },
+        "release_url": "https://pypi.org/project/analyzeMFT3/3.0.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Analyze the $MFT from a NTFS filesystem.",
+        "version": "3.0.0"
+    },
+    "last_serial": 5556091,
+    "releases": {
+        "3.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0ddf6d44e440fb0a236cdeff12ccda62",
+                    "sha256": "e79e1803e1f95ad87c26da2d44e8cfa581c3aa767ecd4e9603031742b4a26654"
+                },
+                "downloads": -1,
+                "filename": "analyzeMFT3-3.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0ddf6d44e440fb0a236cdeff12ccda62",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 16871,
+                "upload_time": "2019-07-19T12:08:19",
+                "upload_time_iso_8601": "2019-07-19T12:08:19.758303Z",
+                "url": "https://files.pythonhosted.org/packages/38/25/47f683d1dbfa6af149ca7f5ceeed9273f55600b5da0ed5adcfad5c573a70/analyzeMFT3-3.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f8337bc01d0ec3701891c966607ffccf",
+                    "sha256": "95f5a3ff7a9a05019ff032cc77ad81ff43304024504369405cdb1a7b362bdc17"
+                },
+                "downloads": -1,
+                "filename": "analyzeMFT3-3.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f8337bc01d0ec3701891c966607ffccf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16409,
+                "upload_time": "2019-07-19T12:08:22",
+                "upload_time_iso_8601": "2019-07-19T12:08:22.566792Z",
+                "url": "https://files.pythonhosted.org/packages/c1/98/f34dca742e6ce3dd0ea451f6dc9c9fed10117d8d5a22a7646ba017dcdccb/analyzeMFT3-3.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0ddf6d44e440fb0a236cdeff12ccda62",
+                "sha256": "e79e1803e1f95ad87c26da2d44e8cfa581c3aa767ecd4e9603031742b4a26654"
+            },
+            "downloads": -1,
+            "filename": "analyzeMFT3-3.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "0ddf6d44e440fb0a236cdeff12ccda62",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 16871,
+            "upload_time": "2019-07-19T12:08:19",
+            "upload_time_iso_8601": "2019-07-19T12:08:19.758303Z",
+            "url": "https://files.pythonhosted.org/packages/38/25/47f683d1dbfa6af149ca7f5ceeed9273f55600b5da0ed5adcfad5c573a70/analyzeMFT3-3.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f8337bc01d0ec3701891c966607ffccf",
+                "sha256": "95f5a3ff7a9a05019ff032cc77ad81ff43304024504369405cdb1a7b362bdc17"
+            },
+            "downloads": -1,
+            "filename": "analyzeMFT3-3.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f8337bc01d0ec3701891c966607ffccf",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 16409,
+            "upload_time": "2019-07-19T12:08:22",
+            "upload_time_iso_8601": "2019-07-19T12:08:22.566792Z",
+            "url": "https://files.pythonhosted.org/packages/c1/98/f34dca742e6ce3dd0ea451f6dc9c9fed10117d8d5a22a7646ba017dcdccb/analyzeMFT3-3.0.0.tar.gz"
+        }
+    ]
+}

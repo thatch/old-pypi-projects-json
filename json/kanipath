@@ -1,0 +1,151 @@
+{
+    "info": {
+        "author": "fx-kirin",
+        "author_email": "ono.kirin@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5"
+        ],
+        "description": "This is forked from stedolan/pathfinder\n\nkanipath - pythonic filesystem library\n==========\n\nPython's standard library includes many, many modules for dealing with\nfiles. Ironically, none of these are particularly \"pythonic\". \n\nThere's os, which among other things can create, delete and move\nfiles. To copy them, you'll need shutil's copy or copy2 (slightly\ndifferent, of course). To list files, you might use the os or the glob\nmodules. You can get file metadata with os.stat, but you'll have to\nuse an entirely different module to interpret its results. \n\npathfinder uses these standard modules to make a library that can be\nused without constant reference to the documentation.\n\nIt's currently alpha software. I'm using the \"one giant file\" method\nof distribution, so you can install it by putting pathfinder.py somewhere\nhandy. There'll be a proper pip package soon!\n\nIt's all slightly unix-flavoured at the moment. It sits on top of the\ncross-platform primitives provided by Python, so it should\nmore-or-less work on Windows, but this hasn't been tested.\n\npathfinder is licensed under the MIT license.\n\npaths\n=====\n\nA ''path'' represents a file, which may or may not exist.\n\n    >>> p = path('/home/stephen/coding/pathfinder/pathfinder.py')\n\nYou can do lots of things with path objects\n\n    >>> if p.exists:\n    ...     print p.owner, p.last_modify_time\n    stephen 2012-02-12 15:40:20.328579\n\nIf you have a path object for a directory, you can use the / operator\nto look at things inside the directory.\n\n    >>> p = path('/home/stephen/coding')\n    >>> print p / 'pathfinder'\n    <Directory \"/home/stephen/coding/pathfinder\">\n    >>> print p / 'pathfinder' / 'pathfinder.py'\n    <File \"/home/stephen/coding/pathfinder/pathfinder.py\">\n\n'/' interprets the second argument relative to the first, so\n\n    >>> path('/home/stephen') / 'coding/pathfinder'\n    <Directory \"/home/stephen/coding/pathfinder\">\n    >>> path('/home/stephen') / '/etc/passwd'\n    <File \"/etc/passwd\">\n\n'%' is its inverse, and gives you the first path as a relative path\nfrom the second.\n\n    >>> path('/home/stephen/coding/pathfinder') % '/home/stephen'\n    <Directory 'coding/pathfinder'>\n    >>> path('/home/stephen/coding/pathfinder') % '/etc'\n    <Directory '../home/stephen/coding/pathfinder'>\n\nYou can list things in a directory by just iterating over the object.\n\n    >>> for f in p:\n    ...     print f.basename\n    .git\n    .gitignore\n    README.markdown\n    README.markdown~\n    pathfinder.py\n    pathfinder.py~\n    pathfinder.pyc\n\nor by using the more advanced ''.find'' method (see below)\n\n    >>> for f in p.find(\"Pathfinder*\", \n    ...                 exclude=[\"*~\", \"*.pyc\", \".git\"], \n    ...                 ignore_case=True):\n    pathfinder.py\n\n\n\nManipulating the filesystem\n===========================\n\nYou can inspect a path with path.exists, path.is_directory, path.is_file,\npath.is_symlink, path.size and various others. \n\npath.last_modify_time returns an actual Python datetime object. For\nsymlinks, path.link_target shows where they point, and\npath.final_link_target follows as many steps are necessary to get to\nthe end of a chain of symlinks.\n\n    >>> if path('README.markdown').newer_than(path('pathfinder.py')):\n    ...     print \"whatever the hell you just did, document it!\"\n\nYou can modify the filesystem with path.mkdir(), path.symlink(),\npath.chown() and friends. path.chown can be used to change the user or\ngroup or both, and takes either a numeric ID or a name.\n\n    >>> p.chown(user = \"stephen\", group = \"stephen\")\n\n\nUnix permissions\n----------------\n\n''.owner'' and ''.group'' give the owner and group of a file as\nstrings (use ''.owner_uid'') and (''.group_uid'') for numeric IDs.\n\n    >>> path('/etc/passwd').group\n    'root'\n\n''.perms'' will give the unix permissions of the file at a particular\npath.\n\n    >>> path('/etc/passwd').perms\n    <0644 -rw-r--r-->\n\nperms.user will restrict show only the user permissions, perms.write\nonly the write permissions, and so on. So, we can find all\nworld-executable setuid root programs in '/bin' with:\n\n    >>> [f for f in path('/bin') \n         if f.perms.world.execute and f.perms.setuid and f.owner == 'root']\n    [<File \"/bin/ping6\">,\n     <File \"/bin/fusermount\">,\n     <File \"/bin/su\">,\n     <File \"/bin/mount\">,\n     <File \"/bin/umount\">,\n     <File \"/bin/ping\">]\n\n\n\nReading and writing\n===================\n\npathfinder provides the absolute easiest method ever of reading and\nwriting files.\n\n    >>> p = path('myfile')\n    >>> p.contents = \"Look at me! I'm a file!\"\n    >>> print p.contents\n    Look at me! I'm a file!\n\nYou can also go the traditional route and open the file:\n\n    >>> f = path('myfile').open(\"r\")\n\nWhat you get back is a ''pathfinder.filehandle'' object, which is just\na little bit more awesome than a standard Python file. It implements\nthe standard Python file methods (so you can pass it to things that\nexpect a \"file-like object\").\n\nYou can seek around and read and write parts of a filehandle:\n\n    >>> f = path('myfile').open(\"w+\")\n    >>> f.write(\"Hello world\")\n    >>> print f[0:5]\n    \"Hello\"\n    >>> f[6:11] = \"again\"\n    >>> print f[:]\n    \"Hello again\"\n\n\n\nAtomic update\n-------------\n\nThere's a nice technique for modifying a file, where instead of\ndirectly writing the file you create a new file, write that one, then\nchange its name to the target filename and replace the original. On\nUnix-y systems, this is guaranteed atomic: any other program will see\neither the entire old file or the entire new file, never a\nhalf-written file or a missing file.\n\nOn Windows, it's not atomic but still useful: no other process will\nsee a half-written file, although they may observe a missing file in\nthe instant during the file move.\n\nUsing pathfinder and Python's with statement, this is easily done:\n\n    >>> with mypath.atomic_update() as f:\n    ...     f.write('lots of interesting data')\n    ...     f.write('and some more')\n\n\"f\" will point to a temporary file in the same directory as 'mypath',\nand at the end of the 'with' statement the new file will replace the\nold. If the code in the with statement throws an exception, or the\nPython process mysteriously dies, then the old file will remain intact.\n\n\nFinding stuff\n=============\n\npathfinder offers a friendlier alternative to the slightly awkward\nos.walk and the deeply unpleasant os.path.walk.\n\n    >>> p = path('/home/stephen/coding')\n    >>> p.find(include = [\"*.py\", \"docs/**/*.html\"],\n               exclude = \".git\",\n               visit_dirs = \"before\",\n               ignore_case = True,\n               max_depth = 3)\n\n* include specifies what to search for, as a list of string\npatterns. The patterns can contain wildcards: \"?\" matches any\nsingle character, \"\\*\" any sequence of characters and \"\\*\\*\" any sequence\nof directories. So, the pattern \"coding/\\*/\\*.html\" matches\n\"coding/project1/info.html\" but not \"coding/project1/docs/help.html\",\nwhile \"coding/\\*\\*/\\*.html\" matches both. Patterns may also be specified\nas callables, which will be invoked to determine whether a file is\nworth returning. If there's only one pattern, it need not be passed in\na list.\n\n* exclude is much the same, but specifies paths to avoid. Excluded paths\nwon't even be recursed into.\n\n* visit_dirs can be 'before', 'after' or False, and specifies whether\ndirectories are returned before or after their contents, or not at\nall.\n\n* ignore_case and max_depth should hopefully be reasonably clear. :)\n\nfind returns an iterator yielding path objects.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/fx-kirin/kanipath",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "kanipath",
+        "package_url": "https://pypi.org/project/kanipath/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/kanipath/",
+        "project_urls": {
+            "Homepage": "https://github.com/fx-kirin/kanipath"
+        },
+        "release_url": "https://pypi.org/project/kanipath/0.1.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "''",
+        "version": "0.1.1"
+    },
+    "last_serial": 4675922,
+    "releases": {
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bbbf227c648830185f74d87847c5a35e",
+                    "sha256": "65c8fcd23e5608cb59476a1c0c6a2c0b7fa845cfc3bd46746d6db6c7fc6616d1"
+                },
+                "downloads": -1,
+                "filename": "kanipath-0.1.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bbbf227c648830185f74d87847c5a35e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 12546,
+                "upload_time": "2019-01-09T08:49:28",
+                "url": "https://files.pythonhosted.org/packages/02/d7/336111ae46c968bfcdbae70db7beadb32333a3d1d958b883e8b8d69b036c/kanipath-0.1.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9ffa83b83f114e9202a811f9c4abe1cf",
+                    "sha256": "134a0d899556af75fc46275109e0bbc2ad2e0e21db067f447d7058ab989f453b"
+                },
+                "downloads": -1,
+                "filename": "kanipath-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9ffa83b83f114e9202a811f9c4abe1cf",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12585,
+                "upload_time": "2019-01-09T08:49:30",
+                "url": "https://files.pythonhosted.org/packages/ff/c8/2fb86379995e9a39f0355e9fedf449d71c32d7e3ded5c796595ac29d9d16/kanipath-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "842a309cbb338996dd3cc6f76ddbd3d5",
+                    "sha256": "afd404096fbdff2930ece06ac42abb6cc2b1f287d084cd8db592ca6c331f3843"
+                },
+                "downloads": -1,
+                "filename": "kanipath-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "842a309cbb338996dd3cc6f76ddbd3d5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9165,
+                "upload_time": "2019-01-09T08:49:32",
+                "url": "https://files.pythonhosted.org/packages/53/9f/940fae14a5eeb5eae70cea68946846561dc5a1c6c75b8d4bd3aafa1c37b6/kanipath-0.1.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "bbbf227c648830185f74d87847c5a35e",
+                "sha256": "65c8fcd23e5608cb59476a1c0c6a2c0b7fa845cfc3bd46746d6db6c7fc6616d1"
+            },
+            "downloads": -1,
+            "filename": "kanipath-0.1.1-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "bbbf227c648830185f74d87847c5a35e",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 12546,
+            "upload_time": "2019-01-09T08:49:28",
+            "url": "https://files.pythonhosted.org/packages/02/d7/336111ae46c968bfcdbae70db7beadb32333a3d1d958b883e8b8d69b036c/kanipath-0.1.1-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9ffa83b83f114e9202a811f9c4abe1cf",
+                "sha256": "134a0d899556af75fc46275109e0bbc2ad2e0e21db067f447d7058ab989f453b"
+            },
+            "downloads": -1,
+            "filename": "kanipath-0.1.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "9ffa83b83f114e9202a811f9c4abe1cf",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 12585,
+            "upload_time": "2019-01-09T08:49:30",
+            "url": "https://files.pythonhosted.org/packages/ff/c8/2fb86379995e9a39f0355e9fedf449d71c32d7e3ded5c796595ac29d9d16/kanipath-0.1.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "842a309cbb338996dd3cc6f76ddbd3d5",
+                "sha256": "afd404096fbdff2930ece06ac42abb6cc2b1f287d084cd8db592ca6c331f3843"
+            },
+            "downloads": -1,
+            "filename": "kanipath-0.1.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "842a309cbb338996dd3cc6f76ddbd3d5",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 9165,
+            "upload_time": "2019-01-09T08:49:32",
+            "url": "https://files.pythonhosted.org/packages/53/9f/940fae14a5eeb5eae70cea68946846561dc5a1c6c75b8d4bd3aafa1c37b6/kanipath-0.1.1.tar.gz"
+        }
+    ]
+}

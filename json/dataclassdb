@@ -1,0 +1,291 @@
+{
+    "info": {
+        "author": "Diogo Dutra",
+        "author_email": "diogodutradamata@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 1 - Planning",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Database"
+        ],
+        "description": "# dataclassdb\n\n<p align=\"center\" style=\"margin: 3em\">\n  <a href=\"https://github.com/dutradda/dataclassdb\">\n    <img src=\"dataclassdb.svg\" alt=\"dataclassdb\" width=\"300\"/>\n  </a>\n</p>\n\n<p align=\"center\">\n    <em>Generates <b>SQL</b> and <b>NoSQL</b> database models from @dataclass</em>\n</p>\n\n---\n\n**Documentation**: <a href=\"https://dutradda.github.io/dataclassdb\" target=\"_blank\">https://dutradda.github.io/dataclassdb</a>\n\n**Source Code**: <a href=\"https://github.com/dutradda/dataclassdb\" target=\"_blank\">https://github.com/dutradda/dataclassdb</a>\n\n---\n\n\n## Key Features\n\n- Fast start data modeling with persistence\n\n- Supports from simple database schemas to complex one\n\n- Integrate with:\n    + `SQLALchemy`\n    + `aioredis` (*soon*)\n    + `google-datastore` (*soon*)\n    + `mongodb` (*planned*)\n    + `elasticsearch` (*planned*)\n    + `aws-dynamodb` (*planned*)\n\n- Same interface as [`sqlalchemy.orm.session.Session`](https://docs.sqlalchemy.org/en/13/orm/session_api.html#sqlalchemy.orm.session.Session)\n\n- Easy integration with other data sources\n\n- Supports redis data structure (like hashs, sets, etc) to store objects\n\n\n## Requirements\n\nPython 3.7+\n\n\n## Instalation\n\n```\n$ pip install dataclassdb \n```\n\n\n## Basic SQLAlchemy example\n\n```python\nimport asyncio\n\nfrom dataclassdb import DataSourceType, SessionFactory\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Music:\n    name: str\n\n\n@dataclass\nclass Person:\n    name: str\n    age: int\n    music: Music\n\n\nsession = SessionFactory.make(\n    Music,\n    Person,\n    data_source=DataSourceType.RELATIONAL_SQLALCHEMY,\n    data_source_args=dict(\n        db_url='sqlite://',\n        backrefs=True,\n        create_tables=True,\n    )\n)\n\nperson = Person(\n    name='John',\n    age=40,\n    music=Music('Imagine')\n)\nsession.add(person)  # commit=True by default\n\nmusicQuery = session.query(Address)\nmusics = musicQuery.filter(name='Imagine').all()\n\nloop = asyncio.get_event_loop()\nprint(loop.run_until_complete(musics))\n```\n\n```bash\n[\n  Music(\n    name='Imagine',\n    _id=1,\n    backrefs=Backrefs(\n       person=[Person(age=40, name=John, _id=1)]\n    )\n  )\n]\n```\n\n\n## Basic aioredis with hash data type example\n\n```python\nimport asyncio\n\nfrom dataclassdb import DataSourceType, SessionFactoryAsync\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Music:\n    name: str\n\n\n@dataclass\nclass Person:\n    name: str\n    age: int\n    music: Music\n\n\nasync def get_musics():\n    session = await SessionFactoryAsync.make(\n        Address,\n        Person,\n        data_source=DataSourceType.MEMORY_AIOREDIS,\n        data_source_args=dict(\n            db_url='redis://',\n            backrefs=True,\n        )\n    )\n\n    person = Person(\n        name='John',\n        age=40,\n        music=Music('Imagine')\n    )\n    await session.add(person)\n\n    musicQuery = await session.query(Address)\n    return await musicQuery.filter(name='Imagine').all()\n\nloop = asyncio.get_event_loop()\nprint(loop.run_until_complete(musics))\n```\n\n```python\n[\n  Music(\n    name='Imagine',\n    _id=1,\n    backrefs=Backrefs(\n       person=[Person(age=40, name=John, _id=1)]\n    )\n  )\n]\n```\n\n\n## Basic aioredis with sorted set data type example\n\n```python\nfrom dataclassdb import (\n    DataSourceType,\n    MemorySortedSetRanked,\n    ModelKey,\n    SessionFactoryAsync,\n    SortedValue,\n)\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Music:\n    id: ModelKey(str)\n    name: str\n\n\nclass Playlist(MemorySortedSetRanked):\n    value_type = Music\n\n\n@dataclass\nclass Person:\n    name: str\n    age: int\n    playlist: Playlist\n\n\nsession = await SessionFactoryAsync.make(\n    Music,\n    Playlist,\n    Person,\n    data_source=DataSourceType.MEMORY_AIOREDIS,\n    data_source_args=dict(\n        db_url='redis://',\n        backrefs=True,\n    )\n)\n\nperson = Person(\n    name='John',\n    age=40,\n    playlist=Playlist(\n        Music(id='imagine', name='Imagine'),\n        Music(id='come-together', name='Come Together'),\n    )\n)\nawait session.add(person)\n\nplaylistQuery = await session.query(Playlist)\nplaylist = await playlistQuery.filter(Person.name=='John').one(withrank=True)\n\nprint(playlist)\n```\n\n```python\n[\n  SortedValue(\n    rank=1,\n    key='imagine'\n  ),\n  SortedValue(\n    rank=2,\n    key='come-together'\n  )\n]\n```\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/dutradda/dataclassdb",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "dataclassdb",
+        "package_url": "https://pypi.org/project/dataclassdb/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/dataclassdb/",
+        "project_urls": {
+            "Documentation": "https://dutradda.github.io/dataclassdb/",
+            "Homepage": "https://github.com/dutradda/dataclassdb"
+        },
+        "release_url": "https://pypi.org/project/dataclassdb/0.0.9/",
+        "requires_dist": [
+            "mkdocs; extra == \"doc\"",
+            "mkdocs-material; extra == \"doc\"",
+            "markdown-include; extra == \"doc\"",
+            "black; extra == \"test\"",
+            "isort; extra == \"test\"",
+            "ipython; extra == \"test\"",
+            "mypy; extra == \"test\"",
+            "pytest-cov; extra == \"test\"",
+            "pytest-mock; extra == \"test\"",
+            "pytest>=5.1.1; extra == \"test\"",
+            "tox; extra == \"test\""
+        ],
+        "requires_python": ">=3.7",
+        "summary": "Generates ***SQL*** and ***NoSQL*** Database Models from @dataclass",
+        "version": "0.0.9"
+    },
+    "last_serial": 5784784,
+    "releases": {
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48983c8911f2f287aa261945dfc53bb3",
+                    "sha256": "dc93f2c8916ad36fb1f8303c3eea8d3fd61aa10d0cb9b9c19e0fa4f491f1ed26"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "48983c8911f2f287aa261945dfc53bb3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=3.7",
+                "size": 3020,
+                "upload_time": "2019-08-29T02:50:21",
+                "url": "https://files.pythonhosted.org/packages/2b/01/12cae3e6e3733c78a44305da7dc73f702bf43a39cfad64795f130f52fd95/dataclassdb-0.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3cb2e61a08cf50e68ef52b1e4a031335",
+                    "sha256": "07722a82103bed5237ba635defbcd6c7834a12671594483cc49a3dc082c42deb"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3cb2e61a08cf50e68ef52b1e4a031335",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 3133,
+                "upload_time": "2019-08-29T03:42:51",
+                "url": "https://files.pythonhosted.org/packages/af/f6/492d0c1c927a859e5e367d41901074e540032d3e9a76cc9a814cf488d51f/dataclassdb-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b28c03bd123a40f8638132abde70ee4d",
+                    "sha256": "e279f7cc09bcdf682d75b82333628f46397ab942698f1a949105be2f030353e2"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b28c03bd123a40f8638132abde70ee4d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 3496,
+                "upload_time": "2019-08-29T02:50:23",
+                "url": "https://files.pythonhosted.org/packages/4e/43/4af53fdbe9265321238885e0fb7fc41360d3cb89c1aa66ff07c3d0312471/dataclassdb-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0dc9432d21e20f2e7f3c74981daa56bf",
+                    "sha256": "919653b1c2f9c93dc0852d4d1fb47d26064f27f96f1e411fe579673133ba6db3"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0dc9432d21e20f2e7f3c74981daa56bf",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 3133,
+                "upload_time": "2019-08-29T03:43:15",
+                "url": "https://files.pythonhosted.org/packages/7c/31/601eee76fbadd2eff8a062d25cf078a71de0080d3521c1273315aea72d67/dataclassdb-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "736c6216ab1464e5166f14b428e0f6fc",
+                    "sha256": "626b6168a2124cde3dd8618b2fda594e94ae7cb3a31e0634ce53acefcbaad3dd"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "736c6216ab1464e5166f14b428e0f6fc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 4058,
+                "upload_time": "2019-08-29T03:43:17",
+                "url": "https://files.pythonhosted.org/packages/ec/94/2db19aa9718a93530aed5a4f8c7b1f68051c67291288d958127c2810c61b/dataclassdb-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c6182f6f8253d0ee9e8eb7735d4cb20c",
+                    "sha256": "5b2f32349d910aab7794048cfcb866556bc2f26f49743ca7c4e9d1643ab61a8b"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c6182f6f8253d0ee9e8eb7735d4cb20c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 3192,
+                "upload_time": "2019-08-29T04:10:22",
+                "url": "https://files.pythonhosted.org/packages/76/4c/f3ad76c2b488ef0ed66a683371453eb2a045bd22a79c5c52521ff967bb29/dataclassdb-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ea51eab7db30b963994550ed33f93f3a",
+                    "sha256": "8f2dbc7190ceb888cd9bd50765eb9fd366aa76d441bf94a112c1e35b578a4df7"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ea51eab7db30b963994550ed33f93f3a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 3975,
+                "upload_time": "2019-08-29T04:10:24",
+                "url": "https://files.pythonhosted.org/packages/ce/9c/89d1de7b77d6ef5713ae495564ca63c688d914e7b8ec85c5010f909385a0/dataclassdb-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "871e7e403db88d3cd57161cffaf085f8",
+                    "sha256": "2c5c16fa842c1498ae94fd4224e86ceda071e9abd3e0ec32a2af57c121b0c25c"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "871e7e403db88d3cd57161cffaf085f8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 3472,
+                "upload_time": "2019-08-29T13:12:59",
+                "url": "https://files.pythonhosted.org/packages/fc/e3/1d947503a00b66e0307c5fbd7d4da7ffe8e4e3d84ff1e57e8d00a6229bd6/dataclassdb-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "027905fb218ee807720b37cfc4cc8cea",
+                    "sha256": "e111a52eb27be90d7e3b10cd8c29009c55e4fd866e275e866aecf699c65b9688"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "027905fb218ee807720b37cfc4cc8cea",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 4405,
+                "upload_time": "2019-08-29T13:13:02",
+                "url": "https://files.pythonhosted.org/packages/8c/73/4a2b810d62530891dbce6dce18a089dee66b3a55df91db96457e1f849106/dataclassdb-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f36eb8f26086673716288877cbc1137b",
+                    "sha256": "f3869c07ce0fd16386dcd8e5429d32170aeee43a766e7c9d77e0b1c514a3f172"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f36eb8f26086673716288877cbc1137b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 3981,
+                "upload_time": "2019-09-05T05:21:36",
+                "url": "https://files.pythonhosted.org/packages/a4/4f/630540e3c9015038c1d99a15e41085b34d79bf2005a11b7f7a8ce9d9774e/dataclassdb-0.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "80e46d10bff787f0540ed1778e632e28",
+                    "sha256": "d4be6f86fcd5c5d3a5814ae25ac65383d73bad7f57d19213c529a7ec4c24d96a"
+                },
+                "downloads": -1,
+                "filename": "dataclassdb-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "80e46d10bff787f0540ed1778e632e28",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 10370,
+                "upload_time": "2019-09-05T05:21:38",
+                "url": "https://files.pythonhosted.org/packages/66/73/cc34ede1546305067d2b9c4b9dd3bd254d7400d1bcdf8d3db4aeb1ab6df8/dataclassdb-0.0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f36eb8f26086673716288877cbc1137b",
+                "sha256": "f3869c07ce0fd16386dcd8e5429d32170aeee43a766e7c9d77e0b1c514a3f172"
+            },
+            "downloads": -1,
+            "filename": "dataclassdb-0.0.9-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "f36eb8f26086673716288877cbc1137b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7",
+            "size": 3981,
+            "upload_time": "2019-09-05T05:21:36",
+            "url": "https://files.pythonhosted.org/packages/a4/4f/630540e3c9015038c1d99a15e41085b34d79bf2005a11b7f7a8ce9d9774e/dataclassdb-0.0.9-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "80e46d10bff787f0540ed1778e632e28",
+                "sha256": "d4be6f86fcd5c5d3a5814ae25ac65383d73bad7f57d19213c529a7ec4c24d96a"
+            },
+            "downloads": -1,
+            "filename": "dataclassdb-0.0.9.tar.gz",
+            "has_sig": false,
+            "md5_digest": "80e46d10bff787f0540ed1778e632e28",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7",
+            "size": 10370,
+            "upload_time": "2019-09-05T05:21:38",
+            "url": "https://files.pythonhosted.org/packages/66/73/cc34ede1546305067d2b9c4b9dd3bd254d7400d1bcdf8d3db4aeb1ab6df8/dataclassdb-0.0.9.tar.gz"
+        }
+    ]
+}

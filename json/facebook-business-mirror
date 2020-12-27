@@ -1,0 +1,650 @@
+{
+    "info": {
+        "author": "Facebook republished by Dominik Felber",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# Facebook Business SDK for Python\n\n[![Build Status](https://travis-ci.org/facebook/facebook-python-business-sdk.svg)](https://travis-ci.org/facebook/facebook-python-business-sdk)\n\n### Introduction\n\nThe Facebook <a href=\"https://developers.facebook.com/docs/business-sdk\" target=\"_blank\">Business SDK</a> is a one-stop shop to help our partners better serve their businesses. Partners are using multiple Facebook API's to server the needs of their clients. Adopting all these API's and keeping them up to date across the various platforms can be time consuming and ultimately prohibitive. For this reason Facebook has developed the Business SDK bundling many of its APIs into one SDK to ease implementation and upkeep. The Business SDK is an upgraded version of the Marketing API SDK that includes the Marketing API as well as many Facebook APIs from different platforms such as Pages, Business Manager, Instagram, etc.\n\n## Quick Start\n\nBusiness SDK <a href=\"https://developers.facebook.com/docs/business-sdk/getting-started\" target=\"_blank\">Getting Started Guide</a>\n\nPython is currently the most popular language for our third party developers. `facebook_business` is a Python package that provides an interface between your Python application and <a href=\"https://developers.facebook.com/docs/business-sdk/reference\" target=\"_blank\">Facebook's APIs within the Business SDK</a>. This tutorial covers the basic knowledge needed to use the SDK and provide some exercises for the reader.\n\n**NOTE**: ``facebook_business`` package is compatible with Python 2 and 3!\n\n## Pre-requisites\n\n### Register An App\n\nTo get started with the SDK, you must have an app\nregistered on <a href=\"https://developers.facebook.com/\" target=\"_blank\">developers.facebook.com</a>.\n\nTo manage the Marketing API, please visit your\n<a href=\"https://developers.facebook.com/apps/<YOUR APP ID>/dashboard\"> App Dashboard </a>\nand add the <b>Marketing API</b> product to your app.\n\n**IMPORTANT**: For security, it is recommended that you turn on 'App Secret\nProof for Server API calls' in your app's Settings->Advanced page.\n\n### Obtain An Access Token\n\nWhen someone connects with an app using Facebook Login and approves the request\nfor permissions, the app obtains an access token that provides temporary, secure\naccess to Facebook APIs.\n\nAn access token is an opaque string that identifies a User, app, or Page.\n\nFor example, to access the Marketing API, you need to generate a User access token\nfor your app and ask for the ``ads_management`` permission; to access Pages API,\nyou need to generate a Page access token for your app and ask for the ``manage_page`` permission.\n\nRefer to our\n<a href=\"https://developers.facebook.com/docs/facebook-login/access-tokens\" target=\"_blank\">\nAccess Token Guide</a> to learn more.\n\nFor now, we can use the\n<a href=\"https://developers.facebook.com/tools/explorer\" target=\"_blank\">Graph Explorer</a>\nto get an access token.\n\n## Install package\n\nThe easiest way to install the SDK is via ``pip`` in your shell.\n\n**NOTE**: For Python 3, use ``pip3`` and ``python3`` instead.\n\n**NOTE**: Use ``sudo`` if any of these complain about permissions. (This might\nhappen if you are using a system installed Python.)\n\nIf you don't have pip:\n\n```\neasy_install pip\n```\n\nNow execute when you have pip:\n\n```\npip install facebook_business\n```\n\nIf you care for the latest version instead of a possibly outdated version in the\n<a href=\"https://pypi.python.org\" target=\"_blank\">pypi.python.org</a> repository,\n<a href=\"https://github.com/facebook/facebook-python-business-sdk\">check out the\nrepository from GitHub or download a release tarball</a>. Once you've got the\npackage downloaded and unzipped, install it:\n\n```\npython setup.py install\n```\n\nGreat, now you are ready to use the SDK!\n\n## Bootstrapping\n\n### Create test.py\nCreate a test.py file with the contents below (assuming your system is using python 2.7 and installed under /opt/homebrew. Update to your proper python location.):\n\n```python\nimport sys\nsys.path.append('/opt/homebrew/lib/python2.7/site-packages') # Replace this with the place you installed facebookads using pip\nsys.path.append('/opt/homebrew/lib/python2.7/site-packages/facebook_business-3.0.0-py2.7.egg-info') # same as above\n\nfrom facebook_business.api import FacebookAdsApi\nfrom facebook_business.adobjects.adaccount import AdAccount\n\nmy_app_id = 'your-app-id'\nmy_app_secret = 'your-appsecret'\nmy_access_token = 'your-page-access-token'\nFacebookAdsApi.init(my_app_id, my_app_secret, my_access_token)\nmy_account = AdAccount('act_<your-adaccount-id>')\ncampaigns = my_account.get_campaigns()\nprint(campaigns)\n```\n\n### Test Your Install\nTest your install with the following command:\n```python\npython test.py\n```\nYou should see the result in your terminal window. If it complains about an expired token, repeat the process for requesting a Page Access Token described in the prerequisites section above.\n\n**NOTE**: We shall use the objects module throughout the rest of the tutorial. You can\nalso use the individual class files under adobjects directly.\n\n\n## Understanding CRUD\n\nThe SDK implements a CRUD (create, read, update, delete) design. Objects\nrelevant to exploring the graph are located in the objects module of the\nfacebook_business package.\n\nAll objects on the graph are instances of ``AbstractObject``. Some objects can\nbe directly queried and thus are instances of ``AbstractCrudObject`` (a subclass\nof ``AbstractObject``). Both these abstract classes are located in\n``facebook_business.adobjects``.\n\nThere is and additional folder ``adobjects`` under facebook_business. Under this you will see a file for every ad object\nin our Marketing API. These files are autogenerated from our API and therefore\nare close in parity with what API has to offer. Based on what CRUD operations can be\nperformed on each object, you will see the presence of the following methods in them:\n\n* ``api_get``\n* ``api_update``\n* ``api_delete``\n* ``create_xxx``\n* ``get_xxx``\n\nFor example, Campaign has all these methods but AdAccount does not. Read the\nMarketing API documentation for more information about\n<a href=\"https://developers.facebook.com/docs/marketing-api/reference\" target=\"_blank\">how different ad\nobjects are used</a>.\n\nThere are some deprecated function in ``AbstractCrudObject``, like\n* ``remote_create``\n* ``remote_read``\n* ``remote_update``\n* ``remote_delete``\n\nPlease try to stop use them since we may plan to deprecated them soon.\n\n## Exploring the Graph\n\nThe way the SDK abstracts the API is by defining classes that represent objects\non the graph. These class definitions and their helpers are located in\n``facebook_business.adobjects``.\n\n### Initializing Objects\n\nLook at ``AbstractObject``'s and ``AbstractCrudObject``'s ``__init__`` method\nfor more information. Most objects on the graph subclass from one of the two.\n\nWhen instantiating an ad object, you can specify its id if it already exists by\ndefining ``fbid`` argument. Also, if you want to interact with the\nAPI using a specific api object instead of the default, you can specify the\n``api`` argument.\n\n### Edges\n\nLook at the methods of an object to see what associations over which we can\niterate. For example an ``AdUser`` object has a method ``get_ad_accounts`` which\nreturns an iterator of ``AdAccount`` objects.\n\n### Ad Account\n\nMost ad-related operations are in the context of an ad account. You can go to\n<a href=\"https://www.facebook.com/ads/manage\">Ads Manager</a> to see accounts\nfor which you have permission. Most of you probably have a personal account.\n\nLet's get all the ad accounts for the user with the given access token. I only\nhave one account so the following is printed:\n\n```python\n>>> me = adobjects.AdUser(fbid='me')\n>>> my_accounts = list(me.get_ad_accounts())\n>>> print(my_accounts)\n[{   'account_id': u'17842443', 'id': u'act_17842443'}]\n>>> type(my_accounts[0])\n<class 'facebook_business.adobjects.AdAccount'>\n```\n\n**WARNING**: We do not specify a keyword argument ``api=api`` when instantiating\nthe ``AdUser`` object here because we've already set the default api when\nbootstrapping.\n\n**NOTE**: We wrap the return value of ``get_ad_accounts`` with ``list()``\nbecause ``get_ad_accounts`` returns an ``EdgeIterator`` object (located in\n``facebook_business.adobjects``) and we want to get the full list right away instead of\nhaving the iterator lazily loading accounts.\n\nFor our purposes, we can just pick an account and do our experiments in its\ncontext:\n\n```python\n>>> my_account = my_accounts[0]\n```\n\nOr if you already know your account id:\n\n```python\n>>> my_account = adobjects.AdAccount('act_17842443')\n```\n\n## Create\n\nLet's create a campaign. It's in the context of the account, i.e. its parent\nshould be the account.\n\n```python\n\nfields = [\n]\nparams = {\n  adobjects.Campaign.Field.name : 'Conversions Campaign',\n  adobjects.Campaign.Field.configured_status: adobjects.Campaign.Status.paused,\n}\ncampaign = AdAccount(id).create_campaign(fields, params)\n```\n\nThen we specify some details about the campaign. To figure out what properties\nto define, you should look at the available fields of the object (located in\n``Campaign.Field``) and also look at the ad object's documentation (e.g.\n<a href=\"https://developers.facebook.com/docs/marketing-api/reference/ad-campaign-group\">\nCampaign</a>).\n\n**NOTE**: To find out the fields, look at the individual class file under adobjects\ndirectory.\n\nIf there's an error, an exception will be raised. Possible exceptions and their\ndescriptions are listed in ``facebook_business.exceptions``.\n\n## Read\n\nWe can also read properties of an object from the api assuming that the object\nis already created and has a node path. Accessing properties of an object is\nsimple since ``AbstractObject`` implements the ``collections.MutableMapping``.\nYou can access them just like accessing a key of a dictionary:\n\n```python\n>>> print(my_account)\n{'account_id': u'17842443', 'id': u'act_17842443'}\n>>> my_account = my_account.api_get(fields=[adobjects.AdAccount.Field.amount_spent])\n>>> print(my_account[adobjects.AdAccount.Field.amount_spent])\n{'amount_spent': 21167, 'account_id': u'17842443', 'id': u'act_17842443'}\n```\n\n## Update\n\nTo update an object, we can modify its properties and then call the\n``api_update`` method to sync the object with the server. Let's correct the\ntypo \"Campain\" to \"Campaign\":\n\n```python\n>>> campaign.api_update(fields=[], params={adobjects.Campaign.Field.name:\"Potato Campaign\"})\n```\n\nYou can see the results in ads manager.\n\n## Delete\n\nIf we decide we don't want the campaign we created anymore:\n\n```python\ncampaign.api_delete()\n```\n\n## Useful Arguments\n\n### MULTIPLE ACCESS TOKENS\n\nThroughout the docs, the method FacebookAdsApi.init is called before making any API calls. This\nmethod set up a default FacebookAdsApi object to be used everywhere. That simplifies the usage\nbut it's not feasible when a system using the SDK will make calls on behalf of multiple users.\n\nThe reason why this is not feasible is because each user should have its own FacebookSession, with its own\naccess token, rather than using the same session for every one. Each session should be used to create a\nseparate FacebookAdsApi object. See example below:\n\n\n```python\nmy_app_id = '<APP_ID>'\nmy_app_secret = '<APP_SECRET>'\nmy_access_token_1 = '<ACCESS_TOKEN_1>'\nmy_access_token_2 = '<ACCESS_TOKEN_2>'\nproxies = {'http': '<HTTP_PROXY>', 'https': '<HTTPS_PROXY>'} # add proxies if needed\n\nsession1 = FacebookSession(\n    my_app_id,\n    my_app_secret,\n    my_access_token_1,\n    proxies,\n)\n\nsession2 = FacebookSession(\n    my_app_id,\n    my_app_secret,\n    my_access_token_2,\n    proxies,\n)\n\napi1 = FacebookAdsApi(session1)\napi2 = FacebookAdsApi(session2)\n```\nIn the SDK examples, we always set a single FacebookAdsApi object as the default one.\nHowever, working with multiples access_tokens, require us to use multiples apis. We may set a default\napi for a user, but, for the other users,  we shall use its the api object as a param. In the example below,\nwe create two AdUsers, the first one using the default api and the second one using its api object:\n\n```python\nFacebookAdsApi.set_default_api(api1)\n\nme1 = AdUser(fbid='me')\nme2 = AdUser(fbid='me', api=api2)\n```\nAnother way to create the same objects from above would be:\n\n```python\nme1 = AdUser(fbid='me', api=api1)\nme2 = AdUser(fbid='me', api=api2)\n```\nFrom here, all the following workflow for these objects remains the same. The only exceptions are\nthe classmethods calls, where we now should pass the api we want to use as the last parameter\non every call. For instance, a call to the Aduser.get_by_ids method should be like this:\n\n```python\nsession = FacebookSession(\n my_app_id,\n my_app_secret,\n my_access_token_1,\n proxies,\n)\n\napi = FacebookAdsApi(session1)\nAduser.get_by_ids(ids=['<UID_1>', '<UID_2>'], api=api)\n```\n### CRUD\n\nAll CRUD calls support a ``params`` keyword argument which takes a dictionary\nmapping parameter names to values in case advanced modification is required. You\ncan find the list of parameter names as attributes of\n``{your object class}.Field``. Under the Field class there may be other classes\nwhich contain, as attributes, valid fields of the value of one of the parent\nproperties.\n\n``api_update`` and ``create_xxx`` support a ``files`` keyword argument\nwhich takes a dictionary mapping file reference names to binary opened file\nobjects.\n\n``api_get`` supports a ``fields`` keyword argument which is a convenient way\nof specifying the 'fields' parameter. ``fields`` takes a list of fields which\nshould be read during the call. The valid fields can be found as attributes of\nthe class Field.\n\n### Edges\n\nWhen initializing an ``EdgeIterator`` or when calling a method such as\n``AdAccount.get_ad_campaigns``:\n\n* You can specify a ``fields`` argument which takes a list of fields to read for\nthe objects being read.\n* You can specify a ``params`` argument that can help you specify or filter the\nedge more precisely.\n\n## Batch Calling\n\nIt is efficient to group together large numbers of calls into one http request.\nThe SDK makes this process simple. You can group together calls into an instance\nof ``FacebookAdsApiBatch`` (available in facebook_business.api). To easily get one\nfor your api instance:\n\n```python\nmy_api_batch = api.new_batch()\n```\n\nCalls can be added to the batch instead of being executed immediately:\n\n```python\ncampaign.api_delete(batch=my_api_batch)\n```\n\nOnce you're finished adding calls to the batch, you can send off the request:\n\n```python\nmy_api_batch.execute()\n```\n\nPlease follow <a href=\"https://developers.facebook.com/docs/graph-api/making-multiple-requests\">\nbatch call guidelines in the Marketing API documentation</a>. There are optimal\nnumbers of calls per batch. In addition, you may need to watch out that for rate\nlimiting as a batch call simply improves network performance and each call does\ncount individually towards rate limiting.\n\n## Exceptions\n\nSee ``facebook_business.exceptions`` for a list of exceptions which may be thrown by\nthe SDK.\n\n## Tests\n\n### Unit tests\n\nThe unit tests don't require an access token or network access. Run them\nwith your default installed Python as follows:\n\n```\npython -m facebook_business.test.unit\n```\n\nYou can also use tox to run the unit tests with multiple Python versions:\n\n```\nsudo apt-get install python-tox  # Debian/Ubuntu\nsudo yum install python-tox      # Fedora\ntox --skip-missing-interpreters\n```\n\nYou can increase interpreter coverage by installing additional versions of\nPython. On Ubuntu you can use the\n[deadsnakes PPA](https://launchpad.net/~fkrull/+archive/ubuntu/deadsnakes).\nOn other distributions you can\n[build from source](https://www.python.org/downloads/) and then use\n`sudo make altinstall` to avoid conflicts with your system-installed\nversion.\n\n## Examples\n\nExamples of usage are located in the ``examples/`` folder.\n\n\n## Debug\n\nIf this SDK is not working as expected, it may be either a SDK issue or API issue.\n\nThis can be identified by constructing a raw cURL request and seeing if the response is as expected\n\nfor example:\n\n```python\nfrom facebook_business.adobjects.page import Page\nfrom facebook_business.api import FacebookAdsApi\n\nFacebookAdsApi.init(access_token=access_token, debug=True)\npage = Page(page_id).api_get(fields=fields,params=params)\n```\n\nWhen running this code, this cURL request will be printed to the console as:\n```\ncurl -X 'GET' -H 'Accept: */*' -H 'Accept-Encoding: gzip, deflate' -H 'Connection: keep-alive' -H 'User-Agent: fbbizsdk-python-v3.3.1' 'https://graph.facebook.com/v3.3/<pageid>/?access_token=<access_token>&fields=name%2Cbirthday%2Cphone'\n```\n\n## SDK Codegen\nOur SDK is autogenerated from [SDK Codegen](https://github.com/facebook/facebook-business-sdk-codegen). If you want to learn more about how our SDK code is generated, please check this repository.\n\n## Issue\nSince we want to handle bugs more efficiently, we've decided to close issue reporting in Github and move to our dedicated bug reporting channel.\nIf you encounter a bug with Business SDK (Python), please report the issue at [our developer bug reporting channel](https://developers.facebook.com/support/bugs/).\n\n## License\nFacebook Business SDK for Python is licensed under the LICENSE file in the root directory of this source tree.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "https://github.com/facebook/facebook-python-business-sdk/tarball/4.0.7",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/facebook/facebook-python-business-sdk",
+        "keywords": "",
+        "license": "LICENSE.txt",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "facebook-business-mirror",
+        "package_url": "https://pypi.org/project/facebook-business-mirror/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/facebook-business-mirror/",
+        "project_urls": {
+            "Download": "https://github.com/facebook/facebook-python-business-sdk/tarball/4.0.7",
+            "Homepage": "https://github.com/facebook/facebook-python-business-sdk"
+        },
+        "release_url": "https://pypi.org/project/facebook-business-mirror/4.0.7/",
+        "requires_dist": [
+            "requests (>=2.3.0)",
+            "six (>=1.7.3)",
+            "curlify (>=2.1.0)"
+        ],
+        "requires_python": "",
+        "summary": "Mirror of the Facebook Business SDK",
+        "version": "4.0.7"
+    },
+    "last_serial": 5964673,
+    "releases": {
+        "3.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "deb827c3643469114b9dc4fce6809c82",
+                    "sha256": "749812f73589f5e514796791ddb3aa30215d0fc76341fda63edcda50052b0805"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "deb827c3643469114b9dc4fce6809c82",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 1037327,
+                "upload_time": "2019-07-30T20:47:58",
+                "upload_time_iso_8601": "2019-07-30T20:47:58.416885Z",
+                "url": "https://files.pythonhosted.org/packages/2d/d9/304f6ee2933f02a963bc55e07442448ee2a1d352f0cd43a3073b780b3ac9/facebook_business_mirror-3.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fcfcc324586db696f7bb934eeef1a50d",
+                    "sha256": "a04bf5a04a040386a7f52c825b720c733c639bb82bc02e99c0957c6d909105b3"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fcfcc324586db696f7bb934eeef1a50d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 487100,
+                "upload_time": "2019-07-30T20:48:06",
+                "upload_time_iso_8601": "2019-07-30T20:48:06.982319Z",
+                "url": "https://files.pythonhosted.org/packages/0c/5c/64ee760f5cff6bea60e9cde828e4a1e852cb42f2fa76cd08c75786e32d6b/facebook_business_mirror-3.3.1.tar.gz"
+            }
+        ],
+        "3.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f11c3fcdc97967404dbf32b3f3f32b9d",
+                    "sha256": "1647e5e87198d748a90dd14adfc81d8a75d7d5b74538891b780a0bb297769fe5"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f11c3fcdc97967404dbf32b3f3f32b9d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 954512,
+                "upload_time": "2019-07-30T20:48:36",
+                "upload_time_iso_8601": "2019-07-30T20:48:36.843873Z",
+                "url": "https://files.pythonhosted.org/packages/fb/3d/4716809a116f7f65fd441c0e9736b81156d59531abe798c7d09df757eff5/facebook_business_mirror-3.3.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "54f90b65e309ac5295202577fee90e4b",
+                    "sha256": "848cfb4cea57a4c7cd443b2ce7f00f74c5652a40e657c199dfa80748482cba5a"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "54f90b65e309ac5295202577fee90e4b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 454321,
+                "upload_time": "2019-07-30T20:48:42",
+                "upload_time_iso_8601": "2019-07-30T20:48:42.971029Z",
+                "url": "https://files.pythonhosted.org/packages/ec/b3/73a2828faccc7036bdeb59fb15e671780989b5b2b7847f9104e20f8a6359/facebook_business_mirror-3.3.2.tar.gz"
+            }
+        ],
+        "3.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7861feb34027eb779b51da446f020e6c",
+                    "sha256": "5fac0b3f90504dbc0f688d9a4fad2282ead20fe60663a8e211ce01b13f9fffea"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7861feb34027eb779b51da446f020e6c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 954415,
+                "upload_time": "2019-07-30T20:49:03",
+                "upload_time_iso_8601": "2019-07-30T20:49:03.859483Z",
+                "url": "https://files.pythonhosted.org/packages/68/4a/b25d999ee59e29f8922778e486db3a74579f53d2cfe2c663270f38d3af1c/facebook_business_mirror-3.3.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5de02de0ac489695a76c08ccdcd3f0a3",
+                    "sha256": "5e65209c912c619391e944d63176f9efd13987b6d4f9b1b357d6a9c7b458c2c4"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5de02de0ac489695a76c08ccdcd3f0a3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 454206,
+                "upload_time": "2019-07-30T20:49:09",
+                "upload_time_iso_8601": "2019-07-30T20:49:09.843473Z",
+                "url": "https://files.pythonhosted.org/packages/b9/79/1e751c6afe5f8d671f83fa2a8e77d0e475096df2a6d19867758d60831a41/facebook_business_mirror-3.3.3.tar.gz"
+            }
+        ],
+        "3.3.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5b258b25fe9eb34e247d3a1148f5191e",
+                    "sha256": "5212a99c52f58b51f840b3cf53d6a437e9b5c14a73cfb1ae9995bc6de2ddcabc"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5b258b25fe9eb34e247d3a1148f5191e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 954191,
+                "upload_time": "2019-07-30T20:49:48",
+                "upload_time_iso_8601": "2019-07-30T20:49:48.046783Z",
+                "url": "https://files.pythonhosted.org/packages/db/f7/1736202e8638c8997e954ff28846654a42b0786a8864ed48d8bba44f475c/facebook_business_mirror-3.3.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f43c1db250f4eef591c91d33ebca3adf",
+                    "sha256": "3d8b666946f82f88dc39e91a88abc1ea2d83774ba59f55d376d86a658647d3c1"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f43c1db250f4eef591c91d33ebca3adf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 454023,
+                "upload_time": "2019-07-30T20:49:54",
+                "upload_time_iso_8601": "2019-07-30T20:49:54.560143Z",
+                "url": "https://files.pythonhosted.org/packages/28/c0/ff171e98f02f6f6f38448a6f27c9bb9cc27bcf744052c940da35a71c4a1d/facebook_business_mirror-3.3.4.tar.gz"
+            }
+        ],
+        "3.3.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0f9019c460ebf35a497a642d3f32485",
+                    "sha256": "dc80c193aaf5fae1f2474faeb705a8ae9f5a10b2ee5d796edd658ec78416e597"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c0f9019c460ebf35a497a642d3f32485",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 964722,
+                "upload_time": "2019-07-30T20:50:24",
+                "upload_time_iso_8601": "2019-07-30T20:50:24.839902Z",
+                "url": "https://files.pythonhosted.org/packages/58/cf/1615f3c9c4668588ae1855f437bc44711783f6c25fb77d44ae6f6f6a1eb0/facebook_business_mirror-3.3.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4b78298a3435dfd276ec24e22f25ce02",
+                    "sha256": "332f05d3d2c2824a12deed0ff6924cf780a652630f20148e288bab37896297dd"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4b78298a3435dfd276ec24e22f25ce02",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 458414,
+                "upload_time": "2019-07-30T20:50:31",
+                "upload_time_iso_8601": "2019-07-30T20:50:31.368844Z",
+                "url": "https://files.pythonhosted.org/packages/16/de/092daea1417e5e5b791adafdbb3ec1c6ab383bc9668bfc97658da2ff29b0/facebook_business_mirror-3.3.5.tar.gz"
+            }
+        ],
+        "3.3.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0013b345167e5788645a80a4e4b146bb",
+                    "sha256": "57e567d4db78edce2be9c2d630312f96acf8cb503ddc06b2f6962e1fe33dbee3"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0013b345167e5788645a80a4e4b146bb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 964935,
+                "upload_time": "2019-07-30T20:50:53",
+                "upload_time_iso_8601": "2019-07-30T20:50:53.537415Z",
+                "url": "https://files.pythonhosted.org/packages/09/87/2bc092a69fc8db0ed5c4fb16b177ff19708d12947f8a7f8de087d856888c/facebook_business_mirror-3.3.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9c00ba1f2b34edab2b58fa7857fbea23",
+                    "sha256": "902e9c0584077453b4588bd03a1a0bdb5aff530c231cd82e4a7ccfb5125a8372"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9c00ba1f2b34edab2b58fa7857fbea23",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 458290,
+                "upload_time": "2019-07-30T20:50:59",
+                "upload_time_iso_8601": "2019-07-30T20:50:59.609569Z",
+                "url": "https://files.pythonhosted.org/packages/f0/e2/06c945ab9d831b98c9eeec5a9cb8a8d7c54dad8bf65948148c3f560c11f8/facebook_business_mirror-3.3.6.tar.gz"
+            }
+        ],
+        "3.3.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4ac63290ee96751512be371568a0882d",
+                    "sha256": "a8eb1859d6f8762f7d3239152ee7673afc970675b83d25726fab3cffbb0c787e"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4ac63290ee96751512be371568a0882d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 965002,
+                "upload_time": "2019-07-30T20:51:25",
+                "upload_time_iso_8601": "2019-07-30T20:51:25.149849Z",
+                "url": "https://files.pythonhosted.org/packages/f5/f0/9653003073bac79480e99caedc6e8e4a196aa63cc85494e234634ecbe3a9/facebook_business_mirror-3.3.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4dc1fb0c5634922a446ef92127f85111",
+                    "sha256": "d9b89508d13b2df744b583e985babc7058cc1e2e18710765e88f6ed2d07e9d55"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-3.3.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4dc1fb0c5634922a446ef92127f85111",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 458504,
+                "upload_time": "2019-07-30T20:51:32",
+                "upload_time_iso_8601": "2019-07-30T20:51:32.344387Z",
+                "url": "https://files.pythonhosted.org/packages/c9/b3/22e2a65a10b991fcbb8163607b485f05667fceea20165c2fcb948364a9ca/facebook_business_mirror-3.3.7.tar.gz"
+            }
+        ],
+        "4.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5f23409ae71aac5e54cc974827316652",
+                    "sha256": "8736268e6a9fda3fa0d2e543ea675d385377d7ddf821b68cc3393e902eff4358"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5f23409ae71aac5e54cc974827316652",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 969975,
+                "upload_time": "2019-07-30T20:51:55",
+                "upload_time_iso_8601": "2019-07-30T20:51:55.146926Z",
+                "url": "https://files.pythonhosted.org/packages/23/a9/414e959f2498f4f7415f4b9c12b9cd4ba6d1faeb29790647ecf2e0f32b67/facebook_business_mirror-4.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f47f25d4c71ff06d249a5bb513065316",
+                    "sha256": "2d5c7315511dcfb8fbd91b9ee70cebe1da545a3528d10bcbc44d9a38d9b245d6"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f47f25d4c71ff06d249a5bb513065316",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 462002,
+                "upload_time": "2019-07-30T20:52:01",
+                "upload_time_iso_8601": "2019-07-30T20:52:01.502061Z",
+                "url": "https://files.pythonhosted.org/packages/bd/12/470fd43952589e8c45a8576025e35f5ebb3983b421b7fae3a47bce15f742/facebook_business_mirror-4.0.0.tar.gz"
+            }
+        ],
+        "4.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "77646df5863f8f9d4548ef5546c9e44d",
+                    "sha256": "9225c93ac6d6dbab2b4be6b4d354cabbd9865a4938dae0d066438c99369545c3"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "77646df5863f8f9d4548ef5546c9e44d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 976154,
+                "upload_time": "2019-08-19T07:32:55",
+                "upload_time_iso_8601": "2019-08-19T07:32:55.694347Z",
+                "url": "https://files.pythonhosted.org/packages/eb/96/1564fef34219863a6f70e027d4cc298b629ff59e9dca4ef6e1ddb2fa0ed6/facebook_business_mirror-4.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ae0ab16a7e9567ec25dbe48e930701a4",
+                    "sha256": "a2e5f7558794293c9a3447ca281de8e59458274b24debc5d47cbe81c8873b38f"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ae0ab16a7e9567ec25dbe48e930701a4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 463438,
+                "upload_time": "2019-08-19T07:33:03",
+                "upload_time_iso_8601": "2019-08-19T07:33:03.304692Z",
+                "url": "https://files.pythonhosted.org/packages/54/e3/e84421121398da2c272db3ffcbee693ac2a78cc15ad3e07d6ea4a5c8b566/facebook_business_mirror-4.0.1.tar.gz"
+            }
+        ],
+        "4.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5b5dc9b7493ffe05c35ef2d28bc3ac38",
+                    "sha256": "650333b09f2d4a39aa0f2cebcf5857a02d0df6ba2467484c5f31d6dcb223e4a6"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5b5dc9b7493ffe05c35ef2d28bc3ac38",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 980001,
+                "upload_time": "2019-08-19T07:33:25",
+                "upload_time_iso_8601": "2019-08-19T07:33:25.195305Z",
+                "url": "https://files.pythonhosted.org/packages/0b/3d/e0b9f12eb6ab801e210e71baea3a92f045444d7c3044ddbe5f555ce1ab61/facebook_business_mirror-4.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d42fb55ca926627fb8039983590d32d1",
+                    "sha256": "f080d5daa45968da7c3f52823b939fcc7601866374a6271719c45d2bc4dbb2d9"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d42fb55ca926627fb8039983590d32d1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 467335,
+                "upload_time": "2019-08-19T07:33:31",
+                "upload_time_iso_8601": "2019-08-19T07:33:31.502693Z",
+                "url": "https://files.pythonhosted.org/packages/bb/df/6d6881f84042df814538ad7ab48821abb730dce6870f3d01e76efc8c46e8/facebook_business_mirror-4.0.2.tar.gz"
+            }
+        ],
+        "4.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9432e6f3b7fb85c13000a2824ecb39a9",
+                    "sha256": "c9feb4c07f38c3cb0fb5a4d82e5d236e7b2c92f1eaeb2f1b734a4ce3ebc3e949"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9432e6f3b7fb85c13000a2824ecb39a9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 980457,
+                "upload_time": "2019-08-26T19:56:55",
+                "upload_time_iso_8601": "2019-08-26T19:56:55.157331Z",
+                "url": "https://files.pythonhosted.org/packages/1b/75/f6c80fae3b7a17a861426e0de0545ef437ed57a052d52a71b2d030016a2c/facebook_business_mirror-4.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4ee4fc3c89bf4b7aa58d74e1507a509c",
+                    "sha256": "c231ffd6f963e0dc80119ce88cc4db0d12ddaf002c444d9c215aaac97ec9db60"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4ee4fc3c89bf4b7aa58d74e1507a509c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 467859,
+                "upload_time": "2019-08-26T19:57:02",
+                "upload_time_iso_8601": "2019-08-26T19:57:02.187385Z",
+                "url": "https://files.pythonhosted.org/packages/cf/d6/6def4d2fba479abfa14845a4623b3e3d4743d8c75d035c150033f07b00b8/facebook_business_mirror-4.0.3.tar.gz"
+            }
+        ],
+        "4.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7860741dc81c71a106e158eecc9a630d",
+                    "sha256": "481bdc5b8bede6bb09a29290c97127d51d3b56f4e77afdce5b30001ad08ae8f6"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7860741dc81c71a106e158eecc9a630d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 983420,
+                "upload_time": "2019-09-01T08:51:20",
+                "upload_time_iso_8601": "2019-09-01T08:51:20.439076Z",
+                "url": "https://files.pythonhosted.org/packages/cd/93/7160a428ebfcfa46e1656726434586b29d9d65068dbc31641a9f8e4fc536/facebook_business_mirror-4.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "60dc86878ed1263dce86357669615294",
+                    "sha256": "79a34beb1e841961fd9864eae30f7c7104b66cc73a6a5d3012916698707f4312"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "60dc86878ed1263dce86357669615294",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 469530,
+                "upload_time": "2019-09-01T08:51:23",
+                "upload_time_iso_8601": "2019-09-01T08:51:23.509783Z",
+                "url": "https://files.pythonhosted.org/packages/5f/17/9a1e431434b022ccc77d333b240ed1b018a055d94fa0a08759c1f2c33dd8/facebook_business_mirror-4.0.4.tar.gz"
+            }
+        ],
+        "4.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a8d0bbba35fae695286cac79e943172d",
+                    "sha256": "7f07f182365ad5fd33fb3a4736f44edd8cd1c9b1d5d99994f387233f9afab454"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a8d0bbba35fae695286cac79e943172d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 985617,
+                "upload_time": "2019-09-14T18:22:01",
+                "upload_time_iso_8601": "2019-09-14T18:22:01.010520Z",
+                "url": "https://files.pythonhosted.org/packages/bf/34/161f8c09486f522401ec1680a1ece5463fd9df4c170e9452298d6918e674/facebook_business_mirror-4.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fd6963dddb05bca6fb05cd4792a107c9",
+                    "sha256": "6c6fc74a08241e5f050fcde28b2e8dae475906916b3f52f7edad4cfae56ad125"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fd6963dddb05bca6fb05cd4792a107c9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 470418,
+                "upload_time": "2019-09-14T18:22:03",
+                "upload_time_iso_8601": "2019-09-14T18:22:03.402779Z",
+                "url": "https://files.pythonhosted.org/packages/63/ce/38a5a3fa89f102509ff7a6d53cd5b17cad40bf76a294e98e0706c074d34e/facebook_business_mirror-4.0.5.tar.gz"
+            }
+        ],
+        "4.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1f1ded94cbc1892a89c6aa5d237716d4",
+                    "sha256": "7f203bd6bafe357e62d72df843cddebba6b6f5943b8c3526ebbb7600dc2f4e55"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1f1ded94cbc1892a89c6aa5d237716d4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 985906,
+                "upload_time": "2019-10-12T15:35:02",
+                "upload_time_iso_8601": "2019-10-12T15:35:02.007073Z",
+                "url": "https://files.pythonhosted.org/packages/c3/1a/4c5c850b3c26afcba06bb9e75b007810cc2cac21fab4dac3e2d504c3e920/facebook_business_mirror-4.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "85657f45f01bcb05d73d9f8e5c121068",
+                    "sha256": "b5f020b1d736ac7da819aa1d021990f190999942a09fb101fe8840ec1be87b2a"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "85657f45f01bcb05d73d9f8e5c121068",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 472468,
+                "upload_time": "2019-10-12T15:35:05",
+                "upload_time_iso_8601": "2019-10-12T15:35:05.685718Z",
+                "url": "https://files.pythonhosted.org/packages/57/de/6bc6dc8a120f64c634ee1d786cbd4fca4c1d2fc6649a4a4c4326cee91320/facebook_business_mirror-4.0.6.tar.gz"
+            }
+        ],
+        "4.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ae2acfbdd7f4f35cc1424f1c6bab19f",
+                    "sha256": "af93ba197c38a5b7eb887a9af8f6ad9e6b04617ca04abd1ceaa109c15d46fb2d"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2ae2acfbdd7f4f35cc1424f1c6bab19f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 987998,
+                "upload_time": "2019-10-12T15:35:29",
+                "upload_time_iso_8601": "2019-10-12T15:35:29.696688Z",
+                "url": "https://files.pythonhosted.org/packages/c0/75/fb37d35c2747336528d9fdf695564e73480352260605db7d1f640299eac4/facebook_business_mirror-4.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ee3936d63d663ff737f7b6ff63f70a52",
+                    "sha256": "a05ac0e0bdff3b9574ddd0e7c4d4972fc8e63b842f0f6877080950e12cdabb2e"
+                },
+                "downloads": -1,
+                "filename": "facebook_business_mirror-4.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ee3936d63d663ff737f7b6ff63f70a52",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 471345,
+                "upload_time": "2019-10-12T15:35:32",
+                "upload_time_iso_8601": "2019-10-12T15:35:32.782717Z",
+                "url": "https://files.pythonhosted.org/packages/7a/25/96c0057a586322ef5a97baa6be9f136ce13b3f958996c7373f9290f633ec/facebook_business_mirror-4.0.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2ae2acfbdd7f4f35cc1424f1c6bab19f",
+                "sha256": "af93ba197c38a5b7eb887a9af8f6ad9e6b04617ca04abd1ceaa109c15d46fb2d"
+            },
+            "downloads": -1,
+            "filename": "facebook_business_mirror-4.0.7-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2ae2acfbdd7f4f35cc1424f1c6bab19f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 987998,
+            "upload_time": "2019-10-12T15:35:29",
+            "upload_time_iso_8601": "2019-10-12T15:35:29.696688Z",
+            "url": "https://files.pythonhosted.org/packages/c0/75/fb37d35c2747336528d9fdf695564e73480352260605db7d1f640299eac4/facebook_business_mirror-4.0.7-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ee3936d63d663ff737f7b6ff63f70a52",
+                "sha256": "a05ac0e0bdff3b9574ddd0e7c4d4972fc8e63b842f0f6877080950e12cdabb2e"
+            },
+            "downloads": -1,
+            "filename": "facebook_business_mirror-4.0.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "ee3936d63d663ff737f7b6ff63f70a52",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 471345,
+            "upload_time": "2019-10-12T15:35:32",
+            "upload_time_iso_8601": "2019-10-12T15:35:32.782717Z",
+            "url": "https://files.pythonhosted.org/packages/7a/25/96c0057a586322ef5a97baa6be9f136ce13b3f958996c7373f9290f633ec/facebook_business_mirror-4.0.7.tar.gz"
+        }
+    ]
+}

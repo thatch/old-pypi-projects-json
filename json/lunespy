@@ -1,0 +1,213 @@
+{
+    "info": {
+        "author": "Daniel Checchia",
+        "author_email": "daniel@checchia.net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7"
+        ],
+        "description": "# LunesPy\nLunesPy is an object-oriented Python interface to the Lunes blockchain platform.\n\n## Getting Started\n\nYou can install LunesPy using:\n\n    pip install LunesPy\n\n## Documentation\n\nThe library utilizes classes to represent various Lunes data structures:\n\n- lunespy.Address\n- lunespy.Asset\n- lunespy.AssetPair\n- lunespy.Order\n\n#### Code Example\n```python\nimport lunespy as lp\n\nmyAddress = lp.Address(privateKey='CtMQWJZqfc7PRzSWiMKaGmWFm4q2VN5fMcYyKDBPDx6S')\notherAddress = lp.Address('3PNTcNiUzppQXDL9RZrK3BcftbujiFqrAfM')\nmyAddress.sendLunes(otherAddress, 10000000)\nmyToken = myAddress.issueAsset('Token1', 'My Token', 1000, 0)\nwhile not myToken.status():\n\tpass\nmyAddress.sendAsset(otherAddress, myToken, 50)\n\n```\n\n### Address Class\n__lunespy.Address(address, publicKey, privateKey, seed)__ _Creates a new Address object_\n\n#### attributes:\n- _address_\n- _publicKey_\n- _privateKey_\n- _seed_\n\n#### methods:\n\n`balance(assetId='', confirmations=0)` returns balance of Lunes or other assets\n\n`assets()` returns a list of assets owned by the address\n\n`issueAsset(name, description, quantity, decimals=0, reissuable=False, txFee=DEFAULT_ASSET_FEE, timestamp=0)` issue a new asset\n\n`reissueAsset(Asset, quantity, reissuable=False, txFee=DEFAULT_ASSET_FEE, timestamp=0)` reissue an asset\n\n`burnAsset(Asset, quantity, txFee=DEFAULT_ASSET_FEE, timestamp=0)` burn the specified quantity of an asset\n\n`sendLunes(recipient, amount, attachment='', txFee=DEFAULT_TX_FEE, timestamp=0)` send specified amount of Lunes to recipient\n\n`massTransferLunes(transfers, attachment='', timestamp=0)` sending Lunes tokens via a mass transfer\n\n`sendAsset(recipient, asset, amount, attachment='', txFee=DEFAULT_TX_FEE, timestamp=0)` send specified amount of an asset to recipient\n\n`massTransferLunes(self, transfers, attachment='', timestamp=0)` sending an asset via mass transfer\n\n`cancelOrder(assetPair, order)` cancel an order\n\n`buy(assetPair, amount price, maxLifetime=30*86400, matcherFee=DEFAULT_MATCHER_FEE, timestamp=0)` post a buy order\n\n`tradableBalance(assetPair)` get tradable balance for the specified asset pair\n\n`sell(assetPair, amount, price, maxLifetime=30*86400, matcherFee=DEFAULT_MATCHER_FEE, timestamp=0)` post a sell order\n\n`lease(recipient, amount, txFee=DEFAULT_LEASE_FEE, timestamp=0)` post a lease transaction\n\n`leaseCancel(leaseId, txFee=DEFAULT_LEASE_FEE, timestamp=0)` cancel a lease\n\n`getOrderHistory(assetPair)` get order history for the specified asset pair\n\n`cancelOpenOrders(assetPair)` cancel all open orders for the specified asset pair\n\n`deleteOrderHistory(assetPair)` delete order history for the specified asset pair\n\n`createAlias(alias, txFee=DEFAULT_ALIAS_FEE, timestamp=0)` create alias\n\n`sponsorAsset(assetId, minimalFeeInAssets, txFee=lunespy.DEFAULT_SPONSOR_FEE, timestamp=0)` sponsoring assets\n\n`setScript(script, txFee=lunespy.DEFAULT_SCRIPT_FEE, timestamp=0)` sets a script for this address\n\n`dataTransaction(data, timestamp=0)` sets data for the account. data should be a json array with entries including type (bool, binary, int, string), key and value\n\n### Asset Class\n__lunespy.Asset(assetId)__ _Creates a new Asset object_\n\n#### attributes:\n- _status_\n- _assetId_\t\n- _issuer_\n- _name_\n- _description_\t\n- _quantity_\n- _decimals_ = 0\n- _reissuable = False_\n\n#### methods:\n`status()` returns 'Issued' if the asset exists\n\n\n### AssetPair Class\n__lunespy.AssetPair(asset1, asset2)__ _Creates a new AssetPair object with 2 Asset objects_\n\n#### attributes:\n- _asset1_\n- _asset2_\n\n#### methods:\n`orderbook()` get order book\n`ticker()` get ticker with 24h ohlcv data\n`last()` get traded price\n`open()` get 24h open price\n`high()` get 24h high price\n`low()` get 24h low price\n`close()` get 24h close price (same as last())\n`vwap()` get 24h vwap price\n`volume()` get 24h volume\n`priceVolume()` get 24h price volume\n`trades(n)` get the last n trades\n`trades(from, to)` get the trades in from/to interval\n`candles(timeframe, n)` get the last n candles in the specified timeframe\n`candles(timeframe, from, to)` get the candles in from/to interval in the specified timeframe\n\n### Order Class\n__lunespy.Order(orderId, assetPair, address='')__ Creates a new Order object\n\n#### attributes:\n- _status_\n- _orderId_\n- _assetPair_\n- _address_\n- _matcher_\n- _matcherPublicKey_\n\n#### methods:\n`status()` returns current order status\n`cancel()` cancel the order\n\n\n## Other functions\n`lunespy.setNode(node, chain, chain_id)`  set node URL ('http://ip-address:port') and chain (either 'mainnet' or 'testnet', or any other chain, if you also define the chain id)\n\n`lunespy.setChain(chain, chain_id)`  set chain (either 'mainnet' or 'testnet', or any other chain if you also supply the chain id)\n\n`lunespy.setOffline()`  switch to offline mode; sign tx locally without broadcasting to network\n\n`lunespy.setOnline()`  switch to online mode; sign tx locally a broadcast to network\n\n`lunespy.validateAddress(address)`  checks if the provided address is a valid Lunes address\n\n`lunespy.setMatcher(node)`  set matcher URL ('http://ip-address:port')\n\n`lunespy.setDatafeed(node)`  set datafeed URL ('http://ip-address:port')\n\n`lunespy.height()` get blockchain height\n\n`lunespy.lastblock()` get last block\n\n`lunespy.block(n)` get block at specified height\n\n`lunespy.tx(id)` get transaction details\n\n`lunespy.symbols()` get list of symbol-asset mapping\n\n`lunespy.markets()` get all traded markets with tickers\n\n`lunespy.{SYMBOL_NAME}` get predefined asset for the specified symbol (lunespy.LUNES, lunespy.BTC, lunespy.USD,...)\n\n\n### Default Fees\nThe fees for lunes/asset transfers, asset issue/reissue/burn and matcher transactions are set by default as follows:\n* DEFAULT_TX_FEE = 100000\n* DEFAULT_ASSET_FEE = 100000000\n* DEFAULT_MATCHER_FEE = 1000000\n* DEFAULT_LEASE_FEE = 100000\n* DEFAULT_ALIAS_FEE = 100000\n* DEFAULT_SPONSOR_FEE = 100000000\n* DEFAULT_SCRIPT_FEE = 100000\n\n## More Examples\n\n#### Playing with addresses:\n\n```python\nimport lunespy as lp\n\n# generate a new address\nmyAddress = lp.Address()  \n\n# set an address with an address\nmyAddress = lp.Address('3P6WfA4qYtkgwVAsWiiB6yaea2X8zyXncJh')\n\n# get an existing address from seed\nmyAddress = lp.Address(seed='seven wrist bargain hope pattern banner plastic maple student chaos grit next space visa answer')\n\n# get an existing address from privateKey\nmyAddress = lp.Address(privateKey='CtMQWJZqfc7PRzSWiMKaGmWFm4q2VN5fMcYyKDBPDx6S')\n\n# get an existing address from a publicKey\naddress = lp.Address(publicKey=\u201cEYNuSmW4Adtcc6AMCZyxkiHMPmF2BZ2XxvjpBip3UFZL\u201d)\n\n# get an address from a seed with a different nonce (This is especially useful for accessing addresses generated by nodes)\nmyAddress = lp.Address(seed='seven wrist bargain hope pattern banner plastic maple student chaos grit next space visa answer', nonce=1)\n```\n\n#### Balances:\n```python\nimport lunespy as lp\n\nmyAddress = lp.Address('3P6WfA4qYtkgwVAsWiiB6yaea2X8zyXncJh')\n\n# get Lunes balance\nprint(\"Your balance is %18d\" % myAddress.balance())\n\n# get Lunes balance after 20 confirmations \nprint(\"Your balance is %18d\" % myAddress.balance(confirmations = 20))\n\n# get an asset balance\nprint(\"Your asset balance is %18d\" % myAddress.balance('DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J'))\n```\n\n#### Lunes and asset transfers:\n```python\nimport lunespy as lp\n\nmyAddress = lp.Address(privateKey='CtMQWJZqfc7PRzSWiMKaGmWFm4q2VN5fMcYyKDBPDx6S')\n\n# send Lunes to another address\nmyAddress.sendLunes(recipient = lp.Address('3PNTcNiUzppQXDL9RZrK3BcftbujiFqrAfM'),\n                    amount = 100000000)\n\n# send asset to another address\nmyToken = lp.Asset('4ZzED8WJXsvuo2MEm2BmZ87Azw8Sx7TVC6ufSUA5LyTV')\nmyAddress.sendAsset(recipient = lp.Address('3PNTcNiUzppQXDL9RZrK3BcftbujiFqrAfM'),\n                    asset = myToken,\n                    amount = 1000)\n```\n\n#### Issuing an asset:\n```python\nimport lunespy as lp\n\nmyToken = myAddress.issueToken( name = \"MyToken\",\n                                description = \"This is my first token\",\n                                quantity = 1000000,\n                                decimals = 2 )\n```\n\n#### Create an alias:\n```python\nimport lunespy as lp\n\nlp.setNode(node = 'http://127.0.0.1:5555', chain = 'testnet')\n\nmyAddress = lp.Address(privateKey='CtMQWJZqfc7PRzSWiMKaGmWFm4q2VN5fMcYyKDBPDx6S')\nmyAddress.createAlias(\"MYALIAS1\")\n```\n\n#### Mass payment:\n```python\nimport lunespy as lp\n\nrecipients =   ['3PBbp6bg2YEnHfdJtYM7jzzXYQeb7sx5oFg',\n                '3P4A27aCd3skNja46pcgrLYEnK36TkSzgUp',\n                '3P81U3ujotNUwZMWALdcJQLzBVbrAuUQMfs',\n                '3PGcKEMwQcEbmeL8Jhe9nZQRBNCNdcHCoZP',\n                '3PKjtzZ4FhKrJUikbQ1hRk5xbwVKDyTyvkn']\n\nmyAddress = lp.Address(privateKey = \"CtMQWJZqfc7PRzSWiMKaGmWFm4q2VN5fMcYyKDBPDx6S\")\n\nfor address in recipients:\n\tmyAddress.sendLunes(lp.Address(address), 1000000)\n```\n\n#### Mass transfer of Lunes (feature 11)\n```python\nimport lunespy as lp\n\ntransfers = [\n\t{ 'recipient': '3N1xca2DY8AEwqRDAJpzUgY99eq8J9h4rB3', 'amount': 1 },\n\t{ 'recipient': '3N3YWbQ27NnK7tek6ASFh38Bj93guLxxSi1', 'amount': 2 },\n\t{ 'recipient': '3MwiB5UkWxt4X1qJ8DQpP2LpM3m48V1z5rC', 'amount': 3 }\n]\n\naddress = lp.Address(privateKey = \"CtMQWJZqfc7PRzSWiMKaGmWFm4q2VN5fMcYyKDBPDx6S\")\naddress.massTransferLunes(transfers)\n```\n\n#### Mass transfer of Assets (feature 11)\n```python\nimport lunespy as lp\n\ntransfers = [\n\t{ 'recipient': '3N1xca2DY8AEwqRDAJpzUgY99eq8J9h4rB3', 'amount': 1 },\n\t{ 'recipient': '3N3YWbQ27NnK7tek6ASFh38Bj93guLxxSi1', 'amount': 2 },\n\t{ 'recipient': '3MwiB5UkWxt4X1qJ8DQpP2LpM3m48V1z5rC', 'amount': 3 }\n]\n\naddress = lp.Address(privateKey = \"CtMQWJZqfc7PRzSWiMKaGmWFm4q2VN5fMcYyKDBPDx6S\")\naddress.massTransferAssets(transfers, lp.Asset('9DtBNdyBCyViLZHptyF1HbQk73F6s7nQ5dXhNHubtBhd'))\n```\n\n#### Token airdrop:\n```python\nimport lunespy as lp\n\nmyAddress = lp.Address(privateKey = '`')\nmyToken = lp.Asset('4ZzED8WJXsvuo2MEm2BmZ87Azw8Sx7TVC6ufSUA5LyTV')\namount = 1000\n\nwith open('recipients.txt') as f:\n\tlines = f.readlines()\nfor address in lines:\n\tmyAddress.sendAsset(lp.Address(address.strip()), myToken, amount)\n```\n\n#### Playing with Lunes Matcher node (DEX):\n```python\t\nimport lunespy as lp\n\n# set Matcher node to use\nlp.setMatcher(node = 'http://127.0.0.1:6886')\n\n# post a buy order\nBTC = lp.Asset('4ZzED8WJXsvuo2MEm2BmZ87Azw8Sx7TVC6ufSUA5LyTV')\nUSD = lp.Asset('6wuo2hTaDyPQVceETj1fc5p4WoMVCGMYNASN8ym4BGiL')\nBTC_USD = lp.AssetPair(BTC, USD)\nmyOrder = myAddress.buy(assetPair = BTC_USD, amount = 15e8, price = 95075)\n\n# post a sell order\nWCT = lp.Asset('6wuo2hTaDyPQVceETj1fc5p4WoMVCGMYNASN8ym4BGiL')\nIncent = lp.Asset('FLbGXzrpqkvucZqsHDcNxePTkh2ChmEi4GdBfDRRJVof')\nWCT_Incent = lp.AssetPair(WCT, Incent)\nmyOrder = myAddress.sell(assetPair = WCT_Incent, amount = 100e8, price = 25e8)\n\n# post a buy order using Lunes as price asset\nBTC = lp.Asset('4ZzED8WJXsvuo2MEm2BmZ87Azw8Sx7TVC6ufSUA5LyTV')\nBTC_WAVES = lp.AssetPair(BTC, lp.WAVES)\nmyOrder = myAddress.buy(assetPair = BTC_WAVES, amount = 1e8, price = 50e8)\n\n# cancel an order\nmyOrder.cancel()\n# or\nmyAddress.cancelOrder(assetPair, myOrder)\n\n```\n\n#### Getting Market Data from Lunes Data Feed (WDF):\n```python\t\nimport lunespy as lp\n\n# set the asset pair\nWAVES_BTC = lp.AssetPair(lp.WAVES, lp.BTC)\n\n# get last price and volume\nprint(\"%s %s\" % (WAVES_BTC.last(), WAVES_BTC.volume()))\n\n# get ticker\nticker = WAVES_BTC.ticker()\nprint(ticker['24h_open'])\nprint(ticker['24h_vwap'])\n\n# get last 10 trades\ntrades = WAVES_BTC.trades(10)\nfor t in trades:\n\tprint(\"%s %s %s %s\" % (t['buyer'], t['seller'], t['price'], t['amount']))\n\n# get last 10 daily OHLCV candles\nohlcv = WAVES_BTC.candles(1440, 10)\nfor t in ohlcv:\n\tprint(\"%s %s %s %s %s\" % (t['open'], t['high'], t['low'], t['close'], t['volume']))\n```\n\n#### LPOS\n```python\nimport lunespy as lp\n\n# connect to a local testnet node\nlp.setNode(node = 'http://127.0.0.1:5555', chain = 'testnet')\n\nmyAddress = lp.Address(privateKey = 'CsBpQpNE3Z1THNMS9vJPaXqYwN9Hgmhd9AsAPrM3tiuJ')\nminerAddress = lp.Address('3NBThmVJmcexzJ9itP9KiiC2K6qnGQwpqMq')\n\n# lease 1000 Lunes to minerAddress\nleaseId = myAddress.lease(minerAddress, 100000000000)\n\n# revoke the lease\nmyAddress.leaseCancel(leaseId)\n\n```\n\n\n### Using PyLunes in a Python shell\n\n#### Check an address balance:\n```\n>>> import lunespy as lp\n>>> lp.Address('37mCm11kpfQWiYaJuPJJG65PhgyhCQtqLxL')\naddress = 37mCm11kpfQWiYaJuPJJG65PhgyhCQtqLxL\npublicKey = \nprivateKey = \nseed = \nbalances:\n  lunes = 1186077288304570\n  BDMRyZsmDZpgKhdM7fUTknKcUbVVkDpMcqEj31PUzjMy (Tokes) = 43570656915\n  RRBqh2XxcwAdLYEdSickM589Vb4RCemBCPH5mJaWhU9 (Ripto Bux) = 4938300000000\n  4rmhfoscYcjz1imNDvtz45doouvrQqDpbX7xdfLB4guF (incentCoffee) = 7\n  Ftim86CXM6hANxArJXZs2Fq7XLs3nJvgBzzEwQWwQn6N (Lunes) = 2117290600000000\n  E4ip4jzTc4PCvebYn1818T4LNoYBVL3Y4Y4dMPatGwa9 (BitCoin) = 500000000000\n  FLbGXzrpqkvucZqsHDcNxePTkh2ChmEi4GdBfDRRJVof (Incent) = 12302659925430\n  GQr2fpkfmWjMaZCbqMxefbiwgvpcNgYdev7xpuX6xqcE (KISS) = 1000\n  DxG3PLganyNzajHGzvWLjc4P3T2CpkBGxY4J9eJAAUPw (UltraCoin) = 200000000000000\n  4eWBPyY4XNPsFLoQK3iuVUfamqKLDu5o6zQCYyp9d8Ae (LIKE) = 1000\n>>> \n```\n\n#### Generate a new address:\n```\n>>> import lunespy as lp\n>>> lp.Address()\naddress = 3P6WfA4qYtkgwVAsWiiB6yaea2X8zyXncJh\npublicKey = EYNuSmW4Adtcc6AMCZyxkiHMPmF2BZ2XxvjpBip3UFZL\nprivateKey = CtMQWJZqfc7PRzSWiMKaGmWFm4q2VN5fMcYyKDBPDx6S\nseed = seven wrist bargain hope pattern banner plastic maple student chaos grit next space visa answer\nbalances:\n  Lunes = 0\n>>> \n```\n\n#### Check an asset:\n```\n>>> import lunespy as lp\n>>> lp.Asset('DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J')\nstatus = Issued\nassetId = DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J\nissuer = 3PPKF2pH4KMYgsDixjrhnWrPycVHr1Ye37V\nname = LunesCommunity\ndescription = Lunes community token.\nquantity = 1000000000\ndecimals = 2\nreissuable = False\n```\n\n#### Post an order and check its status:\n```\n>>> myOrder = myAddress.buy(lp.AssetPair(token1, token2), 1, 25)\n>>> myOrder\nstatus = Accepted\nid = ARZdYgfXz3ksRMvhnGeLLJnn3CQnz7RCa7U6dVw3zert\nasset1 = AFzL992FQbhcgSZGKDKAiRWcjtthM55yVCE99hwbHf88\nasset2 = 49Aha2RR2eunR3KZFwedfdi7K9v5MLQbLYcmVdp2QkZT\nsender.address = 3P6WfA4qYtkgwVAsWiiB6yaea2X8zyXncJh\nsender.publicKey = EYNuSmW4Adtcc6AMCZyxkiHMPmF2BZ2XxvjpBip3UFZL\nmatcher = http://127.0.0.1:6886\n```\n\n#### Cancel the order\n```\n>>> myOrder.cancel()\n>>> myOrder\nstatus = Cancelled\nid = ARZdYgfXz3ksRMvhnGeLLJnn3CQnz7RCa7U6dVw3zert\nasset1 = AFzL992FQbhcgSZGKDKAiRWcjtthM55yVCE99hwbHf88\nasset2 = 49Aha2RR2eunR3KZFwedfdi7K9v5MLQbLYcmVdp2QkZT\nsender.address = 3P6WfA4qYtkgwVAsWiiB6yaea2X8zyXncJh\nsender.publicKey = EYNuSmW4Adtcc6AMCZyxkiHMPmF2BZ2XxvjpBip3UFZL\nmatcher = http://127.0.0.1:6886\n```\n\n### Offline signing and custom timestamps\n\n#### Offline signing a future transaction:\n```\n>>> import lunespy as lp\n>>> lp.setOffline()\n>>> myAddress=lp.Address(privateKey=\"F2jVbjrKzjUsZ1AQRdnd8MmxFc85NQz5jwvZX4BXswXv\")\n>>> recipient=lp.Address(\"3P8Ya6Ary5gzwnzbBXDp3xjeNG97JEiPcdA\")\n# sign a future tx to transfer 100 LUNES to recipient\n# the tx is valid on Jan 1st, 2020 12:00pm\n>>> myAddress.sendLunes(recipient, amount=100e8, timestamp=1577880000000)\n{'api-endpoint': '/assets/broadcast/transfer',\n 'api-type': 'POST',\n 'api-data': '{\"fee\": 100000,\n\t\t\t   \"timestamp\": 1577880000000,\n\t\t\t   \"senderPublicKey\": \"27zdzBa1q46RCMamZ8gw2xrTGypZnbzXs5J1Y2HbUmEv\",\n\t\t\t   \"amount\": 10000000000,\n\t\t\t   \"attachment\": \"\",\n\t\t\t   \"recipient\": \"3P8Ya6Ary5gzwnzbBXDp3xjeNG97JEiPcdA\"\n\t\t\t   \"signature\": \"YetPopTJWC4WBPXbneWv9g6YEp6J9g9rquZWjewjdQnFbmaxtXjrRsUu69NZzHebVzUGLrhQiFFoguXJwdUn8BH\"}'}\n```\n\n#### Offline signing time lock/unlock transactions:\n```\n>>> import lunespy as lp\n>>> lp.setOffline()\n>>> myAddress=lp.Address(privateKey=\"F2jVbjrKzjUsZ1AQRdnd8MmxFc85NQz5jwvZX4BXswXv\")\n# generate a lockbox address\n>>> lockAddress=lp.Address()\n# sign the 'lock' tx to send 100e8 to the lockbox (valid on Nov 1st, 2017)\n>>> myAddress.sendLunes(lockAddress, 100e8, timestamp=1509537600000)\n{'api-endpoint': '/assets/broadcast/transfer',\n 'api-type': 'POST',\n 'api-data': '{\"fee\": 100000,\n               \"timestamp\": 1509537600000,\n               \"senderPublicKey\": \"27zdzBa1q46RCMamZ8gw2xrTGypZnbzXs5J1Y2HbUmEv\",\n               \"amount\": 10000000000,\n               \"attachment\": \"\",\n               \"recipient\": \"3P3UbyQM9W7WzTgjYkLuBrPZZeWsiUtCcpv\",\n               \"signature\": \"5VgT6qWxJwxEyrxFNfsi67QqbyUiGq9Ka7HVzgovRTTDT8nLRyuQv2wBAJQhRiXDkTTV6zsQmHnBkh8keCaFPoNT\"}'}\n# sign the 'unlock' tx to send funds back to myAddress (valid on Jan 1st, 2020)\n>>> lockAddress.sendLunes(myAddress, 100e8-200000, txFee=200000, timestamp=1577880000000)\n{'api-endpoint': '/assets/broadcast/transfer',\n 'api-type': 'POST',\n 'api-data': '{\"fee\": 200000,\n               \"timestamp\": 1577880000000,\n\t\t\t   \"senderPublicKey\": \"52XnBGnAVZmw1CHo9aJPiMsVMiTWeNGSNN9aYJ7cDtx4\",\n\t\t\t   \"amount\": 9999800000,\n\t\t\t   \"attachment\": \"\",\n\t\t\t   \"recipient\": \"3P7tfdCaTyYCfg5ojxNahEJDSS4MZ7ybXBY\",\n\t\t\t   \"signature\": \"3beyz1sqKefP96LaXWT3CxdPRW86DAxcj6wgWPyyKq3SgdotVqnKyWXDyeHnBzCq1nC7JA9CChTmo1c1iVAv6C4T\"}'}\n# delete lockbox address and private key\n>>> del lockAddress\n```\n\n## Connecting to a different node or chain\n\nLunesPy supports both mainnet and testnet chains. By default, LunesPy connects to the mainnet RPC server at https://https://lunesnode.lunes.io. It's possible to specify a different server and chain with the setNode() function\n\n```python\nimport lunespy as lp\n\n# connects to a local testnet node\nlp.setNode(node = 'http://127.0.0.1:5555', chain = 'testnet')\n\n# connects to a local mainnet node\nlp.setNode(node = 'http://127.0.0.1:5555', chain = 'mainnet')\n\n```\n\n\n## License\nCode released under the [MIT License](https://github.com/LunesCommunity/LunesPy/blob/master/LICENSE).\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/LunesCommunity/LunesPy",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "LunesPy",
+        "package_url": "https://pypi.org/project/LunesPy/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/LunesPy/",
+        "project_urls": {
+            "Homepage": "https://github.com/LunesCommunity/LunesPy"
+        },
+        "release_url": "https://pypi.org/project/LunesPy/0.0.5/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "LunesPy is an object-oriented Python interface to the Lunes blockchain platform, 100% based on PyWaves - and MIT License.",
+        "version": "0.0.5"
+    },
+    "last_serial": 4018228,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95605ae51c509ac5bd8e17518ca07753",
+                    "sha256": "9e6df2615168e11df6756558f8e017dca55bf4e9eb96e2532ae1a0c775f34e96"
+                },
+                "downloads": -1,
+                "filename": "LunesPy-0.0.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "95605ae51c509ac5bd8e17518ca07753",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 7021,
+                "upload_time": "2018-06-30T12:47:47",
+                "upload_time_iso_8601": "2018-06-30T12:47:47.406278Z",
+                "url": "https://files.pythonhosted.org/packages/a5/75/85d905f23e6dcf65e23adf59b18ed40e125cc14b1e4e02d0c909055c6966/LunesPy-0.0.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "72b4bbcfca3a8a48ee500c24c3f6d9fd",
+                    "sha256": "d3db4eb9fae4c3fd17b9933809a81c696219977fed1d6d3afd8b99684b293724"
+                },
+                "downloads": -1,
+                "filename": "LunesPy-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "72b4bbcfca3a8a48ee500c24c3f6d9fd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10189,
+                "upload_time": "2018-06-30T12:47:48",
+                "upload_time_iso_8601": "2018-06-30T12:47:48.420564Z",
+                "url": "https://files.pythonhosted.org/packages/dd/bb/02f8b3ec08c57014ba91ee9d167a9dc8bfef9bd497b5c002c85b50ba4b29/LunesPy-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0aeff07dc90279a0980e8888a8968f1e",
+                    "sha256": "155ac3dbca83f3895db1f38cc66e1fc22e8c98a3d53a71b8b45dad3bc660ea9e"
+                },
+                "downloads": -1,
+                "filename": "LunesPy-0.0.2-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0aeff07dc90279a0980e8888a8968f1e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 7023,
+                "upload_time": "2018-06-30T12:58:43",
+                "upload_time_iso_8601": "2018-06-30T12:58:43.174884Z",
+                "url": "https://files.pythonhosted.org/packages/49/9c/499562963647508437287754b284778460fef30df6fbfb26cdf76d5391c3/LunesPy-0.0.2-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a9cf8afca46c4a54f84133292bc4998",
+                    "sha256": "030bdfe79b2ce3c740b7351813e9fc75832fb67614b5b3a863aabf2eebd6dadf"
+                },
+                "downloads": -1,
+                "filename": "LunesPy-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8a9cf8afca46c4a54f84133292bc4998",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10186,
+                "upload_time": "2018-06-30T12:58:44",
+                "upload_time_iso_8601": "2018-06-30T12:58:44.211053Z",
+                "url": "https://files.pythonhosted.org/packages/dd/18/392f87e4405e9374253ce6aded1cf68513459e4c546227f019018e331563/LunesPy-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "92aaaec321ff74b46f43fd77ba888bf6",
+                    "sha256": "b92b2bb205ced719cc0b5e5c3bcdbba2764315a710c6bd0743f438862cf0fdb7"
+                },
+                "downloads": -1,
+                "filename": "LunesPy-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "92aaaec321ff74b46f43fd77ba888bf6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10188,
+                "upload_time": "2018-06-30T13:06:46",
+                "upload_time_iso_8601": "2018-06-30T13:06:46.591838Z",
+                "url": "https://files.pythonhosted.org/packages/e4/55/8d34e2344a5937f56fac288bc7e7ce6262b96c93b0a925687b9a97d812ca/LunesPy-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d00433f36df977138cd2abaf9facff4a",
+                    "sha256": "062cfee269e69d774fc4d5553e2697098aaa5039cf55fa2c14125bc07f2eb396"
+                },
+                "downloads": -1,
+                "filename": "LunesPy-0.0.5-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d00433f36df977138cd2abaf9facff4a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 7022,
+                "upload_time": "2018-06-30T13:39:36",
+                "upload_time_iso_8601": "2018-06-30T13:39:36.949999Z",
+                "url": "https://files.pythonhosted.org/packages/8c/58/2bf3f2b428d84b7c18f10bbf991eccc942fde5113a054a4375d30bed939e/LunesPy-0.0.5-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1aad2615de9ba15e3bdaaa7f5cdb41b0",
+                    "sha256": "0c6687e74d1230d1203f6b57ceed6704ce964bddc34655359f92bbf98c76014a"
+                },
+                "downloads": -1,
+                "filename": "LunesPy-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1aad2615de9ba15e3bdaaa7f5cdb41b0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10187,
+                "upload_time": "2018-06-30T13:39:38",
+                "upload_time_iso_8601": "2018-06-30T13:39:38.106121Z",
+                "url": "https://files.pythonhosted.org/packages/a9/f5/a7e4bbd089475df5be2c52b30dbe702aaa3544f942021079ca2d187161a3/LunesPy-0.0.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d00433f36df977138cd2abaf9facff4a",
+                "sha256": "062cfee269e69d774fc4d5553e2697098aaa5039cf55fa2c14125bc07f2eb396"
+            },
+            "downloads": -1,
+            "filename": "LunesPy-0.0.5-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d00433f36df977138cd2abaf9facff4a",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 7022,
+            "upload_time": "2018-06-30T13:39:36",
+            "upload_time_iso_8601": "2018-06-30T13:39:36.949999Z",
+            "url": "https://files.pythonhosted.org/packages/8c/58/2bf3f2b428d84b7c18f10bbf991eccc942fde5113a054a4375d30bed939e/LunesPy-0.0.5-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1aad2615de9ba15e3bdaaa7f5cdb41b0",
+                "sha256": "0c6687e74d1230d1203f6b57ceed6704ce964bddc34655359f92bbf98c76014a"
+            },
+            "downloads": -1,
+            "filename": "LunesPy-0.0.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1aad2615de9ba15e3bdaaa7f5cdb41b0",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 10187,
+            "upload_time": "2018-06-30T13:39:38",
+            "upload_time_iso_8601": "2018-06-30T13:39:38.106121Z",
+            "url": "https://files.pythonhosted.org/packages/a9/f5/a7e4bbd089475df5be2c52b30dbe702aaa3544f942021079ca2d187161a3/LunesPy-0.0.5.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,455 @@
+{
+    "info": {
+        "author": "Diogo Dutra",
+        "author_email": "diogodutradamata@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 1 - Planning",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Software Development :: Libraries"
+        ],
+        "description": "# dataclassesjson\n\n<p align=\"center\" style=\"margin: 3em\">\n  <a href=\"https://github.com/dutradda/dataclassesjson\">\n    <img src=\"https://dutradda.github.io/dataclassesjson/dataclassesjson.svg\" alt=\"dataclassesjson\" width=\"300\"/>\n  </a>\n</p>\n\n<p align=\"center\">\n    <em>Interoperates <b>@dataclass</b> with <b>json objects</b></em>\n</p>\n\n---\n\n**Documentation**: <a href=\"https://dutradda.github.io/dataclassesjson\" target=\"_blank\">https://dutradda.github.io/dataclassesjson</a>\n\n**Source Code**: <a href=\"https://github.com/dutradda/dataclassesjson\" target=\"_blank\">https://github.com/dutradda/dataclassesjson</a>\n\n---\n\n\n## Key Features\n\n- Full compatibility with [dataclasses](https://docs.python.org/3/library/dataclasses.html) module*\n- Deserialize values from dict\n- Deserialize values from bytes*\n- Deserialization/serialization of choosen fields\n- Dict serialization*\n- Direct json serialization with [orjson](https://github.com/ijl/orjson) (don't convert to dict before serialization)\n- Optional validation according with the [json-schema](https://json-schema.org/) specification*\n\n*\\* feature in development.*\n\n\n## Requirements\n\n - Python 3.7+\n - [orjson](https://github.com/ijl/orjson) for json serialization (optional, but recommended)\n\n\n## Instalation\n```\n$ pip install dataclassesjson[orjson]\n```\n\n\n## Basic example\n\n```python\nfrom dataclasses import dataclass\nfrom typing import List\n\nfrom dataclassesjson import asdataclass, asjson, dataclassjson\n\n\n@dataclass\nclass Music:\n    name: str\n\n\n@dataclassjson\n@dataclass\nclass Person:\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name=b'John', age='40', musics=[dict(name='Imagine')])\nperson = asdataclass(jsondict, Person)\n\nprint(person)\nprint(asjson(person))\n\n```\n\n```\nPerson(name='John', age=40, musics=[Music(name='Imagine')])\nb'{\"name\":\"John\",\"age\":40,\"musics\":[{\"name\":\"Imagine\"}]}'\n\n```\n\n\n## Example for choose fields to deserialize\n\n```python\nfrom dataclasses import dataclass\nfrom typing import List\n\nfrom dataclassesjson import asdataclass, asjson, dataclassjson\n\n\n@dataclass\nclass Music:\n    name: str\n\n\n@dataclassjson(deserialize_fields=('name', 'age'))\n@dataclass\nclass Person:\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name=b'John', age='40', musics=[dict(name='Imagine')])\nperson = asdataclass(jsondict, Person)\n\nprint(person)\nprint(asjson(person))\n\n```\n\n```\nPerson(name='John', age=40, musics=[{'name': 'Imagine'}])\nb'{\"name\":\"John\",\"age\":40,\"musics\":[{\"name\":\"Imagine\"}]}'\n\n```\n\n\n## Example for choose fields to serialize\n\n```python\nfrom dataclasses import dataclass\nfrom typing import List\n\nfrom dataclassesjson import asdataclass, asjson, dataclassjson\n\n\n@dataclass\nclass Music:\n    name: str\n\n\n@dataclassjson(serialize_fields=('name', 'age'))\n@dataclass\nclass Person:\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name='John', age=40, musics=[dict(name='Imagine')])\nperson = asdataclass(jsondict, Person)\n\nprint(person)\nprint(asjson(person))\n\n```\n\n```\nPerson(name='John', age=40, musics=[Music(name='Imagine')])\nb'{\"age\":40,\"name\":\"John\"}'\n\n```\n\n\n## Wins [Pydantic](https://github.com/samuelcolvin/pydantic) Benchmark\n\n`dataclassesjson` is *2.5 times* faster than pydantic on it's benchmark\n\n![pydantic benchmark](https://dutradda.github.io/dataclassesjson/benchmark.png \"Pydantic Benchmark\")\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/dutradda/dataclassesjson",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "dataclassesjson",
+        "package_url": "https://pypi.org/project/dataclassesjson/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/dataclassesjson/",
+        "project_urls": {
+            "Documentation": "https://dutradda.github.io/dataclassesjson/",
+            "Homepage": "https://github.com/dutradda/dataclassesjson"
+        },
+        "release_url": "https://pypi.org/project/dataclassesjson/0.2.0/",
+        "requires_dist": [
+            "mkdocs; extra == \"doc\"",
+            "mkdocs-material; extra == \"doc\"",
+            "markdown-include; extra == \"doc\"",
+            "orjson==2.0.7; extra == \"orjson\"",
+            "black; extra == \"test\"",
+            "flake8; extra == \"test\"",
+            "isort; extra == \"test\"",
+            "ipython; extra == \"test\"",
+            "mypy; extra == \"test\"",
+            "pytest-cov; extra == \"test\"",
+            "pytest-mock; extra == \"test\"",
+            "pytest>=5.1.1; extra == \"test\"",
+            "tox; extra == \"test\""
+        ],
+        "requires_python": ">=3.7",
+        "summary": "Interoperates @dataclass with json objects",
+        "version": "0.2.0"
+    },
+    "last_serial": 5846091,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d5fee477000effa156fe0811c3f115ae",
+                    "sha256": "cfea95220caae9235548145425a7cf76de4ef041192816b976681c98287b1fa3"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d5fee477000effa156fe0811c3f115ae",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 12193,
+                "upload_time": "2019-09-13T22:55:43",
+                "url": "https://files.pythonhosted.org/packages/4e/71/49b4dfeb48d93097864941bb1ed2e7e26bf702a5aa0dc4bc0b13838550a0/dataclassesjson-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "789d36387ec0905db9a0cc5d1f18d943",
+                    "sha256": "5b545ed3269107bceeb319d22f7fa176cc3408213d47ee2ef17e9fc664d56002"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "789d36387ec0905db9a0cc5d1f18d943",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 15645,
+                "upload_time": "2019-09-13T22:55:46",
+                "url": "https://files.pythonhosted.org/packages/a6/c1/7ac38c5acd6fa61f2603fe0728eea9499d20e5bc51f5b3f563a6d4836e50/dataclassesjson-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4f4218c90f8f62539419938e4d6353ab",
+                    "sha256": "9ddda4dde2074f3284c4d9b5f45ab45942a20fc69ed31fe5de7ae6935f84cfb6"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4f4218c90f8f62539419938e4d6353ab",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 12200,
+                "upload_time": "2019-09-13T23:02:09",
+                "url": "https://files.pythonhosted.org/packages/a6/71/68238c1be0b507a7b19d92ad42bd61040905fb7c8950a9fb20719c018f00/dataclassesjson-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f60c61a8dd774f2fd3d7f5297bdc70b3",
+                    "sha256": "0385adc02ba5bc18d042157d6470cb6c96dd71e3332a16a1d89d41c7a23c12a9"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f60c61a8dd774f2fd3d7f5297bdc70b3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 15673,
+                "upload_time": "2019-09-13T23:02:11",
+                "url": "https://files.pythonhosted.org/packages/aa/d0/0a659eff152fa8c6aef916cc89b6b3cbe8992a32c1aced07d94ef7530976/dataclassesjson-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1f727ad604e3e156657d9aa163adf39d",
+                    "sha256": "5af80b5fa7919475d0d713bf5db750e3eb67f451e2a9eaebddacfa7a540f13b9"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1f727ad604e3e156657d9aa163adf39d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 14763,
+                "upload_time": "2019-09-13T23:54:13",
+                "url": "https://files.pythonhosted.org/packages/e2/47/9e8c78964cbd92ad10de5b8aa4960dc9d070f0fe17da25dd76bf2737b0e5/dataclassesjson-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d39312efe7260f01036e78aaf2672f65",
+                    "sha256": "b2afc95b06bba537b452335f0a3071272088fa12c6a0def73ccf36522a8a3308"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d39312efe7260f01036e78aaf2672f65",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 16275,
+                "upload_time": "2019-09-13T23:54:15",
+                "url": "https://files.pythonhosted.org/packages/5c/77/6fc2a084837859c7f7436606a3d0c8a7795e9681364052ddbe07fc097416/dataclassesjson-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e1ca4a5e1a6e92cebae3ac0ea3d43acd",
+                    "sha256": "d30e881c500f5afe4c6483e51bb299c2bd47c00a1ec414356d75ec5978c4b0a1"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e1ca4a5e1a6e92cebae3ac0ea3d43acd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 16643,
+                "upload_time": "2019-09-15T17:00:59",
+                "url": "https://files.pythonhosted.org/packages/62/34/39443d561d1895e3ba9ddf7b689e32df4587b43ff77ac0e8d291fbc405dd/dataclassesjson-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "29167be850b84f3e6dc9cdcee461a7e2",
+                    "sha256": "8bba20fa9d9b77c8558738f811c33b92af438c3d467b2593ee5238abeca3a7d8"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "29167be850b84f3e6dc9cdcee461a7e2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 16597,
+                "upload_time": "2019-09-15T17:01:02",
+                "url": "https://files.pythonhosted.org/packages/ae/d3/f01f0acbdbf9a922cef235c2aa7198694e02455ace601981360255578c39/dataclassesjson-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "40ceea6726ba0da3e7b2570556e97b47",
+                    "sha256": "9956835fe5d33f12114ef40b9814efbdfc79511c2ac1b0e7e3f64f711e1a0f2a"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "40ceea6726ba0da3e7b2570556e97b47",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 16922,
+                "upload_time": "2019-09-15T20:07:35",
+                "url": "https://files.pythonhosted.org/packages/65/5d/0bd64de296124da547bf4209d61fd759d3d7adc67543295ae58177736429/dataclassesjson-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "27bc1c6aa56868f4d2eeb107ad789866",
+                    "sha256": "0f77f5fb51c94da406568e9882fa6a71ed71b70d7f801e130cbfbc21f40ad394"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "27bc1c6aa56868f4d2eeb107ad789866",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 16674,
+                "upload_time": "2019-09-15T20:07:39",
+                "url": "https://files.pythonhosted.org/packages/cb/0c/d58285bdf34aa4f50d3fdb6fb3310fd60ab77c752c3ab52ffbe6e568861d/dataclassesjson-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7fdbb488f1957c245c9a523867df7b43",
+                    "sha256": "cc3555146e3787bf4d005f0a631f47095e180513b346a36f6b74b73fe4fcf205"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7fdbb488f1957c245c9a523867df7b43",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 17194,
+                "upload_time": "2019-09-15T21:38:11",
+                "url": "https://files.pythonhosted.org/packages/18/45/84b88d3951ede27bc0e9db49e74875fe2fe47bb4c168eb893ee278345f47/dataclassesjson-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7d15b15389b627b1cb1934a8e1bc08d9",
+                    "sha256": "936f458a646e5d6b3a2333c07cc6deaa83b9233a984075b920b27100f1884f69"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7d15b15389b627b1cb1934a8e1bc08d9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 16742,
+                "upload_time": "2019-09-15T21:38:15",
+                "url": "https://files.pythonhosted.org/packages/3c/bd/5dc5177424597966b11f5319301ec96cf077af42ee49b0a5da7f9948455b/dataclassesjson-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cee7315c3c3aee7eb736c292dd9c101f",
+                    "sha256": "b1bb5168397c7cf4bd91fba6d9e61df745b0754daacdb3de6dd7503338c05050"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "cee7315c3c3aee7eb736c292dd9c101f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 22893,
+                "upload_time": "2019-09-16T01:26:29",
+                "url": "https://files.pythonhosted.org/packages/67/0e/7a5d9df5bfa98f9cc9469a65df1c49b532cdc7e05f7f5b7ef0dae048bcc4/dataclassesjson-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "19278cba334bc4afc141d5fa8125f0b3",
+                    "sha256": "8dcc4b476da1dca3bc63cdcc393a040802629fc0a0b532aa87892d42567446b2"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "19278cba334bc4afc141d5fa8125f0b3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 17774,
+                "upload_time": "2019-09-16T01:26:31",
+                "url": "https://files.pythonhosted.org/packages/f7/a9/acab98a0ae21ba9647f3d556ba8ef4d44e351fb25a25f6980ece90e3410c/dataclassesjson-0.0.7.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f935908d5af276c9274ee7b3e236fc4b",
+                    "sha256": "09bc27fab5b60638ae21f36608587f28299d0c35a656111715992aa47a1087ce"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f935908d5af276c9274ee7b3e236fc4b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 24041,
+                "upload_time": "2019-09-17T00:50:17",
+                "url": "https://files.pythonhosted.org/packages/21/5c/50be27d8faf6e9965673b6792b5aeac5dccd1c99294cbe5a6d25b6cfe7e9/dataclassesjson-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6eaf3621e3d480691d6ce6d286fdd768",
+                    "sha256": "0788e4b3c7558bcb2df3e5ccb1e0714abcab1d14892316d8efc2d881b16f76a9"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6eaf3621e3d480691d6ce6d286fdd768",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 86127,
+                "upload_time": "2019-09-17T00:50:20",
+                "url": "https://files.pythonhosted.org/packages/f5/76/8a6a0ba89d2eb354bf1e3e734558aea33eca404e7d6e6f592a27d9cfec6e/dataclassesjson-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7734bd91298c180862cc7b45a7eeb519",
+                    "sha256": "6781b872c0c16a95e07efd2b0135285052156ee53d5cc38fc42cc26b34c8cba8"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7734bd91298c180862cc7b45a7eeb519",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 24042,
+                "upload_time": "2019-09-17T00:59:54",
+                "url": "https://files.pythonhosted.org/packages/4b/fb/85b3b51dde6a336aa1edc718ccbb2c03c25537b773bf4f430f9bfd8e3a8f/dataclassesjson-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d4e318a92567a940a4dd4a26173dd55a",
+                    "sha256": "160da0acf21e35d6f28245912c26ceec45255fd8a74c1ac2b565b6698f7a7b08"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d4e318a92567a940a4dd4a26173dd55a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 86141,
+                "upload_time": "2019-09-17T00:59:57",
+                "url": "https://files.pythonhosted.org/packages/3f/cc/df0f7130d84f2cc403f11973157a118fa9e2afa08a9b8bd715f5fa72f1c3/dataclassesjson-0.1.1.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2f29ca70eaad508d1983147c1b2b4242",
+                    "sha256": "0caef8eb8d50a23e4f7b326643eb105069c4fad1b0d71201cfed03ee9c96a345"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2f29ca70eaad508d1983147c1b2b4242",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 24546,
+                "upload_time": "2019-09-18T02:07:48",
+                "url": "https://files.pythonhosted.org/packages/ca/c3/2e480a98da97423b1af195300f69335b98dfbd16803d8efe11fbaf87391f/dataclassesjson-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "45a30c5dcfa59e1d38dac12b86e7aaf9",
+                    "sha256": "8568c4ca15a3f8d1555531ed9c6a2aab6928123d12035a51ef9b8ff8bb9cc38a"
+                },
+                "downloads": -1,
+                "filename": "dataclassesjson-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "45a30c5dcfa59e1d38dac12b86e7aaf9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 86539,
+                "upload_time": "2019-09-18T02:07:51",
+                "url": "https://files.pythonhosted.org/packages/3c/56/6bb0f6f127633829249062725424eaa37dcdb3d01cf985c38695f5d52e65/dataclassesjson-0.2.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2f29ca70eaad508d1983147c1b2b4242",
+                "sha256": "0caef8eb8d50a23e4f7b326643eb105069c4fad1b0d71201cfed03ee9c96a345"
+            },
+            "downloads": -1,
+            "filename": "dataclassesjson-0.2.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2f29ca70eaad508d1983147c1b2b4242",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7",
+            "size": 24546,
+            "upload_time": "2019-09-18T02:07:48",
+            "url": "https://files.pythonhosted.org/packages/ca/c3/2e480a98da97423b1af195300f69335b98dfbd16803d8efe11fbaf87391f/dataclassesjson-0.2.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "45a30c5dcfa59e1d38dac12b86e7aaf9",
+                "sha256": "8568c4ca15a3f8d1555531ed9c6a2aab6928123d12035a51ef9b8ff8bb9cc38a"
+            },
+            "downloads": -1,
+            "filename": "dataclassesjson-0.2.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "45a30c5dcfa59e1d38dac12b86e7aaf9",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7",
+            "size": 86539,
+            "upload_time": "2019-09-18T02:07:51",
+            "url": "https://files.pythonhosted.org/packages/3c/56/6bb0f6f127633829249062725424eaa37dcdb3d01cf985c38695f5d52e65/dataclassesjson-0.2.0.tar.gz"
+        }
+    ]
+}

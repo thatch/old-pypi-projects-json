@@ -1,0 +1,356 @@
+{
+    "info": {
+        "author": "Davide Mauri",
+        "author_email": "info@davidemauri.it",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Console",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Internet",
+            "Topic :: Software Development :: Code Generators",
+            "Topic :: Software Development :: Interpreters",
+            "Topic :: Utilities"
+        ],
+        "description": "# AZ CLI Script\n\nA script language created from AZ CLI commands to make deployment and management of Azure resources as simple and intelligent as possible. It will significantly reduce the amount of custom code you need to write to execute Az CLI commands.\n\n[![Build Status](https://dev.azure.com/epicstuff/AZ%20CLI%20Script/_apis/build/status/Build)](https://dev.azure.com/epicstuff/AZ%20CLI%20Script/_build/latest?definitionId=27)\n\n## This is an experiment\n\nWe created this project while coding with Azure customers. It is an experiment and not yet officially support and maintained by the AZ CLI team. Our customers found it useful and we think you might as well. Please give it a try, use it in your project, submit issues and help us continue to develop it.\n\n## Goal\n\nFor this first realease the goal is to support all available AZ CLI commands and:\n\n- remove all redundancy: no need to specify the same options again and again. \n- keep command signature and options consistent across all commands: in some AZ commands the resource name is not specified using the --name option. AZ  Script will correct that.\n- provide context-aware environment so every command knows what happened before and can act accordingly\n\nFor example, if you want all your resources deployed into the 'eastus' region you can just write\n\n```\nlocation use 'eastus';\n```\n\nand all subsequent command will use that location, if not explicity overridden in the command itself. **Same logic can be applied to any resource that depend on other resource.** Storage accounts for example, or VPNs.\n\n## Language\n\nThe language has been created so that you can reuse everything you already know from AZ CLI. For example to create a storage account with AZ CLI you would type something like\n\n```\naz group create -n 'dmk1' -l 'eastus'\naz storage account create -g 'dmk1' -n 'dmk1storage' -l 'eastus' --sku 'Standard_LRS'\naz eventhubs namespace create -g 'dmk1' -n 'dmk1ingest' -l 'eastus' --sku 'Standard' --capacity 20\naz eventhubs eventhub create -g 'dmk1' -n 'dmk1ingest-32' --message-rention 1 --partition-count 32 --namespace-name 'dmk1ingest'\naz eventhubs eventhub consumer-group create -g 'dmk1' -n 'cosmos' --eventhub-name 'dmk1ingest-32' --namespace-name 'dmk1ingest'\n```\n\nwith AZ Script you would write\n\n```\nlocation use 'eastus';\n\ngroup create 'dmk1';\n\nstorage account create 'dmk1storage' (\n\tsku: 'Standard_LRS'\t\t\n);\n\neventhubs namespace create 'dmk1ingest' (\n\tsku: \"Standard\",\n\tcapacity: 20\n);\n\neventhubs eventhub create 'dmk1ingest-32' (\n\tmessage-retention: 1,\n\tpartition-count: 32\n);\n\neventhubs eventhub consumer-group create 'cosmos';\n```\n\nisn't that so much better?\n\n## Extensibility\n\nAZ Script is written in Python and can easily be extended to support any kind of Azure resource just by writing a simple plugin, which is nothing more than a class derived from the base class ```Handler```. Really easy!.\n\nThe (somehow) supported resources, right now, are\n\n- appservice\n- appinsights\n- cosmosdb\n- eventhubs\n- extension\n- functionapp\n- iot\n- resource group\n- sql db\n- sql server\n- storage\n\nMore will come in near future, stay tuned.\n\n## Install\n\nIf you're not interested into developing AZ CLI Script compiler, just use the usual `pip` tool:\n\n\tpip install azsc\n\nDone. You may want to take a look at the samples folder to get started with AZ CLI Script:\n\n[AZ CLI Script Samples](./samples)\n\n## Usage\n\nJust run the `azsc` compiler, passing the script file you want to compile.\n\n```\nazsc <filename.azs> [--debug]\n```\n\nwill generate the AZ CLI commands needed to do what defined in the script file.\n`--debug` will also print the parse tree for debugging purposes\n\nAs a starting sample you can use the `e2e-2.azs` script:\n\n\tazsc .\\samples\\e2e-2.azs\n\nit will generate AZ CLI script ready to be executed in a [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux) bash.\n\n### Full Bash Script generation\n\nIf you want to generate a full featured bash script you can use the \"azsh\" target:\n\n\tazsc .\\samples\\e2e-2.azs --target azsh\n\n### File Output\n\nThe --output option will generate the code into the specified file instead of sending the result to the console\n\n\tazsc .\\samples\\e2e-2.azs --target azsh --output c:\\temp\\azsc\\full-output.sh\n\n### Samples Notes\n\nPlease note that some samples requires additional file in order to properly run the resulting bash script. For example `package.zip` or `indexing.json` that are not provided since they are just used in the samples as placeholders to show what you can do with Azure Script.\n\n## Compilation\n\nThe result of compiling is, at present time, a transpilation to AZ CLI commands. The entire process is completely extensibile, so in future plugins to generate ARM templates or even direct REST API calls could be created.\n\n## Notes\n\nGrammar definition is done using EBNF format and the parses is [Lark](https://github.com/lark-parser/lark)\n\n## Roadmap\n\nFor now this is just an experiment. Let's see where it goes...\n\nBut if you're curious here's something I have in mind:\n\n- Support 3rd party Azure Resources (like Azure Databricks) in order to provide a common, unified, infrastructure-as-code experience\n- Support syntax highlighting Visual Studio Code (done: https://github.com/yorek/azure-script-vscode)\n- Support for and code completion in Visual Studio Code\n- Support running and debugging .azs script in Visual Studio Code\n- Run pre-validation checks (for example check that all files referenced in the script actually exists).\n- Add an option to inject pre-validation checks into generated script, when appropriate (for example with AZ CLI)\n- Add templating support (using [Liquid](https://shopify.github.io/liquid/))\n- Build a graph of dependencies and the run as many AZ CLI commands in parallel as possibile\n- Using the dependency graph, validate the command even before running them\n- Enforce application of best practies and well-know patterns\n- Define a clever way to deal with erros like:\n\t- automatic retry \n\t- break the scripts\n\t- take compensating actions\n- Generate Powershell Script\n- Generate ARM template\n- Execute the commands instead of just generating a script\n- Add an interactive mode\n\n# Contributing\n\nThis project welcomes contributions and suggestions. Just fork the repository, make your changes and submit a Pull Request. \n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/yorek/azure-script",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "azsc",
+        "package_url": "https://pypi.org/project/azsc/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/azsc/",
+        "project_urls": {
+            "Homepage": "https://github.com/yorek/azure-script"
+        },
+        "release_url": "https://pypi.org/project/azsc/0.1.13/",
+        "requires_dist": [
+            "setuptools",
+            "lark-parser (==0.6.4)",
+            "Click"
+        ],
+        "requires_python": "",
+        "summary": "A script language created from AZ CLI commands to make deployment and management of Azure resources as simple and intelligent as possibile.",
+        "version": "0.1.13"
+    },
+    "last_serial": 4446606,
+    "releases": {
+        "0.1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1a91817fd7a2fd89ffc71e6a203101be",
+                    "sha256": "619a509a7d18199cfe1466be9f27fa2457810c60f3792104c6799790298d696e"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.10-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1a91817fd7a2fd89ffc71e6a203101be",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15899,
+                "upload_time": "2018-10-30T18:29:34",
+                "url": "https://files.pythonhosted.org/packages/f9/7f/9cba13f2072118525977af7c37648e0dde3daebc280dcc6ce832b780e320/azsc-0.1.10-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c31d0280c265c37298d38da95e44d9bc",
+                    "sha256": "1c5d3d0613e00f34dffe5dbeda35882ef34cc868c4ca9ac40fb09051124b844b"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c31d0280c265c37298d38da95e44d9bc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9470,
+                "upload_time": "2018-10-30T18:29:36",
+                "url": "https://files.pythonhosted.org/packages/19/a8/569bda849966ad2750a67b584f177d1bb98a2c993e6d7d9901c2a34166db/azsc-0.1.10.tar.gz"
+            }
+        ],
+        "0.1.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e83364e5743597eeb2e2e120c41064f5",
+                    "sha256": "db8df5ee0f7515752da00e3082264ec36ff436939904fc843c210fd5665ccff8"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.11-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e83364e5743597eeb2e2e120c41064f5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 16677,
+                "upload_time": "2018-10-30T23:27:08",
+                "url": "https://files.pythonhosted.org/packages/c3/c3/6add81a803fb580efa3f061d5b1833cf18e74714aa94543ae8d932846e76/azsc-0.1.11-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4b509bb1998717c0718558235d08544e",
+                    "sha256": "c375292130a8ac328ffecfd0aeb2710887a8ba8ab3d4e7bfefa4bfb3671648b4"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4b509bb1998717c0718558235d08544e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9860,
+                "upload_time": "2018-10-30T23:27:09",
+                "url": "https://files.pythonhosted.org/packages/ba/49/6d8e9ccb430d33569c163e71531178563e3fe19b8ef9725e5c7d1371c8a6/azsc-0.1.11.tar.gz"
+            }
+        ],
+        "0.1.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d647b24128867d5e45908b08eb4128b6",
+                    "sha256": "ea0d1b38a13a7d52e87bfbc86a0ad1870ed329c33fb9649633abffe5c5716c76"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.12-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d647b24128867d5e45908b08eb4128b6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 18725,
+                "upload_time": "2018-11-02T22:35:30",
+                "url": "https://files.pythonhosted.org/packages/45/8f/d0f95d6684fcab517ba5093f167735e3f9845618b5516e53b36edd855b3c/azsc-0.1.12-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a0cd9d9037af3bb7414c893a09b025f1",
+                    "sha256": "1362eb4aead011745abdd5053332c5e4edfcaf759138d0948f05fe0ac4715d97"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a0cd9d9037af3bb7414c893a09b025f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11680,
+                "upload_time": "2018-11-02T22:35:31",
+                "url": "https://files.pythonhosted.org/packages/02/21/454e7536883a4ce22ef124a3b09cd01da00d6b2846011bfa9a273b8f8986/azsc-0.1.12.tar.gz"
+            }
+        ],
+        "0.1.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "89843dafac1c30ed075832511ea38b17",
+                    "sha256": "95476480495587e217096f5b36bf752ba7e9bd9c7f18a2923dbebbf818c469cf"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.13-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "89843dafac1c30ed075832511ea38b17",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 18724,
+                "upload_time": "2018-11-03T02:55:30",
+                "url": "https://files.pythonhosted.org/packages/7b/8e/98450d5a05355cca04ccde79be3e9abc7ca6779672311bacc932aadad844/azsc-0.1.13-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3e2003a814e9b57dc8facf75b1fda7c",
+                    "sha256": "6d050cf76c3ba3b3443b7fa2d3af3ac0db2199ffcc6085a1983432e640086eb6"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e3e2003a814e9b57dc8facf75b1fda7c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11673,
+                "upload_time": "2018-11-03T02:55:31",
+                "url": "https://files.pythonhosted.org/packages/2c/cc/7b95a70fd327bf4dd7ec86b3ae84dd5a69449ee4e569ebd102d1953b2821/azsc-0.1.13.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0099abee67ca5c503405f9b391543c6c",
+                    "sha256": "9d96a644479f48d882290ed38ea8c2e0a8643469acca59185f6d3dc607117108"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.6-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0099abee67ca5c503405f9b391543c6c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 15226,
+                "upload_time": "2018-10-22T01:20:17",
+                "url": "https://files.pythonhosted.org/packages/12/b8/13908f178ff74075f6eef0247965e68cd3c472276bbb0e72f006dd9f3317/azsc-0.1.6-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e438d84b273f81a854d86c3a6708b2ef",
+                    "sha256": "9feb5531635243c42eeedafc62782c1c7dc62ef30b49976f5e55cc1419d22a83"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e438d84b273f81a854d86c3a6708b2ef",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 15193,
+                "upload_time": "2018-10-22T01:20:18",
+                "url": "https://files.pythonhosted.org/packages/d5/9e/5487a2464c909c95d6a53748cff462490246f3dc7761bbe85d81e71e9eba/azsc-0.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3e11ed0a5b01a4ed2abf70c4c031635",
+                    "sha256": "b02cc79c5d5000a15861e6e1e1798a18d36fe6cdfacc0a26cbafaa8059d2b4c9"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f3e11ed0a5b01a4ed2abf70c4c031635",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9069,
+                "upload_time": "2018-10-22T01:20:20",
+                "url": "https://files.pythonhosted.org/packages/9a/0b/bd113bf7c7f82a4f745cbdf636de60e7eee6f4597b01b39d807e61ffb0a7/azsc-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "779e8dd54456b7585418ccbc87ca9cb1",
+                    "sha256": "47775a1b255ecd3075ef0e798acc2f1a6c53944b6787f4ca43e5bf91235a30bd"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.8-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "779e8dd54456b7585418ccbc87ca9cb1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 16134,
+                "upload_time": "2018-10-30T06:18:15",
+                "url": "https://files.pythonhosted.org/packages/b7/f5/4a1e8101e67fa83b2e912fa8ef4a9626f67a587e0353c05854b53a595893/azsc-0.1.8-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f590f5fb20f84e316e6cfd08f55d2838",
+                    "sha256": "c4e782a2a542ad419c1cfb06a23eff39c98f5b4900bcdea0737cacacfacf0b0b"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f590f5fb20f84e316e6cfd08f55d2838",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9772,
+                "upload_time": "2018-10-30T06:18:17",
+                "url": "https://files.pythonhosted.org/packages/ed/f4/28b7099759b40c55230b8ccc8dad6ff1707ec00c76ca8acedf79a8521cb2/azsc-0.1.8.tar.gz"
+            }
+        ],
+        "0.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0175efa5ad7a3aa0896187c1e4fe7d8f",
+                    "sha256": "9ccdb9bbdd9538bceb1ab6df34ab7a53ff6f8a5c9bf557c664836449697366e5"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.9-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0175efa5ad7a3aa0896187c1e4fe7d8f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15877,
+                "upload_time": "2018-10-30T18:00:56",
+                "url": "https://files.pythonhosted.org/packages/3b/23/523b4244df96d308e953338af700608cee8067ff2238c9adf215a5d67c70/azsc-0.1.9-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5444cf2e0b9d47dcec5ff1388c3c1885",
+                    "sha256": "a0ecad0423f70837ebcf6b5d99c3d84b290dca3eda48f7b5915baa5d3767b4e4"
+                },
+                "downloads": -1,
+                "filename": "azsc-0.1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5444cf2e0b9d47dcec5ff1388c3c1885",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9455,
+                "upload_time": "2018-10-30T18:00:57",
+                "url": "https://files.pythonhosted.org/packages/30/33/9811015529f5845383e032f256242078c715b40bed8fdfad662776e8b77a/azsc-0.1.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "89843dafac1c30ed075832511ea38b17",
+                "sha256": "95476480495587e217096f5b36bf752ba7e9bd9c7f18a2923dbebbf818c469cf"
+            },
+            "downloads": -1,
+            "filename": "azsc-0.1.13-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "89843dafac1c30ed075832511ea38b17",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 18724,
+            "upload_time": "2018-11-03T02:55:30",
+            "url": "https://files.pythonhosted.org/packages/7b/8e/98450d5a05355cca04ccde79be3e9abc7ca6779672311bacc932aadad844/azsc-0.1.13-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e3e2003a814e9b57dc8facf75b1fda7c",
+                "sha256": "6d050cf76c3ba3b3443b7fa2d3af3ac0db2199ffcc6085a1983432e640086eb6"
+            },
+            "downloads": -1,
+            "filename": "azsc-0.1.13.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e3e2003a814e9b57dc8facf75b1fda7c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11673,
+            "upload_time": "2018-11-03T02:55:31",
+            "url": "https://files.pythonhosted.org/packages/2c/cc/7b95a70fd327bf4dd7ec86b3ae84dd5a69449ee4e569ebd102d1953b2821/azsc-0.1.13.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,131 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 4,
+        "author": "Dennis Kaarsemaker",
+        "author_email": "dennis@kaarsemaker.net",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "Topic :: Software Development :: Interpreters",
+            "Topic :: System :: Systems Administration"
+        ],
+        "description": "fsh - The func shell\n====================\n\nFunc is a remote execution framework that allows you to execute python code or\nshell commands on as many servers as you want. You can extend it with your own\nmodules and use the overlord api or a shell command to execute these.\n\nWhat's missing is an interactive shell and way to create simple scripts without\nresorting to python. I quite often use func to troubleshoot, a typical session\ngoes like this:\n\n- Check the {contents of a file, status of a service, age of a cache}\n- On machines where it's wrong, run a command to fix it\n- Lather, rinse repeat\n\nInstalling\n----------\nThis package requires func, which is not installable from PyPI, and pyparsing\n(which is). Once func is installed and configured, installing func-shell is as\nsimple as:\n\n    $ pip install pyparsing func-shell\n\nExample\n-------\n\nfsh has been built to make this a lot easier. Here's a typical session, I\nneeded to restart puppet on servers where it hung, with comments to explain:\n\nAdd all machines with 'lhr1' in their hostname to the current list of machines\n\n    fsh> + *lhr1*\n\nTest reachability\n\n    fsh> @test.ping()\n\nUse only reachable hosts\n\n    fsh> = $ok\n\nTail the puppet log log\n\n    fsh> @tail /var/log/puppet/puppetd.log\n\nFilter out hosts that have todays date in the log, they're not hung\n\n    fsh> - x[1] =~ /2013-02-02/\n\nAnd restart the puppet service\n\n    fsh> service.restart('puppet')\n    test1-lhr1.kaarsemaker.net\n    0\n    test2-lhr1.kaarsemaker.net\n    0\n    test3-lhr1.kaarsemaker.net\n    0\n\nTo write that as a one-off python script, or in the python interactive\ninterpreter is error-prone and tedious.\n\nWhile you could do all this in python, fsh makes it easier and clearer with\nmore concise syntax and easier to understand output.\n\nSyntax\n------\nThere are 5 types of input:\n\n- Commands to modify the list of hosts, or fsh settings\n- Calls to func modules, such as test.ping()\n- Shell commands to be executed via the command module\n- Sourcing another file with commands\n- Comments, which are lines starting with a # character (leading whitespace is\n  allowed and ignored)\n\nAll these commands can be entered in an interactive shell, or in a file to be\nexecuted by the shell.\n\nThe list of hosts\n-----------------\n - `+ hostspec` (add host to the set)\n - `- hostspec` (remove hosts from the set)\n - `= hostspec` (reset the current set)\n - `? [hostspec]` (display the expansion of `hostspec`, or the current hosts)\n\nThese commands all manipulate the list of hosts that subsequent commands run\non. A `hostspec` can take 3 forms: a hostname or glob, such as:\n\n    = dbserver-*\n    + webapp-*.*\n    - webapp-101.kaarsemaker.net\n\nA filename that contains a list of hosts, one per line:\n\n    + < hostlist.txt\n\nOr a filter expression that matches the results of the last executed command:\n\n    - x[0] == 0\n    - x[1] =~ /my-test-string/\n\nYou can also use the special strings `$ok` and `$failed` to refer to the hosts\nthe last command succesfully ran on or failed to run. A succesful run is one\nthat does not raise a python error and (in the case of a shell command) exited\nwith status code 0.\n\nFunc parameters\n---------------\n\nfsh has a few internal variables you can set in the shell:\n\nHow many hosts to do in parallel:\n\n    set parallel 20\n\nThe timeout for commands:\n\n    set timeout 30\n\nVerbosity (like in bash):\n\n    set +x\n    set -x\n\nCalling func module functions\n-----------------------------\nAnything that looks like a function call to a func method, `module.method(...)`,\nwill be interpreted as such. Arguments to the method can only be literals.\nExamples:\n\n    test.ping()\n    service.stop('named')\n    mymodule.mymethod([\"foo\", \"bar\", {\"baz\": \"quux\"}])\n\nThe result of the command will be displayed. To suppress the displaying, prefix the call\nwith an @ sign. This is useful if the result is only used for filtering hosts.\n\n    @test.ping()\n\nShell commands\n--------------\nAnything that does not look like administrativa or func call will be executed\nas a shell command on the remote servers in the current host list. As with\ncalls to func modules, the output is shown on screen unless you prefix the call\nwith an @ sign. To see what's in `/srv/www`, if it exists:\n\n    @test -e /srv/www\n    - $failed\n    ls -la /srv/www | grep html\n\nSourcing another file\n---------------------\nLike regular shells, you can source another file with the `.` command:\n\n    . more_commands.fsh\n\nExamples\n--------\nThe examples directory has examples with comments. If you have a neat example,\nsubmit a pull request on https://github.com/seveas/func-shell :-)\n",
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "http://github.com/seveas/func-shell",
+        "keywords": null,
+        "license": "UNKNOWN",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "func-shell",
+        "package_url": "http://pypi.python.org/pypi/func-shell",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/func-shell/1.4",
+        "requires_python": null,
+        "summary": "Parallel shell using Func",
+        "version": "1.4"
+    },
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "downloads": 2247,
+                "filename": "func-shell-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "42d0330faf551ccf9b9fc58d06890cd3",
+                "packagetype": "sdist",
+                "path": "74/d0/01f7c8bf7bd7023f9aa333d3630ac55f6f41c71529fae8232739366893ca/func-shell-1.0.tar.gz",
+                "python_version": "source",
+                "size": 8379,
+                "upload_time": "2013-02-17T22:53:16",
+                "url": "https://pypi.python.org/packages/74/d0/01f7c8bf7bd7023f9aa333d3630ac55f6f41c71529fae8232739366893ca/func-shell-1.0.tar.gz"
+            }
+        ],
+        "1.1": [
+            {
+                "comment_text": "",
+                "downloads": 2223,
+                "filename": "func-shell-1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fb1a7ea822d6c3357410a4b91cd45676",
+                "packagetype": "sdist",
+                "path": "99/9c/b02eed14d769ec4c352d46f39ca439d37f384d66d65f9679f49782af7b10/func-shell-1.1.tar.gz",
+                "python_version": "source",
+                "size": 8600,
+                "upload_time": "2013-02-18T10:47:37",
+                "url": "https://pypi.python.org/packages/99/9c/b02eed14d769ec4c352d46f39ca439d37f384d66d65f9679f49782af7b10/func-shell-1.1.tar.gz"
+            }
+        ],
+        "1.2": [
+            {
+                "comment_text": "",
+                "downloads": 2231,
+                "filename": "func-shell-1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5ad070846a7873286b8a9240f0938a6e",
+                "packagetype": "sdist",
+                "path": "78/70/0c63879437ed7a1f550e1ee2d32526f7620cfdd8669780729f4089497661/func-shell-1.2.tar.gz",
+                "python_version": "source",
+                "size": 7722,
+                "upload_time": "2013-02-18T21:06:19",
+                "url": "https://pypi.python.org/packages/78/70/0c63879437ed7a1f550e1ee2d32526f7620cfdd8669780729f4089497661/func-shell-1.2.tar.gz"
+            }
+        ],
+        "1.3": [
+            {
+                "comment_text": "",
+                "downloads": 2186,
+                "filename": "func-shell-1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8312d980f1ba620677a3bef68f1d284c",
+                "packagetype": "sdist",
+                "path": "97/38/c626c05fdf6797d1cec61f4a6a65577d7ac1b11634c92f51f143501d70c3/func-shell-1.3.tar.gz",
+                "python_version": "source",
+                "size": 7893,
+                "upload_time": "2013-02-23T10:36:35",
+                "url": "https://pypi.python.org/packages/97/38/c626c05fdf6797d1cec61f4a6a65577d7ac1b11634c92f51f143501d70c3/func-shell-1.3.tar.gz"
+            }
+        ],
+        "1.4": [
+            {
+                "comment_text": "",
+                "downloads": 2675,
+                "filename": "func-shell-1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2430953536e5b5c35ba52c1d5023c3a2",
+                "packagetype": "sdist",
+                "path": "2f/0d/f0f8c59f8ca83b3846d4c222a4b7f7d294e314e593e003a7dafa369d736b/func-shell-1.4.tar.gz",
+                "python_version": "source",
+                "size": 8727,
+                "upload_time": "2013-05-29T14:09:32",
+                "url": "https://pypi.python.org/packages/2f/0d/f0f8c59f8ca83b3846d4c222a4b7f7d294e314e593e003a7dafa369d736b/func-shell-1.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 2675,
+            "filename": "func-shell-1.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "2430953536e5b5c35ba52c1d5023c3a2",
+            "packagetype": "sdist",
+            "path": "2f/0d/f0f8c59f8ca83b3846d4c222a4b7f7d294e314e593e003a7dafa369d736b/func-shell-1.4.tar.gz",
+            "python_version": "source",
+            "size": 8727,
+            "upload_time": "2013-05-29T14:09:32",
+            "url": "https://pypi.python.org/packages/2f/0d/f0f8c59f8ca83b3846d4c222a4b7f7d294e314e593e003a7dafa369d736b/func-shell-1.4.tar.gz"
+        }
+    ]
+}

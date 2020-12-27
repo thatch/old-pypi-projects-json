@@ -1,0 +1,119 @@
+{
+    "info": {
+        "author": "Daniel Takabayashi",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "[![Build Status](https://travis-ci.org/marvin-ai/marvin-python-toolbox.svg)](https://travis-ci.org/marvin-ai/marvin-python-toolbox) [![codecov](https://codecov.io/gh/marvin-ai/marvin-python-toolbox/branch/master/graph/badge.svg)](https://codecov.io/gh/marvin-ai/marvin-python-toolbox)\n\n[![Join the chat at https://gitter.im/gitterHQ/gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/marvin-ai)\n\n# Marvin Toolbox v0.0.3\n\n![](https://images-americanas.b2w.io/img/_staging/marvin/marvin.png)\n\n# Quick Start\n\n## Review\n\n**Marvin** is an open-source Artificial Intelligence platform that focuses on helping data scientists deliver meaningful solutions to complex problems. Supported by a standardized large-scale, language-agnostic architecture, Marvin simplifies the process of exploration and modeling.\n\n## Getting Started\n* [Installing Marvin (Ubuntu and MacOS user)](#installing-marvin-as-ubuntu-and-macos-user)\n* [Installing Marvin (Other OS)](#installing-marvin-with-other-os)\n* [Creating a new engine](#creating-a-new-engine)\n* [Working in an existing engine](#working-in-an-existing-engine)\n* [Command line interface](#command-line-interface)\n* [Running an example engine](#running-a-example-engine)\n\n### Installing Marvin as Ubuntu and MacOS user\nPerform the following steps to install the Marvin Toolbox:\n1. Libsasl2-dev, Python-pip and Graphviz installation\n```\nUbuntu: \nsudo apt-get install libsasl2-dev python-pip graphviz -y\n\nMacOS: \nsudo easy_install pip\nbrew install openssl graphviz\n```\n2. VirtualEnvWrapper Installation\n```\nsudo pip install --upgrade pip\nsudo pip install virtualenvwrapper --ignore-installed six\n```\n3. Spark installation\n```\ncurl https://d3kbcqa49mib13.cloudfront.net/spark-2.1.1-bin-hadoop2.6.tgz -o /tmp/spark-2.1.1-bin-hadoop2.6.tgz\n\nsudo tar -xf /tmp/spark-2.1.1-bin-hadoop2.6.tgz -C /opt/\nsudo ln -s /opt/spark-2.1.1-bin-hadoop2.6 /opt/spark\n\necho \"export SPARK_HOME=/opt/spark\" >> $HOME/.bash_profile\n```\nIf there is no /opt directory present, before unpacking spark, run:\n```\nsudo mkdir /opt\n```\n4. Set environment variables\n```\necho \"export WORKON_HOME=$HOME/.virtualenvs\" >> $HOME/.bash_profile\necho \"export MARVIN_HOME=$HOME/marvin\" >> $HOME/.bash_profile\necho \"export MARVIN_DATA_PATH=$HOME/marvin/data\" >> $HOME/.bash_profile\necho \"source virtualenvwrapper.sh\" >> $HOME/.bash_profile\n\nsource ~/.bash_profile\n````\n\n5. Clone and install python-toolbox\n\n```\nmkdir $MARVIN_HOME\nmkdir $MARVIN_DATA_PATH\ncd $MARVIN_HOME\n\ngit clone https://github.com/marvin-ai/marvin-python-toolbox.git\ncd marvin-python-toolbox\n\nmkvirtualenv python-toolbox-env\nsetvirtualenvproject\n\nmake marvin\n````\n\n6. Test the installation\n```\nmarvin test\n```\n### Installing Marvin with Other OS\nPerform the following steps to install Marvin Toolbox using Vagrant:\n1. Install requirements\n- [Virtual box](http://www.virtualbox.org) (Version 5.1 +)\n- [Vagrant](http://www.vagrantup.com) (Version 1.9.2 or +)\n\n\n2. Clone the repository and start provision\n```\ngit clone https://github.com/marvin-ai/marvin-vagrant-dev.git\ncd marvin-vagrant-dev\n```\n\n3. Prepare the dev (engine creation) box\n```\nvagrant up dev\nvagrant ssh dev\n```\nWait for provision process and follow interactive configuration script after access the dev box using vagrant ssh command.\n\n4. The marvin source projects will be located in your home folder; to compile and use the Marvin toolbox\n```\nworkon python-toolbox-env\nmake marvin\n```\n### Creating a new engine\n1. To create a new engine\n```\nworkon python-toolbox-env\nmarvin engine-generate\n```\nRespond to the prompt and wait for the engine environment preparation to complete. Don't forget to start dev box before if you are using vagrant.\n\n2. Test the new engine\n```\nworkon <new_engine_name>-env\nmarvin test\n```\n3. For more information\n```\nmarvin --help\n```\n### Working in an existing engine\n1. Set VirtualEnv and get to the engine's path\n```\nworkon <engine_name>-env\n```\n2. Test your engine\n```\nmarvin test\n```\n3. Bring up the notebook and access it from your browser\n```\nmarvin notebook\n```\n### Command line interface\nUsage: marvin [OPTIONS] COMMAND [ARGS]\n\nOptions:\n```\n  --debug       #Enable debug mode.\n  --version     #Show the version and exit.\n  --help        #Show this command line interface and exit.\n```\n\nCommands:\n```\n  engine-generate     #Generate a new marvin engine project.\n  engine-generateenv  #Generate a new marvin engine environment.\n  engine-grpcserver   #Marvin gRPC engine action server starts.\n  engine-httpserver   #Marvin http api server starts.\n  hive-dataimport     #Import data samples from a hive databse to the hive running in this toolbox.\n  hive-generateconf   #Generate default configuration file.\n  hive-resetremote    #Drop all remote tables from informed engine on host.\n  notebook            #Start the Jupyter notebook server.\n  pkg-bumpversion     #Bump the package version.\n  pkg-createtag       #Create git tag using the package version.\n  pkg-showchanges     #Show the package changelog.\n  pkg-showinfo        #Show information about the package.\n  pkg-showversion     #Show the package version.\n  pkg-updatedeps      #Update requirements.txt.\n  test                #Run tests.\n  test-checkpep8      #Check python code style.\n  test-tdd            #Watch for changes to run tests automatically.\n  test-tox            #Run tests using a new virtualenv.\n```\n\n### Running a example engine \n1. Clone the example engine from the repository\n```\ngit clone https://github.com/marvin-ai/engines.git\n```\n2. Generate a new Marvin engine environment for the Iris species engine\n```\nworkon python-toolbox-env\nmarvin engine-generateenv ../engines/iris-species-engine/\n```\n3. Run the Iris species engine\n```\nworkon iris-species-engine-env\nmarvin engine-dryrun \n```\n\n> Marvin is a project started at B2W Digital offices and released open source on September 2017.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/marvin-ai/marvin-python-toolbox",
+        "keywords": "",
+        "license": "",
+        "maintainer": "Daniel Takabayashi",
+        "maintainer_email": "daniel.takabayashi@gmail.com",
+        "name": "marvin-rafael-test",
+        "package_url": "https://pypi.org/project/marvin-rafael-test/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/marvin-rafael-test/",
+        "release_url": "https://pypi.org/project/marvin-rafael-test/0.0.3/",
+        "requires_dist": [
+            "tensorflow (==1.8.0); extra == 'testing'",
+            "Keras (==2.2.0); extra == 'testing'",
+            "pytest-testmon (>=0.8.2); extra == 'testing'",
+            "pytest-watch (>=4.1.0); extra == 'testing'",
+            "pytest-cov (>=1.8.1); extra == 'testing'",
+            "pytest (==2.9.2); extra == 'testing'",
+            "mock (>=2.0.0); extra == 'testing'",
+            "tox (==2.2.0); extra == 'testing'",
+            "bleach (==1.5.0)",
+            "idna (==2.5)",
+            "urllib3 (==1.21.1)",
+            "progressbar2 (==3.34.3)",
+            "autopep8 (==1.3.3)",
+            "joblib (==0.11)",
+            "grpcio-tools (==1.13.0)",
+            "grpcio (==1.13.0)",
+            "findspark (==1.1.0)",
+            "configobj (>=5.0.6)",
+            "simplejson (>=3.10.0)",
+            "ujsonpath (==0.0.2)",
+            "gprof2dot",
+            "jsonschema (>=2.5.1)",
+            "tornado (==4.5.3)",
+            "httpretty (==0.9.5)",
+            "path.py (==7.2)",
+            "python-slugify (==0.1.0)",
+            "python-dateutil (==2.7.3)",
+            "requests (==2.19.1)",
+            "virtualenvwrapper (>=4.7.1)",
+            "thrift-sasl (==0.2.1)",
+            "thrift (==0.10.0)",
+            "PyHive (==0.3.0)",
+            "paramiko (==2.1.2)",
+            "python-slugify (==0.1.0)",
+            "jsonschema (>=2.5.1)",
+            "virtualenv (>=15.0.1)",
+            "pep8 (>=1.7.0)",
+            "jupyterlab (>=0.32.1)",
+            "jupyter (>=1.0.0)",
+            "click (>=3.3)",
+            "bumpversion (>=0.5.3)",
+            "six (>=1.10.0)"
+        ],
+        "requires_python": "",
+        "summary": "Marvin Python Toolbox",
+        "version": "0.0.3"
+    },
+    "last_serial": 4066656,
+    "releases": {
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d862fca46ef5ebb92b2e6775c5aea8cb",
+                    "sha256": "e433d3e9d308304240ea6a50ab65e3586ebf507434f412264eb5714ad8742488"
+                },
+                "downloads": -1,
+                "filename": "marvin_rafael_test-0.0.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d862fca46ef5ebb92b2e6775c5aea8cb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 92737,
+                "upload_time": "2018-07-16T18:09:19",
+                "url": "https://files.pythonhosted.org/packages/c3/89/ef8063729d6dc839c00649afaca3df99ad4fe951320f23f7dd6c14ec9174/marvin_rafael_test-0.0.3-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d862fca46ef5ebb92b2e6775c5aea8cb",
+                "sha256": "e433d3e9d308304240ea6a50ab65e3586ebf507434f412264eb5714ad8742488"
+            },
+            "downloads": -1,
+            "filename": "marvin_rafael_test-0.0.3-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d862fca46ef5ebb92b2e6775c5aea8cb",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "size": 92737,
+            "upload_time": "2018-07-16T18:09:19",
+            "url": "https://files.pythonhosted.org/packages/c3/89/ef8063729d6dc839c00649afaca3df99ad4fe951320f23f7dd6c14ec9174/marvin_rafael_test-0.0.3-py2.py3-none-any.whl"
+        }
+    ]
+}

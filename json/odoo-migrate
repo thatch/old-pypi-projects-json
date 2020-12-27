@@ -1,0 +1,504 @@
+{
+    "info": {
+        "author": "GRAP, Groupement R\u00e9gional Alimentaire de Proximit\u00e9",
+        "author_email": "informatique@grap.coop",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Console",
+            "Framework :: Odoo",
+            "License :: OSI Approved :: GNU Affero General Public License v3",
+            "Programming Language :: Python :: 3",
+            "Topic :: Software Development :: Code Generators"
+        ],
+        "description": ".. image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg\n    :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html\n    :alt: License: AGPL-3\n.. image:: https://img.shields.io/badge/python-3.6-blue.svg\n    :alt: Python support: 3.6\n.. image:: https://travis-ci.org/grap/odoo-migrate.svg?branch=master\n    :target: https://travis-ci.org/grap/odoo-migrate\n.. image:: https://coveralls.io/repos/grap/odoo-migrate/badge.png?branch=master\n    :target: https://coveralls.io/r/grap/odoo-migrate?branch=master\n\n============\nodoo-migrate\n============\n\n``odoo-migrate`` is a python3 library that allows you to realize automatically\nrecurring changes when migrating Odoo modules from a version to another.\nfor exemple: \n\n* renaming ``__openerp__.py`` file into ``__manifest__.py``\n* removing ``# -*- encoding: utf-8 -*-`` since V11.0\n* replacing ``openerp`` import by ``odoo`` import\n* removing ``migrations`` folders\n* ...\n\nThis library will so:\n\n* (optionnaly) get commits from the old branch (if format-patch is enabled)\n* apply automatically changes. (renaming, replacing, etc.)\n* (depending of the config and the version) black your code.\n* commit your changes.\n* Display warnings or errors in log if your code belong obsolete code patterns.\n\n**INFO log**\n\nIt mentions that the lib automatically changed something.\n*A priori* you have nothing to do. For example, for a migration from 8.0 to\na more recent version:\n\n.. code-block:: shell\n\n    12:38:54 INFO Renaming file: '/my_module/__openerp__.py' by '/my_module/__manifest__.py'\n\n**WARNING log**\n\nIt mentions that you should check something. There is *maybe* something to do\nto make the module working. For exemple:\n\n.. code-block:: shell\n\n    19:37:55 WARNING Replaced dependency of 'account_analytic_analysis' by 'contract' (Moved to OCA/contract)\n\n\n**ERROR log**\n\nIt mentions that you should change something in your code. It not, the module\nwill not work *for sure*. (not installable, or generating error during the\nexecution)\n\nFor example, if you have a 8.0 module that depends on 'account_anglo_saxon',\nthat disappeared in more recent version, the following log will be displayed\n\n.. code-block:: shell\n\n    12:38:54 ERROR Depends on removed module 'account_anglo_saxon'\n\nDevelopment and improvment\n==========================\n\nIf you want to improve or complete this library, please read the\n``DEVELOP.rst`` file and the 'Roadmap / Know issues' sections.\n\nInstallation\n============\n\n.. code-block:: shell\n\n    pip3 install odoo-migrate\n\n\nUsage\n=====\n\nUsing Format Patch command\n--------------------------\n\n(Recommanded by the OCA)\n\nIf you want to migrate an Odoo module from a version 8.0 to 12.0, for exemple\nthe module ``pos_order_pricelist_change`` in the OCA \"pos\" repository.\n\n.. code-block:: shell\n\n    git clone https://github.com/OCA/pos -b 12.0\n    cd pos\n    odoo-migrate\n        --directory             ./\n        --modules               pos_order_pricelist_change\n        --init-version-name     8.0\n        -- target-version-name 12.0\n        --format-patch\n\nWithout format Patch command\n----------------------------\n\n(Mainly for your custom modules)\n\nif you have created a new branch (for exemple 12.0) based on your 10.0 branch\nyou can run the following command\n\n.. code-block:: shell\n\n    odoo-migrate\n        --directory             /path/to/repository\n        --modules               module_1,module_2,module_3\n        --init-version-name     10.0\n        -- target-version-name  12.0\n\nThis tools will operate the changes for each module.\n\nAvailable arguments\n-------------------\n\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|name                      | shortcut | Options         | description                                           |\n+==========================+==========+=================+=======================================================+\n|``--directory``           |``-d``    | Default:        | Local folder that belongs the module(s) to migrate.   |\n|                          |          | ``./``          |                                                       |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--init-version-name``   | ``-i``   | Required        | Initial version of your module(s) you want to migrate.|\n|                          |          |                 |                                                       |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--target-version-name`` | ``-t``   | Default:        | Final Version you want to migrate.                    |\n|                          |          | the laster odoo |                                                       |\n|                          |          | version         |                                                       |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--modules``             | ``-m``   | Default:        | Module(s) to migrate. Note if format-patch option is  |\n|                          |          | All modules     | enabled, you have to provide only one module.         |\n|                          |          | present in the  |                                                       |\n|                          |          | directory       |                                                       |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--format-patch``        | ``-fp``  | disabled        | Recover code, using git format-patch command.         |\n|                          |          | by default      |                                                       |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--remote-name``         | ``-rn``  | Default:        | Name of the main remote, used by format-patch command.|\n|                          |          | ``origin``      |                                                       |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--force-black``         | ``-fb``  | depends on the  | Force to use black library.                           |\n|                          |          | configuration   |                                                       |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--log-level``           | ``-ll``  | Default:        | Possible value: ``DEBUG``, ``INFO``, ``WARNING``, etc.|\n|                          |          | ``INFO``        |                                                       |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--log-path``            | ``-lp``  | Default:        | If set, the logs will not be displayed at screen,     |\n|                          |          | False           | but stored in a file                                  |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n|``--no-commit``           | ``-nc``  | Default:        | If set the library will not git add and git commit    |\n|                          |          | commit          | changes.                                              |\n+--------------------------+----------+-----------------+-------------------------------------------------------+\n\n\nRoadmap / Know issues\n=====================\n\n* replacement of tag <openerp><data> by <odoo> will fail in the case\n  where there are many <data> occurency.\n  We could fix that, using ``lxml`` lib instead of regular expression.\n\nChanges\n=======\n\n0.2.0 (October 13, 2019)\n------------------------\n* Second release\n\n\n0.1.4 (October 12, 2019)\n------------------------\n* Test\n\n[ADD] test\n\n* framework\n\n[ADD] ``--file-path`` option.\n[ADD] ``_DEPRECATED_MODULES`` syntax.\n\n* migration script\n\n[FIX] Incorrect syntax of regular expression, to remove python 2 header\n[IMP] first release of all the steps from 8.0 to 13.0\n\n\n0.1.3 (October 11, 2019)\n------------------------\n\n* framework\n\n[ADD] ``--no-commit`` option that disable git add and git commit calls\n[FIX] do not commit many times if migration has many steps.\n[REF] remove useless commented code\n[REF] create _commit_changes() and _replace_in_file() functions\n\n* Meta\n\n[FIX] github url of the project in setup.py\n[ADD] Travis file + links to coveralls\n[ADD] test_requirements.txt\n\n* migration script\n\n[ADD] 12.0 to 13.0 and add a warning if reference to web_settings_dashboard are found. cortesy @yelizariev\n[ADD] bump version in manifest file\n[ADD] set installable to True\n\n\n0.1.2 (October 10, 2019)\n------------------------\n\n* First release\n\nCredits\n=======\n\nAuthors\n-------\n\n* GRAP, Groupement R\u00e9gional Alimentaire de Proximit\u00e9 (http://www.grap.coop)\n\nContributors\n------------\n\n* Sylvain LE GAL (https://www.twitter.com/legalsylvain)\n\n\n\n",
+        "description_content_type": "text/x-rst",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/grap/odoo-migrate",
+        "keywords": "Odoo Community Association (OCA),Odoo,Migration,Upgrade,Module",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "odoo-migrate",
+        "package_url": "https://pypi.org/project/odoo-migrate/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/odoo-migrate/",
+        "project_urls": {
+            "Homepage": "https://github.com/grap/odoo-migrate"
+        },
+        "release_url": "https://pypi.org/project/odoo-migrate/0.2.3/",
+        "requires_dist": [
+            "argcomplete",
+            "colorama",
+            "black"
+        ],
+        "requires_python": "",
+        "summary": "Small tools to migrate Odoo modules from a version to another",
+        "version": "0.2.3"
+    },
+    "last_serial": 5967376,
+    "releases": {
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "39dde45de2c9d0c04b0bdffa5e00c2b1",
+                    "sha256": "9a54cf46f53882bc440f3a0562181e70f14ca84ce5fcdd05cb396d2c0cf49750"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "39dde45de2c9d0c04b0bdffa5e00c2b1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 27673,
+                "upload_time": "2019-10-10T14:34:31",
+                "upload_time_iso_8601": "2019-10-10T14:34:31.986779Z",
+                "url": "https://files.pythonhosted.org/packages/14/ea/4ca838551b32db96dca3ae70dd6ac8704c22c59f549210916b825630ea31/odoo_migrate-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "63fa9eabdbb9cbd36692aba100bd7928",
+                    "sha256": "1687db8c11e18dea062d2fdfc328c085186e34623a0d6abe470c6e3841a2510a"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "63fa9eabdbb9cbd36692aba100bd7928",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9116,
+                "upload_time": "2019-10-10T14:34:35",
+                "upload_time_iso_8601": "2019-10-10T14:34:35.582049Z",
+                "url": "https://files.pythonhosted.org/packages/8b/8b/2b24d0f52e4e6e3db1d689658425976ac9c7ae9dc78c4105912794369d35/odoo-migrate-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e23674f9cc016a3fde9c4ce7da483364",
+                    "sha256": "379de42a647ddb0bf7779d4eabb8d58c74def55e7d10377a7b7dfd74e81998c1"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e23674f9cc016a3fde9c4ce7da483364",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 27671,
+                "upload_time": "2019-10-10T15:07:31",
+                "upload_time_iso_8601": "2019-10-10T15:07:31.798429Z",
+                "url": "https://files.pythonhosted.org/packages/a2/78/2b001286909ea072df81bd3545072da34c9a3f9a45e85f97d14f8e2148e1/odoo_migrate-0.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "51975d35b0ef36dbf7388c7680859172",
+                    "sha256": "ce8b936e73499ef6ceff69b7ffc824682917f9a079bb1832d76a18c2b9d1a606"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "51975d35b0ef36dbf7388c7680859172",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9133,
+                "upload_time": "2019-10-10T15:07:34",
+                "upload_time_iso_8601": "2019-10-10T15:07:34.287002Z",
+                "url": "https://files.pythonhosted.org/packages/1e/19/58456517e4f7bb437901222c7cb22ac7a630b2349eb64a5822311127d006/odoo-migrate-0.0.8.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d85467f786ef9fed0979557b5b16a2a5",
+                    "sha256": "8b62e60363932f1b6786a292cb2bc0179b34c2b64f208bbef871e43859c6f926"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d85467f786ef9fed0979557b5b16a2a5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 27669,
+                "upload_time": "2019-10-10T15:15:25",
+                "upload_time_iso_8601": "2019-10-10T15:15:25.410777Z",
+                "url": "https://files.pythonhosted.org/packages/70/49/e44e3fe574089391147d820670f60a348d74e5dc4d694f13209b3cf1b281/odoo_migrate-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4c2319b7a9633afcacfd9d4fcbf2a18d",
+                    "sha256": "dd7f01353de8c9bf100e9f81ab6f10798f9d03a3830ba7a893cf752d3e0faf20"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4c2319b7a9633afcacfd9d4fcbf2a18d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9181,
+                "upload_time": "2019-10-10T15:15:27",
+                "upload_time_iso_8601": "2019-10-10T15:15:27.469157Z",
+                "url": "https://files.pythonhosted.org/packages/6d/30/725bef6608dd3cae4472bc29601feb023e7ce465e48a182723b8fc2d01f0/odoo-migrate-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "73989681735181b8d57cf90baed4c2e3",
+                    "sha256": "3dfe309c7eb845068e3133ea0f8a718d9ef0b452e493241695d2b9afe96fb034"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "73989681735181b8d57cf90baed4c2e3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 29783,
+                "upload_time": "2019-10-10T15:20:16",
+                "upload_time_iso_8601": "2019-10-10T15:20:16.622858Z",
+                "url": "https://files.pythonhosted.org/packages/37/c1/11056bcddca8b46016fcbe475367869c0dcc4828508408932f69eb54d2d7/odoo_migrate-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1be3996821ea6ef4b359d890ef0ebab8",
+                    "sha256": "d3cfc8fdf2376cd82e83ca420c2e4fd060e224ec20ba0360a49769fc536c69c8"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1be3996821ea6ef4b359d890ef0ebab8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9887,
+                "upload_time": "2019-10-10T15:20:18",
+                "upload_time_iso_8601": "2019-10-10T15:20:18.409517Z",
+                "url": "https://files.pythonhosted.org/packages/37/80/f46e2f743c6c1f0eb697771fe6017162ec9a30b2a14e4d5bd66008d709e1/odoo-migrate-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9c0829f4a4c882bd897c3261d806f173",
+                    "sha256": "a65592d5d5d2d08e1059f29fc69b86222c239615aaaca7bce4c96f994bf93fc6"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9c0829f4a4c882bd897c3261d806f173",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 29786,
+                "upload_time": "2019-10-10T15:24:43",
+                "upload_time_iso_8601": "2019-10-10T15:24:43.494787Z",
+                "url": "https://files.pythonhosted.org/packages/80/b4/c6e8db3a9edd579c43c8fdd72daf603c06be26d73add31539a18f7408461/odoo_migrate-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1e8b63817ae569b2effd3f09919128ae",
+                    "sha256": "05615298e8c02b2fadd107a55e8b53a54183b6927ac23c07e8fb0be65e3cfa51"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1e8b63817ae569b2effd3f09919128ae",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9883,
+                "upload_time": "2019-10-10T15:24:46",
+                "upload_time_iso_8601": "2019-10-10T15:24:46.196753Z",
+                "url": "https://files.pythonhosted.org/packages/7c/c5/2089b55296e8147d8501d254a96505d3d157ef3c8362963c990609249269/odoo-migrate-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e6b4c30dbb1d28e5055e3481dbea191",
+                    "sha256": "71f96a7c8c8b10fb2c8573534bb6e6f45934f68d0752275e3f5c010b31c273b8"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3e6b4c30dbb1d28e5055e3481dbea191",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 27422,
+                "upload_time": "2019-10-11T16:35:16",
+                "upload_time_iso_8601": "2019-10-11T16:35:16.003238Z",
+                "url": "https://files.pythonhosted.org/packages/fe/9a/1bedbcd8c2e5c83b17673c2bc829f2ea3b26ff33e236a7730879a6479223/odoo_migrate-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e9a2c0fa932b17b47465a05544f52585",
+                    "sha256": "207087a294118b33cc2fe378f60c820a6c2a5fb291be1c7d3762b8899c93177e"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e9a2c0fa932b17b47465a05544f52585",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9996,
+                "upload_time": "2019-10-11T16:35:17",
+                "upload_time_iso_8601": "2019-10-11T16:35:17.662676Z",
+                "url": "https://files.pythonhosted.org/packages/bb/4b/af1cc6f64403ab3a09b9860753396399ab5a9d3d4ec4989cc5a52631fac6/odoo-migrate-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1a5c21d2fdd88b99a0fa990f2d7a157a",
+                    "sha256": "8f3dbcd2facc86bd640dd44fdc64d63ec036a0e99d3ee9933906f33592f35e5b"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1a5c21d2fdd88b99a0fa990f2d7a157a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 31966,
+                "upload_time": "2019-10-13T12:10:42",
+                "upload_time_iso_8601": "2019-10-13T12:10:42.571852Z",
+                "url": "https://files.pythonhosted.org/packages/ac/4c/7a1fec5b5e771562777bc8256b6389ddf3f40407292b98b83707ad219e3a/odoo_migrate-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ff1e5c8f694fac9cc71168e9ea390080",
+                    "sha256": "f10d6a458ab76d213686f09c5d51a078d126a25fa1d38b15843b74710d827142"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ff1e5c8f694fac9cc71168e9ea390080",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13834,
+                "upload_time": "2019-10-13T12:10:44",
+                "upload_time_iso_8601": "2019-10-13T12:10:44.713007Z",
+                "url": "https://files.pythonhosted.org/packages/82/6b/1cc1b9a80a37b3d2bbc946d8edbbb62245676d8b8d38b514bc80f955f095/odoo-migrate-0.1.4.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dff4c45532ebcab783f159f361d3a2b0",
+                    "sha256": "b7bc589b0a858f5da27870db27eab264eb017b19f64a25e365c9f321ae9d1abd"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dff4c45532ebcab783f159f361d3a2b0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 32052,
+                "upload_time": "2019-10-13T13:16:13",
+                "upload_time_iso_8601": "2019-10-13T13:16:13.654518Z",
+                "url": "https://files.pythonhosted.org/packages/23/91/8ce627b447627888c26da1667c674b838f9a488b669f0c9386e7e79f0577/odoo_migrate-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "98e8ce865bc8fa55ee5ef119abfd28bb",
+                    "sha256": "93db06b39cc7cdeb2af2cf7a597ec145410106002697241471c4ebc71b87d5ae"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "98e8ce865bc8fa55ee5ef119abfd28bb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13890,
+                "upload_time": "2019-10-13T13:16:15",
+                "upload_time_iso_8601": "2019-10-13T13:16:15.782353Z",
+                "url": "https://files.pythonhosted.org/packages/7c/9b/7c0ca6b34c0edcf7755290eb90b4894529f9efb733e54128b3c31dc6eb23/odoo-migrate-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f28a2bb925a93290eb321e9e99e46253",
+                    "sha256": "0dafd4e25afc6cb1347cb8a1f0839950ed32e18d5a0af62da01cb37022535464"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f28a2bb925a93290eb321e9e99e46253",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 32053,
+                "upload_time": "2019-10-13T13:17:31",
+                "upload_time_iso_8601": "2019-10-13T13:17:31.975416Z",
+                "url": "https://files.pythonhosted.org/packages/2d/15/c66dfb29f0083f396baea2c3a9509641d94478d7f8b4d15704bbade29862/odoo_migrate-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "11e4abd98a0e28927f3ea7ba46957fd2",
+                    "sha256": "f0ef2772b12edb131529251b7c95e2c2ee624d75bae139a2389eb5080604034d"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "11e4abd98a0e28927f3ea7ba46957fd2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13887,
+                "upload_time": "2019-10-13T13:17:35",
+                "upload_time_iso_8601": "2019-10-13T13:17:35.650286Z",
+                "url": "https://files.pythonhosted.org/packages/5e/c2/5d7e964b07cc112b4783e3507f4ec0a98d71209d016d41b9347e146f7612/odoo-migrate-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "02629d189dbe3c5d9fed5c363c477eb6",
+                    "sha256": "38ccdbbf11272d532c12c087b7340782b68cb83b6ed13de9c916759c78213b01"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.2.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "02629d189dbe3c5d9fed5c363c477eb6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 32052,
+                "upload_time": "2019-10-13T13:18:34",
+                "upload_time_iso_8601": "2019-10-13T13:18:34.015146Z",
+                "url": "https://files.pythonhosted.org/packages/47/4f/9adc33a881eed1c653216c20556c4f9af92a5f0f667552789a9acb5bf4b8/odoo_migrate-0.2.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0df34c30383125f09b73ab0720b4f01e",
+                    "sha256": "a01eb5b5ea90590830b7909284db55b5773c78e84d598b8f147df30cb4904601"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0df34c30383125f09b73ab0720b4f01e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13885,
+                "upload_time": "2019-10-13T13:18:38",
+                "upload_time_iso_8601": "2019-10-13T13:18:38.413997Z",
+                "url": "https://files.pythonhosted.org/packages/7c/7a/71384bf56115d3e77b87f1e05b90ca7bd95106a278cddba88437f49b841b/odoo-migrate-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "969ab6000c62ba2061b7fd40090ee63b",
+                    "sha256": "efb1135bd893b67b1d8cbe7fa2356ad952f9c5f5fff54e7148870f04b0f03464"
+                },
+                "downloads": -1,
+                "filename": "odoo_migrate-0.2.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "969ab6000c62ba2061b7fd40090ee63b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 32055,
+                "upload_time": "2019-10-13T13:19:49",
+                "upload_time_iso_8601": "2019-10-13T13:19:49.590168Z",
+                "url": "https://files.pythonhosted.org/packages/83/cc/954b5c9a4b30da03ec309b0a7e302534a33cf4adbd487bf72db6e9158c72/odoo_migrate-0.2.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95dc8b250129d7e044faf2abfd36397f",
+                    "sha256": "5c68c9b2dd68ed04f80f53123e4451ecf07e29d6c8fdce97b9cd75066d76accb"
+                },
+                "downloads": -1,
+                "filename": "odoo-migrate-0.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "95dc8b250129d7e044faf2abfd36397f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13893,
+                "upload_time": "2019-10-13T13:19:55",
+                "upload_time_iso_8601": "2019-10-13T13:19:55.207830Z",
+                "url": "https://files.pythonhosted.org/packages/ee/07/4754b15c06ec99439752776ee5c956595e638e3f1b36abe706f66f774de7/odoo-migrate-0.2.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "969ab6000c62ba2061b7fd40090ee63b",
+                "sha256": "efb1135bd893b67b1d8cbe7fa2356ad952f9c5f5fff54e7148870f04b0f03464"
+            },
+            "downloads": -1,
+            "filename": "odoo_migrate-0.2.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "969ab6000c62ba2061b7fd40090ee63b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 32055,
+            "upload_time": "2019-10-13T13:19:49",
+            "upload_time_iso_8601": "2019-10-13T13:19:49.590168Z",
+            "url": "https://files.pythonhosted.org/packages/83/cc/954b5c9a4b30da03ec309b0a7e302534a33cf4adbd487bf72db6e9158c72/odoo_migrate-0.2.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "95dc8b250129d7e044faf2abfd36397f",
+                "sha256": "5c68c9b2dd68ed04f80f53123e4451ecf07e29d6c8fdce97b9cd75066d76accb"
+            },
+            "downloads": -1,
+            "filename": "odoo-migrate-0.2.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "95dc8b250129d7e044faf2abfd36397f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 13893,
+            "upload_time": "2019-10-13T13:19:55",
+            "upload_time_iso_8601": "2019-10-13T13:19:55.207830Z",
+            "url": "https://files.pythonhosted.org/packages/ee/07/4754b15c06ec99439752776ee5c956595e638e3f1b36abe706f66f774de7/odoo-migrate-0.2.3.tar.gz"
+        }
+    ]
+}

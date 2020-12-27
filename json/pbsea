@@ -1,0 +1,119 @@
+{
+    "info": {
+        "author": "A. Belcour",
+        "author_email": "arnbpro@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: GNU Affero General Public License v3",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": ".. image:: https://travis-ci.org/ArnaudBelcour/pbsea.svg?branch=master\n    :target: https://travis-ci.org/ArnaudBelcour/pbsea\n\n.. image:: https://coveralls.io/repos/github/ArnaudBelcour/pbsea/badge.svg\n    :target: https://coveralls.io/github/ArnaudBelcour/pbsea\n\n.. image:: https://img.shields.io/pypi/v/pbsea.svg\n\t:target: https://pypi.python.org/pypi/pbsea\n\npbsea: Pandas Based Singular Enrichment Analysis\n================================================\n.. contents:: Table of contents\n   :backlinks: top\n   :local:\n\nInstallation\n------------\n\nThe package works on Python 3.\n\nUsing pip\n~~~~~~~~~\n\n.. code:: sh\n\n\tpip install pbsea\n\nUsing GitHub\n~~~~~~~~~~~~\n\n.. code:: sh\n\n\tpip install -e git+https://github.com/ArnaudBelcour/pbsea.git@master#egg=pbsea\n\nSingular Enrichment Analysis\n----------------------------\n\nAnalysis\n~~~~~~~~\n\nAn enrichment analysis compares the occurrence of an entity in a list of interest \nto the occurence in a reference (for example the number of cat in one country compared \nto the number of cat in the world).\n\nTwo files are used : pbsea.py (Pandas Based Singular Enrichment Analysis), preprocessing.py.\n\nIn pbsea.py, three class are present:\n\n#. PandasBasedEnrichmentAnalysis: to peform a Singular Enrichment Analysis on a pandas dataframe.\n#. AnnotationEnrichmentAnalysis: to perform a Singular Enrichment Analysis on Annotation terms.\n#. EnrichmentAnalysisExperimental: to perform a Singular Enrichment Analysis on everything with SgoF multiple testing correction.\n\nIn preprocessing.py, four functions are present:\n\n#. preprocessing_files: create a pandas dataframe from two files.\n#. go_translation_dictionary_creation: create a dictionary containing GO number as key and GO label as value.\n#. ec_translation_dictionary_creation: create a dictionary containing EC number as key and EC name as value.\n#. interpro_translation_dictionary_creation: create a dictionary containing InterPro id as key and InterPro name as value.\n\nThe analysis take two input files (with preprocessing) or a pandas dataframe,\nwith two columns (one for the interest values, one for the reference values and\nin index the object to analyze (e.g. GO terms)).\n\nThe script performs a Singular Enrichment Analysis. This analysis\ntakes a list of genes (for example differentially expressed genes) and\ncompute an enrichment term for each annotation term in this list. For a\nbetter definition, read the `article writed by Huang et al.\n(2009) <https://academic.oup.com/nar/article-lookup/doi/10.1093/nar/gkn923>`__.\n\nThe first class (\"PandasBasedEnrichmentAnalysis\") is the basic method on pandas dataframe,\nwhich computes an hypergeometric test for variables and calculates different multiple tests\ncorrections (Bonferroni, Holm, Sidak, Benjamini & Hochberg and SGoF).\n\nThe second class (\"AnnotationEnrichmentAnalysis\") inherits from\n\"PandasBasedEnrichmentAnalysis\" and overrides a function to add label for three\nannotations (GO terms, EC and InterPro domains) to the results.\n\nThe third class (\"EnrichmentAnalysis\") peforms an analysis and add the\nSGoF multiple testing correction.\n\nTests used :\n\n-  Hypergeometric test to compare the distribution of GO terms in your\n   list and in the complete organism.\n\n-  Normal approximation when using big numbers.\n\nMultiple Testing Correction\n~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n-  `Bonferroni\n   Correction <http://www.jstor.org/stable/2282330?seq=1#page_scan_tab_contents>`__\n   Dunn, Olive Jean. \u201cMultiple Comparisons Among Means.\u201d Journal of the\n   American Statistical Association, vol. 56, no. 293, 1961, pp. 52\u201364.\n\n-  `Sidak <https://www.jstor.org/stable/2283989?seq=1#page_scan_tab_contents>`__\n   Sidak, Zbynek. \u201cRectangular Confidence Regions for the Means of\n   Multivariate Normal Distributions.\u201d Journal of the American\n   Statistical Association, vol. 62, no. 318, 1967, pp. 626\u2013633.\n\n-  `Holm <http://www.jstor.org/stable/4615733?seq=1#page_scan_tab_contents>`__\n   Holm, Sture. \u201cA Simple Sequentially Rejective Multiple Test\n   Procedure.\u201d Scandinavian Journal of Statistics, vol. 6, no. 2, 1979,\n   pp. 65\u201370.\n\n-  `Benjamini &\n   Hochberg <https://www.jstor.org/stable/2346101?seq=1#page_scan_tab_contents>`__\n   Benjamini, Yoav, and Yosef Hochberg. \u201cControlling the False Discovery\n   Rate: A Practical and Powerful Approach to Multiple Testing.\u201d Journal\n   of the Royal Statistical Society. Series B (Methodological), vol. 57,\n   no. 1, 1995, pp. 289\u2013300.\n\n-  `Benjamini &\n   Yekutieli <http://www.jstor.org/stable/2674075?seq=1#page_scan_tab_contents>`__\n   Benjamini, Yoav, and Daniel Yekutieli. \u201cThe Control of the False\n   Discovery Rate in Multiple Testing under Dependency.\u201d The Annals of\n   Statistics, vol. 29, no. 4, 2001, pp. 1165\u20131188.\n\n-  `SGoF <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2719628/>`__\n   Carvajal-Rodr\u00edguez, Antonio, Jacobo de U\u00f1a-Alvarez, and Emilio\n   Rol\u00e1n-Alvarez. \u201cA New Multitest Correction (SGoF) That Increases Its\n   Statistical Power When Increasing the Number of Tests.\u201d BMC\n   Bioinformatics 10 (2009): 209.\n\nUse\n~~~\n\nThe input of the analysis is a pandas dataframe with two columns (occurrence in interest\nand occurrence in reference) and an index (the object to analyse) like this one:\n\n=========== ====================== =======================\nindex       Occurrence in interest Occurrence in reference\n=========== ====================== =======================\nGO:00000001 2                      4\nGO:00000002 10                     20\n=========== ====================== =======================\n\nFor GO terms, EC and InterPro id you can use one of the function of translation dictionary creation\nto obtain a dictionary allowing you to translate the id into name.\n\n.. code:: python\n\n    from pbsea import PandasBasedEnrichmentAnalysis\n\n    number_gene_interest = 5\n    number_gene_reference = 6700\n    alpha = 0.05\n    normal_approximation_threshold = 100000\n\n    analysis = PandasBasedEnrichmentAnalysis(dataframe, 'Occurrence in interest',\n                            'Occurrence in reference', number_gene_interest, number_gene_reference,\n                            alpha, normal_approximation_threshold)\n    result_dataframe = analysis.enrichment_analysis()\n\nThe result will be a pandas dataframe.",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ArnaudBelcour/pbsea",
+        "keywords": "",
+        "license": "GNU Affero General Public License v3.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pbsea",
+        "package_url": "https://pypi.org/project/pbsea/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pbsea/",
+        "project_urls": {
+            "Homepage": "https://github.com/ArnaudBelcour/pbsea"
+        },
+        "release_url": "https://pypi.org/project/pbsea/0.2.7.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Singular Enrichment Analysis",
+        "version": "0.2.7.2"
+    },
+    "last_serial": 4072799,
+    "releases": {
+        "0.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c6595777cc56e2ef3309550ac0129536",
+                    "sha256": "cff4f4ecbc5e8c19055d26797d00b9aede7a5424f5151de2c1790f896f275890"
+                },
+                "downloads": -1,
+                "filename": "pbsea-0.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c6595777cc56e2ef3309550ac0129536",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13967,
+                "upload_time": "2018-07-16T11:26:11",
+                "url": "https://files.pythonhosted.org/packages/12/ab/14721176e0f581fcac57190bef5e49f934a3a639ce05991acc57257789ad/pbsea-0.2.7.tar.gz"
+            }
+        ],
+        "0.2.7.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0c907400b36adce6f85698c5bed41976",
+                    "sha256": "450070de111a81831908a7c96b1cb4699b5c23b5f04d5558c0cdfa2097abfdce"
+                },
+                "downloads": -1,
+                "filename": "pbsea-0.2.7.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0c907400b36adce6f85698c5bed41976",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13917,
+                "upload_time": "2018-07-16T11:29:11",
+                "url": "https://files.pythonhosted.org/packages/d5/6b/972befbed48d1ea1f3e3fe555a809e376a963254d3ec406dcce046bd5409/pbsea-0.2.7.1.tar.gz"
+            }
+        ],
+        "0.2.7.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c92b6b579492ad361304fdab67978c5e",
+                    "sha256": "e7300aa2e848cb63466412ede69b2c0f7abf62d6cc877c779c246fccbe362197"
+                },
+                "downloads": -1,
+                "filename": "pbsea-0.2.7.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c92b6b579492ad361304fdab67978c5e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13899,
+                "upload_time": "2018-07-17T08:50:58",
+                "url": "https://files.pythonhosted.org/packages/db/df/a40d84ef051ea963ece5fecc42fec989426971409623c2187aef4f699fdc/pbsea-0.2.7.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c92b6b579492ad361304fdab67978c5e",
+                "sha256": "e7300aa2e848cb63466412ede69b2c0f7abf62d6cc877c779c246fccbe362197"
+            },
+            "downloads": -1,
+            "filename": "pbsea-0.2.7.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c92b6b579492ad361304fdab67978c5e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 13899,
+            "upload_time": "2018-07-17T08:50:58",
+            "url": "https://files.pythonhosted.org/packages/db/df/a40d84ef051ea963ece5fecc42fec989426971409623c2187aef4f699fdc/pbsea-0.2.7.2.tar.gz"
+        }
+    ]
+}

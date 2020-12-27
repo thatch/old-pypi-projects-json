@@ -1,0 +1,91 @@
+{
+    "info": {
+        "author": "Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)",
+        "author_email": "support-compss@bsc.es",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: MacOS",
+            "Operating System :: POSIX :: Linux",
+            "Operating System :: Unix",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Software Development",
+            "Topic :: System :: Distributed Computing",
+            "Topic :: Utilities"
+        ],
+        "description": "-----------------------------------\nPyCOMPSs programming model Headless\n-----------------------------------\n\nIntroduction\n============\n\nThe PyCOMPSs headless (pycompss) provides a tool to use PyCOMPSs within\nlocal machines interactively through docker images. This tool has been\nimplemented on top of `PyCOMPSs programming\nmodel <http://compss.bsc.es>`__, and it is being developed by the\n`Workflows and Distributed Computing\ngroup <https://github.com/bsc-wdc>`__ of the `Barcelona Supercomputing\nCenter <https://www.bsc.es/>`__.\n\nContents\n========\n\n-  `Quickstart <#quickstart>`__\n-  `License <#license>`__\n\nQuickstart\n==========\n\nThere are two ways in which you can get started with PyCOMPSs. You can\nperform a local installation by installing the `pycompss\npackage <https://pypi.org/project/pycompss/>`__, or you can use it\nthrough our ready-to-use docker image thorugh this `pycompss-headless\ntool <#Installation>`__.\n\nInstallation\n~~~~~~~~~~~~\n\nDependencies\n^^^^^^^^^^^^\n\npycompss-headless currently requires:\n\n-  docker >= 17.12.0-ce\n\nInstallation steps\n^^^^^^^^^^^^^^^^^^\n\n1. Install docker (continue with step 2 if already installed)\n\n   -  pycompss-headless requires **docker 17.12.0-ce** or greater.\n\n   1. Follow these instructions\n\n      -  `Docker for\n         Mac <https://store.docker.com/editions/community/docker-ce-desktop-mac>`__.\n         Or, if you prefer to use `Homebrew <https://brew.sh/>`__.\n\n      -  `Docker for\n         Ubuntu <https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1>`__.\n\n      -  `Docker for Arch\n         Linux <https://wiki.archlinux.org/index.php/Docker#Installation>`__.\n\n      Be aware that for some distros the docker package has been renamed\n      from ``docker`` to ``docker-ce``. Make sure you install the new\n      package.\n\n   2. Add user to docker group to run pycompss as a non-root user.\n\n      -  `Instructions <https://docs.docker.com/install/linux/linux-postinstall/>`__\n\n   3. Check that docker is correctly installed\n\n   .. code:: bash\n\n       docker --version\n       docker ps # this should be empty as no docker processes are yet running.\n\n   4. Install\n      `docker-py <https://docker-py.readthedocs.io/en/stable/>`__\n\n   .. code:: bash\n\n       python3 -m pip install docker\n\n2. Install pycompss-headless:\n\n.. code:: bash\n\n    python3 -m pip install pycompss-headless\n\nThis should add the pycompss-headless executables (``pycompss`` and\n``compss``) to your path. They can be used indiferently.\n\n**Warning:** The user executable path may not be automatically exported\ninto the ``PATH`` environment variable. So, take this into account if\ninstalled with the ``--user`` flag, since the\n``pycompss``\\ \\|\\ ``compss`` command will be unreachable until the path\nis exported into ``PATH``.\n\nUsage\n~~~~~\n\nStart ``pycompss`` in your development directory\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nInitialize the COMPSs infrastructure where your source code will be (you\ncan re-init anytime). This will allow docker to access your local code\nand run it inside the container.\n\n**Note** that the first time needs to download the docker image from the\nregistry, and it may take a while.\n\n.. code:: bash\n\n    # Without a path it operates on the current working directory.\n    pycompss init\n\n    # You can also provide a path\n    pycompss init /home/user/replace/path/\n\nRunning applications\n^^^^^^^^^^^^^^^^^^^^\n\nFirst clone the PyCOMPSs' tutorial apps repository:\n\n.. code:: bash\n\n    git clone https://github.com/bsc-wdc/tutorial_apps.git\n\nInit the COMPSs environment in the root of the repository. The source\nfiles path are resolved from the init directory which sometimes can be\nconfusing. As a rule of thumb, initialize the library in a current\ndirectory and check the paths are correct running the file with\n``python3 path_to/file.py`` (in this case\n``python3 python/simple/src/simple.py``).\n\n.. code:: bash\n\n    cd tutorial_apps\n    pycompss init\n    pycompss run python/simple/src/simple.py 1\n\nThe log files of the execution can be found at $HOME/.COMPSs.\n\nYou can also init the COMPSs environment inside the examples folder.\nThis will mount the examples directory inside the container so you can\nexecute it without adding the path:\n\n.. code:: bash\n\n    cd python/simple/src\n    pycompss init\n    pycompss run simple.py 1\n\nRunning the COMPSs monitor\n^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nThe COMPSs monitor can be started using the ``pycompss monitor start``\ncommand. This will start the COMPSs monitoring facility which enables to\ncheck the application status while running. Once started, it will show\nthe url to open the monitor in your web browser\n(http://127.0.0.1:8080/compss-monitor)\n\n**Reminder**: Include the monitor flag in the execution before the\nbinary to be executed.\n\n.. code:: bash\n\n    cd python/simple/src\n    pycompss init\n    pycompss run --monitor=1000 -g simple.py 1\n\nIf running a notebook, just add the monitoring parameter into the COMPSs\nruntime start call.\n\nOnce finished, it is possible to stop the monitoring facility by using\nthe ``pycompss monitor stop`` command.\n\nRunning Jupyter notebooks\n^^^^^^^^^^^^^^^^^^^^^^^^^\n\nNotebooks can be run using the ``pycompss jupyter`` command. Run the\nfollowing snippet from the root of the project:\n\n.. code:: bash\n\n    cd tutorial_apps/python\n    pycompss init\n    pycompss jupyter ./notebooks\n\nAn alternative and more flexible way of starting jupyter is using the\n``pycompss run`` command in the following way:\n\n.. code:: bash\n\n    pycompss run jupyter-notebook ./notebooks --ip=0.0.0.0  --allow-root\n\nAccess your notebook by ctrl-clicking or copy pasting into the browser\nthe link shown on the CLI (e.g.\nhttp://127.0.0.1:8888/?token=TOKEN\\_VALUE).\n\nIf the notebook process is not properly closed, you might get the\nfollowing warning when trying to start jupyter notebooks again:\n\n``The port 8888 is already in use, trying another port.``\n\nTo fix it, just restart the pycompss container with ``pycompss init``.\n\nGenerating the task graph\n^^^^^^^^^^^^^^^^^^^^^^^^^\n\nCOMPSs is able to produce the task graph showing the dependencies that\nhave been respected. In order to producee it, include the graph flag in\nthe execution command:\n\n.. code:: bash\n\n    cd python/simple/src\n    pycompss init\n    pycompss run --graph simple.py 1\n\nOnce the application finishes, the graph will be stored into the\n``~\\.COMPSs\\app_name_XX\\monitor\\complete_graph.dot`` file. This dot file\ncan be converted to pdf for easier visualilzation through the use of the\n``gengraph`` parameter:\n\n.. code:: bash\n\n    pycompss gengraph .COMPSs/simple.py_01/monitor/complete_graph.dot\n\nThe resulting pdf file will be stored into the\n``~\\.COMPSs\\app_name_XX\\monitor\\complete_graph.pdf`` file, that is, the\nsame folder where the dot file is.\n\nTracing applications or notebooks\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nCOMPSs is able to produce tracing profiles of the application execution\nthrough the use of EXTRAE. In order to enable it, include the tracing\nflag in the execution command:\n\n.. code:: bash\n\n    cd python/simple/src\n    pycompss init\n    pycompss run --tracing simple.py 1\n\nIf running a notebook, just add the tracing parameter into the COMPSs\nruntime start call.\n\nOnce the application finishes, the trace will be stored into the\n``~\\.COMPSs\\app_name_XX\\trace`` folder. It can then be analysed with\nParaver.\n\nAdding more nodes\n^^^^^^^^^^^^^^^^^\n\n**Note**: adding more nodes is still in beta phase. Please report\nissues, suggestions, or feature requests on\n`Github <https://github.com/bsc-wdc/>`__.\n\nTo add more computing nodes, you can either let docker create more\nworkers for you or manually create and config a custom node.\n\nFor docker just issue the desired number of workers to be added. For\nexample, to add 2 docker workers:\n\n.. code:: bash\n\n    pycompss components add worker 2\n\nYou can check that both new computing nodes are up with:\n\n.. code:: bash\n\n    pycompss components list\n\nIf you want to add a custom node it needs to be reachable through ssh\nwithout user. Moreover, pycompss will try to copy the ``working_dir``\nthere, so it needs write permissions for the scp.\n\nFor example, to add the local machine as a worker node:\n\n.. code:: bash\n\n    pycompss components add worker '127.0.0.1:6'\n\n-  '127.0.0.1': is the IP used for ssh (can also be a hostname like\n   'localhost' as long as it can be resolved).\n-  '6': desired number of available computing units for the new node.\n\n**Please be aware** that ``pycompss components`` will not list your\ncustom nodes because they are not docker processes and thus it can't be\nverified if they are up and running.\n\nRemoving existing nodes\n^^^^^^^^^^^^^^^^^^^^^^^\n\n**Note**: removing nodes is still in beta phase. Please report issues,\nsuggestions, or feature requests on\n`Github <https://github.com/bsc-wdc/>`__.\n\nFor docker just issue the desired number of workers to be removed. For\nexample, to remove 2 docker workers:\n\n.. code:: bash\n\n    pycompss components remove worker 2\n\nYou can check that the workers have been removed with:\n\n.. code:: bash\n\n    pycompss components list\n\nIf you want to remove a custom node, you just need to specify its IP and\nnumber of computing units used when defined.\n\n.. code:: bash\n\n    pycompss components remove worker '127.0.0.1:6'\n\n\nLicense\n=======\n\nApache License Version 2.0\n\n\n*******\n\nWorkflows and Distributed Computing\n\nDepartment of Computer Science\n\nBarcelona Supercomputing Center (http://www.bsc.es)",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://compss.bsc.es",
+        "keywords": "",
+        "license": "Apache 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pycompss-headless",
+        "package_url": "https://pypi.org/project/pycompss-headless/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pycompss-headless/",
+        "project_urls": {
+            "Homepage": "https://compss.bsc.es"
+        },
+        "release_url": "https://pypi.org/project/pycompss-headless/2.6/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "PyCOMPSs headless",
+        "version": "2.6"
+    },
+    "last_serial": 6500974,
+    "releases": {
+        "2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fbf13bc28dbb1ae24f7e1a26fa0ad43c",
+                    "sha256": "c6468557b2a02774f70ef1734776326c0d93f7f6269286c7de05afde72dd3bc2"
+                },
+                "downloads": -1,
+                "filename": "pycompss-headless-2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fbf13bc28dbb1ae24f7e1a26fa0ad43c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15604,
+                "upload_time": "2020-01-22T15:43:48",
+                "upload_time_iso_8601": "2020-01-22T15:43:48.243790Z",
+                "url": "https://files.pythonhosted.org/packages/63/94/861721e6f10eb5862b637010759416d2e7e38c320313e34bcf6f41a24014/pycompss-headless-2.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "fbf13bc28dbb1ae24f7e1a26fa0ad43c",
+                "sha256": "c6468557b2a02774f70ef1734776326c0d93f7f6269286c7de05afde72dd3bc2"
+            },
+            "downloads": -1,
+            "filename": "pycompss-headless-2.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "fbf13bc28dbb1ae24f7e1a26fa0ad43c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 15604,
+            "upload_time": "2020-01-22T15:43:48",
+            "upload_time_iso_8601": "2020-01-22T15:43:48.243790Z",
+            "url": "https://files.pythonhosted.org/packages/63/94/861721e6f10eb5862b637010759416d2e7e38c320313e34bcf6f41a24014/pycompss-headless-2.6.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,145 @@
+{
+    "info": {
+        "author": "Oben Sonne",
+        "author_email": "obensonne@googlemail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Documentation",
+            "Topic :: Software Development :: Documentation",
+            "Topic :: Text Processing :: Markup",
+            "Topic :: Utilities"
+        ],
+        "description": "===============================================================================\nMarkowik\n===============================================================================\n\nMarkowik converts `Markdown`_ to `Google Code Wiki`_.\n\n.. _`Google Code Wiki`: http://code.google.com/p/support/wiki/WikiSyntax\n.. _`Markdown`: http://daringfireball.net/projects/markdown/\n\n|flattr|\n\nMarkowik is able to convert most Markdown constructs to its Google Code Wiki\n(GCW) equivalents. Instead of listing all supported conversions here, please\nhave a look at Markowik's `test suite show case`__.\n\n.. __: http://code.google.com/p/markowik/w/list?q=label:Test\n\n.. contents::\n   :depth: 1\n   :local:\n\n-------------------------------------------------------------------------------\nInstallation\n-------------------------------------------------------------------------------\n\nMarkowik requires Python 2.6 or 2.7.\n\nRun::\n\n    pip install markowik\n\nor::\n\n    easy_install markowik\n\nYou can also use Markowik without installation, as described under\n`Contributions`_.\n\n-------------------------------------------------------------------------------\nUsage\n-------------------------------------------------------------------------------\n\nCommand Line\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nFrom the help output::\n\n    usage: markowik [-h] [--mx [MX [MX ...]]] [--image-baseurl URL]\n                    [--html-images] [--encoding ENCODING] [--quiet]\n                    INFILE [OUTFILE]\n\n    Convert Markdown to Google Code Wiki.\n\n    positional arguments:\n      INFILE               markdown file\n      OUTFILE              wiki file (default: stdout)\n\n    optional arguments:\n      -h, --help           show this help message and exit\n      --mx [MX [MX ...]]   markdown extensions to activate\n      --image-baseurl URL  base URL to prepend to relative image locations\n      --html-images        always use HTML for images\n      --encoding ENCODING  encoding of input and output (default: UTF8)\n      --quiet              disable info messages\n\nMarkdown extensions may be given similarly as to the `Python Markdown`_ (PyMD)\ncommand line tool, with the exception that individual extensions must be\nseparated by a space::\n\n    $ markowik INPUT --mx tables def_list\n\nThe currently supported (i.e. tested) extensions are *abbr*, *tables*, and\n*def_list*. Other extensions generally should work too but might yield\nunexpected results in the converted wiki text.\n\nConcerning the option ``--html-images``, see the explanations below at\n`Caveats`_.\n\n.. _`Python Markdown`: http://www.freewisdom.org/projects/python-markdown/\n.. _`PyMD`: http://www.freewisdom.org/projects/python-markdown/\n\nProgrammatic\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nMarkowik is implemented in Python. The *markowik* module provides a function\nnamed ``convert``. Semantically it is similar to the command line interface\n(keyword arguments correspond to command line options). Here's a short usage\nexample::\n\n    >>> import markowik\n    >>> markowik.convert(\"Some *markdown* text ...\", mx=['tables'])\n    u'Some _markdown_ text ...'\n\nPage Pragmas\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nGCW `page pragmas`_ can be set in Markdown source files as meta data in the\nformat defined by the PyMD `meta extension`_::\n\n    >>> src = \"\"\"Summary: page summary\n    ... Labels: some, labels\n    ...\n    ... Here starts the *page* ..\n    ... \"\"\"\n    >>> print markowik.convert(src, mx=['meta'])\n    #summary page summary\n    #labels some, labels\n    <BLANKLINE>\n    Here starts the _page_ ..\n\nNote that the meta extension has to be enabled explicitly, i.e. by default\nMarkowik does not recognize page pragmas.\n\n.. _`page pragmas`: http://code.google.com/p/support/wiki/WikiSyntax#Pragmas\n.. _`meta extension`: http://www.freewisdom.org/projects/python-markdown/Meta-Data\n\nCaveats\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nGCW cannot express all markup possible in Markdown. This means Markdown source\nfiles should be written with the following limitations in mind.\n\nURLs in Links and Images\n''''''''''''''''''''''''\n\nURLs used for links or image sources have to be absolute and must have a\nspecific protocol to get recognized by GCW. In particular, any URL must start\nwith ``http://``, ``https://``, or ``ftp://``. Markowik *aborts the conversion*\nif it finds URLs not matching these requirements.\n\nTypefacing in Link Names\n''''''''''''''''''''''''\n\nGCW does not support typefacing in link names. For instance GCW renders the\nlink name in ``[http://foo.com _Foo_]`` literally, i.e. as ``_Foo_``. However,\nGCW recognizes typefacing in HTML links, i.e. ``<a\nhref=\"http://foo.com\">_Foo_</a>`` is emphasized properly. For this reason\nMarkdown links with nested typefacing like ``[*Foo*](http://foo.com)`` will be\nconverted to HTML links. As a result, link labels with certain special\ncharacters which have to be escaped in GCW using backtick (`````) markers will\nalso result in HTML links.\n\nNested Paragraphs\n'''''''''''''''''\n\nGCW does not really support multiple nested paragraphs (e.g. in lists or\nblockquotes). Markowik simulates multiple nested paragraphs by separating them\nwith a ``<br/>`` (which visually mimics paragraphs but does not break the\nnesting environment).\n\nImages\n''''''\n\nMarkdown allows to express alternative and title texts for images. GCW's image\nsyntax does not support this. The only way to preserve these texts is to use\nplain HTML ``<img>`` tags. The option ``--html-images`` enables this\nworkaround.\n\nAnother issue is that GCW expects image URLs to end with an image file type\nextension. Markowik adds artificial image extensions if necessary, for instance\n``http://foo.bar/image`` is changed to ``http://foo.bar/image?x=x.png``.\n\nAbbreviations\n'''''''''''''\n\nGCW has no markup for `abbreviations`__ nor does it support the HTML tag\n``<abbr>``. Markowik converts abbreviations to ``<span>``-elements which kind\nof mimics abbreviations (in a limited fashion of course).\n\n.. __: http://www.freewisdom.org/projects/python-markdown/Abbreviations\n\nHTML\n''''\n\nAny plain HTML occurring in a Markdown source ends up literally in GCW  (with\nthe exception of the content of span-level tags). This means the Markdown\nsource should only contain `HTML supported by GCW`__. Another implication is\nthat URLs used in plain HTML tags are not checked for GCW compatibility. In\nother words: when using raw HTML you are on your own!\n\n.. __: http://code.google.com/p/support/wiki/WikiSyntax#HTML_support\n\n-------------------------------------------------------------------------------\nResources\n-------------------------------------------------------------------------------\n\n:Releases and documentation: `PyPI`_\n\n:Issues, source code, and test suite show case: `Google Code`_\n\n:Source code mirrors: `BitBucket`_ and `GitHub`_\n\n.. _`PyPI`: http://pypi.python.org/pypi/markowik\n.. _`Google Code`: http://code.google.com/p/markowik\n.. _`BitBucket`: https://bitbucket.org/obensonne/markowik\n.. _`GitHub`: https://github.com/obensonne/markowik\n\n-------------------------------------------------------------------------------\nContributions\n-------------------------------------------------------------------------------\n\nTo contribute to Markowik, fork the project at `Google Code`_, `BitBucket`_,\nor `GitHub`_.\n\nEvery fix or new feature should include one or more corresponding test cases\n(check the `existing tests`_ for how tests should look like). Please also `post\nan issue`_ describing your fix or enhancement.\n\n.. _`existing tests`: http://code.google.com/p/markowik/source/browse#hg%2Fsrc%2Ftests\n.. _`post an issue`: http://code.google.com/p/markowik/issues\n\nMarkowik uses  `Buildout`_ to easily set up the development environment.\nBuildout automates the process of downloading and installing requirements to\nuse and develop Markowik. Requirements are installed local to the project\nsource directory, i.e. it does not clutter the system Python installation.\n\nIn a fresh source checkout, run::\n\n    $ python bootstrap.py\n    $ bin/buildout\n\nWhen done, the following scripts can be found in the ``bin/`` directory:\n\n``markowik``\n    The Markowik command line tool, ready to use.\n\n``tests``\n    Test runner script (a wrapper for `nose`_).\n\n``fab``\n    `Fabric`_ binary to use for the project's *fabfile*.\n\n``python``\n    A Python interpreter whith acces to the local development version of\n    the *markowik* module.\n\n.. _`Buildout`: http://www.buildout.org/\n.. _`nose`: http://readthedocs.org/docs/nose/\n.. _`Fabric`: http://fabfile.org/\n\n-------------------------------------------------------------------------------\nChanges\n-------------------------------------------------------------------------------\n\nVersion 0.2\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n- Markowik now supports (and requires) `PyMD`_ \u2265 2.1. Next to minor API changes\n  PyMD 2.1 also had some changes and improvements in its conversion process\n  -- for details, `check how tests have been adjusted`__ for PyMD 2.1.\n\n.. __: http://code.google.com/p/markowik/source/list?r=0.2\n\nVersion 0.1.2\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n- Explicitly require `PyMD`_ 2.0.3 (this is a temporary fix until\n  *markowik* correctly works with PyMD 2.1). **Note:** If this\n  conflicts with requirements of other Python packages, run *markowik* in its\n  own buildout as described above.\n- Minor documentation tweaks.\n\nVersion 0.1.1\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n- Improved documentation.\n- Minor fixes.\n\nVersion 0.1\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n- Initial release.\n\n.. ......................................................................... ..\n\n.. |flattr| image:: http://api.flattr.com/button/flattr-badge-large.png\n   :alt: Flattr this\n   :target: http://flattr.com/thing/410528/Markowik",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://pypi.python.org/pypi/markowik",
+        "keywords": "markdown google-code wiki converter",
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "markowik",
+        "package_url": "https://pypi.org/project/markowik/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/markowik/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://pypi.python.org/pypi/markowik"
+        },
+        "release_url": "https://pypi.org/project/markowik/0.2/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Convert Markdown to Google Code Wiki",
+        "version": "0.2"
+    },
+    "last_serial": 794529,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f453c5e44fc03e92185d3a380224226",
+                    "sha256": "5844bedef87d83e503eda8297308b1003639de51dc84f65122bdf5eccea659d4"
+                },
+                "downloads": -1,
+                "filename": "markowik-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8f453c5e44fc03e92185d3a380224226",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15325,
+                "upload_time": "2011-10-05T14:26:05",
+                "url": "https://files.pythonhosted.org/packages/0a/58/f215707e7eb046be4bfc90b4e2df87aa4594e93a31bce27b5a73e26da816/markowik-0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "33a6a8f78db97f689d3de86b60bd48a2",
+                    "sha256": "5134c7cb16a8463dc67398daea349af2e2416de4a07d20d4f17889deed45fd96"
+                },
+                "downloads": -1,
+                "filename": "markowik-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "33a6a8f78db97f689d3de86b60bd48a2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15013,
+                "upload_time": "2011-10-05T17:16:36",
+                "url": "https://files.pythonhosted.org/packages/db/e9/67308c04e02354b6c3ea215c97fc00195b17ee12dd77d1da9127e14539ef/markowik-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aca81f7f943d986c901e0006ad8228eb",
+                    "sha256": "172d75cf39c438701ae7929809c5bdf6f91def6641caa4d71fcbbacb5826697b"
+                },
+                "downloads": -1,
+                "filename": "markowik-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aca81f7f943d986c901e0006ad8228eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15312,
+                "upload_time": "2012-01-22T21:38:53",
+                "url": "https://files.pythonhosted.org/packages/24/95/ad5c1c17e51370d5ed3100435cd1f4aa22082f1d30e7a102b2bf6e096f14/markowik-0.1.2.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f00238c63c6a8c6e000382839bb607d",
+                    "sha256": "e419295e46b8f79151d2dc5c1d593b7b0543a2f20e6a6b815cc0ed4bde5b489c"
+                },
+                "downloads": -1,
+                "filename": "markowik-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3f00238c63c6a8c6e000382839bb607d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15565,
+                "upload_time": "2012-01-23T22:22:25",
+                "url": "https://files.pythonhosted.org/packages/50/c9/3d4d3d6f7b052c9c5ff9987c44b490856e63c7ff2aed019bd87f0942276f/markowik-0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3f00238c63c6a8c6e000382839bb607d",
+                "sha256": "e419295e46b8f79151d2dc5c1d593b7b0543a2f20e6a6b815cc0ed4bde5b489c"
+            },
+            "downloads": -1,
+            "filename": "markowik-0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3f00238c63c6a8c6e000382839bb607d",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 15565,
+            "upload_time": "2012-01-23T22:22:25",
+            "url": "https://files.pythonhosted.org/packages/50/c9/3d4d3d6f7b052c9c5ff9987c44b490856e63c7ff2aed019bd87f0942276f/markowik-0.2.tar.gz"
+        }
+    ]
+}

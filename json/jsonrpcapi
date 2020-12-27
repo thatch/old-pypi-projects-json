@@ -1,0 +1,441 @@
+{
+    "info": {
+        "author": "Sergey Magafurov",
+        "author_email": "magafurov@tochka.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "Description\n===========\n\nJSON-RPC \u0441\u0435\u0440\u0432\u0435\u0440 \u043d\u0430 \u0431\u0430\u0437\u0435 fastapi-jsonrpc:\n\n    https://pypi.org/project/fastapi-jsonrpc/\n\n\u0414\u043e\u0431\u0430\u0432\u043b\u044f\u0435\u0442 \u0432\u0441\u044e \u0441\u043f\u0435\u0446\u0438\u0444\u0438\u043a\u0443, \u043e\u043f\u0438\u0441\u0430\u043d\u043d\u0443\u044e \u0432 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0435:\n\n    https://confluence.bank24.int/pages/viewpage.action?pageId=34603506\n\nInstallation\n============\n\n.. code:: bash\n\n    pip install jsonrpcapi@git+ssh://git@gitlab.tochka-tech.com:2224/python/jsonrpcapi.git@0.1.9\n\nUsage\n=====\n\n.. code:: bash\n\n    pip install uvicorn\n\n.. code:: python\n\n    import jsonrpcapi\n    from pydantic import BaseModel, Schema\n    from fastapi import Body\n\n\n    app = jsonrpcapi.API()\n\n    api_v1 = jsonrpcapi.Entrypoint('/api/v1/jsonrpc')\n\n\n    class MyError1(jsonrpcapi.APIError):\n        code = 'my_error1'\n        message = '\u041e\u0448\u0438\u0431\u043a\u0430 1'\n\n    class MyError2(jsonrpcapi.APIError):\n        code = 'my_error2'\n        message = '\u041e\u0448\u0438\u0431\u043a\u0430 2'\n\n        class MetaModel(BaseModel):\n            details: str = Schema(..., example='example details')\n\n\n    @api_v1.method(errors=[MyError1, MyError2])\n    def echo(\n        data: str = Body(..., example='123'),\n    ) -> str:\n        if data == 'error1':\n            raise MyError1()\n        elif data == 'error2':\n            raise MyError2(meta={'details': 'details here'})\n        elif data == 'errors':\n            # \u041f\u0440\u0438\u043c\u0435\u0440 \u0441\u043e \u0441\u043f\u0438\u0441\u043a\u043e\u043c \u043e\u0448\u0438\u0431\u043e\u043a\n            raise jsonrpcapi.ValidationError(\n                MyError1(message=\"\u0414\u0440\u0443\u0433\u043e\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435 \u043e\u0431 \u043e\u0448\u0438\u0431\u043a\u0435 1\"),\n                MyError2(),  # meta \u043e\u043f\u0446\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u0430\n            )\n        else:\n            return data\n\n\n    app.bind_entrypoint(api_v1)\n\n\n    if __name__ == '__main__':\n        import uvicorn\n        uvicorn.run(app, port=5000, debug=True, access_log=False)\n\nGo to:\n\n    http://127.0.0.1:5000/docs\n\nDevelopment\n===========\n\n1. Install poetry\n\n    https://github.com/sdispater/poetry#installation\n\n2. Install dependencies\n\n    .. code:: bash\n\n        poetry update\n\n3. Install dephell\n\n    .. code:: bash\n\n        pip install dephell\n\n4. Regenerate setup.py\n\n    .. code:: bash\n\n        dephell deps convert\n\n5. Tag version\n\n    .. code:: bash\n\n        git tag -a 0.1.9 -m 'version 0.1.9'\n        git push --follow-tags\n",
+        "description_content_type": "text/x-rst",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "",
+        "maintainer": "Sergey Magafurov",
+        "maintainer_email": "magafurov@tochka.com",
+        "name": "jsonrpcapi",
+        "package_url": "https://pypi.org/project/jsonrpcapi/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/jsonrpcapi/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/jsonrpcapi/0.1.9/",
+        "requires_dist": [
+            "aiojobs (>=0.2.2,<0.3.0)",
+            "pydantic (>=0.30,<0.31)",
+            "starlette (>=0.12.7,<0.13.0)",
+            "fastapi (>=0.35.0,<0.36.0)",
+            "fastapi-jsonrpc (>=0.1.19,<0.2.0)"
+        ],
+        "requires_python": ">=3.6,<4.0",
+        "summary": "",
+        "version": "0.1.9"
+    },
+    "last_serial": 5675216,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95b3d65558edb06701c5c0e99fa6398c",
+                    "sha256": "7a2ac7420e28cfa05b7e0e00873d33c58e3d572a153588cb5f1000b786c24dc3"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "95b3d65558edb06701c5c0e99fa6398c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 3892,
+                "upload_time": "2019-08-09T12:59:11",
+                "url": "https://files.pythonhosted.org/packages/08/9f/3bc42ae310d4870dbf3b25f98c2036aed3429718dedae0b46ac962516f74/jsonrpcapi-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9c3db099b38f865d11cc9a753ec0164b",
+                    "sha256": "0f5a261ad3008c0a2ba78c9d6d4ef5c3a667326852870fcea666124d2cf06552"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9c3db099b38f865d11cc9a753ec0164b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 3727,
+                "upload_time": "2019-08-09T12:59:14",
+                "url": "https://files.pythonhosted.org/packages/63/d8/1ac7fd60803a5d8e5635c352cc9efb00fd1e57636f6e7741035eea7ca1fa/jsonrpcapi-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "897b09c5741a5939e5f4edb3781b8dc1",
+                    "sha256": "cc9aa1e671b9459d8dd90911036880a8064d4e0c51ca1eb7872bf5f4de6be2a3"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "897b09c5741a5939e5f4edb3781b8dc1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 3912,
+                "upload_time": "2019-08-09T13:38:28",
+                "url": "https://files.pythonhosted.org/packages/cb/57/b93f3c64ca99947248ecfc91aa6b0d7111374e665fdeba217da1308ba867/jsonrpcapi-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4a2fabddc2eba3922df70166d9432bed",
+                    "sha256": "da79d898a96711f9ac10167cd1b47218078f34f456a34b050022e84052c9a1b4"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4a2fabddc2eba3922df70166d9432bed",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 3740,
+                "upload_time": "2019-08-09T13:38:30",
+                "url": "https://files.pythonhosted.org/packages/6d/13/76c72bd20978fa460d0ab938169b2c7c13756e3f95074e7ab46bd2c4faea/jsonrpcapi-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5fbb782a430c3bbdee0d59d43d67e9b1",
+                    "sha256": "2044acda4647be328cf7af4253f9ebb4d63fedfdeee40cf94dab4ebe6f46bbdf"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5fbb782a430c3bbdee0d59d43d67e9b1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3929,
+                "upload_time": "2019-08-09T17:44:57",
+                "url": "https://files.pythonhosted.org/packages/a5/48/5638e842249a6793d97821fdbc811b138710d2755ecc5435e617c6913134/jsonrpcapi-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b917bbed393f876a6bc320560ecc5f47",
+                    "sha256": "715da2f02cf7c22ca6cd944fcc7e596628d3532801467a8e971cd8a73c6deb7a"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b917bbed393f876a6bc320560ecc5f47",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3783,
+                "upload_time": "2019-08-09T17:44:58",
+                "url": "https://files.pythonhosted.org/packages/d8/07/54886bf1ea904e43eecb21dbb96317953800ca6af7b6800e02cb2a51d75a/jsonrpcapi-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "58b15135ab16d3103805cd98321254b1",
+                    "sha256": "4be1689c1cdcf2cc6b797b3ead91a7acb692b26cb923149453be56bc27ba3772"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "58b15135ab16d3103805cd98321254b1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4000,
+                "upload_time": "2019-08-09T19:09:06",
+                "url": "https://files.pythonhosted.org/packages/bd/11/3553c32c5fa8408842da8b7014bc6261c22024500e153f0f8c35efc58511/jsonrpcapi-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "145b9c2b809a5e6beeb26850d4c3108f",
+                    "sha256": "d4d6620a3fc1868cf6304fb748d12da36ed16432cd15ff386cce7c1cd1017bd4"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "145b9c2b809a5e6beeb26850d4c3108f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3907,
+                "upload_time": "2019-08-09T19:09:07",
+                "url": "https://files.pythonhosted.org/packages/48/4c/b12d2358f6372bc0b14227e585c8e79af52d07b43930383099baa5209436/jsonrpcapi-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3783aff7b9a0b8fb999d65e30fbfe9f1",
+                    "sha256": "091e45b332df0d6a8ddc380784ea4dcdadc90fb71aa3120a5a1ca7173bf19fa8"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3783aff7b9a0b8fb999d65e30fbfe9f1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4224,
+                "upload_time": "2019-08-09T20:05:46",
+                "url": "https://files.pythonhosted.org/packages/33/0a/fde3cbcce8ad5160eea6ce6263b48b6830b56f5a49670f83c2332e1db874/jsonrpcapi-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "173112734e22dfddd095f7bc40070955",
+                    "sha256": "606be8c35815c6e4995ec1705e60f5ebd53756513e3fcede527a21b228c38941"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "173112734e22dfddd095f7bc40070955",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4117,
+                "upload_time": "2019-08-09T20:05:48",
+                "url": "https://files.pythonhosted.org/packages/a8/fb/50f672f6583d60ae6548a3372c2bb396ff406fadc3eeb1455a69ff14ffaf/jsonrpcapi-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2f47fe4e1959314bd35012c1edd635fc",
+                    "sha256": "aead038925a7f6607b5a299da550cb3c85c1bd6982727d00dea25ca2d785753d"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2f47fe4e1959314bd35012c1edd635fc",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4403,
+                "upload_time": "2019-08-10T09:33:56",
+                "url": "https://files.pythonhosted.org/packages/e4/47/c29635edd27cb6de3bf1b556478f030756631ef5f2a9438b4ab868af67a0/jsonrpcapi-0.1.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5868d998c549121fa6bf10b96715d5d5",
+                    "sha256": "8490ccb21fd4775c624190be08dfb8315b64eeab2823a773feb4f37faae77867"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5868d998c549121fa6bf10b96715d5d5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4252,
+                "upload_time": "2019-08-10T09:33:57",
+                "url": "https://files.pythonhosted.org/packages/bd/9a/336f21b36f10ef868c9f17309ecbdfea6c00456bcabba51f0267d961df34/jsonrpcapi-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6f453a8e6246d24bd25ad78db16ce6ed",
+                    "sha256": "d915f8e5671e51598db93d5a17874d308d668f116636b5a60955d285d5beafe8"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6f453a8e6246d24bd25ad78db16ce6ed",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4392,
+                "upload_time": "2019-08-13T11:02:28",
+                "url": "https://files.pythonhosted.org/packages/0a/3e/5701a29f9a522432229ac3621809a01b80b0db9f3cd6c238ecab22c23c76/jsonrpcapi-0.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "860ab6c64babeae30e35e9e793c53732",
+                    "sha256": "e956f8bad6597d4755fe31736109403e2032c9493d4347c1740c172f41660ec7"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "860ab6c64babeae30e35e9e793c53732",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4234,
+                "upload_time": "2019-08-13T11:02:30",
+                "url": "https://files.pythonhosted.org/packages/71/1f/bf90b6260cfe43706dd47f6b7f06b0f3f49a2ac25e69220d451273f8dbdb/jsonrpcapi-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4fb25c28038e4aa8723b9d0a5abf10b4",
+                    "sha256": "6e46af516166400fe773da97264476dfd5fca87f5c10ca09b5d6b3ce36e566c3"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4fb25c28038e4aa8723b9d0a5abf10b4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4800,
+                "upload_time": "2019-08-13T13:17:47",
+                "url": "https://files.pythonhosted.org/packages/c2/56/073c923c8515c7507f44858c3a328cf6dc2fc768b5a351d6512e84f38dfc/jsonrpcapi-0.1.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "75ff434142b119f8bd2aa03e464ed339",
+                    "sha256": "2d38a9c75898b907ad34f66a860aec0d00a9bbba2453c4f1077ad5af91fc1008"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "75ff434142b119f8bd2aa03e464ed339",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4652,
+                "upload_time": "2019-08-13T13:17:48",
+                "url": "https://files.pythonhosted.org/packages/48/77/63f0f36d90c021547ab71fe72f209da7f351fb53cf6a03c1c04f284f1c6d/jsonrpcapi-0.1.7.tar.gz"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2346ce6ab1ef5b60ad6bb652cae2ef3d",
+                    "sha256": "563ab653e61bc5f9912772207a460b9905b9cd1abedfb04fc33ea3f81f9b7bf7"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2346ce6ab1ef5b60ad6bb652cae2ef3d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4801,
+                "upload_time": "2019-08-14T06:51:56",
+                "url": "https://files.pythonhosted.org/packages/4d/c2/df80d4a929410fd2168c8b61f7e147e52079107fd0439c0bfba6ca358731/jsonrpcapi-0.1.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a267eaa79554425ff85bace7392299fe",
+                    "sha256": "f71ca1415b587c9fb69378c6e4fa41a7f4292a3e91d7eff270efb50489a3f21d"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a267eaa79554425ff85bace7392299fe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4658,
+                "upload_time": "2019-08-14T06:51:57",
+                "url": "https://files.pythonhosted.org/packages/10/ba/b679821f5dcd162414d140edc71c6afc2477df8288ccca86ca39d0428cfe/jsonrpcapi-0.1.8.tar.gz"
+            }
+        ],
+        "0.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "77e94dc28143c4be849a3f6e1109d8df",
+                    "sha256": "b2b14720b61e57aa4a49eede6ce604d483178841f242024dcad13203a6b22a5b"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "77e94dc28143c4be849a3f6e1109d8df",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4802,
+                "upload_time": "2019-08-14T07:30:07",
+                "url": "https://files.pythonhosted.org/packages/59/c4/1417601d20b52b7d334a459b5173b3feccf304ddebb34872e87a75f245fa/jsonrpcapi-0.1.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d859cb5cac860d81ef459f2795aa6c04",
+                    "sha256": "c8b978df741f6a7e2284c4ed9591a616a015fc02b8ef89bb5476e15928073cd0"
+                },
+                "downloads": -1,
+                "filename": "jsonrpcapi-0.1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d859cb5cac860d81ef459f2795aa6c04",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4661,
+                "upload_time": "2019-08-14T07:30:09",
+                "url": "https://files.pythonhosted.org/packages/16/79/10dcbca202085c3fab786f2e4fe8393abb210b48c15fc20daccea57a2186/jsonrpcapi-0.1.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "77e94dc28143c4be849a3f6e1109d8df",
+                "sha256": "b2b14720b61e57aa4a49eede6ce604d483178841f242024dcad13203a6b22a5b"
+            },
+            "downloads": -1,
+            "filename": "jsonrpcapi-0.1.9-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "77e94dc28143c4be849a3f6e1109d8df",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6,<4.0",
+            "size": 4802,
+            "upload_time": "2019-08-14T07:30:07",
+            "url": "https://files.pythonhosted.org/packages/59/c4/1417601d20b52b7d334a459b5173b3feccf304ddebb34872e87a75f245fa/jsonrpcapi-0.1.9-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d859cb5cac860d81ef459f2795aa6c04",
+                "sha256": "c8b978df741f6a7e2284c4ed9591a616a015fc02b8ef89bb5476e15928073cd0"
+            },
+            "downloads": -1,
+            "filename": "jsonrpcapi-0.1.9.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d859cb5cac860d81ef459f2795aa6c04",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6,<4.0",
+            "size": 4661,
+            "upload_time": "2019-08-14T07:30:09",
+            "url": "https://files.pythonhosted.org/packages/16/79/10dcbca202085c3fab786f2e4fe8393abb210b48c15fc20daccea57a2186/jsonrpcapi-0.1.9.tar.gz"
+        }
+    ]
+}

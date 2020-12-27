@@ -1,0 +1,116 @@
+{
+    "info": {
+        "author": "Wes Hardaker",
+        "author_email": "opensource@hardakers.net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Objective\n\nA python implementation of the [FSDB] flat-file streaming database.\n\n[FSDB]: https://www.isi.edu/~johnh/SOFTWARE/FSDB/\n\n# Example Usage\n\nThe FSDB file format contains headers and footers that supplement the\ndata within a file.  The most common separator is tab-separated, but\ncan wrap CSVs and other datatypes (see the FSDB documentation for full\ndetails).  The file also contains footers that trace all the piped\ncommands that were used to create a file, thus documenting the history\nof its creation within the metadata in the file.\n\n## Example pyfsdb code for reading a file\n\nReading in row by row:\n\n```\nimport pyfsdb\ndb = pyfsdb.Fsdb(\"myfile.fsdb\")\nprint(db.column_names)\nfor row in db:\n    print(row)\n```\n\n## Example FSDB file\n\n```\n#fsdb -F t col1 two andthree\n1\tkey1\t42.0\n2\tkey2\t123.0\n```\n\n## Example writing to an FSDB formatted file.\n\n```\nimport pyfsdb\ndb = pyfsdb.Fsdb(out_file=\"myfile.fsdb\")\ndb.out_column_names=('one', 'two')\ndb.append([4, 'hello world'])\ndb.close()\n```\n\nRead below for further usage details.\n\n# Installation\n\n```\npip3 install pyfsdb\n```\n\n# Additional Usage Details\n\nThe real power of the FSDB comes from the build up of tool-suites that\nall interchange FSDB formatted files.  This allows chaining multiple\ncommands together to achieve a goal.  Though the original base set of\ntools are in perl, you don't need to know perl for most of them.\n\n## Let's create a ./mydemo command:\n\n``` python\nimport sys, pyfsdb\n\ndb = pyfsdb.Fsdb(file_handle=sys.stdin, out_file_handle=sys.stdout)\nvalue_column = db.get_column_number('value')\n\nfor row in db:     # reads a row from the input stream\n    row[value_column] = float(row[value_column]) * 2\n    db.append(row) # sends the row to the output stream\n\ndb.close()\n```\n\nAnd then feed it this file:\n\n```\n#fsdb -F t col1 value\n1\t42.0\n2\t123.0\n```\n\nWe can run it thus'ly:\n\n\n``` sh\n# cat test.fsdb | ./mydemo\n#fsdb -F t col1 value\n1\t84.0\n2\t246.0\n#   | ./test.py\n```\n\nOr chain it together with multiple FSDB commands:\n\n```\n# cat test.fsdb | ./mydemo | dbcolstats valueq\ncat test.fsdb | PYTHONPATH=pyfsdb python3 ./test.py | dbcolstats value | dbcol mean stddev sum min max | dbfilealter -R C\n#fsdb -R C mean stddev sum min max\nmean: 165\nstddev: 114.55\nsum: 330\nmin: 84\nmax: 246\n\n#   | ./test.py\n#   | dbcolstats value\n#   | dbcol mean stddev sum min max\n#   | dbfilealter -R C\n```\n\n# See also\n\nThe FSDB website and manual page for the original perl module: \n\nhttps://www.isi.edu/~johnh/SOFTWARE/FSDB/\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/gawseed/pyfsdb",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pyfsdb-hardaker",
+        "package_url": "https://pypi.org/project/pyfsdb-hardaker/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pyfsdb-hardaker/",
+        "project_urls": {
+            "Homepage": "https://github.com/gawseed/pyfsdb"
+        },
+        "release_url": "https://pypi.org/project/pyfsdb-hardaker/0.9.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "A python implementation of the flat-file streaming database",
+        "version": "0.9.0"
+    },
+    "last_serial": 6350903,
+    "releases": {
+        "0.9.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "777a769480aa6dab04cbce707a21f503",
+                    "sha256": "a625b91a324c5f95ad3a2fc364af68c0332e3d6d3852e063c4d2f8d3e51f54a9"
+                },
+                "downloads": -1,
+                "filename": "pyfsdb_hardaker-0.9.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "777a769480aa6dab04cbce707a21f503",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 8793,
+                "upload_time": "2019-12-23T13:52:14",
+                "upload_time_iso_8601": "2019-12-23T13:52:14.101212Z",
+                "url": "https://files.pythonhosted.org/packages/ed/82/a071a4cfe1086db461bd78e13308caa73d5c7b029defcc5648102e0b22bf/pyfsdb_hardaker-0.9.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ba85ab169400c607da4195ce61bbee3",
+                    "sha256": "ecaba7f775373681f31cba16c8e593a9c1a1afe934109f054801a2e4418e57c0"
+                },
+                "downloads": -1,
+                "filename": "pyfsdb-hardaker-0.9.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2ba85ab169400c607da4195ce61bbee3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 8160,
+                "upload_time": "2019-12-23T13:52:16",
+                "upload_time_iso_8601": "2019-12-23T13:52:16.241234Z",
+                "url": "https://files.pythonhosted.org/packages/a3/34/d279ab0bfb61ee60f61a7f7c716c5216b5e1f1fb36bc381bdab6fcfe9e82/pyfsdb-hardaker-0.9.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "777a769480aa6dab04cbce707a21f503",
+                "sha256": "a625b91a324c5f95ad3a2fc364af68c0332e3d6d3852e063c4d2f8d3e51f54a9"
+            },
+            "downloads": -1,
+            "filename": "pyfsdb_hardaker-0.9.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "777a769480aa6dab04cbce707a21f503",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 8793,
+            "upload_time": "2019-12-23T13:52:14",
+            "upload_time_iso_8601": "2019-12-23T13:52:14.101212Z",
+            "url": "https://files.pythonhosted.org/packages/ed/82/a071a4cfe1086db461bd78e13308caa73d5c7b029defcc5648102e0b22bf/pyfsdb_hardaker-0.9.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2ba85ab169400c607da4195ce61bbee3",
+                "sha256": "ecaba7f775373681f31cba16c8e593a9c1a1afe934109f054801a2e4418e57c0"
+            },
+            "downloads": -1,
+            "filename": "pyfsdb-hardaker-0.9.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "2ba85ab169400c607da4195ce61bbee3",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 8160,
+            "upload_time": "2019-12-23T13:52:16",
+            "upload_time_iso_8601": "2019-12-23T13:52:16.241234Z",
+            "url": "https://files.pythonhosted.org/packages/a3/34/d279ab0bfb61ee60f61a7f7c716c5216b5e1f1fb36bc381bdab6fcfe9e82/pyfsdb-hardaker-0.9.0.tar.gz"
+        }
+    ]
+}

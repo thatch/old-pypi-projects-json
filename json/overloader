@@ -1,0 +1,37 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 0,
+        "author": "Mert Bora ALPER",
+        "author_email": "bora@boramalper.org",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [],
+        "description": "# overloader\n*Function / Method overloading done right.*\n\n**overloader** is a Python library to make function and method overloading easier and safer. Whereas traditional\nmethods forces the usage of `**kwargs` or default arguments, and requires lots of boilerplate code for checking;\n**overloader** can automize the job with a much cleaner and intuitive interface.\n\nSome people might function overloading *unpythonic*: I'm not going to argue to change their minds, nor will try to come\nup with scenarios or reasons why **overload** might be useful. The main reason why I created it is to play with\n*typing* module in Python 3.5, and see what I can do with it. If you find it useful, that's great!\n\n## Usage\nTo use **overloader**, simply use `@overload` decorator, and everything should work exactly as you might expect:\n\n```python\nimport typing\nfrom overloader import overload\n\n@overload\ndef simple_func(a, b):\n    return \"First simple_func\"\n\n@overload\ndef simple_func(a, b, c, d=32, *, ka, dka=\"default\"):\n    return \"Second simple_func\"\n\nprint(simple_func(3, 14))\nprint(simple_func(3, 14, 15, ka=\"pi\"))\n\n@overload\ndef typed_func(a: typing.Union[int, float], d: typing.Dict[int, int]):\n    return \"First typed_func\"\n\n@overload\ndef typed_func(a: int, b: typing.Dict[int, str]):\n    return \"Second typed_func\"\n\nprint(typed_func(2, {71: 82}))\nprint(typed_func(2, {71: \"a string\"}))\n\n\"\"\"\nWorks for normal methods and staticmethods as well.\n\"\"\"\nclass C:\n    @classmethod\n    @overload\n    def class_method(cls, a: str, b: int):\n        return \"First class_method\"\n        \n    @classmethod\n    @overload\n    def class_method(cls, a: str, b: float):\n        return \"Second class_method\"\n        \nc = C()\nprint(c.class_method(\"pi\", 3))\nprint(c.class_method(\"e\", 2.7182))\n```\n    \nA few key-point to keep in mind while using **overloader**:\n\n* **overloader** is still under heavy development. **Bugs are expected and behaviour might change.**\n* **overloader** doesn't choose the *most specific* typing definition. For instance:\n\n      ```python\n      @overload\n      def f(a: int):\n        return \"int!\"\n        \n      @overload\n      def f(a: typing.Any):\n        return \"any!\"\n        \n      print(f(5))\n      ```\n      \n  You might expect **overloader** to call the first definition, since it's more specific (`int`, instead of *any*), but\n  **overloader** doesn't do that, and it will complain that there are multiple alternatives that satisfy the given\n  arguments (Exception `AmbiguousMethods` will be raised).\n  \n  This behaviour is due to my laziness, and I think it's more complicated than it seems. If you can come up with a\n  solution that handles complex type hints as well, I would love to merge!\n* Any decorator, including `@classmethod` and `@staticmethod`, must come **before** `@overload`.\n\n## Installing\n    pip3 install overloader\n\n## Contributing\n* Add support for all the possible type hints that are defined by `typing` module.\n* Code cleanup and general improvements\n    \n## License\nMIT License. See the [LICENSE](/LICENSE) file for details.",
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/boramalper/overloader",
+        "keywords": null,
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "overloader",
+        "package_url": "http://pypi.python.org/pypi/overloader",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/overloader/0.0.0",
+        "requires_python": null,
+        "summary": "Assisted Overloading for Python",
+        "version": "0.0.0"
+    },
+    "releases": {
+        "0.0.0": []
+    },
+    "urls": []
+}

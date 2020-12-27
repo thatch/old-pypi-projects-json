@@ -1,0 +1,178 @@
+{
+    "info": {
+        "author": "Kumar McMillan",
+        "author_email": "kumar.mcmillan@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "======\nezboot\n======\n\nAutomatically configure a `Boot2Gecko`_ Device. It's so ez!\n\n.. _`Boot2Gecko`: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS\n\nThis is a command line script for the convenience of\ndeveloping on B2G such that you need to flash new builds\nto your device periodically and begin hacking ASAP.\n\nFeatures:\n\n* Automatically downloads the latest build and flashes it\n* Configures WiFi on your device\n* Pre-installs apps that you commonly need\n* Puts custom prefs on your device\n* Easy, intuitive command line\n* You can use a config file for everything\n* Frictionless convention over configuration\n\nDo you really need this? Probably not!\n``ezboot`` is intended for B2G platform developers.\nIf you are a B2G **app** developer you should try the\n`Firefox OS Simulator`_ first because that will have\nbetter features for you (such as Push To Device).\n\nRequirements:\n\n* Mac or Linux.\n\n  * On Mac you might need to install XCode with Command Line Tools\n    from https://developer.apple.com/downloads/\n  * Windows could be supported but prepare to send patches.\n\n* You *must* use a build of B2G that has Marionette enabled.\n  More details below.\n* Python 2.7 or greater (Python 3 isn't suported yet)\n* The `pip`_ command to install Python packages\n\n  * The best way to set up Python and `pip`_ on Mac is to use\n    `homebrew`_. Once homebrew is installed type\n    ``brew install python``. This will give you the ``pip`` command.\n\n* ``adb`` needs to be on your ``$PATH``.\n  Get it from the `Android SDK`_.\n* Some additional Python modules will be installed as dependencies\n\nCaveats:\n\n* You should not enable the Remote Debugging setting on B2G when\n  Marionette is enabled. This will create conflicting debugger listeners.\n  See https://bugzilla.mozilla.org/show_bug.cgi?id=764913 for info.\n\n.. _`Android SDK`: http://developer.android.com/sdk/index.html\n.. _`Firefox OS Simulator`: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Using_Firefox_OS_Simulator\n.. _`homebrew`: http://mxcl.github.com/homebrew/\n\nContents:\n\n.. contents::\n      :local:\n\nInstall\n=======\n\nYou need `pip`_ to install ezboot.\nFor B2G versions 1.2 and greater, install the current version::\n\n    pip install ezboot\n\nFor older B2G versions, install the 1.0 version::\n\n    pip install ezboot1\n\nThe installation process pulls in some dependencies so you may want to\nuse a common `virtualenv`_ and adjust your ``$PATH`` so you can\nuse ``ezboot`` for any project,\ne.g. ``/path/to/.virtualenvs/ezboot/bin``.\n\nTo install from source::\n\n   git clone git://github.com/kumar303/ezboot.git\n   cd ezboot\n   python setup.py develop\n\n.. _`pip`: http://www.pip-installer.org/en/latest/\n.. _`virtualenv`: http://pypi.python.org/pypi/virtualenv\n\nSource\n------\n\nThe source is available at https://github.com/kumar303/ezboot/\n\nMarionette\n----------\n\nFor this script to work you *must* flash your device with a B2G build that\nhas `Marionette`_ enabled. The flash command will do\nthat for you. `Read this`_ if you want to build various flavors of\nB2G with Marionette support yourself.\n\n.. _`Marionette`: https://developer.mozilla.org/en-US/docs/Marionette\n.. _`Read this`: https://developer.mozilla.org/en-US/docs/Marionette/Setup\n\nFirst Timers\n------------\n\nYou'll try anything at least once, right? The very *first* time you run\n``ezboot flash`` you probably need to enable Remote Debugging first by\ndigging into\nSettings > Device Information > More Information > Developer.\nOtherwise, ``adb`` won't be able to connect.\nThis only applies if you had flashed with a B2G build that did not have\nMarionette enabled.\nIf you've never installed B2G at all then you need to enable debugger\nconnections on Android.\n\nUsage\n=====\n\nRun this for a quick reference::\n\n    ezboot --help\n\nUsing Ezboot To Work With Marketplace Payments\n----------------------------------------------\n\nTo whet your appetite, here is a full example of ezboot's intended use.\nThis `documentation <https://webpay.readthedocs.org/en/latest/use_hosted_webpay.html#set-up-a-device-with-ezboot>`_\nshows you how to make a local config file and use ezboot to quickly prepare a B2G\ndevice for hacking on the Firefox Marketplace payments system.\n\nConfig file\n-----------\n\nYou can set defaults for all argument values by creating an\n``ezboot.ini`` file in the working directory. Make a section\nfor each sub command with long argument names as keys.\nFor example::\n\n    [setup]\n    wifi_ssid = mywifi\n    wifi_key = WPA-PSK\n    wifi_pass = my secure password with spaces\n    apps = https://marketplace-dev.allizom.org/manifest.webapp\n           https://marketplace.allizom.org/manifest.webapp\n\n    [flash]\n    flash_user = ...\n    flash_pass = ...\n\nUsing a config file greatly simplifies ezboot because you won't have to set\ncommonly used option values.\n\nCommands\n========\n\nbind\n----\n\nThis binds a hostname on your B2G device to the local IP address of the\nworkstation that you are running ezboot from. Reference::\n\n    ezboot bind --help\n\nThe use case here is that you want to connect to http://fireplace.local\nor some URL on your phone and access a development server running at\nhttp://0.0.0.0:80/ on your workstation.\n\nIf you have trouble connecting make sure your mobile device is on the same\nnetwork (you probably need WiFi for that) and that your development\nserver is bound to your public IP.\nIf it's a Django app, make sure you start with something like this::\n\n    python manage.py runserver 0.0.0.0:8000\n\nbecause the default, such as::\n\n    python manage.py runserver localhost:8000\n\nwill not bind to your public IP.\n\nIf you have multiple interfaces `ezboot bind` will show you the possibilities\nso you can choose one from the list of options.\n\nShould you want to always use a specific interface then you can use::\n\n    ezboot bind --bind_int=...\n\nAlternatively if you want to set a specific IP you can do so like this::\n\n    ezboot bind --bind_ip=...\n\nand the same for host::\n\n    ezboot bind --bind_host=...\n\n\ndesktop\n-------\n\nThis downloads a fresh desktop B2G build and installs it for use.\nHere is a full reference::\n\n    ezboot desktop --help\n\nWith the default args it will grab the latest B2G18 build.\nIf you need to install a different build just set the platform\nspecific URL. For example, if you are on a Mac and you want to get 1.0.1,\nset this::\n\n    ezboot desktop --mac64-url http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/latest-mozilla-b2g18_v1_0_1/b2g-18.0.multi.mac64.dmg\n\ndl\n--\n\nThis downloads a device build and saves the Zip file to a custom directory.\nThe build will not be flashed to a\ndevice and any subsequent ``reflash`` command will not attempt to use\nit. This is just a convenient way to grab a build without logging in;\nthe same user/pass options from ``flash`` apply here.\n\nHere is a full reference::\n\n    ezboot dl --help\n\nYou can set a custom location with ``ezboot dl --location=...``.\nBy default it will save builds to ``~/Downloads``.\n\nflash\n-----\n\nThis downloads a device build and flashes it to your device.\nHere is a full reference::\n\n    ezboot flash --help\n\nYou will have to specify which device you want to flash since every device has\na separate build that must be used to flash it. You can do that like so::\n\n    ezboot flash --flash_device unagi\n\nor, if you have the URL of your build, then do it like so::\n\n    ezboot flash --flash_url http://pvtbuilds.mozilla.org/...\n\nYou can also set these in your ``ezboot.ini`` config file::\n\n    [flash]\n    flash_device = unagi/inari\n\nor::\n\n    [flash]\n    flash_url = http://pvtbuilds.mozilla.org/...\n\nNote, that if you set both ``flash_url`` and ``flash_device``, the value\nprovided for ``flash_url`` will override the default URL for the device\nvalue you have provided. Please refer to the full reference.\n\nRest of the defaults will probably work for you. If you don't want\nto be prompted for your username/password each time, you can save\nthem in an ``ezboot.ini`` config file::\n\n    [flash]\n    flash_user = the_user\n    flash_pass = secret$password\n\nCaptain Obvious says don't commit your password to a public repo.\n\nhttp\n----\n\nThis restarts your phone with HTTP logging *temporarily* enabled.\nHere is the full reference::\n\n    ezboot http --help\n\nThis runs B2G on the device until you interrupt it (^C). After you're\nfinished the console will tell you where to find a log of all HTTP\nrequests/responses. When you view the file it might warn you that it\nhas binary content but that's typically just at the beginning of the file.\nKeep paging.\n\ninstall\n-------\n\nInstall an app from the Firefox Marketplace.\n\n::\n\n    ezboot install --help\n\nThis is an alternative to specifying manifest URLs in ``setup`` and will let\nyou install an app by name. Example::\n\n    ezboot install --app 'Sliding Puzzle' --browser\n\ninstall_mkt\n-----------\n\nInstall a pre-production version of the `packaged Marketplace`_ app.\nThis requires you to run ``mkt_certs`` first.\n\n::\n\n    ezboot install_mkt --help\n\nExample::\n\n    ezboot install_mkt --dev\n\nBecause some bootstrapping is necessary this will install the app from your\nB2G browser.\n\n.. _`packaged Marketplace`: https://github.com/mozilla/fireplace\n\nkill\n----\n\nThis kills all running apps which may be useful when you need to reload\nstyles, js or other assets.\n\n::\n\n    ezboot kill --help\n\nThe ``recss`` command might be faster.\n\nlogin\n-----\n\nMake sure a `Persona`_ screen is open on the device then type\n``ezboot login``. Here is a reference::\n\n    ezboot login --help\n\nThis lets you type the username / password to a new Persona account from\nyour nice desktop keyboard instead of the device keypad. In a real world\nsituation this wouldn't be as annoying since Persona remembers who you are\nbut for development you'll be typing new accounts all the time for testing.\n\n.. _Persona: https://login.persona.org/\n\nmkt_certs\n---------\n\nThis pushes the cert files to your device so that you can install the\nMarketplace packaged app (dev version) with elevated privileges and install\nsigned apps from that Marketplace. You obviously don't need this if you simply\nwant to use the production version of Marketplace that is pre-installed on\ndevice.\n\n::\n\n    ezboot mkt_certs --help\n\nAsk someone for a cert file\n(see `this issue <https://github.com/briansmith/marketplace-certs/issues/1>`_),\ndownload it, and unzip it.\nYou can install certs for the Marketplace dev packaged app like this::\n\n   ezboot mkt_certs --dev --certs_path ~/Downloads/certdb.tmp/\n\nThis command requires a device id unless you are using a unagi.\nYou can configure this like so::\n\n  [flash]\n  flash_device = <device>\n  flash_device_id = <whatever is reported by adb devices>\n\nIf you're using an inari or if the device identifier looks like a mac address it\nwill likely fail. If you have problems, run: ``adb devices -l`` and use\nthe string prefixed with ``usb:`` as the ``flash_device_id``. For example::\n\n   ezboot mkt_certs --flash_device_id 'usb:1D111300' --dev --certs_path ~/Downloads/certdb.tmp/\n\nreflash\n-------\n\nThis flashes the last downloaded build without downloading a new one.\nThis is an easy way to clear cookies and other saved artifacts on device.\n\n::\n\n    ezboot reflash --help\n\nSee the ``flash`` command for more info.\n\nrecss\n-----\n\nThis reloads all stylesheets on the current frame. More info::\n\n    ezboot recss --help\n\nsetup\n-----\n\nThis sets up your flashed device for usage. Here is the full reference::\n\n    ezboot setup --help\n\nIt can do the following:\n\n* configure WiFi\n* pre-install some apps\n* put custom prefs on the device\n\nThe ``--apps`` argument takes multiple values. In a config file, add them\none per line in an ``ezboot.ini`` config file like this::\n\n    [setup]\n    apps = https://marketplace-dev.allizom.org/manifest.webapp\n           https://marketplace.allizom.org/manifest.webapp\n    wifi_ssid = ...\n    wifi_key = WPA-PSK\n    wifi_pass = ...\n\nBy convention, if you put a custom prefs file in ``./ezboot/custom-prefs.js``\nwhere dot is the working directory then it will be pushed to\n``/data/local/user.js`` on the device. Any existing custom prefs are not\npreserved.\n\nWhy?\n====\n\nWhile automated functional tests are fantastic I also want to make sure\ndevelopers are testing their changes manually on real devices with the\nlatest builds. It's a pain to maintain a development device yourself\nso this created an itch that had to be scratched.\nThere is plenty of prior art on B2G scripts but each had different goals or\nthey were done with cryptic bash magic.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/kumar303/ezboot",
+        "keywords": null,
+        "license": "Apache 2",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "ezboot1",
+        "package_url": "https://pypi.org/project/ezboot1/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/ezboot1/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/kumar303/ezboot"
+        },
+        "release_url": "https://pypi.org/project/ezboot1/1.1.14/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Automatically configure a Boot2Gecko Device. It's so ez!",
+        "version": "1.1.14"
+    },
+    "last_serial": 1015161,
+    "releases": {
+        "1.1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9b42a7fb380d1891fae70b1fc55cc4a9",
+                    "sha256": "a2994fbd568f04d0cde514267efb9b98f98a5fd7e267a9bf1c78361bea946d1a"
+                },
+                "downloads": -1,
+                "filename": "ezboot1-1.1.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9b42a7fb380d1891fae70b1fc55cc4a9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18039,
+                "upload_time": "2013-11-18T20:04:12",
+                "upload_time_iso_8601": "2013-11-18T20:04:12.007898Z",
+                "url": "https://files.pythonhosted.org/packages/14/fe/e35040a2e07591e5f711d4c2ee67f9b18a1703b80f0c3169c44069eb9182/ezboot1-1.1.10.tar.gz"
+            }
+        ],
+        "1.1.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8b082ffdb33cf932b45814174c970406",
+                    "sha256": "e018825596e6edc5890eff18dbd4eae24e0d6e356b73fe26409d7c8be35640ba"
+                },
+                "downloads": -1,
+                "filename": "ezboot1-1.1.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8b082ffdb33cf932b45814174c970406",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18084,
+                "upload_time": "2013-11-19T22:29:51",
+                "upload_time_iso_8601": "2013-11-19T22:29:51.864423Z",
+                "url": "https://files.pythonhosted.org/packages/ce/42/f8db5ae541375ae0cdf350ae4515c35dd1c19c740d3da130ff85765f50cb/ezboot1-1.1.11.tar.gz"
+            }
+        ],
+        "1.1.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7e0dc6fbadc08995c95270fc279e30f8",
+                    "sha256": "4a045e2402349f8d03eb4d957581256638f66f6a66576212ba539fb1409ec8cf"
+                },
+                "downloads": -1,
+                "filename": "ezboot1-1.1.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7e0dc6fbadc08995c95270fc279e30f8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18074,
+                "upload_time": "2013-11-19T22:53:48",
+                "upload_time_iso_8601": "2013-11-19T22:53:48.366898Z",
+                "url": "https://files.pythonhosted.org/packages/9c/70/7eb9f7f80bb1c9e0857013f18bb9a5586053f3ca751fc6f44f637026b034/ezboot1-1.1.12.tar.gz"
+            }
+        ],
+        "1.1.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d3084e4a7e77c90669bba64cb5240fc4",
+                    "sha256": "73852b7005c6a4db8a3b58140c6fb04bbcc8a75367b65869dd5ec43d2e4027de"
+                },
+                "downloads": -1,
+                "filename": "ezboot1-1.1.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d3084e4a7e77c90669bba64cb5240fc4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18224,
+                "upload_time": "2013-12-05T22:29:31",
+                "upload_time_iso_8601": "2013-12-05T22:29:31.954818Z",
+                "url": "https://files.pythonhosted.org/packages/d7/20/7893e525494f141e82c12b09f071cee738af7a59f6c782c461eef252d0e3/ezboot1-1.1.13.tar.gz"
+            }
+        ],
+        "1.1.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "05bc142ad4031a38c3ab81f3a8236277",
+                    "sha256": "a5f0dcf484dfa64385efe3abbcddf3b04da8e2358730326b939f0a8a9517e137"
+                },
+                "downloads": -1,
+                "filename": "ezboot1-1.1.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "05bc142ad4031a38c3ab81f3a8236277",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18227,
+                "upload_time": "2014-02-28T17:22:10",
+                "upload_time_iso_8601": "2014-02-28T17:22:10.956665Z",
+                "url": "https://files.pythonhosted.org/packages/3b/05/9c890c563bda3d77e42075a1f67a6dd4b06470c15e95794df9927176c752/ezboot1-1.1.14.tar.gz"
+            }
+        ],
+        "1.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d15568a18385e66e7be5e7e33dc374e4",
+                    "sha256": "1d05f96422a16bf708548e3ece43bf74f96bd096a0c84b84034201ea5c9dc062"
+                },
+                "downloads": -1,
+                "filename": "ezboot1-1.1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d15568a18385e66e7be5e7e33dc374e4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18049,
+                "upload_time": "2013-11-18T16:50:12",
+                "upload_time_iso_8601": "2013-11-18T16:50:12.738524Z",
+                "url": "https://files.pythonhosted.org/packages/6e/3c/e2892fad56760fd814aa64f7f23da597c3eb0b8819cf1d46ea6e1dd3a07e/ezboot1-1.1.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "05bc142ad4031a38c3ab81f3a8236277",
+                "sha256": "a5f0dcf484dfa64385efe3abbcddf3b04da8e2358730326b939f0a8a9517e137"
+            },
+            "downloads": -1,
+            "filename": "ezboot1-1.1.14.tar.gz",
+            "has_sig": false,
+            "md5_digest": "05bc142ad4031a38c3ab81f3a8236277",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 18227,
+            "upload_time": "2014-02-28T17:22:10",
+            "upload_time_iso_8601": "2014-02-28T17:22:10.956665Z",
+            "url": "https://files.pythonhosted.org/packages/3b/05/9c890c563bda3d77e42075a1f67a6dd4b06470c15e95794df9927176c752/ezboot1-1.1.14.tar.gz"
+        }
+    ]
+}

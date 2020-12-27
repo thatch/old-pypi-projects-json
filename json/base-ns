@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "Vitaly Zuevsky",
+        "author_email": "vitaly.zuevsky@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "## Akamai NetStorage API for Python\n\n#### Common Variables\n\n`arl` or Akamai Resource Locator, here, is a NetStorage target for an operation; examples are\n```\nakamai://example-nsu.akamaihd.net/395007/my/path/special.log\nakamai://example-nsu.akamaihd.net/395007/my/path/\nexample-nsu.akamaihd.net/395007/my\nexample-nsu.akamaihd.net/395007\n```\nThe host name and CP code (here `395007`) are two required elements of the `arl`\nTrailing slash doesn't indicate files inside the target folder, so avoiding it is a cleaner practice.\n\n`key` and `keyname` - a pair you must have for authentication when using NetStorage.\n\n\nYou can start working with NetStorage like so:\n```python\nimport base_ns\n\nns = base_ns.Akamai() # this will have the same effect as :\nns = base_ns.Akamai(retry_number=3, conn_timeout=6, read_timeout=9, url_safe_chars='/~')\n```\nAll functions available by `ns` rely on [Requests module](https://2.python-requests.org/en/master/api/#main-interface) and return [Response object](https://2.python-requests.org/en/master/api/#requests.Response), from where you can get all request-response headers and the status code.\n\nWhen renaming or removing a target you may wish to treat 404 response as success because when HTTP request is initially delivered but associated response is lost, and the code retries the same request on timeout, the server returns 404 as the job has already been done, and the old target is no longer there. You may change timeout-retry behaviour on `Akamai()` instance as per above.\n\n\n#### Available Functions\n\nAny function can be used like so:\n```python\nkey = '<yourAkamaiKey>'\nkeyname = '<yourAkamaiKeyname>'\n\nns.download(arl, key, keyname, saveto)\n# arl e.g. akamai://example-nsu.akamaihd.net/395007/my/path/special.log\n# saveto is an existing folder or a file target, e.g. '~/Downloads'\n# files only\n```\nWe further assume that `key` and `keyname` are defined...\n```python\nns.upload(arl, key, keyname, file)\n# arl e.g. akamai://example-nsu.akamaihd.net/395007/my/path/special.log\n# file e.g. `~/Documents/special.log`\n# files only\n```\n\n```python\nns.delete(arl, key, keyname)\n# files and symlinks only\n```\nSymlinks does not work as such when you access NetStorage, they are followed by Akamai CDN using them as the origin.\n```python\nprint(ns.xdir(arl, key, keyname).text)\n# xdir().text returns XML string describing contents of a folder specified by arl\n# folders only\n```\n\n```python\nprint(ns.xdu(arl, key, keyname).text)\n# xdu().text returns XML string with metadata, such as total number of files and\n# disk space taken by a folder specified by arl\n# folders only\n```\n\n```python\nns.mkdir(arl, key, keyname)\n# creates a folder\n```\n\n```python\nns.mtime(arl, key, keyname, 988888888) # cannot change folders\n# changes modification time stamp to unix epoch specified e.g.\n```\n\n```python\nns.quickdelete(arl, key, keyname)\n# Recursive folder remover - must be explicitly enabled by Akamai, see rmdir_rec() below\n# folders only\n```\n\n```python\nns.rename(arl, key, keyname, uri):\n# all path folders must exist, moves under same CP code only\n# uri e.g. \"/395007/mypath/dir-v-test/vtest2\"\n# uri e.g. \"../vtest\" (relative to arl)\n# files and symlinks only\n```\n\n```python\nns.rmdir(arl, key, keyname)\n# removes an empty folder\n# folders only\n```\n\n```python\nns.rmdir_rec(arl, key, keyname)\n# removes a folder recursively\n# Only recursive function here with many HTTP calls. May crash on stack overflow\n# folders only\n```\n\n```python\nprint(ns.stat(arl, key, keyname).text)\n# stat().text returns XML string describing metadata of any target specified by arl\n# folders, files, symlinks\n```\n\n```python\nns.symlink(arl, key, keyname, target)\n# creates a symlink specified by arl\n# target e.g. \"/395007/my/path/dir-v-test/vtest2\"\n# target e.g. \"../vtest/\" (relative to arl)\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/psvz/base_ns",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "base-ns",
+        "package_url": "https://pypi.org/project/base-ns/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/base-ns/",
+        "project_urls": {
+            "Homepage": "https://github.com/psvz/base_ns"
+        },
+        "release_url": "https://pypi.org/project/base-ns/1.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "Akamai NetStorage API for Python",
+        "version": "1.0"
+    },
+    "last_serial": 5826968,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "065f8ad01f2747c5e46b251883f72aef",
+                    "sha256": "c93f29fce9501b92c07c5c5e7fe07aea67130ba74d590fdd61e3fe7577f8e31a"
+                },
+                "downloads": -1,
+                "filename": "base_ns-1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "065f8ad01f2747c5e46b251883f72aef",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 5761,
+                "upload_time": "2019-09-13T17:32:12",
+                "url": "https://files.pythonhosted.org/packages/7d/26/b9be8dff9d2a76f0cfcc12886aa235fccd78f63a819a13b715ee2dcd2e9c/base_ns-1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "87d9e5279ce4ca3dff195e62937b80a2",
+                    "sha256": "6637b437dce4805fe09c52e54c5a78239496e8420cf828897411b016bd88a412"
+                },
+                "downloads": -1,
+                "filename": "base_ns-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "87d9e5279ce4ca3dff195e62937b80a2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4620,
+                "upload_time": "2019-09-13T17:32:14",
+                "url": "https://files.pythonhosted.org/packages/0f/27/dad0e2f96ade7b3ba6de2a6feab07df7f23d8c2e63c946c865fe85a22ace/base_ns-1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "065f8ad01f2747c5e46b251883f72aef",
+                "sha256": "c93f29fce9501b92c07c5c5e7fe07aea67130ba74d590fdd61e3fe7577f8e31a"
+            },
+            "downloads": -1,
+            "filename": "base_ns-1.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "065f8ad01f2747c5e46b251883f72aef",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 5761,
+            "upload_time": "2019-09-13T17:32:12",
+            "url": "https://files.pythonhosted.org/packages/7d/26/b9be8dff9d2a76f0cfcc12886aa235fccd78f63a819a13b715ee2dcd2e9c/base_ns-1.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "87d9e5279ce4ca3dff195e62937b80a2",
+                "sha256": "6637b437dce4805fe09c52e54c5a78239496e8420cf828897411b016bd88a412"
+            },
+            "downloads": -1,
+            "filename": "base_ns-1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "87d9e5279ce4ca3dff195e62937b80a2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 4620,
+            "upload_time": "2019-09-13T17:32:14",
+            "url": "https://files.pythonhosted.org/packages/0f/27/dad0e2f96ade7b3ba6de2a6feab07df7f23d8c2e63c946c865fe85a22ace/base_ns-1.0.tar.gz"
+        }
+    ]
+}

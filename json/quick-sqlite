@@ -1,0 +1,231 @@
+{
+    "info": {
+        "author": "JackTEK",
+        "author_email": "jacktek@jacktek.me",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Quick-SQLite\n\n## Introduction\n\nQuick-SQLite is intended for programmers that dislike the unattractive and needlessly extensive SQLite3 API. Quick-SQLite not only reduces the ugly-looking function set with a clean and organised function set, but it also comes with many useful settings such as auto-commiting, automatic reconnecting, and event listeners. The integrated events listeners - demonstrated later on - are functions inside your script that are called every time something specific happens, for example, the disconnect listener is called every time the connection disconnects, more on that later.\n\n## Installation\n\nTo install Quick-SQLite, just run the following command:\n\n```pip install quick-sqlite```\n\n## Comparison\n\n### SQLite3\n\n```\nfrom sqlite3 import connect\n\nwith connect(\"Database.db\") as c:\n    data = c.cursor().execute(\"SELECT Z FROM Table WHERE X=?\", (\"Y\",)).fetchone()[0]\n    c.cursor().execute(\"UPDATE Table SET X=? WHERE X=?\", (\"Y\", f\"{data}Y\"))\n    c.commit()\n```\n\n### Quick-SQLite\n\n```\nfrom quicksqlite import Connection\n\nc = Connection(path=\"Database.db\", auto_connect=True)\nc.update(\"Table\", \"X\", f\"{c.select('Table', 'Z', column_w='X', value_w='Y')[0]}Y\")\n```\n\n## Examples\n\n### Minimal Usage\n\n```\nfrom quicksqlite import Connection\n\n# Define our connection instance\ncon = Connection(path=\"Database.db\", auto_commit=False, reconnects=5, auto_connect=True)\n\n# Create table\ncon.create_table(\"Employees\", [\"Name\", \"Age\", \"Salary\"], [\"TEXT\", \"INTEGER\", \"REAL\"])\n\n# Insert row\ncon.insert(\"Employees\", [\"Andrew Anderson\", 32, 100.00])\n\n# Update row\ncon.update(\"Employees\", \"Salary\", 110.00, column_w=\"Name\", value_w=\"Andrew Anderson\")\n\n# Select row\nprint(con.select(\"Employees\", \"Age\", column_w=\"Name\", value=\"Andrew Anderson\", fetchall=False, random=False, limit=1))\n\n# Delete row\ncon.delete(\"Employees\", column_w=\"Name\", value_w=\"Andrew Anderson\")\n\n# Drop table\ncon.drop_table(\"Employees\")\n\n# Commit changes\ncon.commit()\n\n# Rollback\ncon.rollback()\n\n# Close the connection\ncon.close()\n```\n\n### Using listeners\n\n```\nfrom quicksqlite import Connection\n\n# Define our connection instance\ncon = Connection(path=\"Database.db\", auto_commit=True, reconnects=5)\n\n@con.listen\ndef on_connect(db):\n    print(f\"Connected to {db}\")\n\n@con.listen\ndef on_disconnect(db):\n    print(f\"Disconnected from {db}\")\n\n@con.listen\ndef on_reconnect(db, attempt_number):\n    print(f\"Reconnected from {db} on attempt number {attempt_number}\")\n\n@con.listen\ndef on_transaction_success(db, action):\n    print(f\"A transaction was completed in {db}, the action was {action}\")\n\n@con.listen\ndef on_rollback(db):\n    print(f\"The last commit to {db} has been rolled back\")\n\n@con.listen\ndef on_commit(db):\n    print(f\"Changes to {db} have been saved\")\n\n# Create table\ncon.create_table(\"Employees\", [\"Name\", \"Age\", \"Salary\"], [\"TEXT\", \"INTEGER\", \"REAL\"])\n\n# Insert row\ncon.insert(\"Employees\", [\"Andrew Anderson\", 32, 100.00])\n\n# Update row\ncon.update(\"Employees\", \"Salary\", 110.00, column_w=\"Name\", value_w=\"Andrew Anderson\")\n\n# Select row\nprint(con.select(\"Employees\", \"Age\", column_w=\"Name\", value=\"Andrew Anderson\", fetchall=False, random=False, limit=1))\n\n# Delete row\ncon.delete(\"Employees\", column_w=\"Name\", value_w=\"Andrew Anderson\")\n\n# Drop table\ncon.drop_table(\"Employees\")\n\n# Rollback\ncon.rollback()\n\n# Close the connection\ncon.close()\n```\n\n### In-class Example\n\n```\nfrom quicksqlite import Connection\n\nclass MyClass(Connection):\n    def __init__(self):\n        # Define our connection instance\n        super().__init__(path=\"Database.db\", auto_commit=True, reconnects=5)\n\n        # Setup listeners\n        self.listen(self.some_function, name=\"connect\")\n        self.listen(self.on_disconnect)\n        self.listen(self.on_reconnect)\n        self.listen(self.on_success)\n        self.listen(self.on_rollback)\n        self.listen(self.on_commit)\n\n    def some_function(self, db):\n        print(f\"Connected to {db}\")\n\n    def name_can_be_just_connect(self, db):\n        print(f\"Disconnected from {db}\")\n\n    def on_reconnect(self, db, attempt_number):\n        print(f\"Reconnected from {db} on attempt number {attempt_number}\")\n\n    def on_success(self, db, action):\n        print(f\"A transaction was completed in {db}, the action was {action}\")\n\n    def on_rollback(self, db):\n        print(f\"The last commit to {db} has been rolled back\")\n\n    def on_commit(self, db):\n        print(f\"Changes to {db} have been saved\")\n\nif __name__ == \"__main__\":\n    con = MyClass()\n\n# Functions from the previous examples are used exactly the same as they are here, for example:\ncon.create_table(\"Employees\", [\"Name\", \"Age\", \"Salary\"], [\"TEXT\", \"INTEGER\", \"REAL\"])\n\ncon.close()\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/MilaBot/Quick-SQLite",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "quick-sqlite",
+        "package_url": "https://pypi.org/project/quick-sqlite/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/quick-sqlite/",
+        "project_urls": {
+            "Homepage": "https://github.com/MilaBot/Quick-SQLite"
+        },
+        "release_url": "https://pypi.org/project/quick-sqlite/1.0.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A high-level SQLite3 wrapper that makes using SQLite databases much, much easier.",
+        "version": "1.0.3"
+    },
+    "last_serial": 5009867,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c41efcf74e7880d865816e46eb68b54e",
+                    "sha256": "e447a30b0982f575497f9712c1793f1a4e1eebe6dbda6bb98186d5f5dfffe2b1"
+                },
+                "downloads": -1,
+                "filename": "quick_sqlite-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c41efcf74e7880d865816e46eb68b54e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5919,
+                "upload_time": "2019-03-10T12:20:54",
+                "upload_time_iso_8601": "2019-03-10T12:20:54.954389Z",
+                "url": "https://files.pythonhosted.org/packages/5b/89/f28f67586e261ec452c31ddaef03ed9c48533716412aa2157c4d120b8010/quick_sqlite-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6ebe3b52284e83b00e465e1423031b2a",
+                    "sha256": "6012cd5d0bae7ef06c813cdd83cdb7581e72e5e404965073e8094b49db3fbbf6"
+                },
+                "downloads": -1,
+                "filename": "quick-sqlite-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6ebe3b52284e83b00e465e1423031b2a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4632,
+                "upload_time": "2019-03-10T12:20:56",
+                "upload_time_iso_8601": "2019-03-10T12:20:56.960013Z",
+                "url": "https://files.pythonhosted.org/packages/bf/39/723f04dd3461b29f1fcb3b8a31a748567fdfb989859a140aae785bb13812/quick-sqlite-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5f42dea92aec8cddb02207484d83d5fe",
+                    "sha256": "3cea8419083a1e49900512e0edd3e74739eb98320835409eff38e0edbadb49db"
+                },
+                "downloads": -1,
+                "filename": "quick_sqlite-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5f42dea92aec8cddb02207484d83d5fe",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5924,
+                "upload_time": "2019-03-10T12:26:27",
+                "upload_time_iso_8601": "2019-03-10T12:26:27.398018Z",
+                "url": "https://files.pythonhosted.org/packages/d1/53/f1963cc7ecfe3a0309d95ec9edc264e228aa2c03ce1bab9f18a0bdea4107/quick_sqlite-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f1552034a1f14ec369acf0e3cbb2a2eb",
+                    "sha256": "d107a5c2a7e41d25a0f3c56f8b4677958632c98d37ce792fbb1bcb998a7c298b"
+                },
+                "downloads": -1,
+                "filename": "quick-sqlite-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f1552034a1f14ec369acf0e3cbb2a2eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4632,
+                "upload_time": "2019-03-10T12:26:29",
+                "upload_time_iso_8601": "2019-03-10T12:26:29.823873Z",
+                "url": "https://files.pythonhosted.org/packages/12/43/381980c1ab3f7094c574bb2c6ca95e11a53b7ff259e5348f38c0c122a645/quick-sqlite-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4037fd1d849433a63048d8ffbb8eae98",
+                    "sha256": "ed07d648980a106c0118ea6e06357ca1292f2344d1145e63a5725fc2f6904f28"
+                },
+                "downloads": -1,
+                "filename": "quick_sqlite-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4037fd1d849433a63048d8ffbb8eae98",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6609,
+                "upload_time": "2019-03-12T18:58:47",
+                "upload_time_iso_8601": "2019-03-12T18:58:47.453742Z",
+                "url": "https://files.pythonhosted.org/packages/eb/1b/13d505c92b3058cee9798351b02dfac2072added3882d3f33b26631d9a3c/quick_sqlite-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "170aa799cb558637bfcfc79c3bbeb922",
+                    "sha256": "4387eefcef58345e5fcb7aa9f4fca478f5b79dbc068f953118a8f2aa1b37d17d"
+                },
+                "downloads": -1,
+                "filename": "quick-sqlite-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "170aa799cb558637bfcfc79c3bbeb922",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5264,
+                "upload_time": "2019-03-12T18:58:49",
+                "upload_time_iso_8601": "2019-03-12T18:58:49.113990Z",
+                "url": "https://files.pythonhosted.org/packages/3d/e8/50ef799b25275f824fba1ab464d230881842e7637fad16f658255cf1293b/quick-sqlite-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a3876a9ea1adb41c9174ca190ee8be00",
+                    "sha256": "54ad9e20ebfc5d2efaf809185d3e8837645b0d93bf5992328d8cc0dfc0a65f5d"
+                },
+                "downloads": -1,
+                "filename": "quick_sqlite-1.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a3876a9ea1adb41c9174ca190ee8be00",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6614,
+                "upload_time": "2019-03-31T16:32:29",
+                "upload_time_iso_8601": "2019-03-31T16:32:29.892367Z",
+                "url": "https://files.pythonhosted.org/packages/de/75/45549aa80f0b974d6d163345a9d322c570b45245177f1a463e6e22dc7b53/quick_sqlite-1.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "013727aab33a108d65c87bc6baafdaf7",
+                    "sha256": "d4d267087e668da31d3ce76d7b83d78cf7bb9f0f172f34e0ba79fdc961973859"
+                },
+                "downloads": -1,
+                "filename": "quick-sqlite-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "013727aab33a108d65c87bc6baafdaf7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5268,
+                "upload_time": "2019-03-31T16:32:31",
+                "upload_time_iso_8601": "2019-03-31T16:32:31.737105Z",
+                "url": "https://files.pythonhosted.org/packages/6f/b6/b096ab0c9010e276d38916e26ea61b7df0cd5453279a8ff32fda11d3ad30/quick-sqlite-1.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a3876a9ea1adb41c9174ca190ee8be00",
+                "sha256": "54ad9e20ebfc5d2efaf809185d3e8837645b0d93bf5992328d8cc0dfc0a65f5d"
+            },
+            "downloads": -1,
+            "filename": "quick_sqlite-1.0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a3876a9ea1adb41c9174ca190ee8be00",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 6614,
+            "upload_time": "2019-03-31T16:32:29",
+            "upload_time_iso_8601": "2019-03-31T16:32:29.892367Z",
+            "url": "https://files.pythonhosted.org/packages/de/75/45549aa80f0b974d6d163345a9d322c570b45245177f1a463e6e22dc7b53/quick_sqlite-1.0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "013727aab33a108d65c87bc6baafdaf7",
+                "sha256": "d4d267087e668da31d3ce76d7b83d78cf7bb9f0f172f34e0ba79fdc961973859"
+            },
+            "downloads": -1,
+            "filename": "quick-sqlite-1.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "013727aab33a108d65c87bc6baafdaf7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5268,
+            "upload_time": "2019-03-31T16:32:31",
+            "upload_time_iso_8601": "2019-03-31T16:32:31.737105Z",
+            "url": "https://files.pythonhosted.org/packages/6f/b6/b096ab0c9010e276d38916e26ea61b7df0cd5453279a8ff32fda11d3ad30/quick-sqlite-1.0.3.tar.gz"
+        }
+    ]
+}

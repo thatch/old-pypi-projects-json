@@ -1,0 +1,162 @@
+{
+    "info": {
+        "author": "Giampaolo Eusebi",
+        "author_email": "giampaolo.eusebi@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved",
+            "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Text Processing :: Markup",
+            "Topic :: Text Processing :: Markup :: HTML"
+        ],
+        "description": "Pydom query\n===========\n\nCSS selector syntax for python minidom and DOM implementations.\n\nShort example\n-------------\n\nProvided an HTML file `sample.html` the following code will query\nsome elements and return them as `minidom` `Element`s.\nIn case of multiple elements (`select_all`) a simple python `list`\nis returned (instead of a minidom `NodeList`).\n\n.. code-block:: python\n\n    from xml.dom.minidom import parse\n    from pydom_query import select, select_all\n\n    tree = parse(\"test/html/sample.html\")\n\n    # Title element\n    title = select(tree, \"title\")\n\n    # Every P element\n    paragraphs = select_all(tree, \"p\")\n\n    # Element with type P and ID equal to \"summary\"\n    summary = select(tree, \"p#summary\")\n\n    # Every element with class \"wide\"\n    wide_elements = select_all(tree, \".wide\")\n\nSupported CSS syntax\n--------------------\n\nOnly a subset of CSS syntax is supported:\n\n- Compound selectors (comma separator),\n- element type and id,\n- classes presence,\n- attributes match (presence and all the other operators),\n- combinators (descendant, sibling, subsequent, child).\n\nSome supported selectors:\n\n.. code-block:: css\n\n    p#abstract[lang|=en]\n    p[data-user=\"john\"]\n    div > p + p, article > p + p\n    script[type=\"text/data\"]\n    header > li ul, footer > li ul\n    section h1 ~ p, article h2 ~ p\n\nInternals and implementation\n----------------------------\n\nEvery query is compiled and cached sor subsequent use.\n\nLexer\n^^^^^\n\nThe first stage is tokenization (`lexer.py lexer`) which is loosely\nbased on the\n`W3C selector lexer <https://www.w3.org/TR/selectors-3/#lex>`_.\nThe differences are mainly to make the tokenizer compatible with\nregular expressions and to strip every unnecessary feautures.\n\nParser\n^^^^^^\n\nThen follows the parsing stage (`parser.py parse`) which produce a\nsimple AST from the tokens. The parser is, just like the tokenizer, a\nsimplified version of the standard one. It is a single function which\nimplements a descent parser. The AST is a tuple of tuples and maps in\na relatively close way the given query.\n\nCompiler\n^^^^^^^^\n\nThe last stage is the compiler (`compiler.py compile`). It translates\nthe AST into a sequence of simple actions to be performed in order to\nselect the matching elements.\nOnce compiled it is saved in cache and will be reused whenever the same\nquery is seen again.\n\nVirtual machine\n^^^^^^^^^^^^^^^\n\nThe opcodes are executed by (`vm.py execute`). This function takes a\nstarting element, a sequence of opcodes, and an `api`.\nThe api is dict-like object. Every key corresponds to a function which\nimplements an opcode. The default api is `minidom_api.py api`.\n\nDOM API\n^^^^^^^\n\nEvery function in the api is either a filter (actual filtering of nodes)\nor a generator (combinators expansion). The only two opcodes which don't\nfollows this rule are `YIELD` (return elements found so far) and `RESET`\n(reload the orignal elment node after a CSS comma).\n\nIn case of other `dom` implementations it *should* be sufficient to\nwrite a new api and pass it to `execute` (or `select*`) upon querying.\n\nCode quality and stability\n--------------------------\n\nThe code is far from complete.\nIt is tested but there are minor issues (attribute match don't follows\nthe specs verbatim).\n\nFeel free to contribute.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/geusebi/pydom_query",
+        "keywords": "",
+        "license": "GNU LGPL 3.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pydom-query",
+        "package_url": "https://pypi.org/project/pydom-query/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pydom-query/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/geusebi/pydom_query"
+        },
+        "release_url": "https://pypi.org/project/pydom-query/0.0.2/",
+        "requires_dist": null,
+        "requires_python": ">=3.7",
+        "summary": "CSS selector syntax for python minidom and compatible DOM implementations",
+        "version": "0.0.2"
+    },
+    "last_serial": 6513399,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f89d0cfb5349c03343f713c8999b09f",
+                    "sha256": "0f5d8f0b1525d8f18b885feeae00cdf5126618ae338564c0224b5930fd719d36"
+                },
+                "downloads": -1,
+                "filename": "pydom_query-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8f89d0cfb5349c03343f713c8999b09f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 13037,
+                "upload_time": "2020-01-24T11:13:37",
+                "upload_time_iso_8601": "2020-01-24T11:13:37.122322Z",
+                "url": "https://files.pythonhosted.org/packages/73/f3/ba7ce6ceea67c55e12ea2aa3016e3c8d2fdb72bd35b810efdcd21909d18a/pydom_query-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9b6c5237b664ddbf623e634b07bb07b3",
+                    "sha256": "7cc243bf19331fd3ece3935dc55cae1c9a6d021ff43d68422214b983256666f8"
+                },
+                "downloads": -1,
+                "filename": "pydom_query-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9b6c5237b664ddbf623e634b07bb07b3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 10996,
+                "upload_time": "2020-01-24T11:13:41",
+                "upload_time_iso_8601": "2020-01-24T11:13:41.800055Z",
+                "url": "https://files.pythonhosted.org/packages/59/ac/65a15b38c6882428739bea4f25c8c067784771ba320073bc4aa7d1ba3bdf/pydom_query-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "beea39c308fcc61602e54ef7b5f093ab",
+                    "sha256": "28c8cf4c79466adef0274840de0c38ec621182ce62de40ca64586206cce8de49"
+                },
+                "downloads": -1,
+                "filename": "pydom_query-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "beea39c308fcc61602e54ef7b5f093ab",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 13038,
+                "upload_time": "2020-01-24T12:34:15",
+                "upload_time_iso_8601": "2020-01-24T12:34:15.434778Z",
+                "url": "https://files.pythonhosted.org/packages/6e/92/2b99e0e7a1203cad479d6a74f1a5611ec635f0f787ffc17b7715e70168e9/pydom_query-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14f7464cc932a0f79c741e2b1d94ff71",
+                    "sha256": "31d27bc2c74919efb5789e762098bc48518c9c20130a7200a0342048bf5554cb"
+                },
+                "downloads": -1,
+                "filename": "pydom_query-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "14f7464cc932a0f79c741e2b1d94ff71",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 10839,
+                "upload_time": "2020-01-24T12:34:16",
+                "upload_time_iso_8601": "2020-01-24T12:34:16.605791Z",
+                "url": "https://files.pythonhosted.org/packages/9e/e8/3feff99decf14045ea2e962820f92e876d9d352828b6ced5cbb12f6c84ef/pydom_query-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "beea39c308fcc61602e54ef7b5f093ab",
+                "sha256": "28c8cf4c79466adef0274840de0c38ec621182ce62de40ca64586206cce8de49"
+            },
+            "downloads": -1,
+            "filename": "pydom_query-0.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "beea39c308fcc61602e54ef7b5f093ab",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7",
+            "size": 13038,
+            "upload_time": "2020-01-24T12:34:15",
+            "upload_time_iso_8601": "2020-01-24T12:34:15.434778Z",
+            "url": "https://files.pythonhosted.org/packages/6e/92/2b99e0e7a1203cad479d6a74f1a5611ec635f0f787ffc17b7715e70168e9/pydom_query-0.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "14f7464cc932a0f79c741e2b1d94ff71",
+                "sha256": "31d27bc2c74919efb5789e762098bc48518c9c20130a7200a0342048bf5554cb"
+            },
+            "downloads": -1,
+            "filename": "pydom_query-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "14f7464cc932a0f79c741e2b1d94ff71",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7",
+            "size": 10839,
+            "upload_time": "2020-01-24T12:34:16",
+            "upload_time_iso_8601": "2020-01-24T12:34:16.605791Z",
+            "url": "https://files.pythonhosted.org/packages/9e/e8/3feff99decf14045ea2e962820f92e876d9d352828b6ced5cbb12f6c84ef/pydom_query-0.0.2.tar.gz"
+        }
+    ]
+}

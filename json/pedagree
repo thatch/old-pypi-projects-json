@@ -1,0 +1,177 @@
+{
+    "info": {
+        "author": "Brent Pedersen",
+        "author_email": "bpederse@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Topic :: Scientific/Engineering :: Bio-Informatics"
+        ],
+        "description": "tools for pedigree files\n------------------------\n\n[![PyPI version](https://badge.fury.io/py/pedagree.svg)](http://badge.fury.io/py/pedagree)\n[![Build Status](https://travis-ci.org/brentp/pedagree.svg?branch=master)](https://travis-ci.org/brentp/pedagree)\n[![Documentation Status](https://readthedocs.org/projects/pedagree/badge/?version=latest)](http://pedagree.readthedocs.org/en/latest/?badge=latest)\n\n\nQuickstart\n----------\n\nMost users will only need to run as a command-line tool with a ped and VCF, e.g:\n\n```\npython -m pedagree --plot --prefix ceph-1463 ceph1463.vcf.gz ceph1463.ped\n```\n\nThat will create 3 QC files and 3 QC plots where `_error` columns will \nindicate:\n+ discrepancies between reported and inferred relations\n+ discrepancies between reported and inferred sex\n+ higher levels of HET calls or more variance in allele frequencies for het calls.\n\nOverview\n--------\n\n\n**NOTE** this module used to be named to \"peddy\".\n\n`pedagree` is a python library for querying, QC'ing, and manipulating pedigree files.\n\nIt currently makes it simple to extract things like:\n\n + parent-child pairs\n + trios\n + sibs\n + stats on number of males/females/trios/affecteds/unaffecteds\n + families.\n + families with at least N members\n + families with at least N children\n + [not yet] families with at least N generations\n + coefficient of relatedness given relation defined in the pedigree.\n\nAlso, given a pedigree file and a VCF file pedagree provides tools to:\n\n + find likely sample mixups (or PED errors)\n   - sex mixups on X-Chrom\n   - family mixups by inferring relatedness with VCF\n\n + find mendelian errors\n\n\nUsage\n-----\n\n```Python\n>>> from pedagree import Ped, SEX, PHENOTYPE\n\n>>> p = Ped('my.ped')\n# not yet.\n#>>> p.dot() # draw the pedigree with graphviz\n\n# not yet\n# find any obvious issues (3 parents, mom as male, etc).\n>>> p.validate()\n\n# number of affecteds, un, males, females, etc. (contingency table?)\n>>> p.summary()\n\n# iterable\n>>> p.samples()\n\n>>> p.samples(phenotype=PHENOTYPE.AFFECTED, sex=SEX.MALE)\n\n# sample object\n>>> s = next(p.samples())\n\n>>> s.phenotype\n\n>>> s.sex\n\n>>> s.mom\n\n>>> s.dad\n\n>>> s.siblings\n\n>>> s.kids\n```\n\nQuality Control\n---------------\n\nIf cyvcf2 is installed, then, given a ped-file and a VCF, we can look for cases where the relationships\ndefined in the ped file do not match the relationships derived from the genotypes in the VCF.\n\n```Python\n>>> from pedagree import Ped\n>>> p = Ped('cohort.ped')\n>>> df = p.ped_check('cohort.vcf.gz')\n>>> df[df.error] # show pairs of samples where the inferred differs from the reported.\n\n```\n\n[![relplot](http://pedagree.readthedocs.org/en/latest/_images/ped-check.png)](http://github.com/brentp/cyvcf2/)\n\nWe don't see any obvious errors in this pedigree. An obvious error would be when a red colored dot clusters with blue dots. \nThe *outlined dots* have a very low IBS0 rate, indicating that they are likely parent-child pairs.\n\nBy looking for the frequency of heterozygotes in the non-PAR regions of\nthe X chromosome, we can determine sex from a VCF:\n\n```Python\n>>> from pedagree import Ped\n>>> p = Ped('cohort.ped')\n>>> p.sex_check('cohort.vcf.gz', plot=True)\n... List of all samples with number of HETs, HOMREF, HOMALT on X\n```\nThis will also create an image like this one where we can\nsee a clear sample mixup.\n\n[![sex_plot](https://raw.githubusercontent.com/brentp/pedagree/master/images/sex_check.png)](http://github.com/brentp/cyvcf2/)\n\n\nOn creating a pedigree object (via Ped('some.ped'). `pedagree` will print warnings to STDERR as appropriate like:\n\n```\npedigree warning: '101811-101811' is dad but has female sex\npedigree warning: '101897-101897' is dad but has female sex\npedigree warning: '101896-101896' is mom of self\npedigree warning: '102110-102110' is mom but has male sex\npedigree warning: '102110-102110' is mom of self\npedigree warning: '101381-101381' is dad but has female sex\npedigree warning: '101393-101393' is mom but has male sex\n\nunknown sample: 102498-102498 in family: K34175\nunknown sample: 11509-11509 in family: K567331\nunknown sample: 5180-5180 in family: K8565\n```",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "UNKNOWN",
+        "keywords": null,
+        "license": "UNKNOWN",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "pedagree",
+        "package_url": "https://pypi.org/project/pedagree/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/pedagree/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "UNKNOWN"
+        },
+        "release_url": "https://pypi.org/project/pedagree/0.0.11/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "pleasingly pythonic pedigree manipulation",
+        "version": "0.0.11"
+    },
+    "last_serial": 2050099,
+    "releases": {
+        "0.0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "acd632d94019ccb60a3bb8beb153e431",
+                    "sha256": "6879188959f4dabdd4c873870b82834ef9d0603a60d8fbe6d058e10c039445aa"
+                },
+                "downloads": -1,
+                "filename": "pedagree-0.0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "acd632d94019ccb60a3bb8beb153e431",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 26629,
+                "upload_time": "2016-02-10T18:19:41",
+                "url": "https://files.pythonhosted.org/packages/f0/3d/3693a017f1d4b176e57d9b2a1a8024e34a34edd8d5488bcc070e01bfefbd/pedagree-0.0.10.tar.gz"
+            }
+        ],
+        "0.0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42d4d309c9b47921870c404a1e3bb406",
+                    "sha256": "462f8f95e8579faa7c959c979808d71116da73c65c7a189ed59b53a1b3eb349f"
+                },
+                "downloads": -1,
+                "filename": "pedagree-0.0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "42d4d309c9b47921870c404a1e3bb406",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36717,
+                "upload_time": "2016-04-06T21:51:05",
+                "url": "https://files.pythonhosted.org/packages/b0/31/235b5196fba5b3ea02a7d8848a76a8f7a56b53a80a9605967833d2c1c457/pedagree-0.0.11.tar.gz"
+            }
+        ],
+        "0.0.4": [],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "83f93c9637c8eec0ead7b5078c17ec2f",
+                    "sha256": "953e9b855af939ebd9d4464c6d2cef54edae6415626f53d6962ee54b85777d4d"
+                },
+                "downloads": -1,
+                "filename": "pedagree-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "83f93c9637c8eec0ead7b5078c17ec2f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16264,
+                "upload_time": "2015-09-29T19:25:02",
+                "url": "https://files.pythonhosted.org/packages/f9/80/a5a7789edf0f41515bf2e3a131c5719c48186139e2d1c72bf04f082406a0/pedagree-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "49d2d7d2ce97ff161971018453a13d12",
+                    "sha256": "879d74ef660bcaa66338d02fa0082a98d1ed98ad1bdbbd295d8d79cdc2301c97"
+                },
+                "downloads": -1,
+                "filename": "pedagree-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "49d2d7d2ce97ff161971018453a13d12",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27619,
+                "upload_time": "2015-09-30T20:44:32",
+                "url": "https://files.pythonhosted.org/packages/38/0f/13454dc2be7e7fb89e1d3162efdadddc84af151ce04f4866134b8befcee4/pedagree-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "83403f43d28ed5482a2bc6475e871de8",
+                    "sha256": "f4850280c5902d70a7cf010fa18478ba5ac862955b89d3f42e7dbbf97f3fa22d"
+                },
+                "downloads": -1,
+                "filename": "pedagree-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "83403f43d28ed5482a2bc6475e871de8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 28466,
+                "upload_time": "2015-11-13T20:23:40",
+                "url": "https://files.pythonhosted.org/packages/bd/39/45727bd82a18a8626df34952bc2085a6d9acb51de42a04b8040312970d82/pedagree-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "865cc6a8dbdfdfdb45a15a3428477121",
+                    "sha256": "2c9d8949ff57890d5f1be341634729e210b1e214efaaee0f4227832e7581458a"
+                },
+                "downloads": -1,
+                "filename": "pedagree-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "865cc6a8dbdfdfdb45a15a3428477121",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 28658,
+                "upload_time": "2015-11-19T18:50:24",
+                "url": "https://files.pythonhosted.org/packages/b7/d2/90d0312686185dcdd777b934b8991ec5e112d378ae10a93a96874b1ce930/pedagree-0.0.8.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "42d4d309c9b47921870c404a1e3bb406",
+                "sha256": "462f8f95e8579faa7c959c979808d71116da73c65c7a189ed59b53a1b3eb349f"
+            },
+            "downloads": -1,
+            "filename": "pedagree-0.0.11.tar.gz",
+            "has_sig": false,
+            "md5_digest": "42d4d309c9b47921870c404a1e3bb406",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 36717,
+            "upload_time": "2016-04-06T21:51:05",
+            "url": "https://files.pythonhosted.org/packages/b0/31/235b5196fba5b3ea02a7d8848a76a8f7a56b53a80a9605967833d2c1c457/pedagree-0.0.11.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,295 @@
+{
+    "info": {
+        "author": "Sidhartha Parhi",
+        "author_email": "sidhartha.parhi@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# GAN Zoo\n\n<p align=\"left\">\n<img align=\"center\" src =\"https://github.com/sidward14/gan-zoo/raw/master/examples/gif/106.png\" height=\"432\" width=\"432\"/>\n<img align=\"center\" src =\"https://github.com/sidward14/gan-zoo/raw/master/examples/gif/672.png\" height=\"432\" width=\"432\"/>\n</p>\n\n__Currently supports:__\n+ StyleGAN (https://arxiv.org/pdf/1812.04948.pdf)\n+ ProGAN (https://arxiv.org/pdf/1710.10196.pdf)\n+ ResNet GANs\n\nEach GAN model's default settings emulates its most recent official implementation, but at the same time this package features a simple interface ([config.py](./gan_zoo/config.py)) where the user can quickly tune an extensive list of hyperparameter settings to his/her choosing.\n\nComes with additional features such as supervised learning capabilities, flexible learning rate scheduling (and re-scheduling) capabilities, an easy-to-use interface for saving/loading the model/learner state (e.g. for transfer learning or for evaluation at a later time), etc.\n\nThis package aims for an intuitive API without sacrificing any complexity anywhere.\n\n--------------------------------------------------------------------------------\n\nIn your virtual environment (e.g. a conda virtual environment), run:\n  ~~~\n  $ pip install gan-zoo\n  ~~~\nThis will install all necessary dependencies for you and will enable the option to use the package like an API (see \"Jupyter Notebook (or Custom Script) Usage\" below).\n\nIf you do not wish to use the package like an API (i.e. you just want to install dependencies and then just use the repo by means of running [train.py](./gan_zoo/train.py)), run '$ pip install -r requirements.txt' instead.\n\n## Basic Usage on Command-line\n\n__Clone this repo__, then simply run the following to configure your model & dataset and train your chosen model:\n  ~~~\n  $ python config.py [model] [--optional_kwargs]\n  $ python data_config.py [dataset] [dataset_dir] [--optional_kwargs]\n  $ python train.py\n  ~~~\nIf you would like to see a list of what each argument does, run '$ python config.py [model] -h' or '$ python data_config.py [dataset] [dataset_dir] -h' on the command-line.\n\n__NOTE__: Make sure that all images you would like to use in your model are located directly inside the _dataset_dir_ parent directory before running [data_config.py](./gan_zoo/data_config.py). Any images within subdirectories of _dataset_dir_ (except for the subdirectories named \"train\" or \"valid\" that get created when you run [data_config.py](./gan_zoo/data_config.py)) will not be used when training your model.\n\n### ProGAN Example:\n\nA ProGAN Generator that yields 128x128 images _(higher resolutions coming once model is done training in Google Colab with 16 GB GPU Memory!)_ like the ones below can be created by running the following 3 lines:\n  ~~~\n  $ python config.py progan --res_samples=128 --num_main_iters=1050000 --batch_size=8\n  $ python data_config.py CelebA-HQ path/to/datasets/celeba_hq --enable_mirror_augmentation\n  $ python train.py\n  ~~~\n\n  <p align=\"center\">\n  <img align=\"center\" src =\"https://github.com/sidward14/gan-zoo/raw/master/examples/gif/image_grids.gif\"/>\n  </p>\n  <br>\n\nBy default, the image grid above is saved periodically during training into the \"./gan_zoo/samples\" directory every 1000 iterations (see [config.py](./gan_zoo/config.py)).\n\n### StyleGAN Example:\n\nA StyleGAN Generator can be created by running the following 3 lines (for example):\n  ~~~\n  $ python config.py stylegan --batch_size=16\n  $ python data_config.py FFHQ path/to/datasets/ffhq --enable_mirror_augmentation\n  $ python train.py\n  ~~~\n\n  [SAMPLES COMING SOON]\n\n### ResNet GAN Example:\n\nA ResNet GAN Generator can be created by running the following 3 lines (for example):\n  ~~~\n  $ python config.py resnetgan --lr_base=.00015\n  $ python data_config.py LSUN-Bedrooms path/to/datasets/lsun_bedrooms\n  $ python train.py\n  ~~~\n\n  [SAMPLES COMING SOON]\n\n\n\n## Jupyter Notebook (or Custom Script) Usage\n\nRunning [train.py](./gan_zoo/train.py) is just the very basic usage. This package can be imported and utilized in a modular manner as well (like an API). For example, often it's helpful to experiment inside a Jupyter Notebook, like in the example below.\n\n  First configure your GAN to your choosing on the command-line (like explained above under \"Basic Usage on Command-line\"):\n  ~~~\n  $ python config.py stylegan\n  $ python data_config.py FFHQ path/to/datasets/ffhq\n  ~~~\n\n  Then write a custom script or Jupyter Notebook cells:\n  ```python\n  from gan_zoo import get_current_configuration\n  from gan_zoo.utils.data_utils import prepare_dataset, prepare_dataloader\n  from gan_zoo.stylegan.learner import StyleGANLearner\n\n  # get most recent configurations:\n  config = get_current_configuration( 'config' )\n  data_config = get_current_configuration( 'data_config' )\n\n  # get DataLoader(s)\n  train_ds, valid_ds = prepare_dataset( data_config )\n  train_dl, valid_dl, z_valid_dl = prepare_dataloader( config, data_config, train_ds, valid_ds )\n\n  # instantiate StyleGANLearner and train:\n  learner = StyleGANLearner( config )\n  learner.train( train_dl, valid_dl, z_valid_dl )   # train for config.num_main_iters iterations\n  learner.config.num_main_iters = 300000            # this is one example of changing your instantiated learner's configurations\n  learner.train( train_dl, valid_dl, z_valid_dl )   # train for another 300000 iterations\n  ```\n\n__Some Advantages of Jupyter Notebook (there are many more than this)__:\n+ You have the flexibility to think about what to do with your trained model after its trained rather than all at once, such as:\n  + whether you want to save/load your trained model/learner\n  + what learner.config parameters you want to change before training again\n+ You can always stop the kernel during training and then resume again and it will work\n\n--------------------------------------------------------------------------------\n\n__NOTE__ that by default, the _--num_workers_ argument in [config.py](./gan_zoo/config.py) is set to data-loading from just 1 subprocess; setting this to a larger number (that still falls within the constraints of your CPU(s)) will speed up training significantly. :slightly_smiling_face:\n\n## TODO (will be implemented soon):\n- [ ] Multi-GPU support\n- [ ] TensorBoard capabilities\n- [ ] FID, IS, and MS-SSIM metrics calculation\n- [ ] Incorporate Spectral Normalization\n- [ ] Incorporate Self-attention",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/sidward14/gan-zoo",
+        "keywords": "GAN GAN-Zoo ML generative neural model",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "gan-zoo",
+        "package_url": "https://pypi.org/project/gan-zoo/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/gan-zoo/",
+        "project_urls": {
+            "Homepage": "https://github.com/sidward14/gan-zoo"
+        },
+        "release_url": "https://pypi.org/project/gan-zoo/0.1.2/",
+        "requires_dist": null,
+        "requires_python": ">= 3.6",
+        "summary": "StyleGAN, ProGAN, and ResNet GANs",
+        "version": "0.1.2"
+    },
+    "last_serial": 6620196,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d35585d0db89ef9fbe64201e83243cb2",
+                    "sha256": "f4ca048ffc9d90e9dd867390c70254f797e1aa6a555ce766425d4c92c120a98f"
+                },
+                "downloads": -1,
+                "filename": "gan_zoo-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d35585d0db89ef9fbe64201e83243cb2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">= 3.6",
+                "size": 67750,
+                "upload_time": "2020-01-23T22:21:31",
+                "upload_time_iso_8601": "2020-01-23T22:21:31.600220Z",
+                "url": "https://files.pythonhosted.org/packages/b3/c5/1febea50d0eae7c398366fed1ce9c8be11b5d1a6de5959b03dc5ceddf82c/gan_zoo-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "26e3bc460fedd41fe5c060f07f704d80",
+                    "sha256": "ec3e6ec50be34443a0d378e95f65fca021a8e90a6914d62a283dcf40cf8d4f27"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "26e3bc460fedd41fe5c060f07f704d80",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 58701,
+                "upload_time": "2020-01-23T22:21:33",
+                "upload_time_iso_8601": "2020-01-23T22:21:33.645718Z",
+                "url": "https://files.pythonhosted.org/packages/e4/98/fd09efffd67b56534d1d4963d305bd51f6cd6589990e87d0bf38095b5645/gan-zoo-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bd2af1c56ccd0e357caeb8535f3986b0",
+                    "sha256": "9cbc1e034c76f21803a6cb66afde3abb05b710caa63acf384c5b5f8e78c3be69"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bd2af1c56ccd0e357caeb8535f3986b0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 58712,
+                "upload_time": "2020-01-23T22:34:17",
+                "upload_time_iso_8601": "2020-01-23T22:34:17.624201Z",
+                "url": "https://files.pythonhosted.org/packages/00/08/82e35004eda42125d48179b825f546cddf54d06ae8f72fb57c16213a7726/gan-zoo-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "538c2edcd854daf43aa23d3ecffe03fe",
+                    "sha256": "438081310c169cd8406e7571d881627e0e6834322f24ea5fb0f8cb5bde868144"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "538c2edcd854daf43aa23d3ecffe03fe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 57858,
+                "upload_time": "2020-01-24T00:07:34",
+                "upload_time_iso_8601": "2020-01-24T00:07:34.595202Z",
+                "url": "https://files.pythonhosted.org/packages/cb/62/250ddd26b17433b2a3c393c25186e22f7bc36c21fc3a3e835687848c8f3e/gan-zoo-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6968b0ee81e29bbc23dfb408917bfdb7",
+                    "sha256": "08b213b286c4c61666beef8ea18d51cbab1922e192861282ad5148f9eaa0a77d"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6968b0ee81e29bbc23dfb408917bfdb7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 58496,
+                "upload_time": "2020-01-24T01:28:36",
+                "upload_time_iso_8601": "2020-01-24T01:28:36.893589Z",
+                "url": "https://files.pythonhosted.org/packages/d5/00/4263226b4b3b4e1114e2d3f603696e68ffa1b4cb0b751375e6ab315eb3ba/gan-zoo-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e2b8fae669782f0d11e60af7596c952b",
+                    "sha256": "07861930a32794a93d87628bfed5a0a841d45ff8536d5d985df392eb8cdd985b"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e2b8fae669782f0d11e60af7596c952b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 59686,
+                "upload_time": "2020-01-24T17:39:37",
+                "upload_time_iso_8601": "2020-01-24T17:39:37.124838Z",
+                "url": "https://files.pythonhosted.org/packages/3e/77/1e20caf6958f2783c126699e5d50dd8c0e5b9743b96a87c1a20a7c675d45/gan-zoo-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6154b85ad86fcdf94498be72416cc1c4",
+                    "sha256": "d06025d3668d44b5c424df49bc721e22c1292d09ca502a2bacf5f125b045f1c4"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6154b85ad86fcdf94498be72416cc1c4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 59677,
+                "upload_time": "2020-01-24T18:10:41",
+                "upload_time_iso_8601": "2020-01-24T18:10:41.020431Z",
+                "url": "https://files.pythonhosted.org/packages/05/ae/f291a45660dc480db4c2641195a561cf29e381cd1db845b5b61d4b737ef5/gan-zoo-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "539c977e910e800b864a21608e790bcf",
+                    "sha256": "0cd1d61a197a6040c24a1feaf93aba4ce6563ad13778d09e8c23d3457b71a62f"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "539c977e910e800b864a21608e790bcf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 60772,
+                "upload_time": "2020-01-29T21:17:56",
+                "upload_time_iso_8601": "2020-01-29T21:17:56.018146Z",
+                "url": "https://files.pythonhosted.org/packages/a6/fb/a3c5697f619bef3a46c48b570c2b3c94a885f671a5b98d3cc16117e1d050/gan-zoo-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c69866a575837d9ad3a8004ee8d9d33",
+                    "sha256": "960d54c445df70b5d82b08b4fcfd1352323d9e7463178bf3b56ac32421946658"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8c69866a575837d9ad3a8004ee8d9d33",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 60788,
+                "upload_time": "2020-01-30T02:15:43",
+                "upload_time_iso_8601": "2020-01-30T02:15:43.057135Z",
+                "url": "https://files.pythonhosted.org/packages/de/0c/42fcdff294262bc0fac4dd50689b55cddbb7c3ece46f93b84f03158a81ca/gan-zoo-0.0.8.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a567f27840b0f51aed2d9d86bf797428",
+                    "sha256": "e23153a1bfa72c8a73d1f3493b83508a6611b1bd3a02f36d52252ea84a4f86bb"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a567f27840b0f51aed2d9d86bf797428",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 61157,
+                "upload_time": "2020-01-31T03:40:25",
+                "upload_time_iso_8601": "2020-01-31T03:40:25.840634Z",
+                "url": "https://files.pythonhosted.org/packages/be/93/dc9d712f4f7c7f589915e061af3f105c918ad6aa46805f49b23929fb4eef/gan-zoo-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d51463e60491a9fdc4a35dcbf0a79383",
+                    "sha256": "b6df5433d926b5e36d060f98b2cc9a80b95fb200cc8efdeb836017a286ece63a"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d51463e60491a9fdc4a35dcbf0a79383",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 61219,
+                "upload_time": "2020-02-01T21:56:32",
+                "upload_time_iso_8601": "2020-02-01T21:56:32.082778Z",
+                "url": "https://files.pythonhosted.org/packages/c8/4b/0bba1c7ca4251502f40e131d73bb4553ec4b10e4433e5f016fef641c75a2/gan-zoo-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0757fd187cd770dbd42883d28ed86ad2",
+                    "sha256": "964ce741d9fb79a0b0e880468811a6926d7e72db5bd7a86b2fef29ad0663be81"
+                },
+                "downloads": -1,
+                "filename": "gan-zoo-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0757fd187cd770dbd42883d28ed86ad2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.6",
+                "size": 61392,
+                "upload_time": "2020-02-13T00:14:06",
+                "upload_time_iso_8601": "2020-02-13T00:14:06.007516Z",
+                "url": "https://files.pythonhosted.org/packages/be/ba/ace5ba5cc466f44a0b358821f3b4bfdd086069e3eee2c7aba1a8dfb7bec3/gan-zoo-0.1.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0757fd187cd770dbd42883d28ed86ad2",
+                "sha256": "964ce741d9fb79a0b0e880468811a6926d7e72db5bd7a86b2fef29ad0663be81"
+            },
+            "downloads": -1,
+            "filename": "gan-zoo-0.1.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "0757fd187cd770dbd42883d28ed86ad2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">= 3.6",
+            "size": 61392,
+            "upload_time": "2020-02-13T00:14:06",
+            "upload_time_iso_8601": "2020-02-13T00:14:06.007516Z",
+            "url": "https://files.pythonhosted.org/packages/be/ba/ace5ba5cc466f44a0b358821f3b4bfdd086069e3eee2c7aba1a8dfb7bec3/gan-zoo-0.1.2.tar.gz"
+        }
+    ]
+}

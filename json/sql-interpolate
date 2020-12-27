@@ -1,0 +1,155 @@
+{
+    "info": {
+        "author": "Tim Lonsdale",
+        "author_email": "timlonsdale@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "# SQL Interpolate\n\nA tool for safely building SQL queries using Python's f-Strings.\n\n## Purpose of this library\n\nWhen interfacing with the database, there are two main approaches one can use:\n\n  1. Building queries by writing explicitly parameterized SQL templates: *This allows for full control over the SQL but is verbose and hard to maintain - especially as the number of parameters grows.*\n  2. Building queries using an ORM: *This results in succinct and easy to maintain code but at the cost of losing control of the SQL that runs - sometimes with significant performance implications.*\n\nThe purpose of this library is therefore to provide a solution that results in terse code whilst also affording the user full control of the SQL that runs.\n\n## How does it work\n\nThe library exposes a single function that constructs a dynamic parameterized SQL query, along with its parameters: `build :: Thunk => ( SQL, Params )`. \n\nA `Thunk` is an alias for a function of type: `Wrapper => String`, where `Wrapper` is a function provided by the library that can wrap values that are to be interpolated in the following ways:\n\n  * If the value is itself a thunk, the `Wrapper` evaluates the thunk and returns the evaluated `String`. This allows you to compose SQL queries in a modular fashion.\n  * Else, the value is assigned to a unique parameter and the `Wrapper` returns the parameter template string.\n\n### Parameter formatting\n\nImporting `config` from the `sql_interpolate` package allows you to override how parameters are formatted. See the example below for details!\n\n## A quick example\n\n```python\nfrom sql_interpolate import build, config\n\n# Optionally override the default parameter formatting style of \"%(param)s\".\nconfig.format_fn = lambda x : \"$[ {0} ]\".format( x )\n\ndef sub_query( params ):\n    return lambda w : f\"\"\"other_val < { w( params[ \"min_val\" ] ) }\"\"\"\n\ndef query( params ):\n    return lambda w : f\"\"\"\n        SELECT * FROM table\n        WHERE id IN {\",\".join( w(x) for x in params[\"ids\"]}\n        AND val < { w( params[ \"max_val\" ] ) }\n        AND { w( sub_query( params ) ) }\n    \"\"\"\n\nparams = dict( ids = [ 1, 2, 3 ], max_val = 8, min_val = 5 )\nsql, params = build( query( params ) )\nprint( sql, params )\n```\n\nPrints the following:\n\n```python\n\"SELECT * FROM table\nWHERE id IN ( $[ param_1 ], $[ param_2 ], $[ param_3 ] )\nAND val < $[ param_4 ]\nAND other_val < $[ param_ 5 ]\"\n\n{ \"param_1\" : 1, \"param_2\" : 2, \"param_3\" : 3, \"param_4\" : 8, \"param_5\" : 5 }\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/tlonny/sql-interpolate",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sql-interpolate",
+        "package_url": "https://pypi.org/project/sql-interpolate/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/sql-interpolate/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/tlonny/sql-interpolate"
+        },
+        "release_url": "https://pypi.org/project/sql-interpolate/0.0.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Library for writing terse SQL queries using f-string interpolation.",
+        "version": "0.0.2"
+    },
+    "last_serial": 4623689,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6609c8c7efce6373d921bd951a78f003",
+                    "sha256": "984513b69659dbd45bf8794fbe15a834e1304128fe5e1ca6fdab2a6a86841854"
+                },
+                "downloads": -1,
+                "filename": "sql_interpolate-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6609c8c7efce6373d921bd951a78f003",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4016,
+                "upload_time": "2018-12-12T18:59:55",
+                "upload_time_iso_8601": "2018-12-12T18:59:55.227124Z",
+                "url": "https://files.pythonhosted.org/packages/94/b9/b2cc18c6b8bd39e3e01744729b5b71346f5d7159fe7bc2f46f6bf1b73455/sql_interpolate-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "796aaa19f79dc444abccb84e2550d18d",
+                    "sha256": "04ac0c2a7e5e26eca33cdb1decb4d1d772d65b5c98d2cdc7001b29d3cb3a3c4d"
+                },
+                "downloads": -1,
+                "filename": "sql_interpolate-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "796aaa19f79dc444abccb84e2550d18d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2776,
+                "upload_time": "2018-12-12T18:59:57",
+                "upload_time_iso_8601": "2018-12-12T18:59:57.193998Z",
+                "url": "https://files.pythonhosted.org/packages/aa/6f/d2b780eb9f24a152559cfceeaf8c2000ffd54d70eca82893fac9f2a075b5/sql_interpolate-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6d5d2ea7d4dabc4105dc613670234ba2",
+                    "sha256": "c7fa63d330c21607ab00d3fb999a98ba75b454084b911c51bf5dbfaa2e12d3fa"
+                },
+                "downloads": -1,
+                "filename": "sql_interpolate-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6d5d2ea7d4dabc4105dc613670234ba2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3874,
+                "upload_time": "2018-12-21T05:54:58",
+                "upload_time_iso_8601": "2018-12-21T05:54:58.814987Z",
+                "url": "https://files.pythonhosted.org/packages/23/ae/36f02596cceedbf59080150e871bb00242c5ad3a57b6ecd5cfb2d0d8a427/sql_interpolate-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e59c8e12182f74e4105806b24981fcdd",
+                    "sha256": "e3faf472f70a3a55fa522df94c9e154ceb8fc1f3bc953853d6f34014917bbeac"
+                },
+                "downloads": -1,
+                "filename": "sql_interpolate-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e59c8e12182f74e4105806b24981fcdd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2607,
+                "upload_time": "2018-12-21T05:55:00",
+                "upload_time_iso_8601": "2018-12-21T05:55:00.534609Z",
+                "url": "https://files.pythonhosted.org/packages/fa/f9/c9d41f121706c778b496612535b7d425b7f812adbd1c9bbfa49124f5b1a5/sql_interpolate-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6d5d2ea7d4dabc4105dc613670234ba2",
+                "sha256": "c7fa63d330c21607ab00d3fb999a98ba75b454084b911c51bf5dbfaa2e12d3fa"
+            },
+            "downloads": -1,
+            "filename": "sql_interpolate-0.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "6d5d2ea7d4dabc4105dc613670234ba2",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 3874,
+            "upload_time": "2018-12-21T05:54:58",
+            "upload_time_iso_8601": "2018-12-21T05:54:58.814987Z",
+            "url": "https://files.pythonhosted.org/packages/23/ae/36f02596cceedbf59080150e871bb00242c5ad3a57b6ecd5cfb2d0d8a427/sql_interpolate-0.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e59c8e12182f74e4105806b24981fcdd",
+                "sha256": "e3faf472f70a3a55fa522df94c9e154ceb8fc1f3bc953853d6f34014917bbeac"
+            },
+            "downloads": -1,
+            "filename": "sql_interpolate-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e59c8e12182f74e4105806b24981fcdd",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 2607,
+            "upload_time": "2018-12-21T05:55:00",
+            "upload_time_iso_8601": "2018-12-21T05:55:00.534609Z",
+            "url": "https://files.pythonhosted.org/packages/fa/f9/c9d41f121706c778b496612535b7d425b7f812adbd1c9bbfa49124f5b1a5/sql_interpolate-0.0.2.tar.gz"
+        }
+    ]
+}

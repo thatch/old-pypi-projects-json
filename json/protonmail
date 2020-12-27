@@ -1,0 +1,136 @@
+{
+    "info": {
+        "author": "frmdstryr",
+        "author_email": "frmdstryr@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# Protonmail\n\nAn _unofficial_ protonmail client for python using pgpy, bcrypt, and atom. \n\nIt can be used sync or async and currently supports twisted and tornado for\npython 2.7 and up.\n\nCurrently it supports reading and sending messages to protonmail users and \noutside users. Sending and receving attachments are not yet supported.\n\n\n## Usage\n\nCreate a client for a given user and pass the password to the login method.\n\n```python\nfrom getpass import getpass\nfrom protonmail.client import Client\n\n# Login\nclient = Client(Username=\"someuser\", \n                blocking=True)  # It's async by default\n\n# If using different keys for login and mailbox you must unlock separately                \nclient.api.login(getpass())\n\n```\n\nOnce authenticated and unlocked, you can do API requests using the dot \nnotation or by calling request with the path. \n\n```python\n\n# Use dot notation \nclient.api.conversations.count()\n\n# Or use request and the path\nclient.api.request('api/conversations/count')\n\n# Can also pass method, body, headers, and cookies\nclient.api.messages.read(method='PUT', body={'IDs':['msid1...==', '...']})\n\n# Poll for updates\nclient.api.events()\n\n\n```\n\nUse the webclient to see what API's are available.\n\n#### Reading conversations\n\n\n```python\nfrom protonmail responses import ConversationsResponse, ConversationResponse \n\n# First get the list of messages\nr = client.api.conversations(response=ConversationsResponse)\n\n\n# Open the first conversation\nconversation = r.Conversations[0]\nr = client.api.conversations(conversation.ID, response=ConversationResponse)\n\n# Open and read the first message from the conversation\nr = client.read_message(r.Messages[0].ID)\n\n# Now decrypt and read the message\nm = client.read_message(m)\nprint(m.DecryptedBody)\n\n\n```\n\n#### Checking messages\n\n```python\n# Poll to see if any events occurred\n# this passes the clients EventID by default\nc.api.events() \n\n```\n\n#### Sending messages\n\n```python\n\nfrom protonmail.models import EmailAddress\n\n# Create a draft\nr = client.create_draft()\ndraft = r.Message\ndraft.Subject = \"Hello from python!\"\ndraft.DecryptedBody = \"JS got you down huh?\"\ndraft.ToList = [\n    EmailAddress(Address=\"user@example.com\", Name=\"User\"), \n    EmailAddress(Address=\"user@protonmail.com\"), \n]\n\n# Save the draft if needed\nr = client.save_draft(draft)\n\n# Now send it\nr = client.send_message(draft)\nif r.Code != 1000:\n    print(r.Error)\n\n```\n\nThere's also a shortcut `client.send_simple` which does eveything above.\n\nOnce done be sure to logout. \n\n```python\n# Logout\nc.api.logout()\n```\n\n\n### Comments & License\n\nLicense is now GPL. For alternate licensing contact me (guess my email).\n\nThis was written based on the web client. Please audit the code and report bugs.\n\nFeel free to buy me a coffee to [say thanks](https://www.codelv.com/donate/).\n\nThank you!\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/codelv/protonmail",
+        "keywords": "",
+        "license": "GPL",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "protonmail",
+        "package_url": "https://pypi.org/project/protonmail/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/protonmail/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/codelv/protonmail"
+        },
+        "release_url": "https://pypi.org/project/protonmail/0.1.5/",
+        "requires_dist": [
+            "pgpy",
+            "bcrypt",
+            "atom"
+        ],
+        "requires_python": "",
+        "summary": "An unofficial python client for protonmail",
+        "version": "0.1.5"
+    },
+    "last_serial": 4997994,
+    "releases": {
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bdfb05fde4efa467fb107e8dbba0bf7e",
+                    "sha256": "bd3f5205840e04b48dfbe1b51bbe3f750e64de2f00de35698fde7c70db489f66"
+                },
+                "downloads": -1,
+                "filename": "protonmail-0.1.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bdfb05fde4efa467fb107e8dbba0bf7e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 21329,
+                "upload_time": "2018-10-01T21:51:11",
+                "url": "https://files.pythonhosted.org/packages/09/e4/f7454d349c7b05a3bee50d0a3bc7e84b827304f167266d7dc727336987cd/protonmail-0.1.2-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "483659282e280a33b24e85af4e4b0c14",
+                    "sha256": "84e3aea2847445b5a0afa0c20ff4456fc306924703395c9151a11060b5dad532"
+                },
+                "downloads": -1,
+                "filename": "protonmail-0.1.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "483659282e280a33b24e85af4e4b0c14",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 33843,
+                "upload_time": "2018-10-19T05:09:29",
+                "url": "https://files.pythonhosted.org/packages/6b/fa/3c346bf28b63ea06935e6d4a45b930b632f981070188a5ac461ed0c7dc4e/protonmail-0.1.3-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ba02526bc76d2d40d74fcab2fbed17d3",
+                    "sha256": "b31c3ef1c0fa6ba2f483b946abc4829f18faf74ee77c5c279ed694c95c22b8a6"
+                },
+                "downloads": -1,
+                "filename": "protonmail-0.1.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ba02526bc76d2d40d74fcab2fbed17d3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 21471,
+                "upload_time": "2019-02-20T13:08:17",
+                "url": "https://files.pythonhosted.org/packages/91/03/abe18f934bff1ce4f81dab5cab5a6b70f9e8e731c9260eab2ff3d6658b88/protonmail-0.1.4-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ff9e3fdab6a6b30224082e46a65af42f",
+                    "sha256": "352bdaf76804165682f2c3a2ae828c8131b7e212d61f800c6ec1f64f7f00bba5"
+                },
+                "downloads": -1,
+                "filename": "protonmail-0.1.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ff9e3fdab6a6b30224082e46a65af42f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 21473,
+                "upload_time": "2019-03-28T14:24:17",
+                "url": "https://files.pythonhosted.org/packages/f3/6f/8f8fe6e9667d81f51eb4478b7f86a4e23e49692e8b8232bc316633043cde/protonmail-0.1.5-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ff9e3fdab6a6b30224082e46a65af42f",
+                "sha256": "352bdaf76804165682f2c3a2ae828c8131b7e212d61f800c6ec1f64f7f00bba5"
+            },
+            "downloads": -1,
+            "filename": "protonmail-0.1.5-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ff9e3fdab6a6b30224082e46a65af42f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 21473,
+            "upload_time": "2019-03-28T14:24:17",
+            "url": "https://files.pythonhosted.org/packages/f3/6f/8f8fe6e9667d81f51eb4478b7f86a4e23e49692e8b8232bc316633043cde/protonmail-0.1.5-py2.py3-none-any.whl"
+        }
+    ]
+}

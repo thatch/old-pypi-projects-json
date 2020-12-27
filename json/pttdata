@@ -1,0 +1,564 @@
+{
+    "info": {
+        "author": "linsam",
+        "author_email": "samlin266118@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development :: Build Tools"
+        ],
+        "description": "[![Build Status](https://travis-ci.org/linsamtw/PTTData.svg?branch=master)](https://travis-ci.org/linsamtw/PTTData)\n[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/linsamtw/PTTData/blob/master/LICENSE)\n[![PyPI version](https://badge.fury.io/py/PTTData.svg)](https://badge.fury.io/py/PTTData)\n\n#### 2019/1/20 \u65b0\u589e PTT LSTM article generation demo\uff0c\u53ef\u8a13\u7df4 PTT \u6587\u7ae0\u751f\u6210\u5668\uff0c\u76ee\u524d\u6548\u679c\u4e0d\u8db3\uff0c\u9084\u5728\u958b\u767c\u968e\u6bb5\uff0c\u53ef\u81ea\u884c training\u3002\n#### 2019/1/4 \u65b0\u589e package \uff0c\u5c0d\u65bc\u672a\u4f86\u4f7f\u7528 PTT Data\uff0c\u66f4\u52a0\u65b9\u4fbf\u3002\n\n\u5305\u542b 109 \u500b PTT \u7248 [click](https://github.com/f496328mm/PTTOpenData/blob/master/ptt_readme.md) \uff0cmore than 8 million(30gb) PTT Data.\n\n---------------------\n    pip3 install PTTData\n---------------------\n\n\n## example\n\n#### PTT LSTM article generation:\n\n[demo](https://github.com/f496328mm/PTTOpenData/blob/master/PTTDATA_lstm_article_generation.py)\n\nThis is simple demo. loss : 4.008744, val_loss : 7.038976.( parameters - `article_amount` = 10, `maxlen` = 20, `epochs` = 10 )<br>\nIf you want get better result, you should set parameters `article_amount` >=1000, `maxlen` >=40, `epochs` >=40, even optimize LSTM model, but it will cost more 10 hours.( GTX-1070 )<br><br>\n\n\u9019\u662f\u4e00\u500b\u6700\u57fa\u672c\u7684 demo\uff0c\u505a\u500b\u7bc4\u4f8b\uff0c\u5982\u679c\u60f3\u5f97\u5230\u66f4\u597d\u7684\u7d50\u679c\uff0c\u53ef\u81ea\u884c\u8abf\u6574 training data \u6578\u91cf\uff0c\u4e26\u589e\u52a0 epochs\uff0c\u751a\u81f3\u8abf\u6574 LSTM \u6a21\u578b\uff0c\u4f46\u9019\u975e\u5e38\u82b1\u6642\u9593\uff0c\u5373\u4f7f\u7528GPU\uff0c\u81f3\u5c11\u4e5f\u8981\u8d85\u904e10\u5c0f\u6642\u3002\u5f88\u5408\u7406\uff0c\u56e0\u70ba\u6587\u5b57\u5efa\u6a21\uff0c\u7dad\u5ea6\u975e\u5e38\u5927\u3002\u672a\u4f86\u5982\u679c\u63d0\u9ad8\u6e96\u78ba\u7387\uff0c\u6703\u5c07 weight \u516c\u958b\u5206\u4eab\u3002<br><br>\n\ninput :\u5712\u624d\u9017\u7559\u4e00\u6703\u5152\uff0c\u6c92\u62cd\u5e7e\u5f35\u7167\u5c31\u807d\u5230\u5712\u65b9\u5ee3\u64ad\u5ba3\u5c0e\u9589\u5712\u6642\u9593\uff0c\u63d0\u9192\u904a\u5ba2\u6e96\u5099\u96e2\u5834<br>\ndiversity : 1.2<br>\noutput : \u5712\u624d\u9017\u7559\u4e00\u6703\u5152\uff0c\u6c92\u62cd\u5e7e\u5f35\u7167\u5c31\u807d\u5230\u5712\u65b9\u5ee3\u64ad\u5ba3\u5c0e\u9589\u5712\u6642\u9593\uff0c\u63d0\u9192\u904a\u5ba2\u6e96\u5099\u96e2\u5834\u6642\u9593\uff0c\u4e8c\u6b21\u5167\u85e4\u5bb6\u70ba\u4e0a\u9806\u4fbf\u6240\u5728\u4f4d\u7f6e\u7684\u81f3\u65e5\u5e63\u5916\u7f8e\u9e97\u7d20\u76de\u4e5f\u65b0\u5bbf\u65bc\u6afb\u82b1\u7684\u52a0\u8d77\u3089\u8eca\u7968\u5728\u685c\u65b0\u5bbf\u5c0f\u6642\u7136\u5f8c\u9084\u767c\u653e\uff0c\u7136\u7531\u91cd\u9ede\u665a\u4e0a\u732b\u5cf6\u7684\u8a31\u591a\u76db\u5730\u5716\uff0c\u7da0\u6a39\u7684\u6771\u53ef\u4ee5\u53ef\u4ee5\u5728\u5343\u9ce5\u6df5\u7684\u9685\u51b0\u5ddd<br>\n\n-------------------------\n\n#### Load PTT Data\n\nLoad job title starting at 2018-12-10.\n\n\t>>> from PTTData import Load as PTT\n\n\t>>> PTT_data_list = PTT.LoadDataList()\n\t>>> print(PTT_data_list[:5])\n\t['AdvEduUK' 'Anti_Cancer' 'Aquarius' 'Aries' 'Aviation']\n\t\n\t>>> data = PTT.LoadData(table = 'job',date = '2018-12-10',select = 'title')\n\t>>> print(data[:5])\n\t\t\t\ttitle\n\t0        [\u6797\u53e3\u9577\u5e9a\u91ab\u9662] \u79d1\u6280\u90e8\u7814\u7a76\u8a08\u756b\u7814\u7a76\u52a9\u7406\n\t1         [\u53f0\u5317] \u5343\u5c71\u6de8\u6c34\u8aa0\u5fb5\u5132\u5099\u5e97\u9577/\u526f\u5e97\u9577\n\t2         [\u53f0\u5317] \u53f0\u5927\u6ccc\u5c3f\u90e8 \u5fb5 \u535a\u58eb\u5f8c\u7814\u7a76\u54e1\n\t3  [\u53f0\u5357] \u6210\u5927\u90fd\u8a08\u7cfb\u90fd\u5e02\u98a8\u96aa\u52d5\u529b\u7814\u7a76\u5ba4\u5fb5\u5c08\u6848\u7814\u7a76\u52a9\u7406\n\t4             [\u53f0\u5317] \u5fc3\u8aa0\u4e0d\u52d5\u7522/\u696d\u52d9\u4eba\u54e1\n\n\t>>> data = PTT.LoadData(table = 'AdvEduUK',date = '2018-12-10',select = 'article')\n\t>>> print(data[:5])\n\n\t\t\t\t\t\t     article\n\t0  \\nUK UniTour 2019 \u82f1\u570b\u540d\u6821\u806f\u5c55\\n\u3010\u6d3b\u52d5\u7c21\u4ecb\u3011\\nhttp://www.u...\n\t1            \\n26\u865f\u62b5\u9054\u502b\u6566  \u884c\u674e\u7bb1\u9084\u6709\u7a7a\u9593  \u9700\u8981\u5f9e\u53f0\u7063\u4ee3\u8cfc\u4ee3\u904b\u7684pm \u6211\u56c9\\n--\n\t2  \\n\u5927\u5bb6\u597d\\n\u60f3\u8acb\u554f\u7248\u4e0a\u6709\u95dc\u65bcBSC\uff08british study centres\uff09\\n\u9019\u6240\u5b78...\n\t3  \\n\u4e73\u984c\\n\u5c0f\u5f1f\u7b2c\u4e00\u6b21\u51fa\u570b\u5230\u6b50\u6d32\u570b\u5bb6\\n\u7b2c\u4e00\u6b21\u5c31\u6311\u6230\u4e00\u500b\u4eba\u81ea\u52a9\u65c5\u884c\\n\u9810\u8a0812/22-12/...\n\t4  \\n\u5b78\u9577\u59d0\u5927\u5bb6\u597d\uff01\\n\u60f3\u8acb\u554f\u7248\u4e0a\u662f\u5426\u6709\u8b80\u904eUniversity of Glasgow Spo...\n\t\n* LoadDataList : \u8b80\u53d6 PTT \u7684 Data \u5217\u8868\uff0c\u7528\u65bc\u4ee5\u4e0b\u7684 `table` \u53c3\u6578\u3002\n* LoadData : \u8b80\u53d6 PTT Data\u3002\n\t* `table` : string\uff0c\u9078\u53d6\u60f3\u8b80\u53d6\u7684 PTT \u7248\u9762\u3002\n\t* `date` : string, `yyyy-mm-dd`\uff0cdata \u958b\u59cb\u6642\u9593\u3002\n\t* `select` : string or list, \u8b80\u53d6\u7279\u5b9a columns\uff0c\u53ea\u63a5\u53d7\u4ee5\u4e0b variable name \u4f5c\u70ba\u8f38\u5165\u503c\u3002\n\n\n\t\n\u4fdd\u7559 \\n \u4f5c\u70ba\u6392\u7248\u7528\u9014\u3002<br>\n\u53ef\u4f7f\u7528 `article` & `article_type` \uff0c\u9078\u53d6\u7279\u5b9a\u7a2e\u985e\u6587\u7ae0\uff0c\u642d\u914d [lstm_text_generation](https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py)\uff0c\u88fd\u4f5c\u6587\u7ae0\u81ea\u52d5\u7522\u751f\u5668\u3002<br>\n\u53ef\u4f7f\u7528 `response` \u88fd\u4f5c\u81ea\u52d5\u63a8\u6587\u7522\u751f\u5668\u3002<br>\n\u672a\u4f86\u5c07\u63d0\u4f9b train \u597d\u7684 model \u8207 code\u3002\n\n----------------------\n\n### Variable Introduction\n\n| variable name | \u8b8a\u6578\u540d\u7a31 | example |\n|---------------|---------|----------|\n| title | \u6a19\u984c | [\u8a0e\u8ad6] \u6211\u8a72\u600e\u6a23\u8ddf\u6211\u5bb6\u9583\u5149\u958b\u53e3 |\n| article_type | article type | \u8a0e\u8ad6 |\n| date | \u65e5\u671f | 2007-01-14 13:46:24 |\n| author | \u4f5c\u8005 | flower319 |\n| author_ip | \u4f5c\u8005IP | 220.134.142.113 |\n| push_amount | \u63a8\u6587\u6578 | 48 |\n| boo_amount | \u5653\u6587\u6578 | 3 |\n| arrow_amount | \u7bad\u982d\u6578 | 16 |\n| article_url | \u6587\u7ae0\u7db2\u5740 | https://www.ptt.cc/bbs/Boy-Girl/M.1168753589.A.6AF.html |\n| article | \u6587\u7ae0 | xxxxx |\n| response | \u63a8/\u5653\u6587\u5167\u5bb9(\u4ee5\\n\u4f5c\u70ba\u5206\u9694\u7b26\u865f) | \\n\u63a8 xxxx: xxxxxx \\n\u5653 xxxxx: xxxxx\\n\u2192 xxxx: xxxx  |\n| id | index | 1 |\n\nlinsam.tw.github@gmail.com",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/linsamtw/PTTData",
+        "keywords": "Ptt Data,python,text mining",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "PTTData",
+        "package_url": "https://pypi.org/project/PTTData/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/PTTData/",
+        "project_urls": {
+            "Homepage": "https://github.com/linsamtw/PTTData",
+            "Source": "https://github.com/linsamtw/PTTData"
+        },
+        "release_url": "https://pypi.org/project/PTTData/1.0.31/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Ptt Data",
+        "version": "1.0.31"
+    },
+    "last_serial": 5317038,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5bdddef74f4ab28e093a5888ca60a75b",
+                    "sha256": "29d051c80556b6b0756a54b2ded725e2d1b1bbb275274a3dd3aded0dfb46b6bb"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5bdddef74f4ab28e093a5888ca60a75b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4128,
+                "upload_time": "2019-01-04T14:36:28",
+                "upload_time_iso_8601": "2019-01-04T14:36:28.524665Z",
+                "url": "https://files.pythonhosted.org/packages/e4/bd/9b148301b0f182ca75cefb40fec6bc88413f03512c735d4f49a3f95cd4b8/PTTData-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c724e7a68dde552da217980a17bea20f",
+                    "sha256": "99bb27d36fdfc157f0e1253a1a59c0df2365202f330d942ee960c6785421edea"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c724e7a68dde552da217980a17bea20f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4352,
+                "upload_time": "2019-01-04T14:43:35",
+                "upload_time_iso_8601": "2019-01-04T14:43:35.218307Z",
+                "url": "https://files.pythonhosted.org/packages/26/fe/d373aa112eae01308fa9bd85b2e788440c0c7c4677ec899051d015d4af82/PTTData-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "345ba78239a2636911af66ff70e3cece",
+                    "sha256": "341240f2cae8465f14daea164d21c5f91894dce5e46dd5a4c046afbc57416726"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "345ba78239a2636911af66ff70e3cece",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6498,
+                "upload_time": "2019-01-20T05:47:07",
+                "upload_time_iso_8601": "2019-01-20T05:47:07.048217Z",
+                "url": "https://files.pythonhosted.org/packages/61/34/660a9d568259a7ad584a3c63bd13560785fbb6c1e33b7ac97380752589b8/PTTData-1.0.10.tar.gz"
+            }
+        ],
+        "1.0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "39070f506de95ebc4b0db18ff72d962c",
+                    "sha256": "60e5e626296b2ca5bb8b67d45d482dc0e23fa043ffa13765c13d1ccbb00b4ee5"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "39070f506de95ebc4b0db18ff72d962c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7546,
+                "upload_time": "2019-01-20T05:49:05",
+                "upload_time_iso_8601": "2019-01-20T05:49:05.488219Z",
+                "url": "https://files.pythonhosted.org/packages/97/f4/e4e6370b4dda657bc1e5f000e0199131fa996e9f94cc79855b7138502ad9/PTTData-1.0.11.tar.gz"
+            }
+        ],
+        "1.0.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f5171caee286f49031277e768467f88d",
+                    "sha256": "0dca19e8ffa25a219e8cbdc745e1b78aff35f8464f610ea00ff1634d7366e72f"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f5171caee286f49031277e768467f88d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7514,
+                "upload_time": "2019-04-18T09:36:09",
+                "upload_time_iso_8601": "2019-04-18T09:36:09.366549Z",
+                "url": "https://files.pythonhosted.org/packages/f6/3b/b74c673a01b390f8381f042ecbd2186126c54af7d8b917fa29163544337a/PTTData-1.0.12.tar.gz"
+            }
+        ],
+        "1.0.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "50bafc0882ae26461b2bdfa8f79901cc",
+                    "sha256": "caef5980ce6e41da631b13746fa3287f3a04b22e60e0ec5a48f3f9e014c2eb18"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "50bafc0882ae26461b2bdfa8f79901cc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7520,
+                "upload_time": "2019-04-18T09:38:09",
+                "upload_time_iso_8601": "2019-04-18T09:38:09.539647Z",
+                "url": "https://files.pythonhosted.org/packages/15/fe/4374065cf4889cd1d2e9a179ca537f5c6346f6c2392f19d7495df8a2b29a/PTTData-1.0.13.tar.gz"
+            }
+        ],
+        "1.0.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "52e7fe5a35186d9cde1143f769dafb56",
+                    "sha256": "abf59aaa4b1464f2554f97765d2150d005a2d22b3f559bb5544c6a42ba7aca52"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "52e7fe5a35186d9cde1143f769dafb56",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7531,
+                "upload_time": "2019-04-18T09:44:33",
+                "upload_time_iso_8601": "2019-04-18T09:44:33.775148Z",
+                "url": "https://files.pythonhosted.org/packages/93/4e/655004099f21ee0f6afe44927f9b910e251bb1d9a80fcfbe17ed1c915374/PTTData-1.0.14.tar.gz"
+            }
+        ],
+        "1.0.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9da1ce4bb16a3081f939550b481d800a",
+                    "sha256": "cdf1ab69a2438150f3b15565e92c06e2a5f225087b96ca39c37a781787c46b4b"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9da1ce4bb16a3081f939550b481d800a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7527,
+                "upload_time": "2019-04-18T09:58:59",
+                "upload_time_iso_8601": "2019-04-18T09:58:59.607176Z",
+                "url": "https://files.pythonhosted.org/packages/89/a1/4650c24328e18c81f9f6f1d116468bf5e1d27d82499bc02b3b2388556079/PTTData-1.0.15.tar.gz"
+            }
+        ],
+        "1.0.16": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "93fab6d3a6fb4d93bbf47d55e964ad27",
+                    "sha256": "40522c4b5785bfe199ae32a2c9ef44e7cc5a8621480f36f0e138df37c5d36680"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.16.tar.gz",
+                "has_sig": false,
+                "md5_digest": "93fab6d3a6fb4d93bbf47d55e964ad27",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7520,
+                "upload_time": "2019-04-18T10:00:42",
+                "upload_time_iso_8601": "2019-04-18T10:00:42.532402Z",
+                "url": "https://files.pythonhosted.org/packages/e9/6d/a11243bdbf61e5e5eebfa5f0cb75d67d068c487e47f3dcc9a98683924db5/PTTData-1.0.16.tar.gz"
+            }
+        ],
+        "1.0.17": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7432c37b36ab19542f4822381df63313",
+                    "sha256": "0469c2656db7407b6133fcf5a17dd7f3415cba78d9b8314b7cf6a571d8c965a2"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.17.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7432c37b36ab19542f4822381df63313",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7538,
+                "upload_time": "2019-04-18T10:21:26",
+                "upload_time_iso_8601": "2019-04-18T10:21:26.239620Z",
+                "url": "https://files.pythonhosted.org/packages/38/3a/d7cd5b4a323128946ab7b2ef532d8c56576227b8b75d06d68ebf70b31ac1/PTTData-1.0.17.tar.gz"
+            }
+        ],
+        "1.0.18": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "482842a199844b4eebbb6ac409e178f9",
+                    "sha256": "e02f1d9b26d763b15df336adc24b1377d31fc1468ad5e99dbe2ba67ea7f43fc4"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.18.tar.gz",
+                "has_sig": false,
+                "md5_digest": "482842a199844b4eebbb6ac409e178f9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7581,
+                "upload_time": "2019-04-22T05:26:48",
+                "upload_time_iso_8601": "2019-04-22T05:26:48.743270Z",
+                "url": "https://files.pythonhosted.org/packages/fa/f7/e4f80bf74e28aec45d00ee2f8c99985686585de2a5f2f3e09fd9e0b9734d/PTTData-1.0.18.tar.gz"
+            }
+        ],
+        "1.0.19": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "326232cfbba34fdf2dd9095a83c9b64b",
+                    "sha256": "17112a4c85e84a247934e66b3e4a7441cd17008a3b155fdb491c6148f0bcb84a"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.19.tar.gz",
+                "has_sig": false,
+                "md5_digest": "326232cfbba34fdf2dd9095a83c9b64b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7580,
+                "upload_time": "2019-04-22T05:32:30",
+                "upload_time_iso_8601": "2019-04-22T05:32:30.721313Z",
+                "url": "https://files.pythonhosted.org/packages/7c/fe/77e61dab43ef443c8b570a6ca2bca5824000dbb36f88893ab382f376e20b/PTTData-1.0.19.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7edf6a5980fd57248cd0e5acc9749299",
+                    "sha256": "52933bd5ab11399d6008fb75e8a35c9839fdaf0c54fa1481b01ff4906f3d3a78"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7edf6a5980fd57248cd0e5acc9749299",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4355,
+                "upload_time": "2019-01-04T14:46:13",
+                "upload_time_iso_8601": "2019-01-04T14:46:13.240742Z",
+                "url": "https://files.pythonhosted.org/packages/16/a2/c16c15677576b00fc39f4624dd5a00de93bc1f25e833b4755266c58f8f8b/PTTData-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.20": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12a9b4fe72bd159d4ce06b9025077f7b",
+                    "sha256": "732d12ed0c1ba40cdda86ee8ce1ac968835c8ede5ba14f0b2d4fd9978288a38a"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.20.tar.gz",
+                "has_sig": false,
+                "md5_digest": "12a9b4fe72bd159d4ce06b9025077f7b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7584,
+                "upload_time": "2019-04-22T05:35:08",
+                "upload_time_iso_8601": "2019-04-22T05:35:08.224268Z",
+                "url": "https://files.pythonhosted.org/packages/96/2c/065af970cce802cb3deb9a5e8d9cf97c076b5ad16ac1e67a4978f63bc72b/PTTData-1.0.20.tar.gz"
+            }
+        ],
+        "1.0.21": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e3ffe430a1ebd577e35421ffb8032b8",
+                    "sha256": "a70eadce4cb0f3269d86b3298ebce2585b1ddaff264d79632f2aee3293a50560"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.21.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9e3ffe430a1ebd577e35421ffb8032b8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7583,
+                "upload_time": "2019-04-29T15:46:33",
+                "upload_time_iso_8601": "2019-04-29T15:46:33.670512Z",
+                "url": "https://files.pythonhosted.org/packages/85/4b/54198a9d010cdbd7dee7a670f46d8c45dc2796fcacc3e38b401a6ff63411/PTTData-1.0.21.tar.gz"
+            }
+        ],
+        "1.0.22": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "00b3cf135a153bc99a7a4cb820523026",
+                    "sha256": "92477e651ede867461e176a75916f309768496fc8ee6574c1224cd19802c52a6"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.22.tar.gz",
+                "has_sig": false,
+                "md5_digest": "00b3cf135a153bc99a7a4cb820523026",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7615,
+                "upload_time": "2019-05-25T11:36:43",
+                "upload_time_iso_8601": "2019-05-25T11:36:43.158513Z",
+                "url": "https://files.pythonhosted.org/packages/ab/14/da3fa82ab456564561d6ccbba0ccabd8f256719ee1dc2d8a45e857e39cf6/PTTData-1.0.22.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61755010b71d99b7bc6b1e6c659fdac5",
+                    "sha256": "d98bd2182713fb7d208d62a34ad63a9a653fbe545fdc3899b8ea09d86cf965de"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "61755010b71d99b7bc6b1e6c659fdac5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4262,
+                "upload_time": "2019-01-04T14:47:25",
+                "upload_time_iso_8601": "2019-01-04T14:47:25.466018Z",
+                "url": "https://files.pythonhosted.org/packages/d1/10/c9c4523564ce0cfa78415659bd922d479c4c5ca16d867ca00db9a1dbb24e/PTTData-1.0.3.tar.gz"
+            }
+        ],
+        "1.0.30": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac3449c8278fa7bf3540581e4a4856aa",
+                    "sha256": "54729c445f0b0af6eec1341ef4571ab82b93b28aca982643db3c771cf8f5f49e"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.30.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ac3449c8278fa7bf3540581e4a4856aa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7619,
+                "upload_time": "2019-05-25T17:44:27",
+                "upload_time_iso_8601": "2019-05-25T17:44:27.660350Z",
+                "url": "https://files.pythonhosted.org/packages/6c/e0/63b38fb6d8f2a63c58ed592b8981bf36dddc879b2645bd210c0844e898f2/PTTData-1.0.30.tar.gz"
+            }
+        ],
+        "1.0.31": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9dccc437b2503109c049c082cc006f1f",
+                    "sha256": "3c0a6bf9068a88545cdb01a20b60c725f9d80a84fbd12aa86c6005b628f5ebff"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.31.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9dccc437b2503109c049c082cc006f1f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7639,
+                "upload_time": "2019-05-25T18:22:58",
+                "upload_time_iso_8601": "2019-05-25T18:22:58.349560Z",
+                "url": "https://files.pythonhosted.org/packages/d8/f7/d481ee9da167b31867398d83a3521bfb40a5a85aecb25c398dcdbd2254ba/PTTData-1.0.31.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2a56d6e2f672b6e3c4a8420e66b2f755",
+                    "sha256": "c3b131e7839124130d42bfe8afd4b88fc607c88a2330d550b7ac0c04ec695e2f"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2a56d6e2f672b6e3c4a8420e66b2f755",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4032,
+                "upload_time": "2019-01-04T15:44:02",
+                "upload_time_iso_8601": "2019-01-04T15:44:02.716957Z",
+                "url": "https://files.pythonhosted.org/packages/e4/59/be4a37d4bcdcce844949f88c3ad3887dd7dc7419f00e22199470c416a782/PTTData-1.0.4.tar.gz"
+            }
+        ],
+        "1.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e0878d27546afeab17cc9935b3aa91b8",
+                    "sha256": "83f1f185ca5aa3140eba3b588e3e356a3b42ff285770361db74d9176ed37acd8"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e0878d27546afeab17cc9935b3aa91b8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4042,
+                "upload_time": "2019-01-04T15:46:54",
+                "upload_time_iso_8601": "2019-01-04T15:46:54.335705Z",
+                "url": "https://files.pythonhosted.org/packages/db/1c/64b20d2e87424c01a520187c09c0f489e2d7f2a1cc3fbb516a0f6ddccd78/PTTData-1.0.5.tar.gz"
+            }
+        ],
+        "1.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa4ac48a64864b8003db97a1b53bef8a",
+                    "sha256": "3d96a7eb9506785579407b51f47babe183c79def07eef5ba74c50d1bf8c18bbf"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aa4ac48a64864b8003db97a1b53bef8a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4101,
+                "upload_time": "2019-01-18T09:58:09",
+                "upload_time_iso_8601": "2019-01-18T09:58:09.638011Z",
+                "url": "https://files.pythonhosted.org/packages/d7/58/42960665941fb9b524a2d5ee830380247bf3273e6ec76b4a7df5bf71f3cb/PTTData-1.0.6.tar.gz"
+            }
+        ],
+        "1.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8b3af137114acfcc8489423f6fbea65",
+                    "sha256": "2fffcb43575e93ac11d200ffd927bdc1366f89035a6fe998a5e920c10182e2ec"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c8b3af137114acfcc8489423f6fbea65",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4098,
+                "upload_time": "2019-01-18T09:59:48",
+                "upload_time_iso_8601": "2019-01-18T09:59:48.893526Z",
+                "url": "https://files.pythonhosted.org/packages/30/e4/e7b88f3d55ca7d233d4f36e332836c10f09a711653f13aba18f8b5050ebe/PTTData-1.0.7.tar.gz"
+            }
+        ],
+        "1.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6e98c10ef52d45f507fe48b1966e0e80",
+                    "sha256": "bb24e09af66a86ee69b3fe531419f7bcf24f22ea4032538fa51854110fb320ea"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6e98c10ef52d45f507fe48b1966e0e80",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4099,
+                "upload_time": "2019-01-18T10:01:42",
+                "upload_time_iso_8601": "2019-01-18T10:01:42.889805Z",
+                "url": "https://files.pythonhosted.org/packages/6c/f7/cb5d4589916e1d1b40cdc0ac862b53e859b2ad3cba724017f1020d5bb859/PTTData-1.0.8.tar.gz"
+            }
+        ],
+        "1.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "04c8b6b07034190e0019a25a5b8692ee",
+                    "sha256": "34cbd54f7b82895774e1bfdc35ab6216c1b4bcb03cb9971d25dd2bacfd535043"
+                },
+                "downloads": -1,
+                "filename": "PTTData-1.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "04c8b6b07034190e0019a25a5b8692ee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4112,
+                "upload_time": "2019-01-18T10:03:18",
+                "upload_time_iso_8601": "2019-01-18T10:03:18.276188Z",
+                "url": "https://files.pythonhosted.org/packages/a6/ca/c751881b0f6fac566432ba5467ef7b5a1f5aafb0e21f09b8ad4876eaeae7/PTTData-1.0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9dccc437b2503109c049c082cc006f1f",
+                "sha256": "3c0a6bf9068a88545cdb01a20b60c725f9d80a84fbd12aa86c6005b628f5ebff"
+            },
+            "downloads": -1,
+            "filename": "PTTData-1.0.31.tar.gz",
+            "has_sig": false,
+            "md5_digest": "9dccc437b2503109c049c082cc006f1f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7639,
+            "upload_time": "2019-05-25T18:22:58",
+            "upload_time_iso_8601": "2019-05-25T18:22:58.349560Z",
+            "url": "https://files.pythonhosted.org/packages/d8/f7/d481ee9da167b31867398d83a3521bfb40a5a85aecb25c398dcdbd2254ba/PTTData-1.0.31.tar.gz"
+        }
+    ]
+}

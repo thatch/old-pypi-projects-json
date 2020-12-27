@@ -1,0 +1,80 @@
+{
+    "info": {
+        "author": "Peter V. Saveliev",
+        "author_email": "peter@svinota.eu",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+            "Operating System :: POSIX",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "# fjorton\n\nThe `fjorton` library is a proof-of-concept to bring some\nForth features to the Python world.\n\nThe idea is quite simple. Python silently drops every\nreference, left on the stack without use. E.g. this code:\n```python\n\ndef f():\n    (2, 3, 4)\n    do_something\n\n```\n\nnormally will be translated by Python2 into that bytecode:\n```\n    ...\n    (LOAD_CONST, (2, 3, 4)),  # put the symbol on the stack\n    (POP_TOP, None),          # dismiss it\n    (LOAD_GLOBAL, \"do_something\"),  # again...\n    (POP_TOP, None),                # ... and dismiss\n    ...\n```\n\nBasicall, the `fjorton` library changes the bytecode, so the\nreferenced symbols aren't dropped, but either saved to the\nimplicit stack, or called as a function.\n\nMore precise, tha `@fjorton` decorator does following steps:\n\n1. Tries to load `stack` variable from arguments; if there is\n   no `stack` argument, creates an empty `___stack___`.\n2. Pushes every object, that is being dropped by `POP_TOP` and\n   has no `__call__` attribute, to the `___stack___`.\n3. Every object, that is being dropped by `POP_TOP` and has\n   `__call__` attribute, instead is being called with\n   `___stack___` as the only positional argument.\n4. Every `return` or `return None` is being replaced with\n   `return locals()['___stack___']`.\n\nE.g.:\n```python\n\nfrom fjorton import fjorton\n\n\ndef add(stack):\n    # pushes to the stack the sum of two\n    # last stack cells\n    stack.append(stack.pop() + stack.pop())\n\n\n@fjorton\ndef f():\n    #     # here the stack is being created\n    56,   # 56 is pushed to the stack\n    67,   # 67 is pushed to the stack\n    add   # `add()` is being called as `add(locals()['___stack___'])`\n    #     # here the function returns the stack\n\nf() == [123]\n```\n\nShort Q'n'A:\n\n* *Why `56,` not `56`?* -- 'Cause Python optimizes out all simple literals\n  to be dropped by `POP_TOP`, so they simply disappear from the bytecode.\n  The `56,` statement creates a tuple, and it will remain in the bytecode,\n  so we have a chance to work with it. The library translates one-cell tuples\n  into simple references.\n* *Why `[123]`, not `123`?* -- 'Cause it's a stack, it's a list. In that case\n  it contains only one cell. But that's not the rule.\n* *May the function body contain normal Python code?* -- Sure. The library\n  just extends the code a bit in a compatible (I hope so) way.\n* *Why should I use the library?* -- You should **not**. It's made just for\n  fun, it is against all the Python rules, so please avoid to use it in the\n  production.\n* *Will Python3 be supported?* -- Maybe.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/svinota/fjorton",
+        "keywords": null,
+        "license": "dual license GPLv2+ and Apache v2",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "fjorton",
+        "package_url": "https://pypi.org/project/fjorton/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/fjorton/",
+        "release_url": "https://pypi.org/project/fjorton/0.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Python Netlink library",
+        "version": "0.1"
+    },
+    "last_serial": 2103079,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "db904a7ce550db8dcdbd03b49c5b06a0",
+                    "sha256": "6330a32a836f57130ebb26f15b1f75d7d77a2bb8ad7e82afc31dbe6c389e0647"
+                },
+                "downloads": -1,
+                "filename": "fjorton-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "db904a7ce550db8dcdbd03b49c5b06a0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 14163,
+                "upload_time": "2016-05-06T18:46:12",
+                "url": "https://files.pythonhosted.org/packages/53/6f/ce91ee6e6b60aa8dbf1af657cb6e1abe7d4141710c61201464563ff4297b/fjorton-0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "db904a7ce550db8dcdbd03b49c5b06a0",
+                "sha256": "6330a32a836f57130ebb26f15b1f75d7d77a2bb8ad7e82afc31dbe6c389e0647"
+            },
+            "downloads": -1,
+            "filename": "fjorton-0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "db904a7ce550db8dcdbd03b49c5b06a0",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 14163,
+            "upload_time": "2016-05-06T18:46:12",
+            "url": "https://files.pythonhosted.org/packages/53/6f/ce91ee6e6b60aa8dbf1af657cb6e1abe7d4141710c61201464563ff4297b/fjorton-0.1.tar.gz"
+        }
+    ]
+}

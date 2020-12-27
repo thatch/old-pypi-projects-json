@@ -1,0 +1,89 @@
+{
+    "info": {
+        "author": "Rodrigo Manhaes",
+        "author_email": "rmanhaes@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2.5",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.1",
+            "Programming Language :: Python :: 3.2",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Testing"
+        ],
+        "description": "calve_machine\n=============\n\nFactories for plain old Python objects.\n\n\nBasic Usage\n-----------\n\nA simple example::\n\n    >>> from should_dsl import should, should_not\n    >>> from calve_machine import inseminate, pregnant\n\n    >>> @inseminate\n    ... def programmer(p):\n    ...     p.name = 'Sheldon Cooper, Ph.D.'\n    ...     p.age = 29\n    ...     p.languages = ['eiffel', 'io', 'erlang']\n\n    >>> prog = pregnant.calve('programmer')\n    >>> prog.name |should| equal_to('Sheldon Cooper, Ph.D.')\n    >>> prog.age |should| be(29)\n    >>> prog.languages |should| equal_to(['eiffel', 'io', 'erlang'])\n\n\n\nInheritance\n-----------\n\nFactories can inherit from other(s)::\n\n    >>> @inseminate\n    ... def programmer(p):\n    ...     p.name = 'Sheldon Cooper, Ph.D.'\n    ...     p.age = 29\n    ...     p.languages = ['eiffel', 'io', 'erlang']\n\n    >>> @inseminate(seed_from='programmer')\n    ... def python_programmer(p):\n    ...     p.languages = ['python']\n    ...     p.foo = 'spam'\n\n    >>> prog = pregnant.calve('python_programmer')\n    >>> prog.name |should| equal_to('Sheldon Cooper, Ph.D.')\n    >>> prog.age |should| be(29)\n    >>> prog.languages |should| equal_to(['python'])\n    >>> prog.foo |should| equal_to('spam')\n\n    >>> @inseminate(seed_from='python_programmer')\n    ... def zope_programmer(p):\n    ...     p.languages = ['zcml']\n    ...     p.age = 30\n\n    >>> prog = pregnant.calve('zope_programmer')\n    >>> prog.name |should| equal_to('Sheldon Cooper, Ph.D.')\n    >>> prog.age |should| be(30)\n    >>> prog.languages |should| equal_to(['zcml'])\n    >>> prog.foo |should| equal_to('spam')\n\n\nSequences\n---------\n\nFactories can generate sequences::\n\n    >>> from calve_machine import sequence\n\n    >>> @inseminate\n    ... def id_holder(i):\n    ...     i.name = sequence(lambda n: \"Crazy Guy %s\" %n)\n    ...     i.square_id = sequence(lambda n: n ** 2)\n\n    >>> obj = pregnant.calve('id_holder')\n    >>> obj.name |should| equal_to(\"Crazy Guy 1\")\n    >>> obj.square_id |should| be(1)\n\n    >>> obj = pregnant.calve('id_holder')\n    >>> obj.name |should| equal_to(\"Crazy Guy 2\")\n    >>> obj.square_id |should| be(4)\n\n    >>> obj = pregnant.calve('id_holder')\n    >>> obj.name |should| equal_to(\"Crazy Guy 3\")\n    >>> obj.square_id |should| be(9)\n\n\nTemplating\n----------\n\nObjects can be generated using an existing object as template. Given an object::\n\n    >>> class Spam(object):\n    ...     def __init__(self, eggs):\n    ...         self.eggs = eggs\n    ...     def fried(self):\n    ...         return self.eggs + ' w/ cholesterol'\n\n    >>> spam = Spam(\"Guava\")\n    >>> guava_prog = pregnant.calve('programmer', template=spam)\n\n\nEverything from \"programmer\" act as expected::\n\n    >>> guava_prog.name |should| equal_to('Sheldon Cooper, Ph.D.')\n    >>> guava_prog.age |should| be(29)\n    >>> guava_prog.languages |should| equal_to(['eiffel', 'io', 'erlang'])\n\n\nAll members from the template object are present::\n\n    >>> guava_prog.eggs |should| equal_to('Guava')\n    >>> guava_prog.fried() |should| equal_to('Guava w/ cholesterol')\n\n\nThe class of newborn object is the same class of the template object::\n\n    >>> guava_prog |should| be_instance_of(Spam)\n\n\nTemplate object remains untouched::\n\n    >>> spam |should_not| respond_to('name')\n    >>> spam |should_not| respond_to('age')\n    >>> spam |should_not| respond_to('languages')\n\n\nClasses as templates\n--------------------\n\nTemplates can be classes, not only objects::\n\n    >>> class Person:\n    ...     def __init__(self):\n    ...         self.city = 'Campos dos Goytacazes/RJ/Brazil'\n\n    >>> prog = pregnant.calve('programmer', template=Person)\n\n\nEverything from \"programmer\" act as expected::\n\n    >>> prog.name |should| equal_to('Sheldon Cooper, Ph.D.')\n    >>> prog.age |should| be(29)\n    >>> prog.languages |should| equal_to(['eiffel', 'io', 'erlang'])\n\n\nAll members from the template class are present::\n\n    >>> prog.city |should| equal_to('Campos dos Goytacazes/RJ/Brazil')\n\n\nThe class of newborn object is the same class of the template object::\n\n    >>> prog |should| be_instance_of(Person)\n\n\nIf a class have required init parameters::\n\n    >>> class User:\n    ...     def __init__(self, email, password):\n    ...         self.email, self.password = email, password\n\n\nyou can use the method init() for defining the constructor parameters::\n\n    >>> @inseminate\n    ... def parameterized_programmer(u):\n    ...     u.init('admin@admin.com', 's3cr3t')\n    ...     u.name = 'Sheldon Cooper'\n\n    >>> prog = pregnant.calve('parameterized_programmer', template=User)\n    >>> prog.email |should| equal_to('admin@admin.com')\n    >>> prog.password |should| equal_to('s3cr3t')\n    >>> prog.name |should| equal_to('Sheldon Cooper')\n\n\nParameters for the constructor are ignored for a class without constructor\nparameters::\n\n    >>> prog = pregnant.calve('parameterized_programmer', template=Person)\n\n\nAssociation\n-----------\n\ncalve_machine supports object associations::\n\n    >>> from calve_machine import association\n\n    >>> @inseminate\n    ... def customer(c):\n    ...     c.name = 'Someone'\n\n    >>> @inseminate\n    ... def order(o):\n    ...     o.owner = association('customer')\n\n    >>> an_order = pregnant.calve('order')\n    >>> an_order.owner.name |should| equal_to('Someone')\n\n\nIf the field name equals to the seed name, there's no need to specify the seed name::\n\n    >>> @inseminate\n    ... def order(o):\n    ...     o.customer = association()\n\n    >>> an_order = pregnant.calve('order')\n    >>> an_order.customer.name |should| equal_to('Someone')\n\n\nAfter build\n-----------\n\nArbitrary code can be defined to run over the created object::\n\n    >>> class User(object):\n    ...    def __init__(self):\n    ...        self.authorized = False\n    ...    def authorize(self):\n    ...        self.authorized = True\n\n    >>> @inseminate\n    ... def user(u):\n    ...     u.email = 'admin@admin.com'\n    ...     u.password = 'adm!npassword'\n    ...     u.after_build(lambda user: user.authorize())\n\n    >>> user = pregnant.calve('user', template=User())\n    >>> user |should| be_authorized\n\n\nHow to install\n--------------\n\nFor the latest release, run::\n\n    pip install calve_machine\n\n\nYou can also install the current development version directly from Github::\n\n    pip install -e git+https://github.com/rodrigomanhaes/calve_machine.git#egg=calve_machine\n\n\nHow to run tests\n----------------\n\nJust run::\n\n    make test\n\nfor install all test dependencies (`Should-DSL <http://www.should-dsl.info>`_\nand `Specloud <https://github.com/hugobr/specloud>`_, at the moment) and\nrun the tests. calve_machine itself has no dependencies.\n\n\nIdeas\n-----\n\ncalve_machine is freely inspired by `factory_girl <https://github.com/thoughtbot/factory_girl>`_.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/rodrigomanhaes/calve_machine",
+        "keywords": "python plain object factory",
+        "license": "MIT License",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "calve_machine",
+        "package_url": "https://pypi.org/project/calve_machine/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/calve_machine/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/rodrigomanhaes/calve_machine"
+        },
+        "release_url": "https://pypi.org/project/calve_machine/0.1.0/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Factories for plain old Python objects.",
+        "version": "0.1.0"
+    },
+    "last_serial": 787215,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f21f4049b1b4d449d391beb061060528",
+                    "sha256": "d1644bd514a1402db624d6fb0e4ec526a81f78f04d2b44867ff8e3603be1f844"
+                },
+                "downloads": -1,
+                "filename": "calve_machine-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f21f4049b1b4d449d391beb061060528",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6304,
+                "upload_time": "2011-08-30T02:17:02",
+                "upload_time_iso_8601": "2011-08-30T02:17:02.680979Z",
+                "url": "https://files.pythonhosted.org/packages/64/ed/d64da7114aaa62edd21d3ec279419499c1a1249cb016ecec4f6cb1d04ea8/calve_machine-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f21f4049b1b4d449d391beb061060528",
+                "sha256": "d1644bd514a1402db624d6fb0e4ec526a81f78f04d2b44867ff8e3603be1f844"
+            },
+            "downloads": -1,
+            "filename": "calve_machine-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f21f4049b1b4d449d391beb061060528",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 6304,
+            "upload_time": "2011-08-30T02:17:02",
+            "upload_time_iso_8601": "2011-08-30T02:17:02.680979Z",
+            "url": "https://files.pythonhosted.org/packages/64/ed/d64da7114aaa62edd21d3ec279419499c1a1249cb016ecec4f6cb1d04ea8/calve_machine-0.1.0.tar.gz"
+        }
+    ]
+}

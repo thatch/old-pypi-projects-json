@@ -1,0 +1,175 @@
+{
+    "info": {
+        "author": "Hakan \u00c7elik",
+        "author_email": "hakancelik96@outlook.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: Implementation :: PyPy"
+        ],
+        "description": "[Join and Contact us on Discord](https://discord.gg/avmdZJa)\n\n------\n\n## Getting started\n\n#### Notes :\n- for now only authorized accounts can access the API service\n- [coogger-python on Github](https://github.com/coogger/coogger-python)\n\nInstall the package:\n\n```python\npip install coogger-python\npip install coogger-python -U\n```\n\n## How to use coogger-python\n\nLet's include each class in our project, as below.\n\n```python\nfrom coogger.content import ContentApi, ContentFilterApi\nfrom coogger.user import SteemConnectUserApi, UserApi, UserFilterApi\nfrom coogger.dapp import DappFilterApi, DappApi\nfrom coogger.search import SearchFilterApi\nfrom coogger.useraddress import UserAddresFilterApi\nfrom coogger.views import ViewsFilterApi\nfrom coogger.topic import TopicFilterApi\n```\n\nyou can filter the contents you want to take with the following parameters.\n\n### ContentFilterApi\n\nThe **ContentFilterApi** class allows content to be filtered by below property.\n\nFilter parameters;\n>\n  - permlink\n  - category\n  - language\n  - topic\n  - status # shared / changed / approved /rejected\n  - dor # duration of read\n  - views\n  - read\n  - mod\n  - cooggerup\n\n```python\n>>> data = {\"username\":\"your_username\",\"access_token\":\"access_token\"}\n# check for your access_token, www.coogger.com/api/user/@your_username/\n>>> content_filter_api = ContentFilterApi(data:dict)\n>>> # api_key allows for the coogger api\n>>> content_filter_api.filter(category=\"tutorial\", status=\"approved\", language=\"turkish\")\n>>> contents = content_filter_api.results\n>>> next_page = content_filter_api.next\n>>> previous_page = content_filter_api.previous\n>>> [content for content in contents]\n```\n\n### ContentApi\n\n**ContentApi** class is used to view or update a specific content.\n\n```python\n>>> data = {\"username\":\"your_username\",\"access_token\":\"access_token\"}\n# check for your access_token, www.coogger.com/api/user/@your_username/\n>>> content_api = ContentApi(username:str, permlink:str, data:dict)\n>>> # api_key allows for the coogger api\n>>> content_api.update(title=\"title\", category=\"category\", status=\"status\")\n>>> content_api.get # to view the content\n>>> content_api.get.text\n>>> content_api.get.json()\n>>> content_api.ditop.title\n```\n\nOther variables you can update :\n>\n  - permlink\n  - category\n  - language\n  - topic\n  - status # shared / changed / approved /rejected\n  - dor # duration of read\n  - views\n  - read\n  - mod\n  - cooggerup\n\n-----------\n\n### SteemConnectUserApi\n\nThe **SteemConnectUserApi** class is used to access SteemConnect User information, SteemConnectUserApi class is used to view or update a specific SteemConnect user,\n\n```python\n>>> data = {\"username\":\"your_username\",\"access_token\":\"access_token\"}\n# check for your access_token, www.coogger.com/api/user/@your_username/\n>>> steem_connect_user = SteemConnectUserApi(username:str, data:dict)\n>>> user = steem_connect_user.get\n>>> user = steem_connect_user.get.text\n>>> user = steem_connect_user.get.json()\n>>> user = steem_connect_user.ditop.access_token\n>>> user_update = steem_connect_user.update(access_token=\"new_access_token\")\n```\n\nOther variables you can update :\n>\n  - refresh_token\n  - code\n  - access_token\n\n### UserApi\nThe **UserApi** class is used to access user information, UserApi class is used to view or update a specific user.\n\n```python\n>>> data = {\"username\":\"your_username\",\"access_token\":\"access_token\"}\n# check for your access_token, www.coogger.com/api/user/@your_username/\n>>> user_api = UserApi(username:str, data:dict)\n>>> user = user_api.get\n>>> user = user_api.get.text\n>>> user = user_api.get.json()\n>>> user = user_api.ditop.vote_percent\n>>> user_update = user_api.update(about=\"hello\")\n```\n\nOther variables you can update :\n>\n  - maybe - user # not tested\n  - about\n  - cooggerup_confirmation\n  - cooggerup_percent\n  - vote_percent\n  - beneficiaries\n  - sponsor\n  - hmany_votes\n  - total_vote_value\n  - total_receive_vote_value\n\n### UserFilterApi\n\nThe **UserFilterApi** class allows user to be filtered by below property.\n\n> Parameters\n  - username\n  - user # means user id\n  - about\n  - cooggerup_confirmation\n  - cooggerup_percent\n  - vote_percent\n  - beneficiaries\n\n```python\n>>> data = {\"username\":\"your_username\",\"access_token\":\"access_token\"}\n# check for your access_token, www.coogger.com/api/user/@your_username/\n>>> user_filter_api = UserFilterApi(data:dict)\n>>> user_filter_api.filter(cooggerup_confirmation=True, beneficiaries=10)\n>>> users = user_filter_api.results\n>>> next_page = user_filter_api.next\n>>> previous_page = user_filter_api.previous\n>>> [user for user in users]\n```\n\n\n### DappFilterApi\n\nThe **DappFilterApi** class allows dapp to be filtered by below property.\nFilter parameters;\n\nFilter parameters;\n>\n  - name\n  - host_name\n  - redirect_url\n  - client_id\n  - app_secret\n  - login_redirect\n  - scope\n  - icon_address\n  - ms\n\n```python\n>>> data = {\"username\":\"your_username\",\"access_token\":\"access_token\"}\n# check for your access_token, www.coogger.com/api/user/@your_username/\n>>> dapp_filter_api = DappFilterApi(data:dict)\n>>> # api_key allows for the coogger api\n>>> dapps_filter_api.filter(name=\"coogger\")\n>>> # This method is return json data\n>>> dapps = dapp_filter_api.results\n>>> next_page = dapp_filter_api.next\n>>> previous_page = dapp_filter_api.previous\n>>> [dapp for dapp in dapps]\n```\n\n### SearchFilterApi\n\nThe **SearchFilterApi** class allows search on coogger ecosystem to be filtered by below property.\n\nFilter parameters;\n>\n  - word\n  - hmany\n\n```python\n>>> data = {\"username\":\"your_username\",\"access_token\":\"access_token\"}\n# check for your access_token, www.coogger.com/api/user/@your_username/\n>>> search_filter_api = SearchFilterApi(data:dict)\n>>> # api_key allows for the coogger api\n>>> search_filter_api.filter(word=\"coogger\")\n>>> # This method is return json data\n>>> searches = search_filter_api.results\n>>> next_page = search_filter_api.next\n>>> previous_page = search_filter_api.previous\n>>> [search for search in searches]\n```\n\n\n### UserAddresFilterApi\n\nThe **UserAddresFilterApi** class allows to be filtered by below property.\n\nFilter parameters;\n>\n  - choices # github, linkedin, instagram, facebook, youtube, web-site\n  - adress\n\n\n```python\n>>> data = {\"username\":\"your_username\",\"access_token\":\"access_token\"}\n# check for your access_token, www.coogger.com/api/user/@your_username/\n>>> filter_user_address = UserAddresFilterApi(data:dict)\n>>> # api_key allows for the coogger api\n>>> filter_user_address.filter(choices=\"instagram\")\n>>> # This method is return json data\n>>> addresses = filter_user_address.results\n>>> next_page = filter_user_address.next\n>>> previous_page = filter_user_address.previous\n>>> [address for address in addresses]\n```\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/coogger/coogger-python",
+        "keywords": "coogger",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "coogger-python",
+        "package_url": "https://pypi.org/project/coogger-python/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/coogger-python/",
+        "project_urls": {
+            "Homepage": "https://github.com/coogger/coogger-python"
+        },
+        "release_url": "https://pypi.org/project/coogger-python/0.2.7/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Python client of Coogger API",
+        "version": "0.2.7"
+    },
+    "last_serial": 4818521,
+    "releases": {
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "667f54cbbae4191db5645e7ee25a029e",
+                    "sha256": "b67c6e42ae0223471803218cf9acaa007538e824451b1afb3908bf651b9c906d"
+                },
+                "downloads": -1,
+                "filename": "coogger-python-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "667f54cbbae4191db5645e7ee25a029e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2938,
+                "upload_time": "2018-08-22T19:27:14",
+                "url": "https://files.pythonhosted.org/packages/6b/5d/8995cf92adcfdef2123a207bf68d41d4528b2f87bc13a6d5a86a422bef0a/coogger-python-0.2.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "112c35e3ba855144f9aee1d88520b08e",
+                    "sha256": "44bf79cdea4fdd2137b20e972eb76a43aa17ca6f42bbf29cb465ee6ac8a9abed"
+                },
+                "downloads": -1,
+                "filename": "coogger-python-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "112c35e3ba855144f9aee1d88520b08e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3087,
+                "upload_time": "2018-08-27T21:22:23",
+                "url": "https://files.pythonhosted.org/packages/0b/78/30d1194054d4ebe0239b3d66b865d88451c88b1ff9832eb1d232e86609d8/coogger-python-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a235b18bdc6d04706273b2c53d206d5",
+                    "sha256": "4bffd30d97cf62d05f314ae41de253e30ad7fed1d91f720dd4f9fe28292057a5"
+                },
+                "downloads": -1,
+                "filename": "coogger-python-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7a235b18bdc6d04706273b2c53d206d5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4438,
+                "upload_time": "2018-08-31T20:10:21",
+                "url": "https://files.pythonhosted.org/packages/1b/b8/148bc29dc84df914e0cadba1dd12b91ec4217d7d1b5eaf547bd984e12b4e/coogger-python-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3b160b2a4a68b4d1f5c4e1a18209ef7",
+                    "sha256": "ffc5e37633bfb73860efd69853d2b600c671fd8dbb785fb11746088273b11d9b"
+                },
+                "downloads": -1,
+                "filename": "coogger-python-0.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e3b160b2a4a68b4d1f5c4e1a18209ef7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4734,
+                "upload_time": "2018-09-02T22:19:55",
+                "url": "https://files.pythonhosted.org/packages/7d/42/2af77cb937a034837ea38dd725c53f98e120c837a50f70b821a97f0fb12e/coogger-python-0.2.4.tar.gz"
+            }
+        ],
+        "0.2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab92d7f095dd9111e11fb227dbfe3257",
+                    "sha256": "bb5d7c98e700cf05924230054d8fce542e119483233828e5b5ede4f142e33940"
+                },
+                "downloads": -1,
+                "filename": "coogger-python-0.2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ab92d7f095dd9111e11fb227dbfe3257",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4545,
+                "upload_time": "2018-10-24T21:00:03",
+                "url": "https://files.pythonhosted.org/packages/60/05/5b6846c28f6526218112ab1ff841f12e8a2e260f894f4d0c749d3a9e96b4/coogger-python-0.2.6.tar.gz"
+            }
+        ],
+        "0.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "15a557d2950e4d9704c8a6a25c4340cf",
+                    "sha256": "b98f98b04283cce67211689a8ea434f7f1e08ba98f751fda1d798e6d59eef173"
+                },
+                "downloads": -1,
+                "filename": "coogger-python-0.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "15a557d2950e4d9704c8a6a25c4340cf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4791,
+                "upload_time": "2019-02-14T03:05:17",
+                "url": "https://files.pythonhosted.org/packages/69/f4/98458959a414614670a19eaf5a6e49fdcec5b455002ec67d2c204c8a2e55/coogger-python-0.2.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "15a557d2950e4d9704c8a6a25c4340cf",
+                "sha256": "b98f98b04283cce67211689a8ea434f7f1e08ba98f751fda1d798e6d59eef173"
+            },
+            "downloads": -1,
+            "filename": "coogger-python-0.2.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "15a557d2950e4d9704c8a6a25c4340cf",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 4791,
+            "upload_time": "2019-02-14T03:05:17",
+            "url": "https://files.pythonhosted.org/packages/69/f4/98458959a414614670a19eaf5a6e49fdcec5b455002ec67d2c204c8a2e55/coogger-python-0.2.7.tar.gz"
+        }
+    ]
+}

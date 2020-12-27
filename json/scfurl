@@ -1,0 +1,149 @@
+{
+    "info": {
+        "author": "Scott Furlan",
+        "author_email": "scottfurlan@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# henipipe\n==========  \n\nA python wrapper for processing of sequencing data generated using CutnRun or CutnTag (developed by the Henikoff lab FHCRC)\n\n## Installation\n\n```bash\npip install --user pipx\npipx install henipipe\n\n```\n\n## Usage\n\n```bash\nhenipipe [-h] [--sample_flag SAMPLE_FLAG]\n                                      [--fastq_folder FASTQ_FOLDER]\n                                      [--filter_high FILTER_HIGH]\n                                      [--filter_low FILTER_LOW]\n                                      [--output OUTPUT] [--runsheet RUNSHEET]\n                                      [--log_prefix LOG_PREFIX]\n                                      [--select SELECT] [--debug]\n                                      [--bowtie_flags BOWTIE_FLAGS]\n                                      [--cluster {PBS,SLURM}]\n                                      [--norm_method {coverage,read_count,spike_in}]\n                                      [--user USER] [--SEACR_norm {non,norm}]\n                                      [--SEACR_stringency {stringent,relaxed}]\n                                      [--verbose]\n                                      {MAKERUNSHEET,ALIGN,NORM,SEACR}\n\npositional arguments:\n  {MAKERUNSHEET,ALIGN,NORM,SEACR}\n                        a required string denoting segment of pipeline to run.\n                        1) \"MAKERUNSHEET\" - to parse a folder of fastqs; 2)\n                        \"ALIGN\" - to perform alignment using bowtie and output\n                        bed files; 3) \"NORM\" - to normalize data to reference\n                        (spike in); 4) \"SEACR\" - to perform SEACR.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  --sample_flag SAMPLE_FLAG, -sf SAMPLE_FLAG\n                        FOR MAKERUNSHEET only string to identify samples of\n                        interest in a fastq folder\n  --fastq_folder FASTQ_FOLDER, -fq FASTQ_FOLDER\n                        For MAKERUNSHEET only: Pathname of fastq folder (files\n                        must be organized in folders named by sample)\n  --filter_high FILTER_HIGH, -fh FILTER_HIGH\n                        For ALIGN only: upper limit of fragment size to\n                        exclude, defaults is no upper limit. OPTIONAL\n  --filter_low FILTER_LOW, -fl FILTER_LOW\n                        For ALIGN only: lower limit of fragment size to\n                        exclude, defaults is no lower limit. OPTIONAL\n  --output OUTPUT, -o OUTPUT\n                        For MAKERUNSHEET only: Pathname to write runsheet.csv\n                        file (folder must exist already!!), Defaults to\n                        current directory\n  --runsheet RUNSHEET, -r RUNSHEET\n                        tab-delim file with sample fields as defined in the\n                        script. - REQUIRED for all jobs except MAKERUNSHEET\n  --log_prefix LOG_PREFIX, -l LOG_PREFIX\n                        Prefix specifying log files for henipipe output from\n                        henipipe calls. OPTIONAL\n  --select SELECT, -s SELECT\n                        To only run the selected row in the runsheet, OPTIONAL\n  --debug, -d           To print commands (For testing flow). OPTIONAL\n  --bowtie_flags BOWTIE_FLAGS, -b BOWTIE_FLAGS\n                        For ALIGN: bowtie flags, OPTIONAL\n  --cluster {PBS,SLURM}, -c {PBS,SLURM}\n                        Cluster software. OPTIONAL Currently supported: PBS\n                        and SLURM\n  --norm_method {coverage,read_count,spike_in}, -n {coverage,read_count,spike_in}\n                        For ALIGN and NORM: Normalization method, by\n                        \"read_count\", \"coverage\", or \"spike_in\". If method is\n                        \"spike_in\", HeniPipe will align to the spike_in\n                        reference genome provided in runsheet. OPTIONAL\n  --user USER, -u USER  user for submitting jobs - defaults to username.\n                        OPTIONAL\n  --SEACR_norm {non,norm}, -Sn {non,norm}\n                        For SEACR: Normalization method; default is\n                        \"non\"-normalized, select \"norm\" to normalize using\n                        SEACR. OPTIONAL\n  --SEACR_stringency {stringent,relaxed}, -Ss {stringent,relaxed}\n                        FOR SEACR: Default will run as \"stringent\", other\n                        option is \"relaxed\". OPTIONAL\n  --verbose, -v         Run with some additional ouput - not much though...\n                        OPTIONAL\n```\n\n\n## Runsheet\n\nThe runsheet is the brains of the henipipe workflow.  You can make it using the MAKERUNSHEET command and it will find fastq mates for you.  *You should take a look at the runsheet in Excel or Numbers to make sure things look okay...*  Here are the columns that you can include.  Order is irrelevant.  Column names (headers) are suggested.\n\n### Example Runsheet \n\n\n| sample | fasta | spikein_fasta | fastq1 | fastq2 | bed_out | spikein_bed_out | genome_sizes | bedgraph |  SEACR_key  | SEACR_out |\n|--------|-------|---------------|--------|--------|---------|-----------------|--------------|----------|-------------|-----------|\n|  mys1  |  path |      path     |  path  |  path  |   path  |       path      |     path     |   path   |     4JS     |   path    |\n|  mys2  |  path |      path     |  path  |  path  |   path  |       path      |     path     |   path   | 4JS_CONTROL |   path    |\n\n\n* 'sample' name of the sample REQUIRED.  \n* 'fasta' location of the Bowtie2 indexed fasta file REQUIRED.  \n* 'spikein_fasta' location of the Bowtie2 indexed fasta file for spike_in normalization OPTIONAL.  \n* 'fastq1' a tab seperated string of filenames denoting location of all R1 files for a sample REQUIRED.  \n* 'fastq2' a tab seperated string of filenames denoting location of all R2 files for a sample REQUIRED.  \n* 'bed_out' name of the location for the aligned and sorted bam file REQUIRED.  \n* 'spikein_bed_out' name of the location for the aligned and sorted bam file OPTIONAL.  \n* 'genome_sizes' REQUIRED.  \n* 'bedgraph' file name of normalized bedgraph REQUIRED.  \n* 'SEACR_key' sample key corresponding to sample groups to be run against an IgG (or other) contol.  all samples to be run against a control are given the same name and the control is labeleled with the an additional string underscore + 'CONTROL' (i.e. 4JS_CONTROL) OPTIONAL.  \n* 'SEACR_out' file name of SEACR output OPTIONAL.  \n\n\n\n## Examples\n\nSay your fastqs live in a subfolder 'fastq' in the folder 'data'.  So if you were to...\n```bash\ncd /data/fastq\nls\n```\n... you'd get a bunch of folders filled with fastqs.  Each folder name will correspond to a particular sample.\n\n\nThen do this to run henipipe.  make a new output directory 'henipipe'.  go into that directory and make a runsheet pointing to the fastq folder.  Optionally you can only select directories of fastq files that contain the string denoted using the -sf flag.  After inspecting and completing the runsheet, run ALIGN, NORM, and SEACR.  Sit back have a cocktail.\n```bash\ncd ..\nmkdir henipipe\ncd henipipe\nhenipipe MAKERUNSHEET -fq ../fastq -sf MySamplesStartWithThisString -o henipipe\nhenipipe ALIGN -r runsheet.csv\nhenipipe NORM -r runsheet.csv\nhenipipe SEACR -r runsheet.csv\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/scfurl/henipipe.git",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "scfurl",
+        "package_url": "https://pypi.org/project/scfurl/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/scfurl/",
+        "project_urls": {
+            "Homepage": "https://github.com/scfurl/henipipe.git"
+        },
+        "release_url": "https://pypi.org/project/scfurl/0.1.1/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "A python wrapper for fast processing of sequencing data using CutnRun or CutnTag",
+        "version": "0.1.1"
+    },
+    "last_serial": 5818630,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ddf39285108beebb03f8eee27c1a8330",
+                    "sha256": "fedfd0f400a994a82e51a9aaa568dc09fd9e219220f8d329347fd8e849003eea"
+                },
+                "downloads": -1,
+                "filename": "scfurl-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ddf39285108beebb03f8eee27c1a8330",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.6",
+                "size": 19442,
+                "upload_time": "2019-09-12T06:05:36",
+                "url": "https://files.pythonhosted.org/packages/af/84/ef9670ff36098d8f1039eb5c8fe451c65ff888cd733344ab1731b592a35c/scfurl-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4230898b12f9ea2c23a65465449c29c7",
+                    "sha256": "dbc9453d418f4a33b189bb292e37350f942f41b182a5e01225eb7146125b954a"
+                },
+                "downloads": -1,
+                "filename": "scfurl-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4230898b12f9ea2c23a65465449c29c7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 17201,
+                "upload_time": "2019-09-12T06:05:39",
+                "url": "https://files.pythonhosted.org/packages/96/23/facde3dcc90628cba75c8972b0f39db4d6a87e8dc6c523add2594d751f24/scfurl-0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "53eaf25c01670ac3d7a7b89e9c2f1365",
+                    "sha256": "82a0d11d660c70d73128e20ed9977ab33c50b99561f0b713b1ea0ce38d78afcd"
+                },
+                "downloads": -1,
+                "filename": "scfurl-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "53eaf25c01670ac3d7a7b89e9c2f1365",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 20333,
+                "upload_time": "2019-09-12T07:03:53",
+                "url": "https://files.pythonhosted.org/packages/f5/0f/01061eb10fb57285f19fd636190edda3ae99e8538d081806f66138f4b7be/scfurl-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c454646436ef9a86a1c36742f42dff05",
+                    "sha256": "e1fd853d102f1e53c954bd4eb675295da4d27b5c47530411ca08852b95683ca6"
+                },
+                "downloads": -1,
+                "filename": "scfurl-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c454646436ef9a86a1c36742f42dff05",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 18030,
+                "upload_time": "2019-09-12T07:03:55",
+                "url": "https://files.pythonhosted.org/packages/5b/c5/f28044c310c00ce54c9df7b9e6b172807133f021a95335aa18e85a55ca78/scfurl-0.1.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "53eaf25c01670ac3d7a7b89e9c2f1365",
+                "sha256": "82a0d11d660c70d73128e20ed9977ab33c50b99561f0b713b1ea0ce38d78afcd"
+            },
+            "downloads": -1,
+            "filename": "scfurl-0.1.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "53eaf25c01670ac3d7a7b89e9c2f1365",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 20333,
+            "upload_time": "2019-09-12T07:03:53",
+            "url": "https://files.pythonhosted.org/packages/f5/0f/01061eb10fb57285f19fd636190edda3ae99e8538d081806f66138f4b7be/scfurl-0.1.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c454646436ef9a86a1c36742f42dff05",
+                "sha256": "e1fd853d102f1e53c954bd4eb675295da4d27b5c47530411ca08852b95683ca6"
+            },
+            "downloads": -1,
+            "filename": "scfurl-0.1.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c454646436ef9a86a1c36742f42dff05",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 18030,
+            "upload_time": "2019-09-12T07:03:55",
+            "url": "https://files.pythonhosted.org/packages/5b/c5/f28044c310c00ce54c9df7b9e6b172807133f021a95335aa18e85a55ca78/scfurl-0.1.1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,523 @@
+{
+    "info": {
+        "author": "Zac Scott",
+        "author_email": "zac@zacscott.net",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "PyASX\n=====\n\n|Build Status| |Python Version|\n\nPython library to pull ASX stock information via the undocumented API\nused on `www.ASX.com.au <https://www.asx.com.au>`__.\n\nMain features are;\n\n-  Pulling the full list of companies & securities listed on the ASX\n-  Pulling detailed company information\n-  Pulling company regulatory annoucements\n\nWhile PyASX provides pricing information, using\n`AlphaVantage <https://github.com/RomelTorres/alpha_vantage>`__ is a\nbetter option for up to date & historical price data.\n\n*NOTE: This library uses a bunch of undocumented APIs from the\nASX.com.au website and thus could go the way of Google & Yahoo finance\nwith the API unceremoniously being killed off.*\n\nInstallation\n------------\n\nInstall via pip:\n\n::\n\n   $ pip install pyasx\n\nAPI\n---\n\n-  Company specific data\n\n   -  `get_listed_companies() <#get_listed_companies>`__\n   -  `get_company_info() <#get_company_info>`__\n   -  `get_company_announcements() <#get_company_announcements>`__\n\n-  Securities data\n\n   -  `get_listed_securities() <#get_listed_securities>`__\n   -  `get_security_info() <#get_security_info>`__\n\nget_listed_companies()\n~~~~~~~~~~~~~~~~~~~~~~\n\nPulls a list of all companies listed on the ASX. This will not include\nanything other than companies, i.e.\u00a0no EFT/ETPs, options, warrants etc.\n\n**Example**\n\n::\n\n   >>> import pyasx.data.companies\n   >>> results = pyasx.data.companies.get_listed_companies()\n   >>> print(results, indent=4)\n   [\n       {\n           \"ticker\": \"MOQ\",\n           \"name\": \"MOQ LIMITED\"\n           \"gics_industry\": \"Software & Services\",\n       },\n       {\n           \"ticker\": \"1PG\",\n           \"name\": \"1-PAGE LIMITED\"\n           \"gics_industry\": \"Software & Services\",\n       },\n       {\n           \"ticker\": \"ONT\",\n           \"name\": \"1300 SMILES LIMITED\"\n           \"gics_industry\": \"Health Care Equipment & Services\",\n       },\n       ...\n       {\n           \"ticker\": \"ZYB\",\n           \"name\": \"ZYBER HOLDINGS LTD\"\n           \"gics_industry\": \"Software & Services\",\n       }\n   ]\n\nget_company_info()\n~~~~~~~~~~~~~~~~~~\n\nPull information on the company with the given ticker symbol. This also\nincludes all of the pricing information returned by\n``pyasx.data.securities.get_security_info()``.\n\nThis will only work for a company, it will not return information on,\nETFs, warrants, indices etc. For that please use\n``pyasx.data.securities.get_security_info()``\n\n**Example**\n\n::\n\n   >>> import pyasx.data.companies\n   >>> results = pyasx.data.companies.get_company_info('CBA')\n   >>> print(results, indent=4)\n   {\n       \"ticker\": \"CBA\",\n       \"name\": \"COMMONWEALTH BANK OF AUSTRALIA.\",\n       \"name_short\": \"COMMONWEALTH BANK.\",\n       \"gics_sector\": \"Financials\",\n       \"gics_industry\": \"Banks\",\n       \"principal_activities\": \"Banking, financial and related services.\",\n       \"website\": \"http://www.commbank.com.au/\",\n       \"mailing_address\": \"Ground Floor, Tower 1, 201 Sussex Street, SYDNEY, NSW, AUSTRALIA, 2000\",\n       \"phone_number\": \"(02) 9378 2000\",\n       \"fax_number\": \"(02) 9118 7192\",\n       \"registry_name\": \"LINK MARKET SERVICES LTD\",\n       \"registry_phone_number\": \"1800 022 440\",\n       \"listing_date\": datetime.datetime(1997, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n       \"delisting_date\": null,\n       \"foreign_exempt\": false,\n       \"products\": [\n           \"shares\",\n           \"hybrid-securities\",\n           \"options\",\n           \"warrants\"\n       ],\n       \"primary_share\": {\n           \"ticker\": \"CBA\",\n           \"type\": \"Ordinary Fully Paid\",\n           \"isin\": \"AU000000CBA7\",\n           \"open_price\": 74.1,\n           \"last_price\": 72.81,\n           \"offer_price\": 72.92,\n           \"bid_price\": 72.8,\n           \"last_trade_date\": datetime.datetime(2018, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n           \"average_daily_volume\": 2610218,\n           \"day_high_price\": 74.16\n           \"day_low_price\": 72.81,\n           \"day_change_price\": -2.06,\n           \"day_change_percent\": \"-2.751%\",\n           \"day_volume\": 3617914,\n           \"prev_day_close_price\": 74.87,\n           \"prev_day_change_percent\": \"-1.201%\",\n           \"year_open_price\": 75.27,\n           \"year_high_price\": 87.74,\n           \"year_high_date\": datetime.datetime(2017, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n           \"year_low_price\": 72.81,\n           \"year_low_date\": datetime.datetime(2018, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n           \"year_change_price\": -2.46,\n           \"year_change_percent\": \"-3.268%\",\n           \"annual_dividend_yield\": 5.91,\n           \"securities_outstanding\": 1752728198,\n           \"market_cap\": 131226760184,\n           \"pe\": 12.68,\n           \"eps\": 5.7442,\n           \"is_suspended\": false,\n           \"indices\": [\n               {\n                   \"code\": \"XTL\",\n                   \"name\": \"S&P/ASX 20\"\n               },\n               ...\n           ]\n       },\n       \"last_dividend\": {\n           \"type\": \"\",\n           \"amount_aud\": \"\",\n           \"franked_percent\": \"\",\n           \"created_date\": \"\",\n           \"ex_date\": \"\",\n           \"record_date\": \"\",\n           \"books_close_date\": \"\",\n           \"payable_date\": \"\",\n           \"comments\": \"\"\n       },\n\n   }\n\nget_company_announcements()\n~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nPull the latest company announcements for the company with the given\nticker symbol. This will only work for companies, it won\u2019t work for\nother securities.\n\n*NOTE* This currently only pulls the 20 latest *market sensitive*\nannoucements.\n\n**Example**\n\n::\n\n   >>> import pyasx.data.companies\n   >>> results = pyasx.data.companies.get_company_announcements('CBA')\n   >>> print(results, indent=4)\n   [\n       {\n           \"num_pages\": 106,\n           \"title\": \"CommBank PERLS X Capital Notes - Replacement Prospectus\",\n           \"url\": \"http://www.asx.com.au/asxpdf/20180315/pdf/43sg1vw9rn1yl1.pdf\",\n           \"release_date\": datetime.datetime(2018, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n           \"size\": \"4.7MB\",\n           \"document_date\": datetime.datetime(2018, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000))\n       },\n       {\n           \"num_pages\": 185,\n           \"title\": \"2018 Half Year Results Profit Announcement\",\n           \"url\": \"http://www.asx.com.au/asxpdf/20180207/pdf/43rd1t86s7g1ll.pdf\",\n           \"release_date\": datetime.datetime(2018, 3, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n           \"size\": \"19.9MB\",\n           \"document_date\": datetime.datetime(2018, 3, 1, 0, 0, tzinfo=tzoffset(None, 36000))\n       },\n       ...\n   ]\n\n[STRIKEOUT:get_listed_securities()]\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n**NOTE This has been disabled due to a breaking change on ASX.com.au**\n\n[STRIKEOUT:Pulls a list of all securities listed on the ASX.]\n\n**Example**\n\n::\n\n   >>> import pyasx.data.securities\n   >>> results = pyasx.data.securities.get_listed_securities()\n   >>> print(results, indent=4)\n   [\n       {\n           \"isin\": \"AU000000IJH2\",\n           \"ticker\": \"IJH\",\n           \"name\": \"ISHARES MID-CAP ETF\",\n           \"type\": \"CHESS DEPOSITARY INTERESTS 1:1 ISHS&P400\"\n       },\n       {\n           \"isin\": \"AU000000IJH2\",\n           \"ticker\": \"MOQ\",\n           \"name\": \"MOQ LIMITED\",\n           \"type\": ORDINARY FULLY PAID\"\n       },\n       {\n           \"isin\": \"AU000000IJH2\",\n           \"ticker\": \"MOQAI\",\n           \"name\": \"MOQ LIMITED\",\n           \"type\": \"OPTION EXPIRING VARIOUS DATES EX VARIOUS PRICES\"\n       },\n       ...\n       {\n           \"isin\": \"AU0000ZYBAI9\",\n           \"ticker\": \"ZYBAI\",\n           \"name\": \"ZYBER HOLDINGS LTD\",\n           \"type\": \"OPTION EXPIRING VAR DATES RESTRICTED VAR PRICES\"\n       }\n   ]\n\nget_security_info()\n~~~~~~~~~~~~~~~~~~~\n\nPull pricing information on the security with the given ticker symbol.\nThis can be for any type of listed security, such as company stock,\nbonds, ETFs etc.\n\n**Example**\n\n::\n\n   >>> import pyasx.data.securities\n   >>> results = pyasx.data.securities.get_security_info('CBAPC')\n   >>> print(results, indent=4)\n   {\n       \"ticker\": \"CBAPC\",\n       \"type\": \"Cap Note 3-bbsw+3.80% Perp Non-cum Red T-12-20\",\n       \"isin\": \"AU0000CBAPC9\",\n       \"open_price\": 100.4,\n       \"last_price\": 100.61,\n       \"offer_price\": 100.66,\n       \"bid_price\": 100.6,\n       \"last_trade_date\": datetime.datetime(2018, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n       \"average_daily_volume\": 12781,\n       \"day_low_price\": 100.4,\n       \"day_high_price\": 100.66,\n       \"day_change_price\": 0.18,\n       \"day_change_percent\": \"0.179%\",\n       \"day_volume\": 18446,\n       \"prev_day_close_price\": 100.43,\n       \"prev_day_change_percent\": \"-0.366%\",\n       \"year_open_price\": 104.18,\n       \"year_high_price\": 100.66,\n       \"year_high_date\": datetime.datetime(2017, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n       \"year_low_price\": 0,\n       \"year_low_date\": datetime.datetime(2018, 5, 1, 0, 0, tzinfo=tzoffset(None, 36000)),\n       \"year_change_price\": -3.57,\n       \"year_change_percent\": \"-3.427%\",\n       \"annual_dividend_yield\": 3.89,\n       \"securities_outstanding\": 1752728198,\n       \"market_cap\": 131226760184,\n       \"pe\": 0,\n       \"eps\": 0,\n       \"is_suspended\": false,\n       \"indices\": []\n   }\n\nUnit tests\n----------\n\nThe unit tests can be run by executing the test.py file, like so;\n\n::\n\n   python3 tests.py\n\nChangelog\n---------\n\n2.2\n~~~\n\n-  Disable pyasx.data.securities.get_listed_securities() due to breaking\n   change on ASX.com.au\n-  Fix bug in unit test for pyasx.data.securities.get_security_info()\n-  \n\n.. _section-1:\n\n2.1.7\n~~~~~\n\n-  Requirements security patches\n\n.. _section-2:\n\n2.1.5\n~~~~~\n\n-  Documentation update\n\n.. _section-3:\n\n2.1.1\n~~~~~\n\n-  Minor bug fixes\n\n.. _section-4:\n\n2.1.0\n~~~~~\n\n-  Throw UnknownTickerException when API 404s\n\n.. _section-5:\n\n2.0.0\n~~~~~\n\n-  Dates now returned as datetime object rather than a string\n-  Better exception handling\n\n.. _section-6:\n\n1.1.0\n~~~~~\n\n-  Optimised get_company_info() to use only 1 API call\n-  Changed gics & sector fields to gics_industry and gics_sector\n-  Docs updates\n\n.. _section-7:\n\n1.0.2\n~~~~~\n\n-  Bug fix - config file missing in dist\n\n.. _section-8:\n\n1.0.1\n~~~~~\n\n-  Bug fix - pypandoc dependency failure on pypi\n\n.. _section-9:\n\n1.0\n~~~\n\n-  Initial version\n\n.. |Build Status| image:: https://travis-ci.org/zacscott/pyasx.svg?branch=master\n   :target: https://travis-ci.org/zacscott/pyasx\n.. |Python Version| image:: https://img.shields.io/badge/python-2.6%2B%2C%203.5%2B-blue.svg",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/zacscott/pyasx",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pyasx",
+        "package_url": "https://pypi.org/project/pyasx/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pyasx/",
+        "project_urls": {
+            "Homepage": "http://github.com/zacscott/pyasx"
+        },
+        "release_url": "https://pypi.org/project/pyasx/2.2/",
+        "requires_dist": null,
+        "requires_python": ">=2.6",
+        "summary": "Python library to pull data from ASX.com.au",
+        "version": "2.2"
+    },
+    "last_serial": 5162855,
+    "releases": {
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aeb7f691217207057109b42f2f92cde9",
+                    "sha256": "fe8ea718e370df61fb98f3408da5a04e2cbc059ee94eb04923d652a1e3062cfd"
+                },
+                "downloads": -1,
+                "filename": "pyasx-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aeb7f691217207057109b42f2f92cde9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1493,
+                "upload_time": "2018-03-24T09:10:30",
+                "url": "https://files.pythonhosted.org/packages/18/08/0b41a40b82c07b1ca2ab25b8522918c3bbff575aa12175c2ec8c468c7171/pyasx-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d176064eae4671dd9f1cf36bb421633b",
+                    "sha256": "936efafe905ccbfd15de8d4c27256e0fb1dc2a38ee4252223d408e8398625ced"
+                },
+                "downloads": -1,
+                "filename": "pyasx-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d176064eae4671dd9f1cf36bb421633b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1523,
+                "upload_time": "2018-03-24T09:13:37",
+                "url": "https://files.pythonhosted.org/packages/33/93/14511a5b07876902da53d9fd0e1f070a1f242b27b219afa082a5d58bd494/pyasx-0.0.3.tar.gz"
+            }
+        ],
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec1481d6cb0b0846c4b9790c17eb4abb",
+                    "sha256": "6d7e97e45b12ff5c58199a6d2df2ddfbbd2f00b5cb581e9fbe4fef75e5c9e9e2"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ec1481d6cb0b0846c4b9790c17eb4abb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8805,
+                "upload_time": "2018-03-25T01:10:53",
+                "url": "https://files.pythonhosted.org/packages/1f/96/66c6ea77fd9ae70b4ca49596f38d16b8045d7ab638cdb139a06a3ab63b68/pyasx-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.0rc0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "13cb5087b4a02fe663bc01712c8b7ef8",
+                    "sha256": "45ea32a1b0980c384044dc387ace6d762fa4e7ffbf93fff1536293a3823e541a"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.0.0rc0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "13cb5087b4a02fe663bc01712c8b7ef8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1528,
+                "upload_time": "2018-03-24T09:33:41",
+                "url": "https://files.pythonhosted.org/packages/7f/a5/c5acb3d933f9e094d6df2b6b2d374a8c84531dca5de9146bd8837cd128aa/pyasx-1.0.0rc0.tar.gz"
+            }
+        ],
+        "1.0.0rc1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4fd49393c2768dbeea8abfd1b70dc515",
+                    "sha256": "94a7058bc72fbb25cee5e4084b1b6b5067b7f665fcc44b63f5c0ac43352d541a"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.0.0rc1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4fd49393c2768dbeea8abfd1b70dc515",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6837,
+                "upload_time": "2018-03-25T00:22:52",
+                "url": "https://files.pythonhosted.org/packages/ff/28/3482cd38eaca85b424852fdc8d6e67c4215ae0025b3245a57896a930926e/pyasx-1.0.0rc1.tar.gz"
+            }
+        ],
+        "1.0.0rc2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "40d46799bf25ed17e859fee47c9a1ddb",
+                    "sha256": "bf01530098f9a50b3cdf8b9e47ac9558ef549d75a8a7e298a06c10dc7fb0f1c0"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.0.0rc2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "40d46799bf25ed17e859fee47c9a1ddb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6854,
+                "upload_time": "2018-03-25T00:25:12",
+                "url": "https://files.pythonhosted.org/packages/80/b5/dec57728b874c0c281486cf368552f2dda4167df3a4d06d98bfe974e9d1c/pyasx-1.0.0rc2.tar.gz"
+            }
+        ],
+        "1.0.0rc3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e4b7d257dc0c1d5431ed235593e1226a",
+                    "sha256": "eb60a196176ab945b264c322d9c824f345384573b935beb0132cf5755b8b50d5"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.0.0rc3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e4b7d257dc0c1d5431ed235593e1226a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6903,
+                "upload_time": "2018-03-25T00:27:38",
+                "url": "https://files.pythonhosted.org/packages/5a/d3/5c569c6efaa3d407ac9eea0ce399d73b763b2d5ad698198e755c69d15ffb/pyasx-1.0.0rc3.tar.gz"
+            }
+        ],
+        "1.0.0rc4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e2a8514af0f669c3b0880e3fe9ed6168",
+                    "sha256": "cf2e602dcd505197ac2d5a893a3abbe6f42c457fd6eb605ddf40ada8ae49ee7b"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.0.0rc4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e2a8514af0f669c3b0880e3fe9ed6168",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8827,
+                "upload_time": "2018-03-25T00:32:08",
+                "url": "https://files.pythonhosted.org/packages/c0/1b/3c6389950594c1f1645f76b6a44513888614a0f1e2d4b3d6ef0dd5748fe4/pyasx-1.0.0rc4.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b544d16cf93cd5a274bc6b44586fc620",
+                    "sha256": "7288863ae97bd48059ece4db555a8ea81e8f876c4f2446890c77842c1de00d98"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b544d16cf93cd5a274bc6b44586fc620",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8880,
+                "upload_time": "2018-03-25T01:27:42",
+                "url": "https://files.pythonhosted.org/packages/3c/45/bed532a9782ee188b8c61466017c409056eb55118ba9016b70a09aa3c690/pyasx-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e283a6fc02cf8a35e5574702f412bc4",
+                    "sha256": "e25fba50f1c4d05f075e255bca5662a7738407ee31fa2f50c4a443bdc3593858"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4e283a6fc02cf8a35e5574702f412bc4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9314,
+                "upload_time": "2018-03-26T08:48:15",
+                "url": "https://files.pythonhosted.org/packages/e7/56/ffe72d42958a302e5925d67c835352d562d1b021fba08f8a920a75c55ae4/pyasx-1.0.2.tar.gz"
+            }
+        ],
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d5b7e0a3d4c3e500ab5d74c836d1fe02",
+                    "sha256": "663cdc740770e854c0f72a787853a435aac6db5f9ef8dd28111daf7fd654a406"
+                },
+                "downloads": -1,
+                "filename": "pyasx-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d5b7e0a3d4c3e500ab5d74c836d1fe02",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9800,
+                "upload_time": "2018-03-30T00:16:17",
+                "url": "https://files.pythonhosted.org/packages/fc/9f/8d3a1837c9efd5923218fb55992199c7c027c22c6337ba3826941467119b/pyasx-1.1.0.tar.gz"
+            }
+        ],
+        "2.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0a14b468666cf06184cefe90a95faeeb",
+                    "sha256": "4d970cc41e0baf26435b0187662d0289b9b5959d806108099de39f1d5cf7637b"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0a14b468666cf06184cefe90a95faeeb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10573,
+                "upload_time": "2018-05-01T12:47:15",
+                "url": "https://files.pythonhosted.org/packages/16/60/992175a343bd1bbeb5e0f858e615f6f50f7194107fc6f22789777d809e0e/pyasx-2.0.0.tar.gz"
+            }
+        ],
+        "2.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f42698103e4a49e074d94ab6eaf07261",
+                    "sha256": "46d2b76b71341d4a1e3b6d88d3635f6a1b5faf0441a148e08084176bc7470033"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f42698103e4a49e074d94ab6eaf07261",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9628,
+                "upload_time": "2018-05-12T09:51:29",
+                "url": "https://files.pythonhosted.org/packages/0d/a6/c65b420f847c800b1666e5959312e50b39ab3236110316382b53c17516c8/pyasx-2.1.0.tar.gz"
+            }
+        ],
+        "2.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f99cd4ecde1bcebb3b47f860f96cb8da",
+                    "sha256": "dfe5bfb1a2712b860cb8ef41d3b94af8fde00b2ca180459b869f1641bbaccd08"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f99cd4ecde1bcebb3b47f860f96cb8da",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9669,
+                "upload_time": "2018-05-12T10:02:55",
+                "url": "https://files.pythonhosted.org/packages/9b/49/705a72f8f9ef5bc529e54178b1ec13f2bead0fddab1887d4a67d15c37cfd/pyasx-2.1.1.tar.gz"
+            }
+        ],
+        "2.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "435d006927e51d4b6cbc0dcd8483d6f2",
+                    "sha256": "b7094c601db15ad0585fcdb07d409c92df5ba2db0089d7f1760aaf5907854a5e"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.2-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "435d006927e51d4b6cbc0dcd8483d6f2",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": ">=2.6",
+                "size": 18916,
+                "upload_time": "2018-10-05T11:04:24",
+                "url": "https://files.pythonhosted.org/packages/d1/12/be8914de6304befe27812fc8d36c8213a3864bc5b15a83e8d27189eaca1c/pyasx-2.1.2-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e2921265372925ea3af02b2b78298af",
+                    "sha256": "29f30dd0320c7561b0f78a5bc2789b1c749382d0b83c2a0bb95e8cb88d6d91b6"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3e2921265372925ea3af02b2b78298af",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 9552,
+                "upload_time": "2018-10-05T11:04:26",
+                "url": "https://files.pythonhosted.org/packages/de/4b/8193ab9d65be9d423cb52c1d57f78cc6aabd786453d7261e9fe61353e186/pyasx-2.1.2.tar.gz"
+            }
+        ],
+        "2.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "de0dc5423dca131113b6f028d21619f5",
+                    "sha256": "379d96f2059bcb1e7f56c7743f48f9f3b82f970db98a8b93761b84353d16e398"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.3-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "de0dc5423dca131113b6f028d21619f5",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": ">=2.6",
+                "size": 18934,
+                "upload_time": "2018-10-05T11:07:50",
+                "url": "https://files.pythonhosted.org/packages/c8/6d/b7e3c5ba4333eeee49e89c924f8df839a8c49e815ac28e4db2f1d77a9e5b/pyasx-2.1.3-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "193c6e743e9012684b3cbe3f0fc78e52",
+                    "sha256": "c0f6f73a96d863f327940bf430a87885b5814ba588445b9d9662a44c8677c1a9"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "193c6e743e9012684b3cbe3f0fc78e52",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 9513,
+                "upload_time": "2018-10-05T11:07:52",
+                "url": "https://files.pythonhosted.org/packages/e7/6b/da938043e6177fbedf093eb04c8464514cd333ef81d38828cc65f9fa879d/pyasx-2.1.3.tar.gz"
+            }
+        ],
+        "2.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "03d5de9f8824cdfcfa420529abb7c221",
+                    "sha256": "1bb0416713e5aef5d34555f781a1642271bd90b03338662b270a9e4b32bf2202"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.4-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "03d5de9f8824cdfcfa420529abb7c221",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": ">=2.6",
+                "size": 18910,
+                "upload_time": "2018-10-05T11:09:13",
+                "url": "https://files.pythonhosted.org/packages/bb/d4/02955c2d5d013969fef642a5ea7180624c48ab5ef5680be4aa1e8bcd266e/pyasx-2.1.4-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1835a35157fe082345e87edc7213544c",
+                    "sha256": "32b3e103fe6042d922bd1133c21cee6b4d2688fe35a76cb9f5beb27bf4e49d0b"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1835a35157fe082345e87edc7213544c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 9475,
+                "upload_time": "2018-10-05T11:09:14",
+                "url": "https://files.pythonhosted.org/packages/79/22/7f2afee4af588c2a547e8468e12cb6723acbaf21f290bc1bdcb604144592/pyasx-2.1.4.tar.gz"
+            }
+        ],
+        "2.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0300a7f3860a47aa0168c4c685230dea",
+                    "sha256": "f768fac6cbbef71e05d23486ca6782338f22ac9765500110ec8746bd855967da"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.5-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "0300a7f3860a47aa0168c4c685230dea",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": ">=2.6",
+                "size": 18908,
+                "upload_time": "2018-10-05T11:14:21",
+                "url": "https://files.pythonhosted.org/packages/8c/5e/51d298d3515a25b6babd996b5a831e0273773802f287281ccbacc140a08a/pyasx-2.1.5-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e81e663120b31738afd812d3bb6f557b",
+                    "sha256": "29ca05a67ccc0b873480e2555e8ba88430f4afe4d792717ad80b9ba71d07ba11"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e81e663120b31738afd812d3bb6f557b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 9541,
+                "upload_time": "2018-10-05T11:14:23",
+                "url": "https://files.pythonhosted.org/packages/57/53/2c00df0f9effab8c5590a5f18235f1c7e3cf7ac071ffe83b8ffb9e3782dc/pyasx-2.1.5.tar.gz"
+            }
+        ],
+        "2.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1276aa24f7dceafe4f31b9f91dc86717",
+                    "sha256": "ad202016982b121be59e6a955f2e8d5372ad143fcebe56089d4a6bd395afefc5"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1276aa24f7dceafe4f31b9f91dc86717",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 9307,
+                "upload_time": "2019-03-10T00:57:51",
+                "url": "https://files.pythonhosted.org/packages/e3/a7/8c75534e4eaede9873be6c2be488b55c03e458c1b3787f33a2259b8a215d/pyasx-2.1.6.tar.gz"
+            }
+        ],
+        "2.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "50252e6cbbb2d2125eeed62d14c405f1",
+                    "sha256": "232b57ca52008a3f4c78eaedeb36b0e88699a2091aff24a43f98653844c8c62f"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "50252e6cbbb2d2125eeed62d14c405f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 9650,
+                "upload_time": "2019-03-10T01:07:25",
+                "url": "https://files.pythonhosted.org/packages/bd/80/2bfab654d871b6aa21b73072239088e00c70a8c41ae920829fc44eff32fd/pyasx-2.1.7.tar.gz"
+            }
+        ],
+        "2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "591431707a3b88fa909467f93a3d4fa4",
+                    "sha256": "688fbacf7f42d166d6d9467766a5f9066938797623701bc08a163915f1caaafb"
+                },
+                "downloads": -1,
+                "filename": "pyasx-2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "591431707a3b88fa909467f93a3d4fa4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 9913,
+                "upload_time": "2019-04-19T01:27:19",
+                "url": "https://files.pythonhosted.org/packages/e3/78/2e09d91ad7ecb1c30ca8e4be27763f01790a7075faff38061b90be0d7456/pyasx-2.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "591431707a3b88fa909467f93a3d4fa4",
+                "sha256": "688fbacf7f42d166d6d9467766a5f9066938797623701bc08a163915f1caaafb"
+            },
+            "downloads": -1,
+            "filename": "pyasx-2.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "591431707a3b88fa909467f93a3d4fa4",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=2.6",
+            "size": 9913,
+            "upload_time": "2019-04-19T01:27:19",
+            "url": "https://files.pythonhosted.org/packages/e3/78/2e09d91ad7ecb1c30ca8e4be27763f01790a7075faff38061b90be0d7456/pyasx-2.2.tar.gz"
+        }
+    ]
+}

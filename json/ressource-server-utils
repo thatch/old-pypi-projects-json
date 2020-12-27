@@ -1,0 +1,83 @@
+{
+    "info": {
+        "author": "Jean Ribes",
+        "author_email": "jean@ribes.me",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Intended Audience :: Developers",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Internet :: WWW/HTTP :: Dynamic Content"
+        ],
+        "description": "# Ressource Server Utilities\n\nIf you've read RFCs on OAuth or (more likely) the **django-oauth-toolkit** docs, you know that a *Ressource Server* sorts\nof delegates user authentication to the *Authorization Server*.\n\nBut the current implementation in *Django OAuth Toolkit* only copies the username from the *Authorization Server* in its\ndatabase. This implies that all users have no special permissions, i.e. you lose administrator rights when you access\nthe *Ressource Server* !\n\nThe class FullUserOAuthBackend aims to fix this by fetching the full user model from the *Authorization Server* after\nyou've accessed the *Ressource Server*.\n\n## Installation\n`pip install ressource-server-utils`\n\n## Setup\n### Authorization Server\nYou need to create an endpoint that exposes user data in a json manner (or further override my methods), the easiest being\na DjangoRestFramework ModelViewset.\nThe current implementation uses the user's Authorization token as `lookup_field`.\n``` example code\nclass UserViewSet(viewset.ReadOnlyModelViewSet):\n    queryset = User.objects.all()\n    serializer_class = UserSerializer\n    permission_classes = [ServerServerPermission]\n    def get_object(self):\n        return  AccessToken.objects.get(token=self.kwargs.get('pk')).user\n```\n> pro tip: you should exclude the password from the serializer, because its confidential even if salted,\nand furthermore its useability probably depends on the `SECRET_KEY`\n\n### Ressource Server\nSubclass `ressource_server_utils.backend.FullUserOAuthBackend` and override the following :\n* property fetch_url : a string that describes your *Authorization Server*'s endpoint to get User data e.g. http://auth.srv/user/{}/\n* property UserSerializer : a DjangoRestFramework Serializer that defines how to parse your *Authorization Server*'s response\n\nOptionnal:\n* method get_auth_token()\n* method refresh_auth_token()",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "BSD License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ressource-server-utils",
+        "package_url": "https://pypi.org/project/ressource-server-utils/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ressource-server-utils/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/ressource-server-utils/0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Various Django snippets to better integrate a Ressource Server with an Authorization Server",
+        "version": "0.1"
+    },
+    "last_serial": 4126180,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "695a5b119fff82cbcd817b566d74f7ba",
+                    "sha256": "5c0b67d773e5e0c3a080fbb9791bb9b22edcfcce4e77738673d33518feeff845"
+                },
+                "downloads": -1,
+                "filename": "ressource-server-utils-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "695a5b119fff82cbcd817b566d74f7ba",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3712,
+                "upload_time": "2018-08-01T20:54:31",
+                "url": "https://files.pythonhosted.org/packages/43/8d/47ce0b423f1c42b8ceeba0de4cb151f77565342b239b290608045fa02101/ressource-server-utils-0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "695a5b119fff82cbcd817b566d74f7ba",
+                "sha256": "5c0b67d773e5e0c3a080fbb9791bb9b22edcfcce4e77738673d33518feeff845"
+            },
+            "downloads": -1,
+            "filename": "ressource-server-utils-0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "695a5b119fff82cbcd817b566d74f7ba",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 3712,
+            "upload_time": "2018-08-01T20:54:31",
+            "url": "https://files.pythonhosted.org/packages/43/8d/47ce0b423f1c42b8ceeba0de4cb151f77565342b239b290608045fa02101/ressource-server-utils-0.1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,121 @@
+{
+    "info": {
+        "author": "Guillaume Bernard",
+        "author_email": "contact@guillaume-bernard.fr",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Framework :: Django :: 2.1",
+            "Intended Audience :: Developers",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Internet :: WWW/HTTP :: Dynamic Content"
+        ],
+        "description": "# Accounts\n\n**Accounts** is a simple Django application I developped to manage accounts. It mainly overrides default templates based on **Django Authentication**. It also provides a **custom auth user model**.\n\nDetailed documentation is in the `docs` directory.\n\n* [Installation](#installation)\n* [Quick start](#quick-start)\n  * [Use the demo server](#use-the-demo-server)\n  * [Use your own server](#use-your-own-server)\n* [In templates](#in-templates)\n  * [Override base template](#override-base-template)\n  * [Use the navbar dropdown menu](#use-the-navbar-dropdown-menu)\n* [Use the custom user model](#use-the-custom-user-model)\n\n# Installation\n\n`django-gaccounts` is available on PyPi, under the name of [django-gaccounts](https://pypi.org/project/django-gaccounts/). You can install it using the following command:\n\n```bash\npip install django-gaccounts\n```\n\n# Quick start\n\n## Use the demo server\n\nWe provide a *demo server* in the `accounts/demo` directory. It makes it easier to test the application without loosing time to configure Django.\n\n1. Create a Python virtual environment: `python3 -m venv ./venv`.\n2. Activate virtual environment: `source ./venv/bin/activate`.\n3. Install the application requirements: `pip install -r requirements.txt`.\n4. Go to the directory: `cd accounts/demo`.\n5. Create the database and apply migrations: `./manage.py migrate`.\n6. Create a super user: `./manage.py createsuperuser --username root --email root@localhost`\n7. Start the server: `./manage.py runserver 5000`.\n\nOr, all in one:\n```bash\ngit clone https://code.guillaume-bernard.fr/guilieb/django-gaccounts.git\ncd django-gaccounts\npython3 -m venv ./venv\nsource ./venv/bin/activate\npip install -r requirements.txt\ncd accuonts/demo\n./manage.py migrate\n./manage.py createsuperuser --username root --email root@localhost\n./manage.py runserver 5000\n```\n\n## Use your own server\n\n* Add \"**accounts**\" and \"**django.contrib.auth**\" to your `INSTALLED_APPS` setting like this:\n```python\nINSTALLED_APPS = [\n    'accounts',\n    'django.contrib.auth',\n    ...\n]\n```\nThe order is important because we want to **override** default templates.\n\n* Update a few things in your `settings.py` file:\n\n```python\nAUTH_USER_MODEL = 'accounts.Person'\n\nLOGIN_URL = 'login'\nLOGIN_REDIRECT_URL = 'home'\nLOGOUT_REDIRECT_URL = 'home'\n```\n\n* Include the **accounts** and **auth** URLconf in your project `urls.py` like this::\n\n```python\nfrom django.urls import path, include\n\npath('accounts/', include('accounts.urls', namespace='accounts')),\npath('accounts/', include('django.contrib.auth.urls')),\n```\n\n* Run `python manage.py migrate` to create the models.\n\n* Start the development server and visit http://127.0.0.1:8000/admin/\n   to manage accounts (you'll need the Admin app enabled).\n\n* Visit http://127.0.0.1:8000/accounts/ to access the application.\n\n# In templates\n\n## Override base template\n\nAll templates extend the default base `accounts/base.html` template. You can override it by adding your own in your application `templates` directory.\n\nBelow is an **example template**\u00a0:\n```html\n{% extends 'base.html' %}\n{% load i18n %}\n{% load static %}\n\n{% block title %}{{ title }}{% endblock %}\n\n{% block extra_head %}{{ block.super }}\n    <link rel=\"shortcut icon\" href=\"{% static 'accounts/images/favicon.png' %}\" type=\"image/x-icon\">\n    <link rel=\"stylesheet\" href=\"{% static 'accounts/style.css' %}\"/>\n    <script defer src=\"{% static 'accounts/fonts/fontawesome.js' %}\"></script>\n{% endblock %}\n\n{% block content %}\n    {% include \"accounts/partials/messages.html\" %}\n    {% block accounts_content %}{% endblock %}\n{% endblock %}\n```\n\nWhat you have to define is obvisouly the `content` block, which should include the `accounts_content` block. It will display `accounts` views and templates. Feel free to add any custom CSS class to enhance the placement of your `accounts_content` block. \n\nAs you may notice, we provide something to display your messages but it\u2019s not included in the block to let you choose were to display them.\n\nYou\u2019re encouraged to keep the `extra_head` and `title` blocks as given in the example.\n\n## Use the navbar dropdown menu\n\nIf you use **Bootstrap 4** in your server, with a `navbar`, you should consider including the template `accounts/partials/navbar-dropdown.html` to your `base.html` template. It provides a good way for a user to access its own profile. It is often placed on the right of your navbar.\n\n```djangotemplate\n<header>\n    <nav class=\"navbar navbar-expand-lg navbar-expand-md navbar-dark bg-dark\">\n         <ul class=\"navbar-nav ml-auto mt-lg-0\">\n            <li class=\"nav-item\">\n                {% include 'accounts/partials/navbar-dropdown.html' %}\n            </li>\n        </ul>\n    </nav>\n</header>\n```\n\n# Use the custom user model\n\nIf you correctly set the `AUTH_USER_MODEL` setting in your `settings.py` file, you can access it using the `get_user_model()` method from *Django*. For instance, in your `models.py` you can reference the user model like below.\n\n```python\nfrom django.db import models\nfrom django.contrib.auth import get_user_model\n\nclass Post(models.Model):\n    name = models.CharField()\n    content = models.TextField()\n    author = models.ForeignKey(\n        get_user_model(),\n        on_delete=models.CASCADE,\n        related_name=\"posts\",\n    )\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://code.guillaume-bernard.fr/guilieb/django-accounts",
+        "keywords": "",
+        "license": "GPLv3 License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django-gaccounts",
+        "package_url": "https://pypi.org/project/django-gaccounts/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-gaccounts/",
+        "project_urls": {
+            "Homepage": "https://code.guillaume-bernard.fr/guilieb/django-accounts"
+        },
+        "release_url": "https://pypi.org/project/django-gaccounts/0.1b1/",
+        "requires_dist": [
+            "django (>=2.1)"
+        ],
+        "requires_python": "",
+        "summary": "A simple Django app to manage accounts and details.",
+        "version": "0.1b1"
+    },
+    "last_serial": 5122629,
+    "releases": {
+        "0.1b1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "65386fcb609bcd5b86d7bb395d2825ed",
+                    "sha256": "c0699ef0e202efb20a684f6e92096723a71ef2ef5ba18ccfbd9c13ef5c8d4c7a"
+                },
+                "downloads": -1,
+                "filename": "django_gaccounts-0.1b1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "65386fcb609bcd5b86d7bb395d2825ed",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 479822,
+                "upload_time": "2019-04-10T07:32:13",
+                "url": "https://files.pythonhosted.org/packages/8d/d5/733d2a5862b19557da601c0b300271d0d22ceba601c83401530cd6f89b37/django_gaccounts-0.1b1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f06210e533a47722d271263c5148b516",
+                    "sha256": "a3c5910d88d6f82dedf32fc40362184b9b80571cede61c7e723a6f2d713a4f09"
+                },
+                "downloads": -1,
+                "filename": "django-gaccounts-0.1b1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f06210e533a47722d271263c5148b516",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 476840,
+                "upload_time": "2019-04-10T07:32:14",
+                "url": "https://files.pythonhosted.org/packages/79/61/fb03cf9d39fe0d2936e3a814fef75dd8d83ed624bf1a381f962eee3912e5/django-gaccounts-0.1b1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "65386fcb609bcd5b86d7bb395d2825ed",
+                "sha256": "c0699ef0e202efb20a684f6e92096723a71ef2ef5ba18ccfbd9c13ef5c8d4c7a"
+            },
+            "downloads": -1,
+            "filename": "django_gaccounts-0.1b1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "65386fcb609bcd5b86d7bb395d2825ed",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 479822,
+            "upload_time": "2019-04-10T07:32:13",
+            "url": "https://files.pythonhosted.org/packages/8d/d5/733d2a5862b19557da601c0b300271d0d22ceba601c83401530cd6f89b37/django_gaccounts-0.1b1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f06210e533a47722d271263c5148b516",
+                "sha256": "a3c5910d88d6f82dedf32fc40362184b9b80571cede61c7e723a6f2d713a4f09"
+            },
+            "downloads": -1,
+            "filename": "django-gaccounts-0.1b1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f06210e533a47722d271263c5148b516",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 476840,
+            "upload_time": "2019-04-10T07:32:14",
+            "url": "https://files.pythonhosted.org/packages/79/61/fb03cf9d39fe0d2936e3a814fef75dd8d83ed624bf1a381f962eee3912e5/django-gaccounts-0.1b1.tar.gz"
+        }
+    ]
+}

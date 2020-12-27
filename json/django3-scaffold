@@ -1,0 +1,122 @@
+{
+    "info": {
+        "author": "Tokyo Developers",
+        "author_email": "admin@tokyodevs.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Framework :: Django",
+            "Intended Audience :: Developers",
+            "Intended Audience :: System Administrators",
+            "Operating System :: OS Independent",
+            "Topic :: Software Development"
+        ],
+        "description": "=======================\ndjango-common-helpers\n=======================\n\nOverview\n---------\n\nDjango-common consists of the following things:\n\n\t- A middleware that makes sure your web-app runs either on or without 'www' in the domain.\n\n\t- A ``SessionManagerBase`` base class, that helps in keeping your session related  code object-oriented and clean! See session.py for usage details.\n\n\t- An ``EmailBackend`` for authenticating users based on their email, apart from username.\n\n\t- Some custom db fields that you can use in your models including a ``UniqueHashField`` and ``RandomHashField``.\n\n\t- Bunch of helpful functions in helper.py\n\n\t- A ``render_form_field`` template tag that makes rendering form fields easy and DRY.\n\n\t- A couple of dry response classes: ``JsonResponse`` and ``XMLResponse`` in the django_common.http that can be used in views that give json/xml responses.\n\n\nInstallation\n-------------\n\n- Install django_common (ideally in your virtualenv!) using pip or simply getting a copy of the code and putting it in a directory in your codebase.\n\n- Add ``django_common`` to your Django settings ``INSTALLED_APPS``::\n\n\tINSTALLED_APPS = [\n        # ...\n        \"django_common\",\n    ]\n\n- Add the following to your settings.py with appropriate values:\n\n\t- IS_DEV\n\t- IS_PROD\n\t- DOMAIN_NAME\n\t- WWW_ROOT\n\n- Add ``common_settings`` to your Django settings ``TEMPLATE_CONTEXT_PROCESSORS``::\n\n\tTEMPLATE_CONTEXT_PROCESSORS = [\n\t\t# ...\n\t\t\"common_settings\",\n\t]\n\n- Add ``EmailBackend`` to the Django settings ``AUTHENTICATION_BACKENDS``::\n\n\tAUTHENTICATION_BACKENDS = (\n\t\t'django_common.auth_backends.EmailBackend',\n\t\t'django.contrib.auth.backends.ModelBackend'\n\t)\n\n- Add ``WWWRedirectMiddleware`` if required to the list of middlewares::\n\n\tMIDDLEWARE_CLASSES = [\n\t\t# ...\n\t\t\"WWWRedirectMiddleware\",\n\t]\n\nScaffolding feature\n-------------------\n\n1. Installing\n\nTo get scaffold just download ``scaffold`` branch of django-common, add it to ``INSTALLED_APPS`` and set up ``SCAFFOLD_APPS_DIR`` in settings.\n\nDefault is set to main app directory. However if you use django_base_project you must set up this to ``SCAFFOLD_APPS_DIR = 'apps/'``.\n\n2. Run\n\nTo run scaffold type::\n\n    python manage.py scaffold APPNAME --model MODELNAME [fields]\n\nAPPNAME is app name. If app does not exists it will be created.\nMODELNAME is model name. Just enter model name that you want to create (for example: Blog, Topic, Post etc). It must be alphanumerical. Only one model per run is allowed!\n\n[fields] - list of the model fields.\n\n3. Field types\n\nAvailable fields::\n\n    char - CharField\n    text - TextField\n    int - IntegerFIeld\n    decimal -DecimalField\n    datetime - DateTimeField\n    foreign - ForeignKey\n\nAll fields requires name that is provided after ``:`` sign, for example::\n\n    char:title  text:body int:posts datetime:create_date\n\nTwo fields ``foreign`` and ``decimal`` requires additional parameters:\n\n- \"foreign\" as third argument takes foreignkey model, example::\n\n    foreign:blog:Blog, foreign:post:Post, foreign:added_by:User\n\nNOTICE: All foreign key models must alread exist in project. User and Group model are imported automatically.\n\n- decimal field requires two more arguments ``max_digits`` and ``decimal_places``, example::\n\n    decimal:total_cost:10:2\n\nNOTICE: To all models scaffold automatically adds two fields: update_date and create_date.\n\n4. How it works?\n\nScaffold creates models, views (CRUD), forms, templates, admin, urls and basic tests (CRUD). Scaffold templates are using two blocks extending from base.html::\n\n    {% extends \"base.html\" %}\n    {% block page-title %} {% endblock %}\n    {% block conent %} {% endblock %}\n\nSo be sure you have your base.html set up properly.\n\nScaffolding example usage\n-------------------------\n\nLet's create very simple ``forum`` app. We need ``Forum``, ``Topic`` and ``Post`` model.\n\n- Forum model\n\nForum model needs just one field ``name``::\n\n    python manage.py scaffold forum --model Forum char:name\n\n- Topic model\n\nTopics are created by site users so we need: ``created_by``, ``title`` and ``Forum`` foreign key (``update_date`` and ``create_date`` are always added to models)::\n\n    python manage.py scaffold forum --model Topic foreign:created_by:User char:title foreign:forum:Forum\n\n- Post model\n\nLast one are Posts. Posts are related to Topics. Here we need: ``title``, ``body``, ``created_by`` and foreign key to ``Topic``::\n\n    python manage.py scaffold forum --model Post char:title text:body foreign:created_by:User foreign:topic:Topic\n\nAll data should be in place!\n\nNow you must add ``forum`` app to ``INSTALLED_APPS`` and include app in ``urls.py`` file by adding into urlpatterns::\n\n    urlpatterns = patterns('',\n        ...\n        url(r'', include('forum.urls')),\n\n    )\n\nNow syncdb new app and you are ready to go::\n\n   python manage.py migrate --run-syncdb\n   python manage.py makemigrations\n   python manage.py migrate\n\n\nRun your server::\n\n    python manage.py runserver\n\nAnd go to forum main page::\n\n    http://localhost:8000/forum/\n\nAll structure are in place. Now you can personalize models, templates and urls.\n\nAt the end you can test new app by runing test::\n\n    python manage.py test forum\n\n    Creating test database for alias 'default'...\n    .......\n    ----------------------------------------------------------------------\n    Ran 7 tests in 0.884s\n\n    OK\n\nHappy scaffolding!\n\nThis open-source app is brought to you by Tokyo Developers, Inc. ( http://tokyodevs.com/ )\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/tokyodevs/django3-scaffold",
+        "keywords": "django",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django3-scaffold",
+        "package_url": "https://pypi.org/project/django3-scaffold/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django3-scaffold/",
+        "project_urls": {
+            "Homepage": "https://github.com/tokyodevs/django3-scaffold"
+        },
+        "release_url": "https://pypi.org/project/django3-scaffold/0.5.1/",
+        "requires_dist": [
+            "Django (>=3.0)",
+            "South (>=0.7.2)"
+        ],
+        "requires_python": "",
+        "summary": "Faster Development For Django 3 Projects",
+        "version": "0.5.1"
+    },
+    "last_serial": 6628382,
+    "releases": {
+        "0.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5351e21de48d2c3af7fe43b0122d5b16",
+                    "sha256": "fd4fa6a762b96f87b4a27f6c90315f19e1f30bb95576297db4343f809abe96e8"
+                },
+                "downloads": -1,
+                "filename": "django3_scaffold-0.5.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5351e21de48d2c3af7fe43b0122d5b16",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 25703,
+                "upload_time": "2020-02-14T05:37:42",
+                "upload_time_iso_8601": "2020-02-14T05:37:42.807897Z",
+                "url": "https://files.pythonhosted.org/packages/ad/5c/67893afa08506921cd17a2d74b1173ce08fc3196edc21366202ab9a3cc6a/django3_scaffold-0.5.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "697f30aadc27c6553bcade3f4cbcdd9d",
+                    "sha256": "3369f3a87da7ad63d0117a2a4d28a7c94f9d82d85329bdbcee507d6f518ca4fd"
+                },
+                "downloads": -1,
+                "filename": "django3-scaffold-0.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "697f30aadc27c6553bcade3f4cbcdd9d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20265,
+                "upload_time": "2020-02-14T05:37:46",
+                "upload_time_iso_8601": "2020-02-14T05:37:46.103553Z",
+                "url": "https://files.pythonhosted.org/packages/63/20/42f9b566e968a85ab55e6154a8a18ce0dcfa02a69d07db5daa044ea11d8a/django3-scaffold-0.5.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5351e21de48d2c3af7fe43b0122d5b16",
+                "sha256": "fd4fa6a762b96f87b4a27f6c90315f19e1f30bb95576297db4343f809abe96e8"
+            },
+            "downloads": -1,
+            "filename": "django3_scaffold-0.5.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "5351e21de48d2c3af7fe43b0122d5b16",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 25703,
+            "upload_time": "2020-02-14T05:37:42",
+            "upload_time_iso_8601": "2020-02-14T05:37:42.807897Z",
+            "url": "https://files.pythonhosted.org/packages/ad/5c/67893afa08506921cd17a2d74b1173ce08fc3196edc21366202ab9a3cc6a/django3_scaffold-0.5.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "697f30aadc27c6553bcade3f4cbcdd9d",
+                "sha256": "3369f3a87da7ad63d0117a2a4d28a7c94f9d82d85329bdbcee507d6f518ca4fd"
+            },
+            "downloads": -1,
+            "filename": "django3-scaffold-0.5.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "697f30aadc27c6553bcade3f4cbcdd9d",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 20265,
+            "upload_time": "2020-02-14T05:37:46",
+            "upload_time_iso_8601": "2020-02-14T05:37:46.103553Z",
+            "url": "https://files.pythonhosted.org/packages/63/20/42f9b566e968a85ab55e6154a8a18ce0dcfa02a69d07db5daa044ea11d8a/django3-scaffold-0.5.1.tar.gz"
+        }
+    ]
+}

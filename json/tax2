@@ -1,0 +1,159 @@
+{
+    "info": {
+        "author": "Juliane Schmachtenberg",
+        "author_email": "jule-schmachtenberg@web.de",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# tax2peptide\n\ntax2Peptide creates based on the given taxon IDs and a reference database a taxon specific database in fasta format. This taxon specific database contains according to the selected options all fasta entries of:\n* **the given taxon IDs and their descendant taxon IDs in the phylogenetic tree**\n* **the given taxon IDs (option --no_descendants)** \n* **the given taxon IDs adapted to specified level up in the phylogenetic tree and their descendant taxon IDs (option --level)**\n* **the given taxon IDs and their descendant taxon IDs in the phylogenetic tree until level species, taxonIDs with lower level are not included (option --species)**\n\nDatabases from which the matching entries are read out are the NCBI non-redundant peptide database, swissprot, uniprot or trembl database. Also user-defined databases are possible as long as the header of the database contains taxonIDs in form of \"OX=NUMBER\" or contains NCBI/uniprot accession numbers.\nUsing uncompressed databases would speed up the program considerably.\n\n## Getting Started\n\nTax2Peptide is a python3 command line tool. It can be installed as pypi-package or as conda-package.\n\n### Prerequisites\n\nPython3\n\nneeded packages: tqdm, biopython, wget\n```\npip install tqdm, biopython, wget\n```\n\n### Installing\n\npip install tax2peptide\n\n\n## Deployment\n\nTax2Peptide is a command line tool and starts with: \n```\npython3 path/to/tax2peptide -options\n```\n\n### Options:\n-i\t--input   TaxID input file: tabular file containing a column of NCBI taxon IDs. Columns tab separated.\n\n-c\t--column   The column (zero-based) in the tabular file that contains Taxon IDs. Default = 0.\n\n-t\t--taxon   NCBI taxon ID/s for database extraction. Multiple taxonIDs seperated by space.\n\n-d\t--database   Database choice for analysis or for download. Choices: ncbi, uniprot, tremble, swissprot.\n\n-p\t--path   Path to folder with all needed databases: taxdump.tar.gz (for all databases), prot.accession2taxid or prot.accession2taxid.gz and pdb.accession2taxid.gz (for ncbi databases). Optional: peptide_database named: nr/nr.gz or uniprot_trembl.fasta/uniprot_trembl.fasta.gz or uniprot_sprot.fasta/uniprot_sprot.fasta.gz or uniprot.fasta./uniprot.fasta.gz\n\n-o\t--out   File name and direction of the result taxon specified peptide database. Default = /taxon_specified_db_DATE/taxon_database.fasta\n\n-n\t--dbname   Database name and direction. If database is in other folder than --path or have a different name.\n\n-l\t--level   Hierarchy level up in anchestral tree. Choices: species, section, genus, tribe, subfamily, family, superfamily, order, superorder, class, phylum, kingdom, superkingdom\n\n-r\t--non_redundant   Make the final database non redundant in regard to sequences, headers are concatenated.\n\n-z\t--no_descendants   Select peptide database only by given taxon IDs, descendant taxons are excluded.\n\n-s\t--species   Select peptide database only until taxonomic level \"species\", descendants from species are excluded.\n\n-u \t--threads   Number of threads for using multiprocessing. Default = number of cores.\n\n### Dependencies:\nNeeded databases for NCBI reference database: \n* **protaccession2tax.gz / protaccession2tax**\n* **pdbaccession2tax.gz**\n* **taxdump.tar.gz**\n* **nr.gz / nr**\n\nNeeded databases for uniprot/swissprot/trembl reference database: \n* **taxdump.tar.gz**\n* **uniprot.fasta.gz / uniprot.fasta / uniprot_sprot.fasta.gz / uniprot_sprot.fasta / uniprot_trembl.fasta.gz / uniprot_trembl.fasta**\n\nAll database files should be downloaded the same day and stored in the same folder.\n\n#### Databases\nAll should be downloaded at the same date as the peptide database to ensure successful accession matching.\nThe database can be downloaded manually or downloaded by Tax2Peptide with option --database {ncbi, uniprot, trembl, swissprot}, file integrity would be md5-checked.\n\n\n| database name       | description                                                         |source | adress\n| ------------------- |---------------------------------------------------------------------|-------| --------------------------------------------------------------------------------------------------------------------|\n| NCBI                | non redundant peptide database                                      |NCBI   | ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz                                                                     |\n| Swissprot           | curated peptide database                                            |Uniprot| ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz           |\n| Trembl              | peptide database                                                    |Uniprot| ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.fasta.gz          |\n| Uniprot             | concatenated swissprot and trembl database                          |Uniprot|                                                                                                                     |\n| prot.accession2taxid|contain links between accession IDs and taxonomic lineage (taxon IDs)|NCBI   | ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz                                           |\n| pdb.accession2taxid |contain links between accession IDs and taxonomic lineage (taxon IDs)|NCBI   | ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/pdb.accession2taxid.gz                                            |\n| taxdump             |tar-gz-compressed taxdump file containing information about the phylogenetic lineage and links between taxIDs and scientific names etc.|NCBI   |ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz            |\n\n#### Usage with download: \nAll needed databases will be downloaded to specified path (option --path). If not specified a folder with name databases_DATE will be used as default.\n\nExamples of usage:\n```\ntax2peptide.py -d uniprot -i path/to/input/taxon_ID_file  -> new Folder databases_DATE with: taxdump.tar.gz, uniprot.fasta\n```\n```\ntax2peptide.py -i path/to/input/taxon_ID_file  -> new Folder databases_DATE with: taxdump.tar.gz, uniprot.fasta\n```\n```\ntax2peptide.py -d ncbi -p path/to/my_new_databases -i path/to/input/taxon_ID_file  -> new Folder/used Folder my_new_databases with: protaccession2tax.gz, pdbaccession2tax.gz, taxdump.tar.gz, nr.gz\n```\n#### Usage if all database files are already downloaded:\n- option --path determines folder with all needed databases\n(optional --dbname\n\n- at least one taxon ID or taxon ID input file must be provided\nPath will be checked for all required database files and missing databases will be downloaded\nExamples of usage:\n```\ntax2peptide.py -p path/to/folder -n path/to/reference_database -t 11111 22222 -o path/my_taxon_specified_database.fasta\n```\n```\ntax2peptide.py -p path/to/folder -n path/ to/ uniprot.fasta -t 11111 22222 -i path/to/input\n```\n```\ntax2peptide.py -d ncbi -p path/to/folder -i path/to/input\n```\n```\ntax2peptide.py -d uniprot -p path/to/folder -i path/to/input -o path/to/user_specified_db.fasta\n```\nIf path is once determined, it must not be specified again, as long as the same folder shell be used.\n\n\n## Authors\n\n* **Juliane Schmachtenberg** \n\n[project_on_github](https://github.com/jschmacht/tax2peptide)\n\n## License\n\nThis project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jschmacht/tax2peptide",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "tax2",
+        "package_url": "https://pypi.org/project/tax2/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/tax2/",
+        "project_urls": {
+            "Homepage": "https://github.com/jschmacht/tax2peptide"
+        },
+        "release_url": "https://pypi.org/project/tax2/0.0.2/",
+        "requires_dist": [
+            "biopython",
+            "tqdm",
+            "wget"
+        ],
+        "requires_python": "~=3.6",
+        "summary": "tax2peptide creates based on given taxon IDs and a reference database a taxon specific database in fasta format.",
+        "version": "0.0.2"
+    },
+    "last_serial": 6077175,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9014baf2eb151d7fd4cad00ce4329c7e",
+                    "sha256": "ea71b5f9aaca0d2bed5c57ad58ed6b7e3a3957c31c6227d9a053d5c3fddbb2e0"
+                },
+                "downloads": -1,
+                "filename": "tax2-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9014baf2eb151d7fd4cad00ce4329c7e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.6",
+                "size": 22141,
+                "upload_time": "2019-11-04T15:04:44",
+                "upload_time_iso_8601": "2019-11-04T15:04:44.511985Z",
+                "url": "https://files.pythonhosted.org/packages/7f/7b/81264ffe0f266e6438b5fb51a70b4c53791bf2313512974874bbe58a340f/tax2-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e71ec616ffa27aba1ad0a8363d62789a",
+                    "sha256": "a1a583d5fe434b580c3cf8b73611ff7935844a3ce9eba7ce045bc53c72925af8"
+                },
+                "downloads": -1,
+                "filename": "tax2-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e71ec616ffa27aba1ad0a8363d62789a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": "~=3.6",
+                "size": 19893,
+                "upload_time": "2019-11-04T15:04:46",
+                "upload_time_iso_8601": "2019-11-04T15:04:46.712270Z",
+                "url": "https://files.pythonhosted.org/packages/b9/40/26cb2209f636ea26144a06d939e0a86a97c65d7cd87118de0a77d58716a8/tax2-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2fa46fd0abee1a2663050c9ebdc93489",
+                    "sha256": "cbc9beebc7dc228babb4f5447c4c86b9fc6747942c4f594c5adc48f88776957c"
+                },
+                "downloads": -1,
+                "filename": "tax2-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2fa46fd0abee1a2663050c9ebdc93489",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.6",
+                "size": 22132,
+                "upload_time": "2019-11-04T19:37:08",
+                "upload_time_iso_8601": "2019-11-04T19:37:08.846148Z",
+                "url": "https://files.pythonhosted.org/packages/b5/61/226060e62933d2988cedd75864dbe3478e50576757092e35535ebeb1eb6a/tax2-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "44cb081f353c5ba08c288e1ed5fb6165",
+                    "sha256": "7ba7f09bcd87c14ac505087cd6e087306f3d2971b7120264f11ac0cb08339c3e"
+                },
+                "downloads": -1,
+                "filename": "tax2-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "44cb081f353c5ba08c288e1ed5fb6165",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": "~=3.6",
+                "size": 19912,
+                "upload_time": "2019-11-04T19:37:10",
+                "upload_time_iso_8601": "2019-11-04T19:37:10.503107Z",
+                "url": "https://files.pythonhosted.org/packages/e6/03/cabff2153c6f5d3b3fe75939346a514524f251dad771825bc387c15898d4/tax2-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2fa46fd0abee1a2663050c9ebdc93489",
+                "sha256": "cbc9beebc7dc228babb4f5447c4c86b9fc6747942c4f594c5adc48f88776957c"
+            },
+            "downloads": -1,
+            "filename": "tax2-0.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2fa46fd0abee1a2663050c9ebdc93489",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": "~=3.6",
+            "size": 22132,
+            "upload_time": "2019-11-04T19:37:08",
+            "upload_time_iso_8601": "2019-11-04T19:37:08.846148Z",
+            "url": "https://files.pythonhosted.org/packages/b5/61/226060e62933d2988cedd75864dbe3478e50576757092e35535ebeb1eb6a/tax2-0.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "44cb081f353c5ba08c288e1ed5fb6165",
+                "sha256": "7ba7f09bcd87c14ac505087cd6e087306f3d2971b7120264f11ac0cb08339c3e"
+            },
+            "downloads": -1,
+            "filename": "tax2-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "44cb081f353c5ba08c288e1ed5fb6165",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": "~=3.6",
+            "size": 19912,
+            "upload_time": "2019-11-04T19:37:10",
+            "upload_time_iso_8601": "2019-11-04T19:37:10.503107Z",
+            "url": "https://files.pythonhosted.org/packages/e6/03/cabff2153c6f5d3b3fe75939346a514524f251dad771825bc387c15898d4/tax2-0.0.2.tar.gz"
+        }
+    ]
+}

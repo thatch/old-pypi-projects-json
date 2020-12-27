@@ -1,0 +1,128 @@
+{
+    "info": {
+        "author": "",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development :: Build Tools"
+        ],
+        "description": "# SwagmanMock\n\nA postman to swagger conversion tool, which automatically\n\n- Converts your postman collection to OpeanAPI Spec (3.0.0)\n- Mocks your openapi collection to generate responses from postman examples\n\nOther than these, this tool can easily handle ignored fields in responses (exaplined below)\n\n## Installation\n\n**NOTE** This repo needs you to have python 3.5+ installed\n\nAs of now, I haven't pushed this tool to pipy repo yet. Hence, its clone only for now.\n\n### PIP\n\n```sh\npip install swagmanmock\n```\n\n### Manual\nTo install, simple clone this repo\n\n```sh\ngit clone https://github.com/codeasashu/swagmanmock.git\n```\n\nand install\n\n```sh\npython setup.py install\n```\n\n## Quick Start\n\nThis tool can be used as a python package or as a standalone cli.\n\nTo start, simply type `swagmanmock --help` and it will display help\n\n```sh\nUsage: swagmanmock [OPTIONS] COMMAND [ARGS]...\n\n  Convert or mock your postman collection to openapi schema\n\nOptions:\n  --help  Show this message and exit.\n\nCommands:\n  convert\n  mock\n```\n\n### Convert postman to openapi (swagger) spec\n\nEasy!! Just use `convert` command (default output is yaml)\n\n```sh\nswagmanmock convert postman-collection.json spec.yaml\n```\n\nOr, you can output to json by\n\n```sh\nswagmanmock convert -f json postman-collection.json spec.yaml\n```\n\n### Mocking spec\n\nI am using the some cherry on top of the awesome project [Connexion](https://github.com/zalando/connexion)\n\nBasically, I am using postman example as mock responses, given the request has matching parameters (query, headers etc.). Even if they do not match, this tool gives out the mock responses for provided schema.\n\n```sh\nswagmanmock mock spec.yaml\n```\n\n### Ignore schema\n\nSometimes, your api responses have some data which varies. For instance, consider this response for the api `POST /user`:\n\n```json\n{\n    \"result\": {\n        \"timestamp\": 1572696732,\n        \"username\": \"abc\",\n        \"tags\": {\n            \"tag1\" : \"something\",\n            \"tag3\": \"somethig else\"\n        },\n        \"some-changing-key\": \"whatever\"\n    }\n}\n```\n\nYou do want to record the `username`, `timestamp` fields, but what about `some-changing-key` field? What about fields inside `tags`? You want to keep the `tags` key as it will always be included in response, but do not want to keep `some-changing-key` as it may or maynot appear in responses.\n\n**Sometimes you may want to ignore only the values of a key, while sometimes you want the key value pair to be ignored alltogether**\n\nFor such cases, you may not want to document them. For such purpose, **Ignore file** is used.\n\nIn ignore file, you can document the fields you want the swagman to ignore. It uses the [jsonpath-rw](https://pypi.org/project/jsonpath-rw/) library and uses its syntax (which is quite easy to learn).\n\n**To ignore only values but keep the keys**, simple use the `jsonpath-rw` syntax that points to the key. For ex- `$.result.tags.[*]` will find everything inside `tags` field in `result` object.\n\n**To ignore both key and values**, simply use the above method, i.e. write your `jsonpath-rw` regex that matches the path, and *append* `:a` to it. For example, if you want to delete everything inside tag *including* tag field itself, you can do so by: `$.result.tags.[*]:a`\n\n\nTaking above example, you want to ignore following fields:\n\n- everything inside `tags` (ignore value but NOT the key `tags`)\n- `some-changing-key` field (ignore both key and value)\n\nYou can define them in a file `ignore.yaml` as such:\n\n```yaml\nschema:\n   /user:\n     post:\n       200:\n         - '$.result.tags.[*]' //Ignore everything inside tags field\n         - '$.result.some-changing-key:a' //Ignore 'some-changing-key'. Note the leading :a \n```\n\nand then you can convert your postman collection to swagger definition without these fields:\n\n```sh\nswagmanmock -i ignore.yaml postman-collection.json spec.yaml\n```\n\nPS: Leading `:a` in jsonpath-rw syntax with ignore both the key and values, otherwise only values are ignored.\n\n## Change spec format\n\nThe default output conversion format is `yaml`. However, you can easily change the format to json by:\n\n```sh\nswagmanmock -f json postman-collection.json spec.json\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/codeasashu/openman",
+        "keywords": "api,openapi,rest,specification,oas,documentation",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "OpenmanMock",
+        "package_url": "https://pypi.org/project/OpenmanMock/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/OpenmanMock/",
+        "project_urls": {
+            "Homepage": "https://github.com/codeasashu/openman"
+        },
+        "release_url": "https://pypi.org/project/OpenmanMock/0.1.0/",
+        "requires_dist": [
+            "apispec (==3.1.0)",
+            "Click (==7.0)",
+            "jsonpath-rw (==1.4.0)",
+            "connexion (==2.4.0)",
+            "swagger-ui-bundle (==0.0.6)",
+            "Faker (==2.0.4)"
+        ],
+        "requires_python": ">=3.5",
+        "summary": "A Postman to OpenAPI spec converter with mocking facilities",
+        "version": "0.1.0"
+    },
+    "last_serial": 6196641,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42d41f402e77ef48fc069da8912a21bb",
+                    "sha256": "68e8d72e3a5fbcc67cda8a141ca2ea459873f238c2d82bf6b7fb9d831a544548"
+                },
+                "downloads": -1,
+                "filename": "OpenmanMock-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "42d41f402e77ef48fc069da8912a21bb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5",
+                "size": 17525,
+                "upload_time": "2019-11-25T20:23:49",
+                "upload_time_iso_8601": "2019-11-25T20:23:49.288209Z",
+                "url": "https://files.pythonhosted.org/packages/2a/69/661f9e03da0a291a4ca214744b2e28c756f9edf329d8fa009ca600e0cbaf/OpenmanMock-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b3e4a8a045c02f280dd9cd68d00864b0",
+                    "sha256": "532e09527f658439e8a54e544517a9300634c79a33344a96ce8ed560be579b1b"
+                },
+                "downloads": -1,
+                "filename": "OpenmanMock-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b3e4a8a045c02f280dd9cd68d00864b0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5",
+                "size": 12962,
+                "upload_time": "2019-11-25T20:23:52",
+                "upload_time_iso_8601": "2019-11-25T20:23:52.158167Z",
+                "url": "https://files.pythonhosted.org/packages/f0/99/81716ca0fa29b95814ad516df08d975e082f49445410d53c92408907c4e6/OpenmanMock-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "42d41f402e77ef48fc069da8912a21bb",
+                "sha256": "68e8d72e3a5fbcc67cda8a141ca2ea459873f238c2d82bf6b7fb9d831a544548"
+            },
+            "downloads": -1,
+            "filename": "OpenmanMock-0.1.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "42d41f402e77ef48fc069da8912a21bb",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.5",
+            "size": 17525,
+            "upload_time": "2019-11-25T20:23:49",
+            "upload_time_iso_8601": "2019-11-25T20:23:49.288209Z",
+            "url": "https://files.pythonhosted.org/packages/2a/69/661f9e03da0a291a4ca214744b2e28c756f9edf329d8fa009ca600e0cbaf/OpenmanMock-0.1.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b3e4a8a045c02f280dd9cd68d00864b0",
+                "sha256": "532e09527f658439e8a54e544517a9300634c79a33344a96ce8ed560be579b1b"
+            },
+            "downloads": -1,
+            "filename": "OpenmanMock-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "b3e4a8a045c02f280dd9cd68d00864b0",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5",
+            "size": 12962,
+            "upload_time": "2019-11-25T20:23:52",
+            "upload_time_iso_8601": "2019-11-25T20:23:52.158167Z",
+            "url": "https://files.pythonhosted.org/packages/f0/99/81716ca0fa29b95814ad516df08d975e082f49445410d53c92408907c4e6/OpenmanMock-0.1.0.tar.gz"
+        }
+    ]
+}

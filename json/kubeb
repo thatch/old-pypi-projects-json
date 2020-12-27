@@ -1,0 +1,671 @@
+{
+    "info": {
+        "author": "podder-ai",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Kubeb: Kubernetes deploy cli\n\nKubeb (Cubeb or Cubeba) provide CLI to build and deploy a application to Kubernetes environment\n\n## Inside\n\n\n![Architecture](./document/architecture.png \"Architecture\")\n\n*kubeb = Docker, Kubectl, Helm all-in-one tool*\n\nKubernetes + Helm are powerful tools set, however, we have several challenges for Kubeb.\n\n- Improve Developer Productivity\n  - With Helm, developers can focus on developing applications instead of deploying dev-test environments. But they still can spend a lot of time to create Helm chart template, build docker images, update configuration tool. \n\n- Reduce Deployment Complexity\n  - Developers are required to master many tools for deployment such as helm, docker, kubectl\nKubeb provide all deploy activities on only 1 tool. Kubeb provide the \"push button\" for all deployment step\n\n- Avoiding Duplication of Efforts\n  - By saving deployment configuration for every environment development, production using dotfile\n\nKubeb use Docker for building & pushing Docker image to registry and Helm command for Kubernetes deployment in background.\n\nPlease note that Kubeb will figure out where to deploy appliction by reading your Kubernetes\nconfiguration file (usually `$HOME/.kube/config`). This is the same file\nthat `kubectl` uses.\n\nTo find out which cluster application would install to, you can run\n`kubectl config current-context` or `kubectl cluster-info`.\n\n```console\n$ kubectl config current-context\nmy-cluster\n```\n\n## Requirement\n\n* Python 3\n* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-using-curl)\n* [docker](https://www.docker.com/)\n* [helm init](https://docs.helm.sh/using_helm/#initialize-helm-and-install-tiller)\n\n## Prerequisites\n\nThe following prerequisites are required for a successful and properly secured use of Helm.\n\n1. A Kubernetes cluster\n2. Installing and configuring Helm and Tiller, the cluster-side service.\n\n## Kubectl configuration\n\n### Install\n\n[Setup guideline](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-using-curl)\n\n### Install Kubernetes or have access to a cluster\n- You must have Kubernetes installed. For the latest release of Helm, we recommend the latest stable release of Kubernetes, which in most cases is the second-latest minor release.\n- You should also have a local configured copy of `kubectl`.\n\nNOTE: Kubernetes versions prior to 1.6 have limited or no support for role-based access controls (RBAC).\n\nHelm will figure out where to install Tiller by reading your Kubernetes\nconfiguration file (usually `$HOME/.kube/config`). This is the same file\nthat `kubectl` uses.\n\nTo find out which cluster Tiller would install to, you can run\n`kubectl config current-context` or `kubectl cluster-info`.\n\n```console\n$ kubectl config current-context\nmy-cluster\n```\n\n[Configure guideline](https://kubernetes.io/docs/tasks/tools/install-kubectl/#configure-kubectl)\n\n\n#### For GKE\n[Configuring cluster access for kubectl](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl)\n\n### Helm configuration\n\n## Initialize Helm and Install Tiller\n\nOnce you have Helm ready, you can initialize the local CLI and also\ninstall Tiller into your Kubernetes cluster in one step:\n\n```console\n$ helm init\n```\n\nThis will install Tiller into the Kubernetes cluster you saw with\n`kubectl config current-context`.\n\n**TIP:** Want to install into a different cluster? Use the\n`--kube-context` flag.\n\n**TIP:** When you want to upgrade Tiller, just run `helm init --upgrade`.\n\nBy default, when Tiller is installed, it does not have authentication enabled.\nTo learn more about configuring strong TLS authentication for Tiller, consult\n[the Tiller TLS guide](tiller_ssl.md).\n\n\n[Initialize Helm and Tiller](https://docs.helm.sh/using_helm/#initialize-helm-and-install-tiller)\n\n## Install\n\n- Install via pip:\n\n```bash\n$ pip install -U kubeb --upgrade\n```\n\n## TL;DR;\n\n### Laravel deployment\n\n```bash\n# Init application\n$ kubeb init --name sample --template laravel\n\n# Configure environment variables\n# Please update your environment varibales in .evn.local\n$ vi .env.local\n\n# Build application\n$ kubeb build -m 'release version 1'\n\n# Push docker image if require\n# Please push your docker image to some registry if require.\n$ kubeb push\n\n# deploy dry-run for testing\n$ kubeb deploy --dry-run\n\n# Deploy application\n$ kubeb deploy\n```\n\n### Podder pipeline deployment\n\n```bash\n# init\n$ kubeb init --name sample-task --template pipeline --force\n\n# docker image build & publish\n$ kubeb build -m test\n\n# Configure environment variables\n# Please update your environment varibales in .evn.local\n$ vi .env.local\n\n# check version\n$ kubeb version\n\n# deploy dry-run for testing\n$ kubeb deploy --dry-run\n\n# Deploy\n$ kubeb deploy\n\n# delete\n$ kubeb delete\n```\n\n### Podder task bean deployment\n\n```bash\n# init\n$ kubeb init --name sample-task --template podder-task-bean --force\n\n# docker image build & publish\n$ kubeb build -m test\n\n# Configure environment variables\n# Please update your environment varibales in .evn.local\n$ vi .env.local\n\n# check version\n$ kubeb version\n\n# deploy dry-run for testing\n$ kubeb deploy --dry-run\n\n# Deploy\n$ kubeb deploy\n\n# delete\n$ kubeb delete\n```\n\n## Command\n  ```bash\n  kubeb --help\n    Usage: kubeb [OPTIONS] COMMAND [ARGS]...\n\n    Options:\n      --version  Show the version and exit.\n      --help     Show this message and exit.\n\n    Commands:\n      build      Build current application Build Dockerfile...\n      destroy    Remove all kubeb configuration\n      info       Show current configuration\n      init       Init kubeb configuration Generate config,...\n      deploy     Install current application to Kubernetes...\n      delete     Uninstall current application from Kubernetes\n      version\n      kubeb --help\n    Usage: kubeb [OPTIONS] COMMAND [ARGS]...\n\n    Options:\n      --version  Show the version and exit.\n      --help     Show this message and exit.\n\n    Commands:\n      build     Build current application Build Dockerfile...\n      delete    Uninstall current application from Kubernetes\n      deploy    Install current application to Kubernetes\n      destroy   Remove all kubeb configuration\n      env       Configure kubectl environment\n      history   Show deploy history\n      info      Show current configuration\n      init      Init kubeb configuration\n      push      Push docker image to registry\n      rollback  Rollback release version\n      setenv    Set environment variables\n      template  Add new Kubeb release template\n      version   Show current application versions\n  ```\n\n\n## Initiate your application\n\n```bash\nkubeb init --help\nUsage: kubeb init [OPTIONS]\n\n  Init kubeb configuration       Init kubeb configuration Generate config,\n  script files Generate Docker stuff if use --local option\n\nOptions:\n  -n, --name TEXT      Application release name.\n  -u, --user TEXT      Docker image maintainer name.\n  -t, --template TEXT  Application template would be used for\n                       deploy.laravel|podder-pipeline|podder-task-bean\n  --image TEXT         Docker image repository name with full path. Such as:\n                       `registry.hub.docker.com/library/busybox`,\n                       `my.registry.address:port/repository-name`\n  --env TEXT           Environment name. By default will use `local`\n  --force              Overwrite existing config file.\n  --help               Show this message and exit.\n```\n\n\n\n## Select environment for your application\n\n```bash\nkubeb env --help\nUsage: kubeb env [ENV]\n\n  Use environment Example: kubeb env develop to use environment develop\n\n```\n\n## Set environment variables for your application\n\n```bash\nkubeb setenv --help\nUsage: kubeb setenv [OPTIONS] [VARS]...\n\nOptions:\n  --help  Show this message and exit.\n\n$ kubeb setenv aa=1 bb=1 cc=1113\n{'aa': '1', 'bb': '1', 'cc': '1113'}\n```\n\nResult\n\n```.kubeb/config.yaml\ncurrent_environment: local\nenvironments:\n  local:\n    name: local\n    variables:\n      aa: '1'\n      bb: '1'\n      cc: '1113'\n```\n\nThese environment variables will be used when deploy application to Kubernetes\n\n## Build your application (Dockerfile building)\n\n```bash\nkubeb build --help\n\nUsage: kubeb build [OPTIONS]\n\n  Build current application Build Dockerfile image Add release note, tag to\n  config file\n\nOptions:\n  -m, --message TEXT  Release note\n\n```\n\n\n## Push your application docker image to\n\n```bash\nkubeb push --help\n\nUsage: kubeb push [OPTIONS]\n\n  Push current application Build Dockerfile image\n\n\n```\n\n## Setting Kubernetes context for deployment\n\n```bash\nkubeb config --help\nUsage: kubeb config [OPTIONS] COMMAND [ARGS]...\n\nOptions:\n  --help  Show this message and exit.\n\nCommands:\n  current-context  Get current-context in a kubeconfig file Example: kubeb...\n  get-contexts     List all kubernetes context Example: kubeb config...\n  use-context      Sets the current-context in a kubeconfig file Example:...\n```\n\n### Get current context\n\n```bash\nkubeb config current-context --help\nUsage: kubeb config current-context [OPTIONS]\n\n  Get current-context in a kubeconfig file Example: kubeb config current-\n  context\n\nOptions:\n  --help  Show this message and exit.\n```\n\n### Get all context\n\n```bash\nkubeb config get-contexts --help\nUsage: kubeb config get-contexts [OPTIONS]\n\n  List all kubernetes context Example: kubeb config get_contexts\n\nOptions:\n  --help  Show this message and exit.\n```\n\n### Set context\n\n```bash\nkubeb config use-context --help\nUsage: kubeb config use-context [OPTIONS] CONTEXT\n\n  Sets the current-context in a kubeconfig file Example: kubeb config use-\n  context kube_context to use environment develop\n\nOptions:\n  --help  Show this message and exit.\n\n\n```\n## Install your application to Kubernetes enviroment\n\nUsing --version option to specify application version. If version is not specified, Kubeb will use the latest version\nYou can see version list by `kubeb version` command\n```bash\nkubeb deploy --help\nUsage: kubeb deploy [OPTIONS]\n\nOptions:\n  -v, --version TEXT  Install version.\n  --set TEXT\n  --dry-run\n  --help              Show this message and exit.\n\n# Deploy with custom configuration.\n# Configuration will be saved to kubeb-values.yml of project directory.\n\nkubeb deploy --set aa=1,bb=1,cc=1113\n\n```\n\n## Uninstall your application from Kubernetes\n\n```bash\nkubeb delete --help\n\nUsage: kubeb delete [OPTIONS]\n\n  Uninstall current application from Kubernetes\n\nOptions:\n  --yes   Confirm the action without prompting.\n```\n\n## Deploy a Laravel example\n\nExample [Laravel example](./example)\n\n### Setup your Kubernetes environment\n\n#### Kubernetes\n\n Local Kubernetes\n - Minikube https://kubernetes.io/docs/setup/minikube/\n - Docker Edge\nhttps://docs.docker.com/docker-for-mac/kubernetes/\n\n#### Kubectl - CLI for Kubernetes\n\n - Install Kubectl https://kubernetes.io/docs/tasks/tools/install-kubectl/\n\n#### Helm - Package manager for Kubernetes\n \n - https://helm.sh/\n\n### Initiate application\n\n```bash\n$ kubeb init --local\n\nRelease name [sample]:\nMaintainer name [tranminhtuan]:\nRelease template [laravel]:\nDocker image name [tranminhtuan/example]:\nKubeb config file generated in .kubeb/config.yml\n```\n\n```yaml\ncurrent_environment: local\nenvironments:\n  local:\n    name: local\nimage: tranminhtuan/example\nlocal: true\nname: example\ntemplate: laravel\nuser: tranminhtuan\nversion:\n- message: build\n  tag: v1535331009272\n```\n\n### Build application\n\n```bash\n$ kubeb build --message \"first build\"\n\n```\n\n### Get all versions\n\n```bash\n$ kubeb version\n- v1534975136422: first build\n```\n\n### Deploy application with specified version\n\n```bash\n$ kubeb deploy --version v1534975136422\n\nDeploying version: v1534975136422\n....\nNOTES:\n1. Get the application URL by running these commands:\n  export POD_NAME=$(kubectl get pods --namespace default -l \"app=laravel-rocket,release=sample\" -o jsonpath=\"{.items[0].metadata.name}\")\n  echo \"Visit http://127.0.0.1:8080 to use your application\"\n  kubectl port-forward --namespace default $POD_NAME 8080:80\n\n2. Migrate database by running these commands:\n  export POD_NAME=$(kubectl get pods --namespace default -l \"app=laravel-rocket,release=sample\" -o jsonpath=\"{.items[0].metadata.name}\")\n  Migrate database\n  kubectl --namespace default exec -ti $POD_NAME -- php artisan migrate\n  Run test data seeder\n  kubectl --namespace default exec -ti $POD_NAME -- php artisan db:seed\n\n\nInstall application succeed.\n```\n\n### Apllication verify\n\n```bash\n$ export POD_NAME=$(kubectl get pods --namespace default -l \"app=laravel-rocket,release=sample\" -o jsonpath=\"{.items[0].metadata.name}\")\n$ kubectl port-forward --namespace default $POD_NAME 8080:80\n```\n\nVisit http://127.0.0.1:8080 to use your application\"\n\n### Uninstall application\n\n```bash\n$ kubeb delete\n\nDo you want to continue? [y/N]: y\nrelease \"sample\" deleted\n\nUninstall application succeed.\n```\n\n#### Clean up all Kubeb configuration\n\n```bash\nkubeb destroy --yes\n\n```\n\n\n## How to add new template\n\nPlease add these files to templates folder.\nExample [Laravel template](kubeb/templates/laravel)\n\n\n```bash\ntree libs/template/laravel\n.\n\u251c\u2500\u2500 Dockerfile # Dockerfile template\n\u251c\u2500\u2500 docker # Dockerfile config data\n\u2502\u00a0\u00a0 \u251c\u2500\u2500 entrypoint.sh\n\u2502\u00a0\u00a0 \u2514\u2500\u2500 vhost.conf\n\u251c\u2500\u2500 info.yaml # helm chart information\n\u2514\u2500\u2500 helm-values.yaml # helm chart configuration\n\u2514\u2500\u2500 dotenv # helm chart values\n```\n\n```bash\nkubeb template --help\nUsage: kubeb template [OPTIONS] NAME PATH\n\n  Add user template kubeb [template_name] [template_directory_path] Example:\n  kubeb template example ./example Will add template to external template\n  directory: ~/.kubeb/ext-templates/[template_name]\n\nOptions:\n  --force  Overwrite template file.\n  --help   Show this message and exit.\n```\n\n## Todo\n- [ ] Using Kubernetes namespace for each environment\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/podder-ai/kubeb",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "kubeb",
+        "package_url": "https://pypi.org/project/kubeb/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/kubeb/",
+        "project_urls": {
+            "Homepage": "https://github.com/podder-ai/kubeb"
+        },
+        "release_url": "https://pypi.org/project/kubeb/0.0.27/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": " Kubeb (Cubeba) provide CLI to build and deploy a application to Kubernetes environment",
+        "version": "0.0.27"
+    },
+    "last_serial": 4767076,
+    "releases": {
+        "0.0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c9d64f57c4e4842d9a9ea0bdef7f935a",
+                    "sha256": "0595e9a37bfe2bad72f8495d87afadb095b6e586e70d4d8159f541694c786000"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c9d64f57c4e4842d9a9ea0bdef7f935a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17835,
+                "upload_time": "2019-01-17T09:09:31",
+                "url": "https://files.pythonhosted.org/packages/20/18/6f6c8eac45fe06319eb6fd8650f6d0a076e50ca695e69951b88422822438/kubeb-0.0.10.tar.gz"
+            }
+        ],
+        "0.0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1c4d7229f48bda09913f3104e83fed8b",
+                    "sha256": "d1e365aab1576f4396268988b2e242621d202f38fa2f8a4a24ebb971679f91f4"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1c4d7229f48bda09913f3104e83fed8b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17828,
+                "upload_time": "2019-01-17T11:45:59",
+                "url": "https://files.pythonhosted.org/packages/59/bb/22a5064c5d3fc4d564a60b1751b654ad6f221bf02257b54a2de38a7ff659/kubeb-0.0.11.tar.gz"
+            }
+        ],
+        "0.0.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2abb1cc725853c9e0d6813a890c827ad",
+                    "sha256": "62eb93a1c135de15f4d7cbb7cafc8284fbcdc033034c7a4327d677fed94282ed"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2abb1cc725853c9e0d6813a890c827ad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18209,
+                "upload_time": "2019-01-18T06:21:58",
+                "url": "https://files.pythonhosted.org/packages/e1/a5/8505e6ba6b8396e2079df8449fbf7bac754d9a49e5b6aa4b6c0f25cdf808/kubeb-0.0.12.tar.gz"
+            }
+        ],
+        "0.0.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "832fda64c2b17b43a5878677dd4bd5c1",
+                    "sha256": "f7218e7a4de96ac2b94807db7396d0ad0f59a14270e70353f8d5fdcb4b602e84"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "832fda64c2b17b43a5878677dd4bd5c1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18306,
+                "upload_time": "2019-01-18T07:52:56",
+                "url": "https://files.pythonhosted.org/packages/ce/87/65a25ce712228fb29bd9dac88c69651f7f3f91eeb4cb7797dfb51a2cf3ae/kubeb-0.0.13.tar.gz"
+            }
+        ],
+        "0.0.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21b137b043e6d43c8dde9e0ee40868e2",
+                    "sha256": "48a58304c3ccd7f3cfea2732baa3a7a7098fd476acc22fa5a04531dc191514e9"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "21b137b043e6d43c8dde9e0ee40868e2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18505,
+                "upload_time": "2019-01-21T03:31:43",
+                "url": "https://files.pythonhosted.org/packages/15/6e/386e9dd2093ed20d3f7f396867e64b22273afd0690104a6d2ee71296882f/kubeb-0.0.14.tar.gz"
+            }
+        ],
+        "0.0.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a98eeb3c4a03ee8ebebedabd3a1e606c",
+                    "sha256": "a44cd041d9adf7a28941875d0842a755eda06908b9f8586b919f9eae7202984f"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a98eeb3c4a03ee8ebebedabd3a1e606c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18997,
+                "upload_time": "2019-01-22T02:26:31",
+                "url": "https://files.pythonhosted.org/packages/20/5c/fc139b62a298048989f9d6b081b171786ba315aae98e63296e1ceb1349ed/kubeb-0.0.15.tar.gz"
+            }
+        ],
+        "0.0.16": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "027f8094d83aab1a20bf8b8c4fc77385",
+                    "sha256": "4ad5bc9b49e441f9ab047535860962d38bb88b849223d21b3bfb2d1c560de334"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.16.tar.gz",
+                "has_sig": false,
+                "md5_digest": "027f8094d83aab1a20bf8b8c4fc77385",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18995,
+                "upload_time": "2019-01-22T02:37:27",
+                "url": "https://files.pythonhosted.org/packages/01/e2/fe54d8b5bb3821676f03b76ac702951275fb8691b59819f4a1c4ae1d3915/kubeb-0.0.16.tar.gz"
+            }
+        ],
+        "0.0.17": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e06d1713dfa857b80050838a02400931",
+                    "sha256": "dc6de38b37432ea90ac3f7a1c7f90333dd0c6106b8f1c07803f6565ad6fdc494"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.17.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e06d1713dfa857b80050838a02400931",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19754,
+                "upload_time": "2019-01-24T19:57:08",
+                "url": "https://files.pythonhosted.org/packages/82/7a/75c8bfec24d4db9c74c5e2dcd18e325cc23310f75f1b5bd19a884a8c5ed6/kubeb-0.0.17.tar.gz"
+            }
+        ],
+        "0.0.18": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fc85bcda3e6a95d92e00613f48525456",
+                    "sha256": "204d4f5b65e78696659a583a6e78b4b7763659b7f8c77f895d3e98bf96bd2fbc"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.18-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fc85bcda3e6a95d92e00613f48525456",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22141,
+                "upload_time": "2019-01-25T07:24:48",
+                "url": "https://files.pythonhosted.org/packages/66/fd/7483947a5e1c9e4402e491a7aa90913699d22d753afa361123288b8c4ad9/kubeb-0.0.18-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7ba3cbcecfd3bbcfbfd2f963dd3cf0b2",
+                    "sha256": "2e759e2d959cf74c1165cadaa1337679536b966e35f9e0b20ef8b9847d2ca1ae"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.18.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7ba3cbcecfd3bbcfbfd2f963dd3cf0b2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17363,
+                "upload_time": "2019-01-25T07:24:50",
+                "url": "https://files.pythonhosted.org/packages/68/f5/55c6c7763ff7ce8d50449bfcf26aea15e7c10de0fe096685210f328f599c/kubeb-0.0.18.tar.gz"
+            }
+        ],
+        "0.0.19": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e9dce9bc8b3731429aa910e6e5883b6",
+                    "sha256": "ec3a526a5e6726217a4a8879f905710a88ff7e6a87c573540226bed672da5481"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.19-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0e9dce9bc8b3731429aa910e6e5883b6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22141,
+                "upload_time": "2019-01-25T07:28:04",
+                "url": "https://files.pythonhosted.org/packages/85/42/9a74b8b6894a91a23c1c40b68b3a338b413b22cf156f64260b7b8630d411/kubeb-0.0.19-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a2c013f159f0c888536f3308f8d34bb",
+                    "sha256": "dfba64ba769fc1693d2a41951929566f1925bf9e545d01ae6488a997d18c90aa"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.19.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7a2c013f159f0c888536f3308f8d34bb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14716,
+                "upload_time": "2019-01-25T07:28:05",
+                "url": "https://files.pythonhosted.org/packages/b7/23/9e70c4562ba42781793ea751b532cd1a4f0e77b3b7d8961fb1100dfc0b2b/kubeb-0.0.19.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ffb58762c560c1be5c7779e521fd871",
+                    "sha256": "61fe386eb7663c5a2870f3c7892b078444988ac54d51c843abcbc6d16fa6b0c1"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2ffb58762c560c1be5c7779e521fd871",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11853,
+                "upload_time": "2019-01-10T03:29:12",
+                "url": "https://files.pythonhosted.org/packages/97/24/b682b859775d42e008fb26ccd7457a1492b9db51d55c854b8af3e7964371/kubeb-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.20": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e24981260c9fa26923ef5cc6d33a5fdb",
+                    "sha256": "684f93b4736e6477184a74449e7f1a783bfd3c7191d287496c6e150bd1502f0d"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.20-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e24981260c9fa26923ef5cc6d33a5fdb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22324,
+                "upload_time": "2019-01-29T08:05:23",
+                "url": "https://files.pythonhosted.org/packages/a8/80/62e2050bfe6b73e3da2cfcceb7df04639e029f5c1ed0a5a7eefc5bd562d5/kubeb-0.0.20-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9faea5f38b9534b1efc050e03102983c",
+                    "sha256": "d7963fcfc0e541bd5282ae975bc0a1932e2a16a997794d1e0f8aa54ac4202bee"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.20.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9faea5f38b9534b1efc050e03102983c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14827,
+                "upload_time": "2019-01-29T08:05:24",
+                "url": "https://files.pythonhosted.org/packages/13/e8/3da75cb98109416f873a3d621b9e9290c126fca203d5cef34efe9f35ae1e/kubeb-0.0.20.tar.gz"
+            }
+        ],
+        "0.0.21": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3a3f9c2ed42d0ead0744b0afd947077",
+                    "sha256": "dde31a958185c84f80c2e9b4bf7195bf73efd180968190bc523caa2fbce1f23a"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.21-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e3a3f9c2ed42d0ead0744b0afd947077",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22714,
+                "upload_time": "2019-01-30T02:31:45",
+                "url": "https://files.pythonhosted.org/packages/20/ab/f874f2f15a755e5fbf842438b9804ae57cfa1251b02901659ce9fd56156f/kubeb-0.0.21-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e479a6950524e1cfaf866df9bdf80d9e",
+                    "sha256": "c8e7d250a535c03131531571bbf43e5d791823fdd0e9a0eb00b4d1b1910453de"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.21.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e479a6950524e1cfaf866df9bdf80d9e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19460,
+                "upload_time": "2019-01-30T02:31:46",
+                "url": "https://files.pythonhosted.org/packages/f5/fe/41f88ccc7b51eb29ba6a510403060ffc093f399d1769942e86ba24c70874/kubeb-0.0.21.tar.gz"
+            }
+        ],
+        "0.0.22": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "812883cec0b1e123581033c0995fef96",
+                    "sha256": "82f0c2c2b9306db64971b87d281fdba9c45d9b15eccc86910e7a45fcada46ea8"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.22-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "812883cec0b1e123581033c0995fef96",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22619,
+                "upload_time": "2019-01-30T02:41:35",
+                "url": "https://files.pythonhosted.org/packages/ed/1c/c911f3e895e33057bf7533d3320c51cf6568ac51df8bcb190d13f688707d/kubeb-0.0.22-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7686095b24fa3ae787404e882a5d1c75",
+                    "sha256": "c3fc42afa696c4473d3a8d3529f41844cf2c89b026eef600e9a43d75aebcb81d"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.22.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7686095b24fa3ae787404e882a5d1c75",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15286,
+                "upload_time": "2019-01-30T02:41:37",
+                "url": "https://files.pythonhosted.org/packages/c6/79/afaa7b2a291f86cb77f7ece53580d06dd9d59cc5bc8468df2e024cb3c787/kubeb-0.0.22.tar.gz"
+            }
+        ],
+        "0.0.23": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1073b611fe84fc6f05b46b23930b9502",
+                    "sha256": "7a219b43a51fb4648415df6c514c67beabfa01fdf5329ab0e6c5d1f2ebb6a1c8"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.23-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1073b611fe84fc6f05b46b23930b9502",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 14971,
+                "upload_time": "2019-01-31T10:05:23",
+                "url": "https://files.pythonhosted.org/packages/d4/1e/0cf7b836b12d79cd29f99b131649dda94c85f79ef2ba322037a984f12a98/kubeb-0.0.23-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b45c542dadcf6e862bc89e77ab566bca",
+                    "sha256": "4edb8b63e78c72977151bc6e6d766142e86d13124a7daef97d67eb532a7bce6a"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.23.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b45c542dadcf6e862bc89e77ab566bca",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25009,
+                "upload_time": "2019-01-30T02:51:34",
+                "url": "https://files.pythonhosted.org/packages/2e/bc/1c3c9c1e75577de4081f46a8c2e24a383aaa5ccb03b6ceda42d99e88a5ae/kubeb-0.0.23.tar.gz"
+            }
+        ],
+        "0.0.24": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f6853a12feab2ffbc385e09dd1e7672f",
+                    "sha256": "c3874159994ab8477d8181092bed5b49693c729ac35ee44b757d97e331037349"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.24-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f6853a12feab2ffbc385e09dd1e7672f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 15027,
+                "upload_time": "2019-02-01T04:19:30",
+                "url": "https://files.pythonhosted.org/packages/95/06/5adeb408e9c61c1f76c0be3efd27ef28590c9cb1ac1ea63af28f367d33cf/kubeb-0.0.24-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7f555470934b5119fe8187b70abdd6c7",
+                    "sha256": "55552bd90590b0a3789f8489f9d7a23a4d893350c56581e3522946ab8e62d542"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.24.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7f555470934b5119fe8187b70abdd6c7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24685,
+                "upload_time": "2019-01-30T03:04:49",
+                "url": "https://files.pythonhosted.org/packages/74/9a/32f9ca636f6946a77d1fa7a8a0a614f2bce471cf57a51076fe65f8c19ba6/kubeb-0.0.24.tar.gz"
+            }
+        ],
+        "0.0.25": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1ef2eab7a46b374049af9c248d7121b2",
+                    "sha256": "b6c62fa09e3df2530631188037238ed146e3f7b2866715414c3b04fd8c8723bf"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.25.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1ef2eab7a46b374049af9c248d7121b2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24694,
+                "upload_time": "2019-01-30T03:18:21",
+                "url": "https://files.pythonhosted.org/packages/aa/6a/761766d94b328bcbe18582718500ca7813a5cb4a0afe0423a62c40c03ce4/kubeb-0.0.25.tar.gz"
+            }
+        ],
+        "0.0.26": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "765b63044056fa8e9a218b77c9a13d2c",
+                    "sha256": "f8e8635725f5f9d6e8a9dac3b5a6b528e953155fcb15a30bc10b13cd74ebb71c"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.26-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "765b63044056fa8e9a218b77c9a13d2c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 15027,
+                "upload_time": "2019-02-01T04:21:52",
+                "url": "https://files.pythonhosted.org/packages/ea/95/0e76c72958223a5646f846862696f5b553e5af1607d4464f3af6f57fab7e/kubeb-0.0.26-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0a4fbb98492485cebb09ea4fb067cbbf",
+                    "sha256": "c5901faba8526247fadfc0df4e6226b20f245fe143e220dc601297cabd126a83"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.26.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0a4fbb98492485cebb09ea4fb067cbbf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13266,
+                "upload_time": "2019-02-01T04:21:53",
+                "url": "https://files.pythonhosted.org/packages/0e/43/27838cdef4da1df7db75a5608a5ddf2eafb00c0a8940187b70fe1d373c50/kubeb-0.0.26.tar.gz"
+            }
+        ],
+        "0.0.27": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "684f60a60e2cd08a738ca64a22f009ac",
+                    "sha256": "c42bb6450217b44fa42505eccc52d70eba6625e905089b389b38d70bc3c0725b"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.27.tar.gz",
+                "has_sig": false,
+                "md5_digest": "684f60a60e2cd08a738ca64a22f009ac",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27805,
+                "upload_time": "2019-02-01T06:05:41",
+                "url": "https://files.pythonhosted.org/packages/d4/d8/17e9855f2dbd54850902ca7b8106427c8436484deef3c46791919b517af2/kubeb-0.0.27.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1c3a8cfff361f06cc6a10e29667d6453",
+                    "sha256": "64681c5ec799edd09ec2dd496b89f16404305d436d44118f35f90fa0cc470ed1"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1c3a8cfff361f06cc6a10e29667d6453",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12044,
+                "upload_time": "2019-01-10T04:02:23",
+                "url": "https://files.pythonhosted.org/packages/8f/ce/86e1f25b3dd04200856938cb4ebdd4e54e0b940c6b199d57a39937d6142a/kubeb-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6182f18c868fc6273ee1cddc07dc510e",
+                    "sha256": "89efe715405d223d9d00ec4c4b7bb08c8672f9f726596db17c733746c96084d5"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6182f18c868fc6273ee1cddc07dc510e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11832,
+                "upload_time": "2019-01-10T04:16:21",
+                "url": "https://files.pythonhosted.org/packages/90/72/131cae27099df188369971e71ad5d45b3be4965910401a51101ff124dda1/kubeb-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cc049083bd1a407840162cd878411dd5",
+                    "sha256": "5f82003f60bb0df09497e01a81466b2460617a51ac0f21f88c8f3014d7143a40"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cc049083bd1a407840162cd878411dd5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12655,
+                "upload_time": "2019-01-10T04:21:18",
+                "url": "https://files.pythonhosted.org/packages/0f/4b/f68017f40d8e3c37c5f522bb9e55d3fcb80461fc2b55c72c24477bf78fb5/kubeb-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3c66a24d723d6c0f2f2093a347459190",
+                    "sha256": "9ab818dcde65b2534b6af477ab63de3fb5b8ec4363f3d990346090978b25dfd4"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3c66a24d723d6c0f2f2093a347459190",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12398,
+                "upload_time": "2019-01-11T03:01:03",
+                "url": "https://files.pythonhosted.org/packages/be/dd/4a46f2dc209eec1352acc50300fc0c460da0f58f6af87ec5baaf526fa80f/kubeb-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d955636b78ce317ba6870db6c158e593",
+                    "sha256": "6b949da835457cb15caafbb3d4bf049642fdd44df0fee67dae779d0d825306d9"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d955636b78ce317ba6870db6c158e593",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12495,
+                "upload_time": "2019-01-11T03:27:04",
+                "url": "https://files.pythonhosted.org/packages/29/49/6d3782c8e1defe5f952c7c7fa6a12a6b211de7dae7753664c77431f280e1/kubeb-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5822d978b644b760d91a48e73eead92a",
+                    "sha256": "b7058f672aff148bc580ba05ef03ee40097466b60adec381e624a10feec31363"
+                },
+                "downloads": -1,
+                "filename": "kubeb-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5822d978b644b760d91a48e73eead92a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13459,
+                "upload_time": "2019-01-16T11:07:42",
+                "url": "https://files.pythonhosted.org/packages/0b/b8/352a9c2165b50320232964c47f24512ea3930a52bc81256e789834a91567/kubeb-0.0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "684f60a60e2cd08a738ca64a22f009ac",
+                "sha256": "c42bb6450217b44fa42505eccc52d70eba6625e905089b389b38d70bc3c0725b"
+            },
+            "downloads": -1,
+            "filename": "kubeb-0.0.27.tar.gz",
+            "has_sig": false,
+            "md5_digest": "684f60a60e2cd08a738ca64a22f009ac",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 27805,
+            "upload_time": "2019-02-01T06:05:41",
+            "url": "https://files.pythonhosted.org/packages/d4/d8/17e9855f2dbd54850902ca7b8106427c8436484deef3c46791919b517af2/kubeb-0.0.27.tar.gz"
+        }
+    ]
+}

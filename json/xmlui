@@ -1,0 +1,117 @@
+{
+    "info": {
+        "author": "Chris Norman",
+        "author_email": "chris.norman2@googlemail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# xmlui\nCreate user interfaces from XML files\n\n## What is it?\nThis module allows you to create whole user interfaces writing nothing but XML, allowing you to lever the power of existing modules like jinja2 to include xml files in other xml files, allowing you to create things like a playback controls bar for example, and have that show up in multiple windows.\n\n## How it works\nFor an example, see the `example.py` and `frame.xml` files.\n\n### Tags\nBy default, the base xml parser (`xmlui.base.XMLParser`) doesn't support any tags. These are added in subclasses. This is because xmlui is backend-agnostic. It doesn't care if you are using [wxPython](https://www.wxpython.org/), or [Tkinter](https://wiki.python.org/moin/TkInter).\n\nTo add a tag, subclass `xmlui.base.XMLParser` and code a method with the name of the tag, preceded by parse_.\n\nThe only reserved attribute name is `name`. This is used for adding controls to frames with setattr.\n\nFor example:\n\n```\n<tag name=\"tag\">This is a tag</tag>\n```\n\nWould be added to the frame with the name tag.\n\nThere are a couple of helper methods you can use while creating methods. These are listed below.\n\n#### get_list\nThis method allows you to generate a list from a string.\n\nGiven a string like `1, 2, 3`, `get_string` would yield: `[1, 2, 3]`.\n\n##### Arguments\n* text: The text to break up into the list.\n* start: The initial list. Defaults to the empty list.\n* function: The function to apply to each chunk of the list. Defaults to int.\n\n### Implementations\nThe only implementation at present is that for wx. Supported tags are described below.\n\n#### Overview\nThe `parse_node` method - which is responsible for parsing each node - does a couple of useful things by default, and as such, almost all tags can have special attributes.\n\n* label: Pased to `control.SetLabel`.\n* style: Passed to `control.SetWindowStyle`. This flag will be handled by parse_table (which yields a `wx.ListCtrl instance), because of the way that control requires certain styles to be in place in order for columns to work.\n* size: Passed to `control.SetSize`.\n* binders: A comma-separated list of event:method pairs. For example: `binders=\"evt_button:onclick\"` would be the same as `control.Bind(wx..EVT_BUTTON, xml.onclick)`, where `xml` is the instance of `WXXMLParser` being used, and `control` is the created control.\n\n#### title\nSet the title for a frame.\n\n##### Example\n```\n<title>This is a frame</title>\n```\n\n#### sizer\nCreate sizers.\n\n##### Example\n```\n<sizer>\n    <element1></element1>\n    <element2></element2>\n    ...\n</sizer>\n```\n\nThis node may contain subnodes which will be automatically added to the sizer.\n\n##### Arguments\n\n###### orient\nThe only argument passed to `wx.BoxSizer.__init__`. Defaults to 'horizontal'.\n\n#### label\nCreate `wx.StaticText` instances.\n\n##### Example\n```\n<label>This is a &nbsp;Label</label>\n```\n\n##### Arguments\nNone\n\n#### text\nCreate `wx.TextCtrl` instances.\n\n##### Example\n```\n<text>This is the text in the control.</text>\n```\n\n##### Arguments\nNone\n\n#### integer\nCreate `wx.lib.intctrl.IntCtrl` instances.\n\n##### Example\n```\n<integer min=\"0\" max=\"100\">50</integer>\n```\n\n##### Arguments\n* min: The minimum value.\n* max: The maximum value.\n* limited: Used by `IntCtrl.GetLimited` and `IntCtrl.SetLimited`.\n* allow_none: Used by `IntCtrl.IsNoneAllowed` and `IntCtrl.SetIsNoneAllowed`.\n` allow_long: Used by `IntCtrl.IsLongAllowed` and `IntCtrl.SetIsLongAllowed`.\n\n#### float\nThis tag is used to create `wx.lib.agw.floatspin.FloatSpin` instances.\"\n\n##### Example\n```\n<float min=\"0.0\" max=\"100.0\" increment=\"0.5\" digits=\"2\">50.0</float>\n```\n\n##### Arguments\n* min: The miminum value.\n* max: The maxim um value.\n* increment: How much the control is altered by the arrow keys.\n* digits: The number of digits to show.\n\n#### slider\nCreate `wx.Slider` instances.\n\n##### Example\n```\n<slider min=\"0\" max=\"100\">50</slider>\n```\n\n##### Arguments\n* min: The minimum value.\n* max: The maximum value.\n\n#### checkbox\nCreate `wx.CheckBox` instances.\n\n##### Example\n```\n<checkbox>1</checkbox>\n```\n\nThe value of the checkbox is given as an integer, 0 or 1.\n\n##### Arguiments\nNone\n\n#### button\nCreate `wx.Button` instances.\n\n##### Example\n```\n<button default=\"1\">&nbsp;Button</button>\n```\n\nIf default is given and is non-0, then `button.SetDefault()` will be called.\n\n##### Arguments\n* default: Whether or not to set this button as the default.\n\n#### choice\nCreate `wx.Choice` instances.\n\n##### Example\n```\n<choice choices=\"choice1, choice2, ...\">0</choice>\n```\n\nIf value is given then it is converted to an integer, and passed to `wx.Choice.SetSelection`.\n\n##### Arguments\n* choices: A comma-separated list of strings.\n\n#### list\nCreated `wx.ListBox` instances.\n\n##### Example\n```\n<list choices=\"choice1, choice2, ...>0</list>\n```\n\nIf value is given then it is converted to an integer, and passed to `wx.ListBox.SetSelection`.\n\n##### Arguments\n* choices: A comma-separated list of strings.\n\n#### table\nCreate `wx.ListCtrl` instances.\n\n##### Example\n```\n<table>\n    <column>First Column Header</column>\n    <column>Second Column Header</column>\n    ...\n    <item>Item1: Col1, Item1: Col2,...</item>\n    <item>Item2: Col1, Item2: Col2,...</item>\n    <value>0</value>\n</table>\n```\n\nThe table tag can contain 0 or more column child tags, 0 or more item child tags, and technically 0 or more value child tags, although only 1 value tag will ever be used (the last one).\n\nAny other tag raises `xmlui.wx.InvalidTagError`.\n\n##### Arguments\n* Style: Although this is a global attribute, it is mentioned again here because if you plan to use columns, you must also provide the style attribute as `\"lc_report\"`.\n\n#### column\nUsed by the `table` tag to create columns.]\n\n##### Example\n```\n<column format=\"list_format_left\" width=\"-1\">Column Header</column>\n```\n\nIf no value is given, then `xmlui.wx.NoValueError` is raised.\n\n##### Arguments\n* format: One of the members of `wx.ListColumnFormat`.\n* width: The width of the column.\n\n#### item\nUsed by the `table` tag to create list items.\n\n##### Example\n```\n<item>col1, col2, ...</item>\n```\n\nValue must be given as an integer, unless `xmlui.wx.WXXMLParser.parse_value` is overridden.\n\n##### Arguments\nNone\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/chrisnorman7/",
+        "keywords": "",
+        "license": "MPL-2",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "xmlui",
+        "package_url": "https://pypi.org/project/xmlui/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/xmlui/",
+        "project_urls": {
+            "Homepage": "https://github.com/chrisnorman7/"
+        },
+        "release_url": "https://pypi.org/project/xmlui/1.0.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Make GUIs with XML",
+        "version": "1.0.2"
+    },
+    "last_serial": 3985452,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "10f3a6b918e8f5e8361b86c395698fb9",
+                    "sha256": "2e2bd007af7ad8528bc2744750335d6b27d011a4a6e73972523b1004bc514942"
+                },
+                "downloads": -1,
+                "filename": "xmlui-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "10f3a6b918e8f5e8361b86c395698fb9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11720,
+                "upload_time": "2018-06-20T21:42:48",
+                "upload_time_iso_8601": "2018-06-20T21:42:48.348929Z",
+                "url": "https://files.pythonhosted.org/packages/f2/0a/fe40179c7e4542fe76f5abb56ea9a4f2127ec6dde5867c32478952ccf721/xmlui-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "473a2719324d4747bbe95def3cd9cc93",
+                    "sha256": "2039b5bc31654180c5fcfc1353e6eaaa15d29c6c3db1d369b083342302c29af2"
+                },
+                "downloads": -1,
+                "filename": "xmlui-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "473a2719324d4747bbe95def3cd9cc93",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13280,
+                "upload_time": "2018-06-21T10:56:13",
+                "upload_time_iso_8601": "2018-06-21T10:56:13.069674Z",
+                "url": "https://files.pythonhosted.org/packages/91/07/c41882a1d96dc62078cde575f0caed2fa7e151029afa55c714de2b04076f/xmlui-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "be2e77cb5aa981303e4c875239ea2070",
+                    "sha256": "c825ab93b3b2dd6de592376ad189499fae07b1bdb72ef9e38f46c3b607cae96c"
+                },
+                "downloads": -1,
+                "filename": "xmlui-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "be2e77cb5aa981303e4c875239ea2070",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18102,
+                "upload_time": "2018-06-21T12:12:37",
+                "upload_time_iso_8601": "2018-06-21T12:12:37.792001Z",
+                "url": "https://files.pythonhosted.org/packages/d3/59/e536ec23771103aaed838b607c220b087451c29e960ed6ecd97ba3369905/xmlui-1.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "be2e77cb5aa981303e4c875239ea2070",
+                "sha256": "c825ab93b3b2dd6de592376ad189499fae07b1bdb72ef9e38f46c3b607cae96c"
+            },
+            "downloads": -1,
+            "filename": "xmlui-1.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "be2e77cb5aa981303e4c875239ea2070",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 18102,
+            "upload_time": "2018-06-21T12:12:37",
+            "upload_time_iso_8601": "2018-06-21T12:12:37.792001Z",
+            "url": "https://files.pythonhosted.org/packages/d3/59/e536ec23771103aaed838b607c220b087451c29e960ed6ecd97ba3369905/xmlui-1.0.2.tar.gz"
+        }
+    ]
+}

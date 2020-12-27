@@ -1,0 +1,116 @@
+{
+    "info": {
+        "author": "Dr Hamidreza Omidvar, Dr Ting Sun",
+        "author_email": "h.omidvar@reading.ac.uk, ting.sun@reading.ac.uk",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Education",
+            "Intended Audience :: Science/Research",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3 :: Only"
+        ],
+        "description": "# Pipeline for calculating land cover over urban/rural areas:\n\n## which file to read first?\n\n`get_land_cover.py`\n\n## Required libraries\n\n### Grass\n\nfor macOS, download and install the grass package:\n```\nhttp://grassmac.wikidot.com/downloads\n```\n\n\n### other python libraries\n\nuse `conda` to create a fresh environment for this pipeline:\n```zsh\nconda env create -f GDAL.yml\n```\n\nDependency details refer to [`GDAL.yml`](./GDAL.yml).\n\n\n## Dependency datasets\n\n### `nc_spm_08` dataset\n\nThis dataset includes projection files required by `GRASS`.\ndownload it [here](https://grassbook.org/datasets/datasets-3rd-edition/).\n\n### `GUF` dataset (optional)\n\n[GUF (Global Urban Footprint)](https://www.dlr.de/eoc/en/desktopdefault.aspx/tabid-9628/16557_read-40454/) is a global urban coverage dataset produced by DLR.\nThis pipeline use `GUF` to improve accuracy in predicting urban features.\n\n\n## configuration\n\n### sentinel-hub\n\nrefer to [this page for setting up a new configuration](https://eo-learn.readthedocs.io/en/latest/examples/land-cover-map/SI_LULC_pipeline.html#Requirements).\nThen update the `sentinelhub` instance ID as follows:\n```\nsentinelhub.config --instance_id [your-instance-ID]\n```\n\n\n## details\nThis is a pipeline for calculating the landcover over desired regions. It includes:\n\n- Step 1: Getting the location of the region (`lat` and `lon`)\n\n- Step 2: Getting the satellite image for the desired region\n\n- Step 3: Prediction of the land cover into 3 categories:\n  - 1-Water\n  - 2-Green\n  - 3-Urban and\n  - 4-other\n\n- Step 4: Overlaying the [GUF](https://www.dlr.de/eoc/en/desktopdefault.aspx/tabid-9628/16557_read-40454/) data into the prediction. Therefore the landcover becomes 1-Water 2-Green 3-Urban 4-Other\n\n- Step 5: Overlaying the building data from [OSM](https://osmbuildings.org/) or [Microsoft data](https://github.com/microsoft/USBuildingFootprints) (only for the US). Therefore, the final land cover includes 1-Water 2-Green 3-Buildings 4-Paved 5-Others\n\nUsing this pipeline is as simple as choosing the coordinates, and providing the GUF data and/or building data. The user can choose which data is available. For example, in the case of no GUF data, the pipeline uses the prediction, or in the case of no Microsoft data, the pipeline uses the OSM data for buildings. Note that adding GUF data makes the final result of the landcover more accurate.\n\nSome technical details:\n\n- Merging various maps might be very computationally expensive, and the current Python packages like GDAL are not very efficient.\n  The pipeline instead uses a python interface to use GRASS functions (such as `v.overlay`) directly to speed up the merging processes.\n\n- The pipeline uses a pre-trained model to predict the land cover.\n  Currently, the model is trained over Colombo, but various tests has shown it has a good performance on other places as well.\n  A more sophisticated model can be trained by using more datasets.\n\n- Note that while OSM data are automatically fetched from the website for the desired region, the Microsoft data need to be downloaded for the chosen location manually. This can be automated in the future.\n\n\n## Some examples\n\n**Colombo, Sri Lanka**\n\n![](./Examples/Colombo.png)\n\n\n**Matara, Sri Lanka**\n\n![](./Examples/Matara.png)\n\n**Jaffna, Sri Lanka**\n\n![](./Examples/Jaffna.png)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/sunt05/SuPy",
+        "keywords": "",
+        "license": "GPL-V3.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "luxifer",
+        "package_url": "https://pypi.org/project/luxifer/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/luxifer/",
+        "project_urls": {
+            "Homepage": "https://github.com/sunt05/SuPy"
+        },
+        "release_url": "https://pypi.org/project/luxifer/2019.12.16.dev1/",
+        "requires_dist": [
+            "numpy (>=1.17.2)",
+            "pandas (>=0.25.1)",
+            "scipy",
+            "scikit-learn",
+            "matplotlib",
+            "seaborn",
+            "eo-learn",
+            "xarray",
+            "click"
+        ],
+        "requires_python": "~=3.6",
+        "summary": "luxifer is a machine-learning based land use/land cover (LULC) classifier using Sentinel imagery.",
+        "version": "2019.12.16.dev1"
+    },
+    "last_serial": 6312160,
+    "releases": {
+        "2019.12.16.dev0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f1eac542e091b9e723c1bfadb35b6020",
+                    "sha256": "4a8d6cf321b5e4c180c39c709aa3f5b5bea1c5a56a5c1d951d897f519d684c08"
+                },
+                "downloads": -1,
+                "filename": "luxifer-2019.12.16.dev0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f1eac542e091b9e723c1bfadb35b6020",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.6",
+                "size": 20233,
+                "upload_time": "2019-12-16T16:03:54",
+                "upload_time_iso_8601": "2019-12-16T16:03:54.242920Z",
+                "url": "https://files.pythonhosted.org/packages/14/eb/8957f254282fa0a92156d38bffe127e72084ae6d21c3f01daa036c567125/luxifer-2019.12.16.dev0-py3-none-any.whl"
+            }
+        ],
+        "2019.12.16.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "082a9ce40ab971cabdaf41d6b6fd25a3",
+                    "sha256": "4b5dba7a107d666a4ee053fa7adee721d4a05a198768c730fa59c9ab126e4e35"
+                },
+                "downloads": -1,
+                "filename": "luxifer-2019.12.16.dev1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "082a9ce40ab971cabdaf41d6b6fd25a3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.6",
+                "size": 20249,
+                "upload_time": "2019-12-16T16:07:40",
+                "upload_time_iso_8601": "2019-12-16T16:07:40.044878Z",
+                "url": "https://files.pythonhosted.org/packages/22/a0/8928fcb705bcc348661fa5571872068ddf0448f5386b333ffde901e5ceba/luxifer-2019.12.16.dev1-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "082a9ce40ab971cabdaf41d6b6fd25a3",
+                "sha256": "4b5dba7a107d666a4ee053fa7adee721d4a05a198768c730fa59c9ab126e4e35"
+            },
+            "downloads": -1,
+            "filename": "luxifer-2019.12.16.dev1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "082a9ce40ab971cabdaf41d6b6fd25a3",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": "~=3.6",
+            "size": 20249,
+            "upload_time": "2019-12-16T16:07:40",
+            "upload_time_iso_8601": "2019-12-16T16:07:40.044878Z",
+            "url": "https://files.pythonhosted.org/packages/22/a0/8928fcb705bcc348661fa5571872068ddf0448f5386b333ffde901e5ceba/luxifer-2019.12.16.dev1-py3-none-any.whl"
+        }
+    ]
+}

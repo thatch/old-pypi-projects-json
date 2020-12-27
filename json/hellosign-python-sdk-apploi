@@ -1,0 +1,115 @@
+{
+    "info": {
+        "author": "HelloSign",
+        "author_email": "apisupport@hellosign.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2.7"
+        ],
+        "description": "Hellosign Python SDK\n-------------------\n\n\nA Python wrapper for the [HelloSign API](http://www.hellosign.com/api)\n\n\n## Installation\n\nInstall using `easy_install`:\n\n````sh\neasy_install hellosign-python-sdk\n````\n\nInstall using `pip`:\n\n````sh\npip install hellosign-python-sdk\n````\n\nInstall from code:\n````sh\ngit clone https://github.com/HelloFax/hellosign-python-sdk.git\ncd hellosign-python-sdk\npython setup.py install\n````\n\n## Configuration\n\nIn your application, import `HSClient`:\n\n````python\nfrom hellosign_sdk import HSClient\n````\n\nThen create a HSClient object and pass authentication information to initialize it:\n\n````python\n# Initialize HSClient using email and password\nclient = HSClient(email_address=\"api_user@example.com\", password=\"your_password\")\n\n# Initialize HSClient using api key\nclient = HSClient(api_key=\"your_api_key\")\n\n# Initialize HSClient using api token\nclient = HSClient(access_token=\"your_api_access_token\")\n````\nNote: In case you initialize the HSClient with all the above credentials, the priority order is as follow: access_token, api_key, then email and password.\n\n## Usage\n\nFor more information about the wrapper, its methods and parameters visit our detailed API documentation on  [readthedocs](http://hellosign-python-sdk.readthedocs.org/en/v3/py-modindex.html).\n\n### Account\n\n#### Get current account information\n\n````python\naccount = client.get_account_info()\n````\n\nThe account information is also stored in `client.account`. For example, to print the `email_address` of your account:\n\n````python\nprint client.account.email_address\n````\n\n#### Update your account information\n\n````python\nclient.account.callback_url = \"https://www.example.com/callback\"\nclient.update_account_info()\n````\n\n#### Create a new HelloSign account\n\n````python\nnew_account = client.create_account(\"new_user@example.com\")\n````\n\n\n### Signature Request\n\n\n#### Get a Signature Request\n\n````python\nsignature_request = client.get_signature_request(\"fa5c8a0b0f492d768749333ad6fcc214c111e967\")\nprint signature_request.requester_email_address\nprint signature_request.signature_request_id\n````\n\n#### Get a list of your Signature Requests\n\n````python\nsignature_request_list = client.get_signature_request_list(page=1)\n\n# Print out the name of the signers in every signature request\nfor signature_request in signature_request_list:\n    print signature_request.signatures[0].signer_name\n````\n\n#### Send a Signature Request\n\n````python\nfiles = [\"NDA.pdf\", \"AppendixA.pdf\"]\nsigners = [\n    {\"name\": \"Jack\", \"email_address\": \"jack@example.com\"},\n    {\"name\": \"Jill\", \"email_address\": \"jill@example.com\"}\n]\ncc_email_addresses = [\"lawyer@hellosign.com\", \"lawyer@example.com\"]\n\n# Send a signature request with remote files\nsignature_request = client.send_signature_request(\n                                test_mode=True,\n                                files=None,\n                                file_urls=[\"http://www.example.com/download/sample.pdf\"],\n                                title=\"NDA with Acme Co.\",\n                                subject=\"The NDA we talked about\",\n                                message=\"Please sign this NDA and then we can discuss more. Let me know if you have any questions.\",\n                                signing_redirect_url=None,\n                                signers=signers,\n                                cc_email_addresses=cc_email_addresses)\n\n# Send a signature request with uploaded files\nsignature_request = client.send_signature_request(\n                                test_mode=True,\n                                files=files,\n                                file_urls=None,\n                                title=\"NDA with Acme Co.\",\n                                subject=\"The NDA we talked about\",\n                                message=\"Please sign this NDA and then we can discuss more. Let me know if you have any questions.\",\n                                signing_redirect_url=None,\n                                signers=signers,\n                                cc_email_addresses=cc_email_addresses)\n````\n\n#### Send a Signature Request with Template\n\n````python\nsigners = [\n    {\"name\": \"Jack\", \"email_address\": \"jack@example.com\"},\n    {\"name\": \"Jill\", \"email_address\": \"jill@example.com\"}\n]\ncc_email_addresses = [\"lawyer@hellosign.com\", \"lawyer@example.com\"]\nccs = [\n    { \"email_address\": \"lawyer@hellosign.com\", \"role_name\": \"Lawyer 1\" },\n    { \"email_address\": \"lawyer@example.com\", \"role_name\": \"Lawyer 2\" }\n]\ncustom_fields = [\n    { \"Field 1\": \"Value 1\" },\n    { \"Field 2\": \"Value 2\" }\n]\n\n# Send a signature request with uploaded files\nsignature_request = client.send_signature_request_with_template(\n                                        test_mode=True,\n                                        template_id=\"fa5c8a0b0f492d768749333ad6fcc214c111e967\",\n                                        title=\"NDA with Acme Co.\",\n                                        subject=\"The NDA we talked about\",\n                                        message=\"Please sign this NDA and then we can discuss more. Let me know if you have any questions.\",\n                                        signing_redirect_url=None,\n                                        signers=signers,\n                                        ccs=ccs,\n                                        custom_fields=custom_fields)\n````\n\n### Embedded\n\n#### Embedded signing\n\n````python\nsigners = [\n    {\"name\": \"Jack\", \"email_address\": \"jack@example.com\"},\n    {\"name\": \"Jill\", \"email_address\": \"jill@example.com\"}\n]\nsignature_request = client.send_signature_request_embedded(\n                                test_mode=True,\n                                client_id=\"YOUR CLIENT ID\",\n                                files=[\"path/to/NDA.pdf\"],\n                                title=\"NDA with Acme Co.\",\n                                subject=\"The NDA we talked about\",\n                                message=\"Please sign this NDA and then we can discuss more. Let me know if you have any questions.\",\n                                signing_redirect_url=None\n                                signers=signers,\n                                cc_email_addresses=None,\n                                form_fields_per_document=None)\n\n# Retrieve the signature url to pass to the embedded iFrame\nfor signature in signature_request.signatures:\n    embedded_obj = client.get_embedded_object(signature.signature_id)\n    sign_url = embedded_obj.sign_url\n\n````\n\nMore information about the asscociated front-end code can be found [here](https://www.hellosign.com/api/embeddedSigningWalkthrough#ClientSide)\n\n#### Embedded requesting\n\n````python\n\n# Create a draft and retrieve the claim url\ndraft = client.create_embedded_unclaimed_draft(\n                    test_mode=True,\n                    client_id=\"YOUR CLIENT ID\",\n                    requester_email_address=\"requester@example.com\",\n                    files=[\"path/to/NDA.pdf\"],\n                    draft_type=\"signature_request\",\n                    subject=\"The NDA we talked about\",\n                    message=\"Please sign this NDA and then we can discuss more. Let me know if you have any questions.\",\n                    is_for_embedded_signing=False)\nclaim_url = draft.claim_url\n````\n\nMore information about the asscociated front-end code can be found [here](https://www.hellosign.com/api/embeddedRequestingWalkthrough#ClientSideRequesting)\n\nOnce the user edits the draft in the embedded iFrame and sends the signature request your app callback will receive a `signature_request_sent` event containing a `SignatureRequest` object. If we had used `is_for_embedded_signing=True`, we would want to get the signature ids out of the `SignatureRequest` from that event and fetch the signature urls at this point. In your event callback handler, you will need to do something like this:\n\n````python\nclient = HSClient(api_key='your_api_key')\nevent_data = json.loads(request.POST.get('json'))\nif event_data['event']['event_type'] == 'signature_request_sent':\n    sig_req = event_data['signature_request']\n    for sig in sig_req['signature_request']['signatures']:\n        embedded_obj = client.get_embedded_object(sig['signature_id'])\n        sign_url = embedded_obj.sign_url\n        # Save sign_url somewhere\n````\n\n\n## Tests\n\nYou can run the test suite by executing the following commands after you cloned the repo:\nNote that it requires to have a HelloSign account, with at least one template and one api app.\n\n**WARNING:** We advise against running the tests against your personal account as they perform destructive actions.\n\n```\ncd hellosign_sdk\ncp tests/test_helper.sample.py tests/test_helper.py\nHELLOSIGN_API_KEY='YOUR API KEY'\nHELLOSIGN_API_CLIENT_ID='YOUR APP CLIENT ID'\nHELLOSIGN_API_CLIENT_SECRET='YOUR APP CLIENT SECRET'\nnosetests --with-coverage --cover-package=hellosign_sdk --include=hellosign_sdk/tests/unit_tests/* --include=hellosign_sdk/tests/functional_tests/*\n```\n\n## Additional notes\n\n### Local callbacks\nWe do not allow app callbacks (event or OAuth) to be set to localhost. However it is still possible to test callbacks against a local server. Tunneling services such as [ngrok](http://ngrok.com) can help you set this up.\n\n## License\n\n```\nThe MIT License (MIT)\n\nCopyright (C) 2015 hellosign.com\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n```\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/HelloFax/hellosign-python-sdk",
+        "keywords": "hellosign python sdk",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "hellosign-python-sdk-apploi",
+        "package_url": "https://pypi.org/project/hellosign-python-sdk-apploi/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/hellosign-python-sdk-apploi/",
+        "project_urls": {
+            "Homepage": "https://github.com/HelloFax/hellosign-python-sdk"
+        },
+        "release_url": "https://pypi.org/project/hellosign-python-sdk-apploi/1/",
+        "requires_dist": [
+            "requests"
+        ],
+        "requires_python": "",
+        "summary": "A Python wrapper for the HelloSign API (http://www.hellosign.com/api)",
+        "version": "1"
+    },
+    "last_serial": 4940246,
+    "releases": {
+        "1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "43fdf01df34fc7bab46c17cd8da2bba4",
+                    "sha256": "00a24737be514aaa5069063d44f1a3c21250d2ce8606a0df4fa7632e8f10d678"
+                },
+                "downloads": -1,
+                "filename": "hellosign_python_sdk_apploi-1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "43fdf01df34fc7bab46c17cd8da2bba4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 41184,
+                "upload_time": "2019-03-14T15:17:47",
+                "url": "https://files.pythonhosted.org/packages/58/3c/f99c16e70a07b9ae96e42f947ead081a65f735777ddf58adcb0656a7e894/hellosign_python_sdk_apploi-1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "15864b7f3ce6cbb67ab78a3d54fe94e0",
+                    "sha256": "456c500feb6e73937881efa3aa63297f5ef95f0542b2e3e5a5fa6f64d3c144a7"
+                },
+                "downloads": -1,
+                "filename": "hellosign-python-sdk-apploi-1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "15864b7f3ce6cbb67ab78a3d54fe94e0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 28339,
+                "upload_time": "2019-03-14T15:17:49",
+                "url": "https://files.pythonhosted.org/packages/81/2e/ee36faaeb083b065a05943a8b4f5656646bba77db6f16c5dcd2634ccbef1/hellosign-python-sdk-apploi-1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "43fdf01df34fc7bab46c17cd8da2bba4",
+                "sha256": "00a24737be514aaa5069063d44f1a3c21250d2ce8606a0df4fa7632e8f10d678"
+            },
+            "downloads": -1,
+            "filename": "hellosign_python_sdk_apploi-1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "43fdf01df34fc7bab46c17cd8da2bba4",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 41184,
+            "upload_time": "2019-03-14T15:17:47",
+            "url": "https://files.pythonhosted.org/packages/58/3c/f99c16e70a07b9ae96e42f947ead081a65f735777ddf58adcb0656a7e894/hellosign_python_sdk_apploi-1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "15864b7f3ce6cbb67ab78a3d54fe94e0",
+                "sha256": "456c500feb6e73937881efa3aa63297f5ef95f0542b2e3e5a5fa6f64d3c144a7"
+            },
+            "downloads": -1,
+            "filename": "hellosign-python-sdk-apploi-1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "15864b7f3ce6cbb67ab78a3d54fe94e0",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 28339,
+            "upload_time": "2019-03-14T15:17:49",
+            "url": "https://files.pythonhosted.org/packages/81/2e/ee36faaeb083b065a05943a8b4f5656646bba77db6f16c5dcd2634ccbef1/hellosign-python-sdk-apploi-1.tar.gz"
+        }
+    ]
+}

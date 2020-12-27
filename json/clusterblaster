@@ -1,0 +1,273 @@
+{
+    "info": {
+        "author": "Cameron Gilchrist",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Topic :: Scientific/Engineering :: Bio-Informatics"
+        ],
+        "description": "# clusterblaster\n[![Build Status](https://travis-ci.org/gamcil/clusterblaster.svg?branch=master)](https://travis-ci.org/gamcil/clusterblaster)\n[![Coverage Status](https://coveralls.io/repos/github/gamcil/clusterblaster/badge.svg?branch=master)](https://coveralls.io/github/gamcil/clusterblaster?branch=master)\n[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)\n[![PyPI version](https://badge.fury.io/py/clusterBLASTer.svg)](https://badge.fury.io/py/clusterBLASTer)\n\n`clusterblaster` is a tool for finding clusters of co-located homologous sequences\nin BLAST searches.\n\n## Outline\n1. Perform BLAST search, remotely (via BLAST API) or locally (via `diamond`)\n2. Parse results, save hits meeting user-defined thresholds for identity, coverage and\n   e-value\n3. Query the Identical Protein Group (IPG) resource to fetch the position of each hit on\n   their respective genomic scaffolds\n4. Look for clusters of co-located hits meeting thresholds for intergenic distance and\n   minimum number of conserved sequences\n\n## Installation\n`clusterblaster` can be installed via pip:\n\n```bash\n~$ pip3 install clusterblaster --user\n```\n\nor by cloning the repository and installing:\n\n```bash\n~$ git clone https://github.com/gamcil/clusterblaster.git\n...\n~$ cd clusterblaster/\n~$ pip3 install .\n```\n\n## Dependencies\n`clusterblaster` is tested on Python 3.6, and its only external Python dependency is\nthe `requests` module (used for interaction with NCBI APIs).\nIf you want to perform local searches, you should have `diamond` installed and available\non your system $PATH.\n`clusterblaster` will throw an error if a local search is started but it cannot find\n`diamond` or `diamond-aligner` (alias when installed via apt) on the system.\n\n## Usage\n`clusterblaster` accepts FASTA files and collections of valid NCBI sequence identifiers\n(GIs, accession numbers) as input.\nThere are two search modes, specified by the `--mode` argument.\nBy default (i.e. `--mode` not given), it will be set to `remote`, which will launch a\nremote BLAST search using NCBI's BLAST API.\nAlternatively, `local` mode performs a search against a local `diamond` database, which\nis much quicker (albeit requires some initial setup).\n\n### Performing a remote search via the NCBI BLAST API\nAt a minimum, a search could look like one of the following:\n\n```bash\n~$ cblaster -qf query.fasta \n~$ cblaster -qi QBE85649.1 QBE85648.1 QBE85647.1 QBE85646.1 ...\n```\n\nThis will launch a remote search against the non-redundant (nr) protein database,\nretrieve and parse the results, then report any blocks of hits to the terminal.\nBy default, hits are only reported if they are above 30% percent identity and 50% query\ncoverage, and have an e-value below 0.01.\nIf we wanted to be stricter, we could change those values with the following:\n\n```bash\n~$ cblaster -qf query.fasta --min_identity 70 --min_coverage 90 --evalue 0.001\n```\n\nYou can also pass in NCBI search queries using `-eq / --entrez_query` to pre-filter\nthe target database, which can result in vastly reduced run-times and more\ntargeted results. For example, to only search against *Aspergillus* sequences:\n\n```bash\n~$ cblaster -qf query.fasta --entrez_query \"Aspergillus\"[ORGN]\n```\n\nLook [here](https://www.ncbi.nlm.nih.gov/books/NBK49540/) for a full description of\nEntrez search terms.\n\n### Searching a local database using DIAMOND\nAlternatively, a local DIAMOND database can be searched by specifying:\n\n```bash\n~$ cblaster -qf query.fasta --mode local --database db.dmnd\n```\n\nFor this to work, the database must consist of sequences derived from NCBI, such that\ntheir identifiers can be used for retrieval of sequences/genomic context.\nThe easiest way to set this up is via NCBI's batch assembly download option.\nFor example, to build a database of *Aspergillus* protein sequences:\n\n1. Search the NCBI Assembly database for *Aspergillus* genomes\n\n![Search for Aspergillus assemblies](img/search.png)\n\n2. Click 'Download Assemblies', select 'Protein FASTA' and click 'Download'\n\n![Download 'Protein FASTA' files](img/download.png)\n\n3. Extract all FASTA files and concatenate them\n\n```bash\n~$ pigz -d *.gz\n~$ cat *.faa >> proteins.faa\n```\n\n4. Build the DIAMOND database\n\n```bash\n~$ diamond makedb --in proteins.faa --db proteins\n...\n~$ ls\ndatabase.faa\ndatabase.dmnd\n```\n\n5. Run `clusterblaster` against the newly created databse\n\n```bash\n~$ cblaster -m diamond -qf query.fa -db database.dmnd <options>\n```\n\nAlternatively, you could use\n[`ncbi-genome-download`](https://github.com/kblin/ncbi-genome-download)\nto retrieve the sequences from the command line.\n\n\n## Citation\nIf you found this tool useful, please cite:\n\n```\n1. Buchfink, B., Xie, C. & Huson, D. H. Fast and sensitive protein alignment using DIAMOND. Nat. Methods 12, 59\u201360 (2015).\n2. Acland, A. et al. Database resources of the National Center for Biotechnology Information. Nucleic Acids Res. 42, 7\u201317 (2014).\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/gamcil/clusterblaster",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "clusterBLASTer",
+        "package_url": "https://pypi.org/project/clusterBLASTer/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/clusterBLASTer/",
+        "project_urls": {
+            "Homepage": "https://github.com/gamcil/clusterblaster"
+        },
+        "release_url": "https://pypi.org/project/clusterBLASTer/1.0.4/",
+        "requires_dist": [
+            "requests"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "",
+        "version": "1.0.4"
+    },
+    "last_serial": 6056127,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "698992024f08cd03e54227453fc9f96c",
+                    "sha256": "3af263d37a8e97e6d1454e954d4a7e88b88e39333cd957f2a253ef04d9011b83"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "698992024f08cd03e54227453fc9f96c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18918,
+                "upload_time": "2019-10-30T08:08:04",
+                "upload_time_iso_8601": "2019-10-30T08:08:04.157973Z",
+                "url": "https://files.pythonhosted.org/packages/b9/b0/3b2805940fb75b475815cf355b33f226527816fdd99e55d11ae8c495a57e/clusterBLASTer-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b1071f39a21e47fc73aa87ff0a1f1f2d",
+                    "sha256": "32f0fb1be190c82db851d6cdbf1e23a4d9be62b5b31ce3489bb9712dffd3e6d9"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b1071f39a21e47fc73aa87ff0a1f1f2d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 90754,
+                "upload_time": "2019-10-30T08:08:07",
+                "upload_time_iso_8601": "2019-10-30T08:08:07.391812Z",
+                "url": "https://files.pythonhosted.org/packages/24/70/008748bfc4b1db01d06e9295c1e9a604b602e9d83cffb129d1057247c88b/clusterBLASTer-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f1972daae77cd5fb0c926064d4272696",
+                    "sha256": "77473ea6317e1184c97b0a2184699e4244f793141cd5d935cd28fe1562624a7b"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f1972daae77cd5fb0c926064d4272696",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18957,
+                "upload_time": "2019-10-31T01:05:47",
+                "upload_time_iso_8601": "2019-10-31T01:05:47.531139Z",
+                "url": "https://files.pythonhosted.org/packages/7e/04/7390dc840eda7fa074dae2a1c8741f3cb2569116ca793c17b371acaf9f36/clusterBLASTer-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e1f08dbf4d28583166273a1438f3bab",
+                    "sha256": "322e8f617068c9b31143872b9c2e4cd470214ae3e7239e862b144f89a8661102"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0e1f08dbf4d28583166273a1438f3bab",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 90827,
+                "upload_time": "2019-10-31T01:05:49",
+                "upload_time_iso_8601": "2019-10-31T01:05:49.848361Z",
+                "url": "https://files.pythonhosted.org/packages/8a/1c/109a267a9ce2bef86710b3ed7dbae9cf2ba9386369979f0028d5ae77b05b/clusterBLASTer-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9410bd87c69023c60dc9103beec17454",
+                    "sha256": "46008e5dd86cf2323fb3cd085ca1faa1dcc5a45ecd569705cb4bd237f44b94ba"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9410bd87c69023c60dc9103beec17454",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18940,
+                "upload_time": "2019-10-31T01:56:00",
+                "upload_time_iso_8601": "2019-10-31T01:56:00.056686Z",
+                "url": "https://files.pythonhosted.org/packages/1e/ce/078113d8412dfe13d55f06a1225173454cf2b2eeae642684fa204105f9bc/clusterBLASTer-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "893b7aeb88c46a5bed82ba1a56a0babf",
+                    "sha256": "e9c2f2992f6c1133cba3a5ec3312ed38f21012aa3a5e4774d763ea31c528ee31"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "893b7aeb88c46a5bed82ba1a56a0babf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 90806,
+                "upload_time": "2019-10-31T01:56:02",
+                "upload_time_iso_8601": "2019-10-31T01:56:02.604979Z",
+                "url": "https://files.pythonhosted.org/packages/cb/35/3b99184e7db14ac48695848ade4d980f5e27190ee45fe5fdb9dd474914da/clusterBLASTer-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e2798363fb448ec9f2d17a01932bc607",
+                    "sha256": "6151d60893735fbdb6d0c5db786165d7a95300909ed19991e8f327e8086972bf"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e2798363fb448ec9f2d17a01932bc607",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 19472,
+                "upload_time": "2019-10-31T04:36:59",
+                "upload_time_iso_8601": "2019-10-31T04:36:59.800273Z",
+                "url": "https://files.pythonhosted.org/packages/2c/cb/219e774eb58a5c52720d9580c4699436176d6013d0832876edb7fc52e283/clusterBLASTer-1.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "893cc527d9a72133423e013a8545c7b4",
+                    "sha256": "003a2b3a6fd01037a4dc9ad1cc94745d2f93c5fce8dad653c6695336b2151906"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "893cc527d9a72133423e013a8545c7b4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 91278,
+                "upload_time": "2019-10-31T04:37:02",
+                "upload_time_iso_8601": "2019-10-31T04:37:02.189537Z",
+                "url": "https://files.pythonhosted.org/packages/8c/23/7710343a57b21ffd0a68c1b56050fb053c07f5bdf6fc6fe366c56dca2421/clusterBLASTer-1.0.3.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3d9e5d2804b3cec27e1efd09c40671a9",
+                    "sha256": "d0c0f25a71f1391115cfccd73e655994643fa3701985c38164412188d138cbe6"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3d9e5d2804b3cec27e1efd09c40671a9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 19469,
+                "upload_time": "2019-10-31T04:50:58",
+                "upload_time_iso_8601": "2019-10-31T04:50:58.809792Z",
+                "url": "https://files.pythonhosted.org/packages/85/07/8a5a7a00609d866a5a8b9573bb872616b4d92530181c034d24102848b9d9/clusterBLASTer-1.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7d5d3cb01ae2bb1f7adef05dc4e70f07",
+                    "sha256": "4b763ca34418ecf9dd72fe5b23351715dc5d90044b1da2268af4216d3269309f"
+                },
+                "downloads": -1,
+                "filename": "clusterBLASTer-1.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7d5d3cb01ae2bb1f7adef05dc4e70f07",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 91281,
+                "upload_time": "2019-10-31T04:51:01",
+                "upload_time_iso_8601": "2019-10-31T04:51:01.125391Z",
+                "url": "https://files.pythonhosted.org/packages/b4/30/3b2168e21a5bfef99529744009823ae82a8c69a89b47c4fe983858d1053e/clusterBLASTer-1.0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3d9e5d2804b3cec27e1efd09c40671a9",
+                "sha256": "d0c0f25a71f1391115cfccd73e655994643fa3701985c38164412188d138cbe6"
+            },
+            "downloads": -1,
+            "filename": "clusterBLASTer-1.0.4-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "3d9e5d2804b3cec27e1efd09c40671a9",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 19469,
+            "upload_time": "2019-10-31T04:50:58",
+            "upload_time_iso_8601": "2019-10-31T04:50:58.809792Z",
+            "url": "https://files.pythonhosted.org/packages/85/07/8a5a7a00609d866a5a8b9573bb872616b4d92530181c034d24102848b9d9/clusterBLASTer-1.0.4-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7d5d3cb01ae2bb1f7adef05dc4e70f07",
+                "sha256": "4b763ca34418ecf9dd72fe5b23351715dc5d90044b1da2268af4216d3269309f"
+            },
+            "downloads": -1,
+            "filename": "clusterBLASTer-1.0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7d5d3cb01ae2bb1f7adef05dc4e70f07",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 91281,
+            "upload_time": "2019-10-31T04:51:01",
+            "upload_time_iso_8601": "2019-10-31T04:51:01.125391Z",
+            "url": "https://files.pythonhosted.org/packages/b4/30/3b2168e21a5bfef99529744009823ae82a8c69a89b47c4fe983858d1053e/clusterBLASTer-1.0.4.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,93 @@
+{
+    "info": {
+        "author": "Luke Hodkinson",
+        "author_email": "furious.luke@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Framework :: Django",
+            "Framework :: Django :: 1.7",
+            "Framework :: Django :: 1.8",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5"
+        ],
+        "description": "# django-address\n\n## Disclaimer\n\nThese instructions are a little shabby, I haven't had a whole lot of time to\ndevote to explaining things thoroughly. If you're interested in using this\nbut are having trouble getting it setup please feel free to email me at\nfurious.luke@gmail.com, I'll assist as best I can and update the instructions\nin the process. Cheers!\n\nAlso, *there will be bugs*, please let me know of any issues and I'll do my\nbest to fix them.\n\n## Installation\n\nPreviously a patch for Django was required to make this app work, but as\nof 1.7 the patch is no longer needed. Installation is now done as per\nusual. The package is installed with:\n\n```bash\npython setup.py install\n```\n\nThen, add `address` to your `INSTALLED_APPS` list in `settings.py`:\n\n```python\nINSTALLED_APPS = (\n    ...\n    'address',\n)\n```\n\nYou wil need to add your Google Maps API key to `settings.py` too:\n```\nGOOGLE_API_KEY = 'AIzaSyD--your-google-maps-key-SjQBE'\n```\n\n## The Model\n\nThe rationale behind the model structure is centered on trying to make\nit easy to enter addresses that may be poorly defined. The model field included\nuses Google Maps API v3 (via the nicely done [geocomplete jquery plugin](http://ubilabs.github.io/geocomplete/)) to\ndetermine a proper address where possible. However if this isn't possible the\nraw address is used and the user is responsible for breaking the address down\ninto components.\n\nIt's currently assumed any address is represent-able using four components:\ncountry, state, locality and street address. In addition, country code, state\ncode and postal code may be stored, if they exist.\n\nThere are four Django models used:\n\n```\n  Country\n    name\n    code\n\n  State\n    name\n    code\n    country -> Country\n\n  Locality\n    name\n    postal_code\n    state -> State\n\n  Address\n    raw\n    street_number\n    route\n    locality -> Locality\n```\n\n## Address Field\n\nTo simplify storage and access of addresses, a subclass of `ForeignKey` named\n`AddressField` has been created. It provides an easy method for setting new\naddresses.\n\n### Creation\n\nIt can be created using the same optional arguments as a ForeignKey field.\nFor example:\n\n```python\n  from address.models import AddressField\n\n  class MyModel(models.Model):\n    address1 = AddressField()\n    address2 = AddressField(related_name='+', blank=True, null=True)\n```\n\n### Setting Values\n\nValues can be set either by assigning an Address object:\n\n```python\n  addr = Address(...)\n  addr.save()\n  obj.address = addr\n```\n\nOr by supplying a dictionary of address components:\n\n```python\n  obj.address = {'street_number': '1', route='Somewhere Ave', ...}\n```\n\nThe structure of the address components is as follows:\n\n```python\n  {\n    'raw': '1 Somewhere Ave, Northcote, VIC 3070, AU',\n    'street_number': '1',\n    'route': 'Somewhere Ave',\n    'locality': 'Northcote',\n    'postal_code': '3070',\n    'state': 'Victoria',\n    'state_code': 'VIC',\n    'country': 'Australia',\n    'country_code': 'AU'\n  }\n```\n\nAll except the `raw` field can be omitted. In addition, a raw address may\nbe set directly:\n\n```python\nobj.address = 'Out the back of 1 Somewhere Ave, Northcote, Australia'\n```\n\n### Getting Values\n\nWhen accessed, the address field simply returns an Address object. This way\nall components may be accessed naturally through the object. For example::\n\n```python\n  route = obj.address.route\n  state_name = obj.address.locality.state.name\n```\n\n## Forms\n\nIncluded is a form field for simplifying address entry. A Google maps\nauto-complete is performed in the browser and passed to the view. If\nthe lookup fails the raw entered value is used.\n\nTODO: Talk about this more.\n\n## Partial Example\n\nThe model:\n\n```python\nfrom address.models import AddressField\n\nclass Person(models.Model):\n  address = AddressField()\n```\n\nThe form:\n\n```\nfrom address.forms import AddressField\n\nclass PersonForm(forms.Form):\n  address = AddressField()\n```\n\nThe template:\n\n```html\n<head>\n{{ form.media }} <!-- needed for JS/GoogleMaps lookup -->\n</head>\n<body>\n  {{ form }}\n</body>\n```",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/diwap/django-address",
+        "keywords": "",
+        "license": "BSD",
+        "maintainer": "Luke Hodkinson",
+        "maintainer_email": "furious.luke@gmail.com",
+        "name": "django-address-info",
+        "package_url": "https://pypi.org/project/django-address-info/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-address-info/",
+        "project_urls": {
+            "Homepage": "https://github.com/diwap/django-address"
+        },
+        "release_url": "https://pypi.org/project/django-address-info/0.2.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A django application for describing addresses.",
+        "version": "0.2.0"
+    },
+    "last_serial": 4753203,
+    "releases": {
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "81f9308de640fd8e9d45a965ef3049ed",
+                    "sha256": "c803ae9bceb30b90b7df390ed060fd5864449173df7321310933f9ac6786b553"
+                },
+                "downloads": -1,
+                "filename": "django-address-info-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "81f9308de640fd8e9d45a965ef3049ed",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16056,
+                "upload_time": "2019-01-29T04:46:44",
+                "upload_time_iso_8601": "2019-01-29T04:46:44.015172Z",
+                "url": "https://files.pythonhosted.org/packages/74/94/3cb16fc58d973a34dbc18fc5bc934f08e9b3185334f57b0d8700b69c1ed9/django-address-info-0.2.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "81f9308de640fd8e9d45a965ef3049ed",
+                "sha256": "c803ae9bceb30b90b7df390ed060fd5864449173df7321310933f9ac6786b553"
+            },
+            "downloads": -1,
+            "filename": "django-address-info-0.2.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "81f9308de640fd8e9d45a965ef3049ed",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 16056,
+            "upload_time": "2019-01-29T04:46:44",
+            "upload_time_iso_8601": "2019-01-29T04:46:44.015172Z",
+            "url": "https://files.pythonhosted.org/packages/74/94/3cb16fc58d973a34dbc18fc5bc934f08e9b3185334f57b0d8700b69c1ed9/django-address-info-0.2.0.tar.gz"
+        }
+    ]
+}

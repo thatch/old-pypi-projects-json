@@ -1,0 +1,172 @@
+{
+    "info": {
+        "author": "David B. Adrian",
+        "author_email": "dawidh.adrian@googlemail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.2",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development"
+        ],
+        "description": "necapy\n======\n\n**NE**\\ sted **C**\\ ommand-line **A**\\ rguments for **PY**\\ thon is a\ntiny class allowing the quick creation of nested commandline-args/menu.\n\n[THIS IS AN EARLY DRAFT. Description is not even close to\ncorrect/finished/updated yet]\n\nIt is powered by the standard library module *argparse* and adds the\ncreation of nested submenus based on keywords.\n\nYou can add two types: \\* Command-submenu (followed by argparse menu, or\nother command-submenu) \\* Argparse-menu (leaf node)\n\nExample\n-------\n\nAn example says a thousand words -> Let\u2019s create a trivial example with\n3 levels of hierarchy.\n\nLet\u2019s assume we are building a program to train some machine learning\nmodel, which has three modes: **train**, **test**, and **list**. Train\nand test have no further subarguments, where list has two modes:\n**datasets** and **models**.\n\n.. code:: python\n\n   import json\n\n   from necapy import necapy\n\n   # Some bogus functions which print their arguments\n   def train(model, dataset, model_params, cpu, e):\n       print(\"function <train> called with:\", locals())\n\n   def test():\n       print(\"function <test> called with:\", locals())\n\n   def list_d(dataset, model_params, cpu, e):\n       print(\"function <list_d> called with:\", locals())\n\n   def list_m(model, model_params):\n       print(\"function <list_m> called with:\", locals())\n\n   if __name__ == \"__main__\":\n       # create menu: base level (L0), a cmd-type\n       menu = necapy(name='Hype', desc=\"Learning KG embeddings easily.\")\n\n       # L0 (main): 1st cmd (train)\n       train_cmd = menu.add_command(name=\"train\",\n                                    desc=\"Train a model (new or continue from checkpoint)\",\n                                    func=train)\n       # L1 (train): add bunch of args\n       train_cmd.add_argument('--model', '-m', type=str, default=\"ComplEx\",\n                              help=\"Name of model.\")\n       train_cmd.add_argument('--dataset', '-d', type=str, default=\"FB20K\",\n                              help=\"Name of dataset.\")\n       train_cmd.add_argument('--model_params', '-mp', type=json.loads,\n                              default=\"{}\",\n                              help=\"Model parameters as dict (json-formatted)\")\n       train_cmd.add_argument('--cpu', action='store_true', help=\"Use CPU only.\")\n       train_cmd.add_argument('-e', type=int, default=1000,\n                              help=\"Run for #e epochs.\")\n\n       # L0 (main): 2nd cmd\n       test_cmd = menu.add_command(\"list\", \"List available models and datasets\", func=None)\n\n       # L0 (main): 3rd cmd\n       list_cmd = menu.add_command(\"list\", \"List available models and datasets\",\n                                   func=None)\n       # L1 (list): add bunch of cmds\n       list_models = list_cmd.add_command(\"models\", \"List available models\",\n                                          func=list_m)\n       list_models.add_argument('--model', '-m', type=str, default=\"ComplEx\",\n                                  help=\"Name of model.\")\n       list_models.add_argument('--model_params', '-mp', type=json.loads,\n                                  default=\"{}\",\n                                  help=\"Model parameters as dict (json-formatted)\")\n       list_datasets = list_cmd.add_command(\"datasets\", \"List available datasets\",\n                                            func=list_d)\n\n       # L2 (list_datasets): add bunch of cmds\n       list_datasets.add_argument('--dataset', '-d', type=str, default=\"FB20K\",\n                                  help=\"Name of dataset.\")\n       list_datasets.add_argument('--model_params', '-mp', type=json.loads,\n                                  default=\"{}\",\n                                  help=\"Model parameters as dict (json-formatted)\")\n       list_datasets.add_argument('--cpu', action='store_true',\n                                  help=\"Use CPU only.\")\n       list_datasets.add_argument('-e', type=int, default=1000,\n                                  help=\"Run for #e epochs.\")\n\n       menu.parse()\n\nlets make some calls:\n\n::\n\n   dadrian@ullr ~/git/necapy \u25cf python test.py\n\n   usage: Hype <command> [<args>]\n\n   Available commands:\n      train          Train a model (new or continue from checkpoint\n      test           Test a checkpoint model\n      list           List available models and datasets\n   test.py: error: the following arguments are required: command\n\nor\n\n::\n\n   dadrian@ullr ~/git/necapy \u25cf python test.py train -m \"blub\" --dataset \"Nanana batman\" -mp '{\"cool_json\":1337}' \n\n   function train called with: {'e': 1000, 'cpu': False, 'model_params': {'cool_json': 1337}, 'dataset': 'Nanana batman', 'model': 'blub'}\n\nor\n\n::\n\n   dadrian@ullr ~/git/necapy \u25cf python test.py list datasets -h \n\n   usage: test.py [-h] [--model MODEL] [--dataset DATASET]\n                  [--model_params MODEL_PARAMS] [--cpu] [-e E]\n\n   List available datasets\n\n   optional arguments:\n     -h, --help            show this help message and exit\n     --model MODEL, -m MODEL\n                           Name of model.\n     --dataset DATASET, -d DATASET\n                           Name of dataset.\n     --model_params MODEL_PARAMS, -mp MODEL_PARAMS\n                           Model parameters as dict (json-formatted)\n     --cpu                 Use CPU only.\n     -e E                  Run for #e epochs.\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/dbadrian/necapy",
+        "keywords": "nested command-line arguments",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "necapy",
+        "package_url": "https://pypi.org/project/necapy/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/necapy/",
+        "release_url": "https://pypi.org/project/necapy/0.1.4/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Nested command-line arguments made easy.",
+        "version": "0.1.4"
+    },
+    "last_serial": 4050065,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a703c1f3724d2c82ce33293f4da9724",
+                    "sha256": "5f2d87c5a99420ef963a2d975d37bacc4d61a265e1b48be8c619104e37e8ed2c"
+                },
+                "downloads": -1,
+                "filename": "necapy-0.1.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7a703c1f3724d2c82ce33293f4da9724",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 3626,
+                "upload_time": "2018-07-10T13:11:59",
+                "url": "https://files.pythonhosted.org/packages/87/2c/12fc7e9a8ca45453d1766923156e0f01a3d53bbf178afdcdc9d4b12b5069/necapy-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f98ea1ea8ced4c04493c563f7cf9412d",
+                    "sha256": "47d03df1114de6c54e5a261ac5fadcfa3b8ea7f2df058c327e5234efb7c1a4bb"
+                },
+                "downloads": -1,
+                "filename": "necapy-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f98ea1ea8ced4c04493c563f7cf9412d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 3173,
+                "upload_time": "2018-07-10T13:12:00",
+                "url": "https://files.pythonhosted.org/packages/22/16/0fa458becd16fb1b3559d566d6039da79586bd70fddc9cbed4e99024e0f8/necapy-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4acd34a40216963f06288f873e9299ae",
+                    "sha256": "53b3efb7b15f7e78cfbc0e08b292a73cc06d16e5c5f7cedfee424749b8f89ed5"
+                },
+                "downloads": -1,
+                "filename": "necapy-0.1.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4acd34a40216963f06288f873e9299ae",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 6771,
+                "upload_time": "2018-07-10T13:17:56",
+                "url": "https://files.pythonhosted.org/packages/56/fb/0e44ba9cd3c45696f13ab813951a2eedc62ba2195ca5ede041856ac0f20f/necapy-0.1.1-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f54bf41cd8a16a5c49ef641d050e1cd2",
+                    "sha256": "3e8efab32505850c2f5d9070d50bfdb9efccfdd56d73991370be40c1903abbc8"
+                },
+                "downloads": -1,
+                "filename": "necapy-0.1.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f54bf41cd8a16a5c49ef641d050e1cd2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 6760,
+                "upload_time": "2018-07-10T13:19:10",
+                "url": "https://files.pythonhosted.org/packages/15/1b/4b61ae31effc5dc6b2d87849814835f8c86c141f763a1323d267858c10d8/necapy-0.1.2-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a89e7448d30e7639c127a613ad0c052b",
+                    "sha256": "df30fab8e80ece44728d5b2923cf8e7c5b1e509311f808de6fb7270279457ab6"
+                },
+                "downloads": -1,
+                "filename": "necapy-0.1.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a89e7448d30e7639c127a613ad0c052b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 6826,
+                "upload_time": "2018-07-10T13:23:37",
+                "url": "https://files.pythonhosted.org/packages/a9/76/01e158a00b25c65a134975450bafa868e2e80385246fd7ee70c654041e59/necapy-0.1.3-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f0f01a3c13e4b8e8ca0af8d303a26481",
+                    "sha256": "bd9d9d26835c2688a8e51ae34950a0fdf5f6e992c355a4ecacb577502f5872f9"
+                },
+                "downloads": -1,
+                "filename": "necapy-0.1.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f0f01a3c13e4b8e8ca0af8d303a26481",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 6865,
+                "upload_time": "2018-07-11T08:41:53",
+                "url": "https://files.pythonhosted.org/packages/f9/2e/663b57749e21f6600c53774a6eee61e132e5c2c4cff1174274989de67c4c/necapy-0.1.4-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f0f01a3c13e4b8e8ca0af8d303a26481",
+                "sha256": "bd9d9d26835c2688a8e51ae34950a0fdf5f6e992c355a4ecacb577502f5872f9"
+            },
+            "downloads": -1,
+            "filename": "necapy-0.1.4-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "f0f01a3c13e4b8e8ca0af8d303a26481",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "size": 6865,
+            "upload_time": "2018-07-11T08:41:53",
+            "url": "https://files.pythonhosted.org/packages/f9/2e/663b57749e21f6600c53774a6eee61e132e5c2c4cff1174274989de67c4c/necapy-0.1.4-py2.py3-none-any.whl"
+        }
+    ]
+}

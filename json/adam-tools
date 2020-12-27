@@ -1,0 +1,190 @@
+{
+    "info": {
+        "author": "NOVELTIS",
+        "author_email": "Cedric.Bacour@noveltis.fr, Ivan.Price@noveltis.fr",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "ADAM-Tools\n===========\n\nSome words about the **ADAM Tools** here.\n\nMore info can be found at the ADAM website here: http://www.noveltis.fr/adam-demo/\n\n\nInstalling\n----------\n\nThe ADAM-Tools are implemented in pure python, meaning there is no need to 'install' them as such, they can be simply imported into your Python scripts and used. This may be the best option if you plan on modifying the ADAM-Tools source code yourself for example, as you can store the code wherever you like.\n\nIf you do not intend to make modifications to the tools the best option is to let Python install them in a central location so all your scripts will be able to import them without specifying where they are.\n\nTo install using the Python module manager \"easy_install\", issue from the command line (linux users may need to preceed command with \"sudo\")::\n\n    $ easy_install -U ADAM-Tools\n\nThe -U switch means that easy_install will try to install the latest available version, overwriting any existing versions on your computer.\n\nNote this assumes that easy_install is in your path. If you are using windows and the result of the above is \"Bad command or file name\" you need to include the specific path to easy_install, something like this::\n\n    # windows with no python in path:\n    c:\\python26\\scripts\\easy_install ADAM-Tools\n    \n\nIf for some reason easy_install does not work, ADAM-Tools can be installed manually. To do this, download and unzip the source package below. Start a command prompt in the install directory, and issue::\n\n    $ python setup.py install\n    \n\n\n\n    \nUsage\n----------\n\nConfiguration\n^^^^^^^^^^^^^\nSince version 0.13dev, the configuration parameters of the ADAM Tools can be supplied as parameters when instantiating a new job. This allows the entire ADAM codebase to be replaced during an upgrade without losing site-specific config information.\n\nFor example, we start all ADAM scripts like this::\n\n    import adam\n    import adam_config\n\n    my_path_data       = 'c://ADAM-data/'\n    my_output_root_dir = 'c://ADAM-output/'\n    # get an instance of an adam 'config' object, this will be attached to any jobs we run\n    my_config = adam_config.adam_config(path_data = my_path_data, output_root_dir = my_output_root_dir)\n\nADAM Jobs\n^^^^^^^^^\nOnce created, the config is then used as a parameter for all the jobs that follow.\n\nFor example, a spectrum graph can be generated like this (note the cfg = my_config)::\n\n    request_dict = {'fieldOperationType': 'spectrum',\n                    'fieldMonth'        : 'jan',\n                    'fieldSunZenith'    : 40,\n                    'fieldViewZenith'   : 30,\n                    'fieldRelAzimuth'   : 0,\n                    'fieldCorner1Lat'   : 36.2,\n                    'fieldCorner1Lon'   : -5.5,\n                    'fieldCorner2Lat'   : 36,\n                    'fieldCorner2Lon'   : -5.2\n    }\n    job = adam.adam_job( cfg = my_config )\n    if not job.validate_input(request_dict):\n        raise Exception('request input invalid !')\n    job.load_data()\n    job.process_reflectance()\n    job.process_brdf()\n    # make graph of land pixels (stored in the output directory specified in our configuration)\n    job.graph_main_ref_spectra(case='pixels', indices=job.data['idx_land'], title='Land pixel statistics')\n    # save results to a netCDF (stored in the output directory specified in our configuration)\n    job.save_netcdf()\n    \nCommand Line Example\n^^^^^^^^^^^^^^^^^^^^\nAn example of launching an ADAM calculation from the command line is provided, brdf_commandline.py.\n\nAn example of its usage is given here::\n\n    $ python brdf_commandline.py --sza 30.0 --vza 40.0 --phi 0.0 --lat1 36.0 --lon1 5.2 \\\n      --lat2 36.2 --lon2 5.5 --wave-min 437 --wave-max 437 --month jan -ot brdf --netcdf-output /mydata/output.nc\n\n\nMore information about the commandline tool can be had by viewing the help::\n\n    $ python brdf_commandline.py --help\n    usage: brdf_commandline.py [-h] [--sza SZA] [--vza VZA]\n                                     [--phi PHI] --lat1 LAT1 --lon1 LON1\n                                     --lat2 LAT2 --lon2 LON2\n                                     [--wave-min WAVE_MIN]\n                                     [--wave-max WAVE_MAX]\n                                     [--month {jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec}]\n                                     --operation-type {brdf,spectrum}\n                                     [--netcdf-output NETCDF_OUTPUT]\n\n    ADAM commandline options\n\n    optional arguments:\n      -h, --help            show this help message and exit\n      --sza SZA             Sun Zenith Angle (default 45)\n      --vza VZA             View Zenith Angle (default 45)\n      --phi PHI             Phi (default 0)\n      --lat1 LAT1           Latitude 1\n      --lon1 LON1           Longitude 1\n      --lat2 LAT2           Latitude 2\n      --lon2 LON2           Longitude 1\n      --wave-min WAVE_MIN   Wavelength min\n      --wave-max WAVE_MAX   Wavelength max\n      --month {jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec}\n                            Month\n      --operation-type {brdf,spectrum}\n                            Type of operation to perform\n      --netcdf-output NETCDF_OUTPUT\n                            Name of netcdf output filename\n    \n\n    \nOther Examples\n^^^^^^^^^^^^^^\n\nThere are a collection of example scripts using the toolkit provided in the test/ folder in the downloadable.\n\n\n\n\nMore info can be found at the ADAM website here: http://www.noveltis.fr/adam-demo/",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://pypi.python.org/pypi/ADAM-Tools/",
+        "keywords": null,
+        "license": "LICENSE.txt",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "ADAM-Tools",
+        "package_url": "https://pypi.org/project/ADAM-Tools/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/ADAM-Tools/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://pypi.python.org/pypi/ADAM-Tools/"
+        },
+        "release_url": "https://pypi.org/project/ADAM-Tools/0.27dev/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "ADAM Reflectance Database Toolkit",
+        "version": "0.27dev"
+    },
+    "last_serial": 992099,
+    "releases": {
+        "0.21dev": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "67a94bed1f317d759383be64c2829126",
+                    "sha256": "b022d84063613cd356dcd5d6e5ecc4fb849ea135e1c71c8b09f7e00da739d40d"
+                },
+                "downloads": -1,
+                "filename": "ADAM-Tools-0.21dev.tar.gz",
+                "has_sig": false,
+                "md5_digest": "67a94bed1f317d759383be64c2829126",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 50590,
+                "upload_time": "2012-09-10T16:05:27",
+                "url": "https://files.pythonhosted.org/packages/b3/73/44c1e9c548e05f1eea31ec077131f491a2df0db03e32e2260e938842daf8/ADAM-Tools-0.21dev.tar.gz"
+            }
+        ],
+        "0.22dev": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18e2873098b3f8933dc3620806155a2d",
+                    "sha256": "c0282c1316c964d7b725f09600bde8944580d5c70614c05879fb0c1a3ca5a6b3"
+                },
+                "downloads": -1,
+                "filename": "ADAM-Tools-0.22dev.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18e2873098b3f8933dc3620806155a2d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 50622,
+                "upload_time": "2012-09-11T07:30:49",
+                "url": "https://files.pythonhosted.org/packages/a1/68/97503c1fc9c98a808bc7d246610e732d748b805be7b573669ce6654249cf/ADAM-Tools-0.22dev.tar.gz"
+            }
+        ],
+        "0.23dev": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc7c2a008e57cb5ad982d828354b0c06",
+                    "sha256": "97f9050becd3beab7d5bf4b351b9a3d35a46423bd5aa0bb963bb036cbe2b2b88"
+                },
+                "downloads": -1,
+                "filename": "ADAM-Tools-0.23dev.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dc7c2a008e57cb5ad982d828354b0c06",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 50671,
+                "upload_time": "2012-09-12T12:51:15",
+                "url": "https://files.pythonhosted.org/packages/ca/bc/718cd6c578d4aae6a8e192acd6fa5108e65cbb733b6c9ba3495739d77a39/ADAM-Tools-0.23dev.tar.gz"
+            }
+        ],
+        "0.24dev": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d019c7007af89a3561f37998693fd08d",
+                    "sha256": "23df0258ea7603e45ee27a48fc3799f46507001659a12d7cc48e1ab726d17cd1"
+                },
+                "downloads": -1,
+                "filename": "ADAM-Tools-0.24dev.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d019c7007af89a3561f37998693fd08d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 50879,
+                "upload_time": "2012-09-13T07:41:26",
+                "url": "https://files.pythonhosted.org/packages/be/c1/b9a4b69cc617631b5a74ecc4bcdda1b070c4814a278a7739cc17453e81cf/ADAM-Tools-0.24dev.tar.gz"
+            }
+        ],
+        "0.25dev": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "54a259d326e3f77f188e3ef4d48db313",
+                    "sha256": "fdad98a2a604640d4cffeaa31432058bf424dde523084eeaf4b9a43323855b3b"
+                },
+                "downloads": -1,
+                "filename": "ADAM-Tools-0.25dev.tar.gz",
+                "has_sig": false,
+                "md5_digest": "54a259d326e3f77f188e3ef4d48db313",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 54676,
+                "upload_time": "2012-10-25T14:33:22",
+                "url": "https://files.pythonhosted.org/packages/4b/cc/4d4487db44590331e433a7b41578f5f54d51ed2088b120acef1a8af9ce59/ADAM-Tools-0.25dev.tar.gz"
+            }
+        ],
+        "0.26dev": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1694dfc1209ecfc2d1201b911750560",
+                    "sha256": "513e7143c758900d661df2f371c196b4e195fb0c11fad8e9e29f3363603b6fd7"
+                },
+                "downloads": -1,
+                "filename": "ADAM-Tools-0.26dev.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d1694dfc1209ecfc2d1201b911750560",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 55579,
+                "upload_time": "2013-01-23T13:25:46",
+                "url": "https://files.pythonhosted.org/packages/6b/89/0bf3d1a1be0af581342fa1d154f255bd73c282a68608e8ed99c7fd2b51ee/ADAM-Tools-0.26dev.tar.gz"
+            }
+        ],
+        "0.27dev": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bc89165c9ab5069a20bd06c4c0872dbb",
+                    "sha256": "8570b851c856db8e2ba2112d10b4787e6e1aa6c69de075fa9c348a77ec0a5319"
+                },
+                "downloads": -1,
+                "filename": "ADAM-Tools-0.27dev.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bc89165c9ab5069a20bd06c4c0872dbb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 61209,
+                "upload_time": "2014-02-06T08:24:25",
+                "url": "https://files.pythonhosted.org/packages/15/44/75407174b3f149b238f2b06a2773815fb468c4d744d44c3c9727945cf157/ADAM-Tools-0.27dev.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "bc89165c9ab5069a20bd06c4c0872dbb",
+                "sha256": "8570b851c856db8e2ba2112d10b4787e6e1aa6c69de075fa9c348a77ec0a5319"
+            },
+            "downloads": -1,
+            "filename": "ADAM-Tools-0.27dev.tar.gz",
+            "has_sig": false,
+            "md5_digest": "bc89165c9ab5069a20bd06c4c0872dbb",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 61209,
+            "upload_time": "2014-02-06T08:24:25",
+            "url": "https://files.pythonhosted.org/packages/15/44/75407174b3f149b238f2b06a2773815fb468c4d744d44c3c9727945cf157/ADAM-Tools-0.27dev.tar.gz"
+        }
+    ]
+}

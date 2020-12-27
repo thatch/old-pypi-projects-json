@@ -1,0 +1,319 @@
+{
+    "info": {
+        "author": "Manuel Barkhau",
+        "author_email": "mbarkhau@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Console",
+            "Environment :: Other Environment",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Operating System :: Unix",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "``three2six`` : Compatibility Matters\n=====================================\n\nBuild backward compatible wheels from modern Python 3 source\n(Python 3.6+ -> Python 2.7+). The idea is quite similar to Bable\nhttps://babeljs.io/.\n\n.. start-badges\n\n.. list-table::\n    :stub-columns: 1\n\n    * - package\n      - | |license| |version| |wheel| |pyversions|\n    * - tests\n      - | |travis| |mypy| |coverage|\n\n.. |travis| image:: https://api.travis-ci.org/mbarkhau/three2six.svg?branch=master\n    :target: https://travis-ci.org/mbarkhau/three2six\n    :alt: Build Status\n\n.. |mypy| image:: http://www.mypy-lang.org/static/mypy_badge.svg\n    :target: http://mypy-lang.org/\n    :alt: Checked with mypy\n\n.. |coverage| image:: https://img.shields.io/badge/coverage-86%25-green.svg\n    :target: https://travis-ci.org/mbarkhau/three2six\n    :alt: Code Coverage\n\n.. |license| image:: https://img.shields.io/pypi/l/three2six.svg\n    :target: https://pypi.python.org/pypi/three2six\n    :alt: MIT License\n\n.. |version| image:: https://img.shields.io/pypi/v/three2six.svg\n    :target: https://pypi.python.org/pypi/three2six\n    :alt: Version Number\n\n.. |wheel| image:: https://img.shields.io/pypi/wheel/three2six.svg\n    :target: https://pypi.python.org/pypi/three2six\n    :alt: PyPI Wheel\n\n.. |pyversions| image:: https://img.shields.io/pypi/pyversions/three2six.svg\n    :target: https://pypi.python.org/pypi/three2six\n    :alt: Supported Python Versions\n\n\nMotivation\n----------\n\nThe main motivation for this project is to be able to use ``mypy``\nwithout sacrificing compatability to older versions of python.\n\n\n.. code-block:: python\n\n    # my_module/__init__.py\n    def hello(who: str) -> None:\n        print(f\"Hello {who}!\")\n\n    hello(\"\u4e16\u754c\")\n\n\n.. code-block:: bash\n\n    $ pip install three2six\n    $ three2six my_module/__init__.py\n\n\n.. code-block:: python\n\n    # -*- coding: utf-8 -*-\n    from __future__ import absolute_import\n    from __future__ import division\n    from __future__ import print_function\n    from __future__ import unicode_literals\n\n    def hello(who):\n        print('Hello {0}!'.format(who))\n\n    hello(\"\u4e16\u754c\")\n\n\nFixes are applied to match the semantics of python3 code as\nclose as possible, even when running on a python2.7 interpreter.\n\nSome fixes that have been applied:\n\n    - PEP263 magic comment to declare the coding of the python\n      source file. This allows the string literal ``\"\u4e16\u754c\"`` to\n      be decoded correctly.\n    - ``__future__`` imports have been added. This includes the well\n      known print statement -> function change. The unicode_literals\n    - Type annotations have been removed\n    - f string -> \"\".format  conversion\n\n\nThe cli command ``three2six`` is nice for demo purposes,\nbut for your project it is better to use it in your\nsetup.py file.\n\n.. code-block:: python\n\n    # setup.py\n\n    packages = [\"my_module\"]\n\n    if \"bdist_wheel\" in sys.argv:\n        import three2six\n        packages, package_dir = three2six.repackage(packages)\n\n    setuptools.setup(\n        name=\"my-module\",\n        version=\"0.1.0\",\n        packages=packages,\n        package_dir=package_dir,\n        ...\n    )\n\n.. code-block:: bash\n\n    $ python setup.py bdist_wheel --python-tag=py2.py3\n    running bdist_wheel\n    running build\n    running build_py\n    copying /tmp/three2six_qu7ub0bk/my_module/__init__.py -> build/lib/my_module\n    ...\n\n    $ python3 build/lib/my_module/__init__.py\n    Hello \u4e16\u754c!\n\n    $ python2 build/lib/my_module/__init__.py\n    Hello \u4e16\u754c!\n\n\nFeature Support\n---------------\n\nNot all new language features have a semantic equivalent in older\nversions. To the extent these can be detected, an error will be\nreported when these features are used.\n\nAn (obviously non exhaustive) list of features which are **not\nsupported**:\n\n - async/await\n - yield from\n - @/__matmul__ operator\n\nFeatures which **are supported**:\n\n - PEP 498: formatted string literals.\n - Eliding of annotations\n - Unpacking generalizations\n - Keyword only arguments\n - PEP 515: underscores in numeric literals\n - map/zip/filter to itertools equivalents\n - Convert class based typing.NamedTuple usage to assignments\n\nSome new libraries have backports, which warnings will point to:\n\n - typing\n - pathlib\n - secrets\n - ipaddress\n - csv -> backports.csv\n - lzma -> backports.lzma\n - enum -> flufl.enum\n\n\nProject Status (as of 2018-08-18): Experimental\n-----------------------------------------------\n\nOnly use this library if you intend to participate in testing or\ndevelopment. I'm using it on personal projects and am still\nfinding bugs. This README serves partially as a TODO list, not\neverything advertised is implemented yet.\n\nThe goal is to go through all of http://python-future.org and\neither:\n\n 1. Transpile to code that will work on any version\n 2. Raise an error, ideally pointing to a page and section on\n    python-future.org or other documentation describing\n    alternative methods of writing backwards compatible code.\n\nhttps://docs.python.org/3.X/whatsnew/ also contains much info on\napi changes that might be checked for, but checks and fixers for\nthese will only be written if they are common enough, otherwise\nit's just too much work (patches are welcome though).\n\n\nHow it works\n------------\n\nThis project works at the level of the python abstract syntax\ntree (AST). The AST is transformed so that is only uses\nconstructs that are also valid in older versions of python. For\nexample it will translate f-strings to normal strings using the\n``str.format`` method.\n\n.. code-block:: python\n\n    >>> import sys\n    >>> sys.version_info\n    '3.6.5'\n    >>> import three2six\n    >>> py3_source = 'f\"Hello {1 + 1}!\"'\n    >>> cfg = {\"fixers\": [\"f_string_to_str_format\"]}\n    >>> py2_source = three2six.transpile_module(cfg, py3_source)\n\n    >>> print(py3_source)\n    f\"Hello {1 + 1}!\"\n    >>> print(py2_source)\n    # -*- coding: utf-8 -*-\n    \"Hello {0}!\".format(1 + 1)\n\n    >>> print(three2six.parsedump_ast(py3_source))\n    Module(body=[Expr(value=JoinedStr(values=[\n        Str(s='Hello '),\n        FormattedValue(\n            value=BinOp(\n                left=Num(n=1),\n                op=Add(),\n                right=Num(n=1),\n            ),\n            conversion=-1,\n            format_spec=None,\n        ),\n        Str(s='!'),\n    ]))])\n    >>> print(three2six.parsedump_ast(py2_source))\n    Module(body=[Expr(value=Call(\n        func=Attribute(\n            value=Str(s='Hello {0}!'),\n            attr='format',\n            ctx=Load(),\n        ),\n        args=[BinOp(\n            left=Num(n=1),\n            op=Add(),\n            right=Num(n=1),\n        )],\n        keywords=[]\n    ))])\n\n\nOf course this does not cover every aspect of compatability.\nChanges in APIs cannot be translated automatically in this way.\n\nAn obvious example, is that there is no way to transpile code\nwhich uses ``async`` and ``await``. In this case, ``three2six``\nwill simply raise a CheckError. This applies only to your source\ncode though, so if import use a library which uses ``async`` and\n``await``, everything may look fine until you run your tests\non python 2.7.\n\nA more subtle example is the change in semantics of the builtin\n``open`` function.\n\n.. code-block:: bash\n\n    $ cat open_example.py\n    with open(\"myfile.txt\", mode=\"w\", encoding=\"utf-8\") as fh:\n        fh.write(\"Hello W\u00f6rld!\")\n    $ python2 open_example.py\n    Traceback (most recent call last):\n      File \"<string>\", line 1, in <module>\n    TypeError: 'encoding' is an invalid keyword argument for this function\n\n\nUsually there are alternative ways to write equivalent code that\nworks on all versions of python. For these common\nincompatabilities three2six will raise an error and suggest an\nalternative, such as in this case using ``io.open`` instead.\n\n.. code-block:: bash\n\n    $ three2six open_example.py\n    TODO:\n\n    $ three2six open_example.py --diff\n    TODO:\n\n\nHere ``three2six`` you will ge\n\nhowever it remains your\nresponsibility to write your code so that this syntactic\ntranslation is semantically equivalent in both python3 and\npython2.\n\nthree2six uses the python ast module to parse your code. This\nmeans that you need a modern python interpreter to transpile from\nmodern python to legacy python interpreter. You cannot transpile\nfeatures which your interpreter cannot parse. The intended use is\nfor developers of libraries who use the most modern python\nversion, but want their libraries to work on older versions.\n\n\nFAQ\n---\n\n - Q: Isn't the tagline \"Compatibility Matters\" ironic,\n   considering that python 3.6+ is required to build a wheel?\n - A: The irony is not lost. The issue is, how to parse source\n   code from a newer version of python than the python\n   interpreter itself supports. You can install three2six on\n   older versions of python, but you'll be limited to the\n   features supported by that version. For example, you won't be\n   able to use f\"\" strings on python 3.5, but most annotations\n   will work fine.\n\n - Q: Why keep python2.7 alive, just let it die already?\n - A: This is not just for python 2.7, it also allows you to use\n   new features like f\"\" strings and variable annotations, and\n   build wheels which work for python 3.5.\n\n - Q: Why not ``lib3to2``?\n - A: I can't honestly say much about ``lib3to2``. It seems to not\n   be maintained and looking at the source I thought it would be\n   easier to just write something new that worked on the AST level.\n   The scope of ``three2six`` is more general than 3to2, as you can\n   use it even if all you care about is converting from python 3.6\n   to 3.5.\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mbarkhau/three2six",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "three2six",
+        "package_url": "https://pypi.org/project/three2six/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/three2six/",
+        "project_urls": {
+            "Homepage": "https://github.com/mbarkhau/three2six"
+        },
+        "release_url": "https://pypi.org/project/three2six/0.2.10/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Build py2.7+ wheels from py3.6+ source",
+        "version": "0.2.10"
+    },
+    "last_serial": 4182958,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "504996793b42ec7900651bf890e39669",
+                    "sha256": "f6e12b57894bcedc9b715a0e8989c52ce00766e788442c2356f795b2f425e707"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "504996793b42ec7900651bf890e39669",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 8804,
+                "upload_time": "2018-06-09T19:13:41",
+                "url": "https://files.pythonhosted.org/packages/48/2b/f9297d106a85ebf646f69caa869836865c77d51d4c2a2e9417c243078000/three2six-0.1.0-py3-none-any.whl"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4c7c0197afcc9be55b19412765362ae8",
+                    "sha256": "d66d6d307a76cf9fcca45b4947192e64911fae30e496127e80e36c897d1cf802"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4c7c0197afcc9be55b19412765362ae8",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 9374,
+                "upload_time": "2018-06-09T21:01:51",
+                "url": "https://files.pythonhosted.org/packages/15/81/542dd75a469eac4506e36f570467c5b575269979fdc35ac44a39ddd73dd0/three2six-0.1.1-py3-none-any.whl"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c1efed15ba30b2fdefc7cdde3ed005a1",
+                    "sha256": "dd1c48d07c8a06d77847ed7608169f4ac05b9e7be77404b823ba6e34b95f67bf"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c1efed15ba30b2fdefc7cdde3ed005a1",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 9380,
+                "upload_time": "2018-06-09T21:06:34",
+                "url": "https://files.pythonhosted.org/packages/9d/3d/753297a305f33de28b6439f5ded5c627e7321e25906037b398b6034c7bc6/three2six-0.1.2-py3-none-any.whl"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "64ff5ba52ecd3a4b06be4ff1a21e49c8",
+                    "sha256": "5b910a82cb6d6015f4b94e49f81e2ff70d2bd759ea244d0831eb523444f9769f"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "64ff5ba52ecd3a4b06be4ff1a21e49c8",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 9970,
+                "upload_time": "2018-06-10T14:51:38",
+                "url": "https://files.pythonhosted.org/packages/66/b8/7e1c31156febf6bf91f1213b98e2465d9cb16af39d37c0ede785c6bfc619/three2six-0.1.3-py3-none-any.whl"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "77b2d53e5bd1324a0caa1fab75834df5",
+                    "sha256": "b6d5876c2c49c3038725492de0d11c67d27c9b828c9abef3579e05d0e160ccea"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "77b2d53e5bd1324a0caa1fab75834df5",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 19976,
+                "upload_time": "2018-07-12T18:16:33",
+                "url": "https://files.pythonhosted.org/packages/2a/69/59dfdafef8b1ae70ffb277eb3b40bdc53cf9bb000775705b6a0c21e31f92/three2six-0.2.1-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "991dee54b586a85ec599578cfcfb8cb3",
+                    "sha256": "8a163cd045cfb59ed667754cc3cd362ec6753ff8dcc708f1965456671b585ea4"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.10-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "991dee54b586a85ec599578cfcfb8cb3",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 22274,
+                "upload_time": "2018-08-18T11:20:09",
+                "url": "https://files.pythonhosted.org/packages/06/39/6b089a288bff2ab2ea24a231e76c8a82db4fc40916c87b06c7984bbcff5d/three2six-0.2.10-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "29aa709bb58a10e36844166bded8cb22",
+                    "sha256": "5770f179b5bd86e22602369057e5b939a966bfea00c2c037f5073f10f35cc392"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "29aa709bb58a10e36844166bded8cb22",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 19971,
+                "upload_time": "2018-07-12T18:48:51",
+                "url": "https://files.pythonhosted.org/packages/cb/74/a3b3606f12bcb63d576570e672d36c6869b26c5fabe9b8c1064be7665a5f/three2six-0.2.2-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d6c6ef53046d68a8e0361dea0002cadb",
+                    "sha256": "9d03f5fd99ea666fcaed7126278c2f4a129aa28f5e1aca3294bebc757cae64f2"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d6c6ef53046d68a8e0361dea0002cadb",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 19680,
+                "upload_time": "2018-07-12T18:57:41",
+                "url": "https://files.pythonhosted.org/packages/b3/b6/ed9fc24b4d29cd4a831d7eda5183549ee24e3075b409d5457cd44248db2a/three2six-0.2.3-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "884c67542f01ceeb30aead1eff6d06e9",
+                    "sha256": "63aed8b2546b6724171bff698f9ad3a8dd35e4df422d1e5c4d16602238d102e5"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "884c67542f01ceeb30aead1eff6d06e9",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 20126,
+                "upload_time": "2018-07-12T20:04:53",
+                "url": "https://files.pythonhosted.org/packages/a0/1b/b7403973c65076c2a5886d0648cc382e23301e248979f9cb509ea34b30ec/three2six-0.2.4-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3ebf2d043847ed404d2ea72b6d1a70d",
+                    "sha256": "6c46dbca13009a547bf9dcc2016ecabe86543b226b15f2278f2d3c102e2ba9ca"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c3ebf2d043847ed404d2ea72b6d1a70d",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 20279,
+                "upload_time": "2018-07-12T20:42:11",
+                "url": "https://files.pythonhosted.org/packages/4e/2b/3a13651e05ee02297dd6d913ce93ef317e521d0d24ea3ee06bd6fb9de1ee/three2six-0.2.5-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "709112a7baf58b1d64ee2ce78a661c42",
+                    "sha256": "48e9881246cfcb89d10ee4a0d27e35912be1d25af988de5e20ffd33ea66ca7ba"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.7-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "709112a7baf58b1d64ee2ce78a661c42",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 21658,
+                "upload_time": "2018-08-12T21:35:22",
+                "url": "https://files.pythonhosted.org/packages/c1/fd/f4bdbe617f29f72b29ea40b772612f356a39c14591bec4555cba66d094e2/three2six-0.2.7-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0051ffc284a5bea934d9b1618a031687",
+                    "sha256": "7a6d92894724220169c254fdd89005a12f8cb25ce75ede718411ebbeee508792"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.8-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0051ffc284a5bea934d9b1618a031687",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 22093,
+                "upload_time": "2018-08-16T16:34:31",
+                "url": "https://files.pythonhosted.org/packages/07/d6/b28a6748c028d8bf27b6bad577781fc05959655590c91682fe01103bdaaa/three2six-0.2.8-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eead2e652b298432bd3aac97eaeb9c58",
+                    "sha256": "2e1a59fcbb6f174c726750c75e730c95a777e1e5166fe85d11e7b98f3056ba10"
+                },
+                "downloads": -1,
+                "filename": "three2six-0.2.9-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "eead2e652b298432bd3aac97eaeb9c58",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 22121,
+                "upload_time": "2018-08-18T10:49:07",
+                "url": "https://files.pythonhosted.org/packages/d0/32/173cabc507a31b347fbd45c5258acb9cdbf5a619baf061d92f7d5fa9aed3/three2six-0.2.9-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "991dee54b586a85ec599578cfcfb8cb3",
+                "sha256": "8a163cd045cfb59ed667754cc3cd362ec6753ff8dcc708f1965456671b585ea4"
+            },
+            "downloads": -1,
+            "filename": "three2six-0.2.10-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "991dee54b586a85ec599578cfcfb8cb3",
+            "packagetype": "bdist_wheel",
+            "python_version": "3.7",
+            "requires_python": null,
+            "size": 22274,
+            "upload_time": "2018-08-18T11:20:09",
+            "url": "https://files.pythonhosted.org/packages/06/39/6b089a288bff2ab2ea24a231e76c8a82db4fc40916c87b06c7984bbcff5d/three2six-0.2.10-py2.py3-none-any.whl"
+        }
+    ]
+}

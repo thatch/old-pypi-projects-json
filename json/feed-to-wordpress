@@ -1,0 +1,198 @@
+{
+    "info": {
+        "author": "cr0hn[-at-]cr0hn.com",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Console",
+            "Intended Audience :: Other Audience",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "Feed to Wordpress Post\n======================\n\nThis project allow to get RSS Feed and create new Wordpress post from them.\n\nPre-requisites\n--------------\n\n- You must install the Wordpress plugin: `Application Passwords <https://es.wordpress.org/plugins/application-passwords/>`_\n- You must create a new Application Password\n- **Python 3.6 or above**\n\nmapping.json format\n-------------------\n\nThe mapping file has this format:\n\n.. code-block:: json\n\n    {\n      \"mapping\": {\n        \"title\": \"title\",\n        \"body\": \"summary\",\n        \"link\": \"link\"\n      },\n      \"fixed\": {\n        \"tags\": [\"one\", \"two\", \"general\"],\n        \"categories\": [\"mycategory\"]\n      }\n    }\n\nBy default ``title`` and ``link`` keys are mapped like above example. Then, you can write:\n\n.. code-block:: json\n\n    {\n      \"mapping\": {\n        \"body\": \"summary\"\n      },\n      \"fixed\": {\n        \"tags\": [\"one\", \"two\", \"general\"],\n        \"categories\": [\"mycategory\"]\n      }\n    }\n\n``f2w`` can run in ``discover`` mode. So, you can specify the RSS Feed source in the mapping.json, like that:\n\n.. code-block:: json\n\n    {\n      \"feed\": \"https://myfeedsource.som\",\n      \"mapping\": {\n        \"body\": \"summary\"\n      },\n      \"fixed\": {\n        \"tags\": [\"one\", \"two\", \"general\"],\n        \"categories\": [\"mycategory\"]\n      }\n    }\n\n\n\nMapping key\n+++++++++++\n\n``mapping`` indicates how ``f2w`` must match the input feed values to the wordpress result.\n\n- Left values of mapping (title, body, link) are always the same.\n- Right values are the key names in feed where ``f2w`` must map to the output.\n\nFor example:\n\nSuppose this RSS:\n\n.. code-block:: xml\n\n    <?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n    <rss version=\"2.0\">\n        <channel>\n            <title>Trabajo y empleo - BOE - Bolet\u00edn Oficial del Estado</title>\n            <link>http://www.boe.es/diario_boe/</link>\n            <description>Legislaci\u00f3n relativa a Trabajo y empleo ingresada en los \u00faltimos dos meses en la base de datos del Bolet\u00edn Oficial del Estado</description>\n            <language>es-es</language>\n            <pubDate>Mon, 06 Aug 2018 00:00:00 +0200</pubDate>\n            <lastBuildDate>Mon, 06 Aug 2018 14:55:03 +0200</lastBuildDate>\n            <webMaster>webmaster@boe.es</webMaster>\n            <item>\n              <title>Pleno. Sentencia 78/2018, de 5 de julio de 2018. Recurso de inconstitucionalidad 3720-2017. Interpuesto por el Presidente del Gobierno en relaci\u00f3n con los art\u00edculos 13 y 36 de la Ley 10/2016, de 27 de diciembre, del presupuesto de la Comunidad Aut\u00f3noma de Andaluc\u00eda para el a\u00f1o 2017. Competencias sobre ordenaci\u00f3n general de la econom\u00eda, hacienda general y funci\u00f3n p\u00fablica: nulidad parcial del precepto legal auton\u00f3mico relativo a la oferta de empleo p\u00fablico de 2017 u otro instrumento similar de gesti\u00f3n de la provisi\u00f3n de necesidades de personal (STC 142/2017). Voto particular.</title>\n              <link>http://www.boe.es/diario_boe/txt.php?id=BOE-A-2018-11276</link>\n              <description>Tribunal Constitucional - Publicado el 06/08/2018 - Referencia: BOE-A-2018-11276</description>\n              <guid isPermaLink=\"true\">http://www.boe.es/boe/dias/2018/08/06/pdfs/BOE-A-2018-11276.pdf</guid>\n              <pubDate>Mon, 06 Aug 2018 00:00:00 +0200</pubDate>\n            </item>\n        </channel>\n    </rss>\n\nWhere each item has this format:\n\n.. code-block:: xml\n\n    <item>\n      <title>Pleno. Sentencia 78/2018, de 5 de julio de 2018. Recurso de inconstitucionalidad 3720-2017. Interpuesto por el Presidente del Gobierno en relaci\u00f3n con los art\u00edculos 13 y 36 de la Ley 10/2016, de 27 de diciembre, del presupuesto de la Comunidad Aut\u00f3noma de Andaluc\u00eda para el a\u00f1o 2017. Competencias sobre ordenaci\u00f3n general de la econom\u00eda, hacienda general y funci\u00f3n p\u00fablica: nulidad parcial del precepto legal auton\u00f3mico relativo a la oferta de empleo p\u00fablico de 2017 u otro instrumento similar de gesti\u00f3n de la provisi\u00f3n de necesidades de personal (STC 142/2017). Voto particular.</title>\n      <link>http://www.boe.es/diario_boe/txt.php?id=BOE-A-2018-11276</link>\n      <description>Tribunal Constitucional - Publicado el 06/08/2018 - Referencia: BOE-A-2018-11276</description>\n      <guid isPermaLink=\"true\">http://www.boe.es/boe/dias/2018/08/06/pdfs/BOE-A-2018-11276.pdf</guid>\n      <pubDate>Mon, 06 Aug 2018 00:00:00 +0200</pubDate>\n    </item>\n\nThis implies that we'll have these keys:\n\n- title\n- link\n- description\n- pubDate\n- guid\n\nThen, if we want to recover the title, description and published date, we must write this ``mapping.json``:\n\n.. code-block:: json\n\n    {\n      \"mapping\": {\n        \"body\": \"description\"\n      }\n    }\n\nFixed key\n+++++++++\n\nSome times it should be interesting to add some static values to the post results, like tags or categories.\n\nYou can specify any values as keys but **only tags and categories** have sense to be send to Wordpress API.\n\nYou can specify *tags* and *categories*. ``f2w`` will try to resolve the tag/category or create if it doesn't exits.\n\nFilters\n-------\n\nThere's situations where you may want to apply some advanced filters. To do that we must add some Python code.\n\nYou can use any name for the filter file, but for convention we'll use ``filters.py``. There a basic example:\n\nBasics\n++++++\n\n.. code-block:: python\n\n    from feed_to_wordpress.filters import FeedInfo\n    from feed_to_wordpress.exceptions import FeedToWordpressNotValidInfoFound\n\n\n\n    def link_filter(field_value: str) -> dict:\n        \"\"\"\n        this filter will download the link pointing by the field and replace\n        the content of the web page.\n\n        Also try to check if some keywords are available and generate some tags\n\n        Content filter must return a dictionary type, otherwise, engine will\n        release an exception\n        \"\"\"\n        response = request.get(field_value)\n\n        results = {\n            'body': response.content\n        }\n\n        # Try to find tags\n        if any(x in response.content for x in ('hacking', 'security',\n            'pentesting')):\n            results['tags'] = ['security']\n\n        return results\n\n    def body_filter(field_value: str) -> dict:\n        \"\"\"\n        This filter remove the words 'SEO' from the body field and return\n        the new 'body' value for the field. The engine will update that\n        with this information.\n\n        Content filter must return a dictionary type, otherwise, engine will\n        release an exception\n        \"\"\"\n        return {'body': field_value.replace('SEO', '')}\n\n\n    def global_filter(feed_info: FeedInfo) -> \\\n            dict or FeedToWordpressNotValidInfoFound:\n        \"\"\"\n        Global filter enables a validation with the context of all of fields\n        values. This filter must return a dictionary or an exception.\n\n        If one exception is returned, engine will interpret that the current\n        feed must not be processed and continue to the next feed.\n\n        Global filter will executed after the individual filters.\n        \"\"\"\n\n        if not feed_info.title or not feed_info.body:\n            raise FeedToWordpressNotValidInfoFound()\n\n        if \"security\" in feed_info.title and \"hacking\" in feed_info.body:\n            return {\"category\": [\"hard-security\"]}\n        elif \"ciso\" in feed_info.body.lower():\n            return {\"category\": [\"ciso-news\"]}\n        else:\n            return {}\n\n    #\n    # Order of filters are following the definition in the bellow dictionary\n    #\n    # The name of the variable must be the following for the individual filters\n    INDIVIDUAL_VALIDATORS = {\n        'link': link_filter,\n        'body': body_filter\n    }\n\n    # The name of the variable must be the following for global validator\n    GLOBAL_VALIDATOR = global_filter\n\nAs you can see you must define the var name ``INDIVIDUAL_VALIDATORS`` indicates the field where it will apply the filter.\n\nFilters **always** must return a dictionary and it can overwrite the original content of a field.\n\nFilters execution order are defined by the order indicated in the ``INDIVIDUAL_VALIDATORS`` var.\n\nThe parameters passed in each individual filter function is the value of the field.\n\nInput fields\n++++++++++++\n\nFeedInfo has these properties:\n\n- title: str\n- slug: str\n- app_config: str\n- link: str\n- feed_source: str\n- body: str -> raw information from Feed mapping\n- content: str -> content that will send to the Wordpress Post. By default is a composition of: body + html link + feed_source. You can see at internal filters (``feed_to_wordpress.filters.py``)\n- raw_feed_info: dict -> raw content of feed\n- ping_status: str (default: closed)\n- feed_source: str (default: closed)\n- post_status: str (default: draft)\n- comment_status: str (default: closed)\n- date: str (default: now time, with format: %Y-%m-%dT%H:%M:%S)\n\nFor fields ``ping_status``, ``feed_source``, ``post_status`` and ``comment_status`` you can check valid values at Wordpress REST API doc: https://developer.wordpress.org/rest-api/\n\nValidation rule\n+++++++++++++++\n\nSome times you could want to use a global validation rule. This validation could implies more than one field. If this is the case then you must use the a new function and map to ``GLOBAL_VALIDATOR`` variable.\n\nThis function must returns a **dict** value or a Exception.\n\nWorking modes\n-------------\n\nSimple\n++++++\n\nSimple mode is the usual mode. Explained above.\n\nDiscovery mode\n++++++++++++++\n\nDiscover mode discover recursively the directories, form a base dir given. The engine will get each directory and manage it as and independent running.\n\nFor this mode works well each crawler must in an independent directory and have only 2 files: ``filters.py`` and ``mapping.json``.\n\nTo enable this mode you must use the ``-D`` option and each m\u00a1``mapping.json`` must have an additional entry: ``feed``:\n\n.. code-block:: json\n\n    {\n      \"feed\": \"http://www.mysite.com/feed/\",\n      \"mapping\": {\n        \"body\": \"summary\"\n      },\n      \"fixed\": {\n        \"categories\": [\"myCategory\"]\n      }\n    }\n\n**Example of directory structure**\n\n.. code-block:: bash\n\n    > tree examples/\n    examples\n    \u251c\u2500\u2500 site1.com\n    \u2502\u00a0\u00a0 \u251c\u2500\u2500 filters.py\n    \u2502\u00a0\u00a0 \u2514\u2500\u2500 mapping.json\n    \u2514\u2500\u2500 other-site.com\n        \u251c\u2500\u2500 f2wSkip\n        \u251c\u2500\u2500 filters.py\n        \u2514\u2500\u2500 mapping.json\n\n**Ignoring directory**\n\nIf you want that a directory will be ignored, only create a file called ``f2wSkip`` into the directory and the engine will ignore it.\n\n\nRunning Examples\n----------------\n\nWithout Docker\n++++++++++++++\n\nInstall:\n\n.. code-block:: bash\n\n    > pip install -U feed-to-wordpress\n\nBasic Usage:\n\n\n.. code-block:: bash\n\n    > f2w -W https://mysite.com -U user -m examples/mapping.json -A \"XXXX XXXX XXXX XXXX XXXX XXXX\" \"http://www.mjusticia.gob.es/cs/Satellite?c=Page&cid=1215197792452&lang=es_es&pagename=eSEDE%2FPage%2FSE_DetalleRSS\"\n\nWhere ``-A`` indicates the Application Password\n\nUsing a filter file:\n\n.. code-block:: bash\n\n    > f2w -W https://mysite.com -F filters.py -U user -m examples/mapping.json -A \"XXXX XXXX XXXX XXXX XXXX XXXX\" \"http://www.mjusticia.gob.es/cs/Satellite?c=Page&cid=1215197792452&lang=es_es&pagename=eSEDE%2FPage%2FSE_DetalleRSS\"\n\nUsing Docker\n++++++++++++\n\n**Environment vars**\n\n- F2W_WORDPRESS_SITE: Wordpress site where to publish the new post\n- F2W_FILTERS: filters file, for example: filters.py\n- F2W_USER: Wordpress user\n- F2W_MAPPING: mapping.json location\n- F2W_APPLICATION_PASSWORD: Application password\n- F2W_FEED: Feed URL or path\n- F2W_DISCOVER_MODE: Feed URL or path\n\nRunning normal mode:\n\n.. code-block:: bash\n\n    > ls examples/\n    filters.py mapping.json\n\n    > docker run --rm -v \"$(pwd)/examples/\":/tmp -e F2W_WORDPRESS_SITE=https://mysite.com \\\n        -e F2W_FILTERS=/tmp/filters.py \\\n        -e F2W_USER=user \\\n        -e F2W_MAPPING=/tmp/mapping.json \\\n        -e F2W_APPLICATION_PASSWORD=\"XXXX XXXX XXXX XXXX XXXX XXXX\" \\\n        -e F2W_FEED=\"http://www.mjusticia.gob.es/cs/Satellite?c=Page&cid=1215197792452&lang=es_es&pagename=eSEDE%2FPage%2FSE_DetalleRSS\" \\\n        cr0hn/feed-to-wordpress\n\nRunning discover mode:\n\n.. code-block:: bash\n\n    > ls examples/\n    filters.py mapping.json\n\n    > docker run --rm -v \"$(pwd)/examples/\":/tmp/myfeeds -e F2W_WORDPRESS_SITE=https://mysite.com \\\n        -e F2W_USER=user \\\n        -e F2W_DISCOVER_MODE=1 \\\n        -e F2W_APPLICATION_PASSWORD=\"XXXX XXXX XXXX XXXX XXXX XXXX\" \\\n        -e F2W_FEED=\"/tmp/myfeeds\" \\\n        cr0hn/feed-to-wordpress\n\n\nContributing\n============\n\nAny collaboration is welcome!\n\nThere're many tasks to do.You can check the `Issues <https://github.com/cr0hn/feed-to-wordpress/issues/>`_ and send us a Pull Request.\n\nLicense\n=======\n\nThis project is distributed under `BSD 3 license <https://github.com/cr0hn/feed-to-wordpress/blob/master/LICENSE>`_",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/cr0hn/feed-to-wordpress",
+        "keywords": "",
+        "license": "BSD 3 License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "feed-to-wordpress",
+        "package_url": "https://pypi.org/project/feed-to-wordpress/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/feed-to-wordpress/",
+        "project_urls": {
+            "Homepage": "https://github.com/cr0hn/feed-to-wordpress"
+        },
+        "release_url": "https://pypi.org/project/feed-to-wordpress/1.0.6/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Transform an input RSS feed to Wordpress Post",
+        "version": "1.0.6"
+    },
+    "last_serial": 4157076,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ce86e22833f006b24777a8cef1aa5e6f",
+                    "sha256": "e8073220c3ff4c4474d0ee049d46e1a9736375ea0b32d9b32852b8c6055c3d57"
+                },
+                "downloads": -1,
+                "filename": "feed-to-wordpress-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ce86e22833f006b24777a8cef1aa5e6f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16240,
+                "upload_time": "2018-08-08T15:55:22",
+                "url": "https://files.pythonhosted.org/packages/e6/5d/9c2fb260bf5b3c38d015626aaeb1c600bc57e1c895eb1f5109e52c3e497b/feed-to-wordpress-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1efedaf5841368932f1973e45f4c1662",
+                    "sha256": "56096beb7bcfacd575791380a96ebd45e63ac72e7452a7dbb34ef66ae5b42c26"
+                },
+                "downloads": -1,
+                "filename": "feed-to-wordpress-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1efedaf5841368932f1973e45f4c1662",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12349,
+                "upload_time": "2018-08-10T09:02:07",
+                "url": "https://files.pythonhosted.org/packages/5b/d4/836700d0b2e7dc8f6ff777464a44b07d14cd7175830e3e34aff01f7a8673/feed-to-wordpress-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "571c6d78e363b60878a2d62aa5d36ffe",
+                    "sha256": "3d4f497d14897c5479fdeec74f97f996d76e0f92dbf4733a8abc5f07b7f4a79f"
+                },
+                "downloads": -1,
+                "filename": "feed-to-wordpress-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "571c6d78e363b60878a2d62aa5d36ffe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12290,
+                "upload_time": "2018-08-10T09:23:58",
+                "url": "https://files.pythonhosted.org/packages/9a/59/4d5176e0c8a97cd1cf525d2627964f54c64e331d073c2d95ad14168aa0c0/feed-to-wordpress-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48ddac50cead8aefb2d96ee21da3ff07",
+                    "sha256": "7be49de437cc4f00702befc9b3fa739db575e4893f5b17efa7f017d396bea096"
+                },
+                "downloads": -1,
+                "filename": "feed-to-wordpress-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "48ddac50cead8aefb2d96ee21da3ff07",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13346,
+                "upload_time": "2018-08-10T09:39:40",
+                "url": "https://files.pythonhosted.org/packages/72/3d/3f170a39bf99ca07b41dcd7e53ce767c6bb912e73d25dd148b5ae4575df0/feed-to-wordpress-1.0.3.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "63f402aa5b3db853da3c141b652c4547",
+                    "sha256": "eb7cde7ef1c2e98ab5b3042ad83690318bbfdb61568a088211a8766bae218152"
+                },
+                "downloads": -1,
+                "filename": "feed-to-wordpress-1.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "63f402aa5b3db853da3c141b652c4547",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12421,
+                "upload_time": "2018-08-10T10:35:38",
+                "url": "https://files.pythonhosted.org/packages/7a/73/9dd78584f1e605244571ce6001e682b596cc36068472b270d9d57d5f2396/feed-to-wordpress-1.0.4.tar.gz"
+            }
+        ],
+        "1.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "df36f21b7b664f2fa37d7d6aeda08cee",
+                    "sha256": "a9065b458259c149ebb5c2d7d72730a27c48f322bdea6bb63eae907b1429fa80"
+                },
+                "downloads": -1,
+                "filename": "feed-to-wordpress-1.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "df36f21b7b664f2fa37d7d6aeda08cee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16581,
+                "upload_time": "2018-08-10T10:39:16",
+                "url": "https://files.pythonhosted.org/packages/f3/11/a8c61ab60d63f780519eb459353e282f09f670e4e537af2351537b38cf73/feed-to-wordpress-1.0.5.tar.gz"
+            }
+        ],
+        "1.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e43979545b5e19b57d4f6de83a92b5ce",
+                    "sha256": "b24106f720047fc27d0d58345de362767573fa90249e0b85086845de86dc6880"
+                },
+                "downloads": -1,
+                "filename": "feed-to-wordpress-1.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e43979545b5e19b57d4f6de83a92b5ce",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12865,
+                "upload_time": "2018-08-10T13:48:51",
+                "url": "https://files.pythonhosted.org/packages/5f/7f/4178da7da7c79cfddea46401360225249718c8c16113d7458bb0c6af179b/feed-to-wordpress-1.0.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e43979545b5e19b57d4f6de83a92b5ce",
+                "sha256": "b24106f720047fc27d0d58345de362767573fa90249e0b85086845de86dc6880"
+            },
+            "downloads": -1,
+            "filename": "feed-to-wordpress-1.0.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e43979545b5e19b57d4f6de83a92b5ce",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12865,
+            "upload_time": "2018-08-10T13:48:51",
+            "url": "https://files.pythonhosted.org/packages/5f/7f/4178da7da7c79cfddea46401360225249718c8c16113d7458bb0c6af179b/feed-to-wordpress-1.0.6.tar.gz"
+        }
+    ]
+}

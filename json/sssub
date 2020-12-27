@@ -1,0 +1,158 @@
+{
+    "info": {
+        "author": "Nathaniel Watson",
+        "author_email": "nathan.watson86@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "SampleSheet Subscriber - sssub\n*******************************\n\nA downstream tool of smon_ that uses Pub/Sub notifications to initiate demultiplexing of an \nIllumina sequecing Run.\n\nUse case\n========\nsmon_ has done its job to persistantly store the raw sequencing runs in a Google Storage bucket.\nNow another tool is necessary that can automatially start demultiplexing. However, demultiplexing \ngenerally mustn't begin until it has a SampleSheet. But once a SampleSheet is readily available, \ndemultiplexing needs to start and the results need to be uploaded to Google Storage. \n\nHow it works\n============\nSampleSheets Subscriber (sssub) solves the aforementioned challenges by utilizing the power of GCP\nevents and triggers. At a high level, it works as follows:\n\n  #. User/application uploads a samplesheet to a dedicated bucket. The sample sheet naming convention \n     is ${RUN_NAME }.csv.\n  #. Google Storage immediately fires off an event to a Pub/Sub topic (whenever there is a new SampleSheet\n     or when an existing one is overwritten).\n  #. Meanwhile, sssub is running on a compute instance as a daemon process.  It is subscribed to that \n     same Pub/Sub topic. sssub polls the topic for new messages regularly, i.e. once a minute.\n  #. When sssub receives a new message, the script parses information about the event.\n  #. sssub will the query the Firestore collection - the same one used by smon_ - for a \n     document whose name is equal to the samplesheet name (minus the .csv part).\n     sssub will then download both the samplesheet and the run tarball.  The samplesheet location\n     is provided in the Pub/Sub message; the raw run tarball location is provided within the \n     Firestore document.\n  #. sssub will then kick off bcl2fastq. \n  #. Demultiplexing results are output in a folder name 'demux' within the local run directory.\n  #. sssub will upload the demux folder to the same Google Storage folder that\n     contains the raw sequencing run.\n  #. sssub will update the relevant Firestore document to add the location to the demux folder in \n     Google Storage.\n\nAll processing happens within a sub-directory of the calling directory that is named\nsssub_runs. \n\nReanalysis\n==========\nReruns of the dmeultiplexing pipeline may be necessary for various reasons, i.e. the \ndemultiplexing results are no longer available and need to be regenerated, or there was a missing\nbarcode in the SampleSheet, or there was an incorrect barcode in the SampleSheet ...\n\nReanalysis is easily accomplished simply by re-uploading the SampleSheet, overwriting the previous one,\nto Google Storage. Google Storage will assign a generation number to the SampleSheet.  Think of the\ngeneration number as a type of versioning number that Google Storage assigns to each object each time\nthat the object changes. Even re-uploading the same exact same file again produces a new generation\nnumber.\n\nInternally, sssub does all of it's processing (file downloads, analysis) within a local directory\npath named after the run and the generation number of the SampleSheet. Thus, it's perfectly fine for a user to \nupload an incorrect SampleSheet, and then to immediately afterwards upload the correct one. \nIn such a scenario, there will be two runs of the pipeline, and they won't interfere with each other. \nYou will notice, however, that there will be two sets of demultplexing results uploaded to Google \nStorage, each of which exist within a folder named after the original generation number. \n\nScalablilty\n-----------\nWhile thare aren't any parallel steps in sssub, you can achieve scalability by launching two or more\ninstances of sssub, either on one single, beefy compute instance, or on separate ones. While it's \ncertainly possible that two running instances of sssub can pull the same message from Pub/Sub, only\none of these two insances will actually make use of it. It works as follows: \n\n    #. Instance 1 of sssub receives a new message from Pub/Sub and immediately begings to process it.\n    #. Instances 1 downloads and parses the corresponding Firestore document that's related to the\n       SampleSheet detailed within the Pub/Sub message.\n    #. Instance 1 notices that the document doesn't have the `sssub.FIRESTORE_ATTR_SS_PUBSUB_DATA` \n       attribute set, so then sets it to the value of the JSON serialized of the PUb/Sub message\n       data.\n    #. Meanwhile, Instance 2 of sssub has also pulled down the same Pub/Sub message.\n    #. Instance 2 queries Firestore and downloads the corresponding document. \n    #. Instance 2 notices that the document attribute `sssub.FIRESTORE_ATTR_SS_PUBSUB_DATA` is already\n       set, so it downloades this JSON value.\n    #. Instance 2 then parses the generation number out of the JSON value it downloaded from\n       Firestore and notices that the generation number is the same as the generation number in the\n       Pub/Sub message that it is currently working on.\n    #. Instance 2 logs a message that it is deferring further processing - thus leaving the rest \n       of the work to be fulfilled by Instance 1. \n\nLet's now take a few steps back and pose the question - What if Instance 2 noticed that the generation\nnumbers differ? Well, in this case, it will continue on to run the demultiplexing workflow since\nthere are different versions of the SampleSheet at hand. It will also, however, first set the \nFirestore document's `sssub.FIRESTORE_ATTR_SS_PUBSUB_DATA` attribute to the JSON serialization of the\nPub/Sub message data that it's working on. \n\nNote: If using more than one deployment of sssub on the same instance, it is recommended to run each in a\nseparate working directory.  \n\n\nSetup\n-----\n\n#. You should already have a Firestore collection for smon's use.  smon will create one for you\n   if necessary, but you can create one in advance if you'd like for manual testing. See the\n   documentation for smon_ for details on the structure of the documents stored in this collection.\n#. Create a dedicated Google Storage bucket for storing your SampleSheets and give it a useful name,\n   i.e. samplesheets.  Make sure to set the bucket to use Fine-Grained access control rather than Uniform.\n#. Create a dedicated Pub/Sub topic and give it a useful name, i.e. samplesheets.\n#. Create a `notification configuration`_ so that your samplesheets storage bucket will notify\n   the samplesheets Pub/Sub topic whenever a new file is added or modified. Note that you can use\n   gsutil for this as detailed `here <https://cloud.google.com/storage/docs/gsutil/commands/notification>`_.\n   Here is an example command::\n\n     gsutil notification create -e OBJECT_FINALIZE -f json -t samplesheets gs://samplesheets\n\n#. Create a Pub/Sub subscription. For example::\n\n     gcloud beta pubsub subscriptions create --topic samplesheets sssub\n\n#. Locate the Cloud Storage service account and grant it the IAM role pubsub.publisher.\n   By default, a bucket doesn't have the priviledge to send notifications to Pub/Sub. Follow the \n   instructions in steps 5 and 6 in this `GCP documentation  <https://cloud.google.com/storage/docs/reporting-changes>`_.\n\n\nMail notifications\n------------------\nIf the 'mail' JSON object is set in your JSON configuration file, then the designated recipients will\nreceive email notifications under the folowing events:\n\n  * There is an Exception in the main thread\n  * A new Pub/Sub message is being processed (duplicates excluded). \n\nYou can use the script `send_test_email.py` to test that the mail configuration you provide is\nworking. If it is, you should receive an email with the subject \"sssub test email\". \n\nThe configuration file\n======================\nThis is a small JSON file that lets the monitor know things such as which GCP bucket and Firestore\ncollection to use, for example. The possible keys are:\n\n  * `name`: The client name of the subscriber. The name will appear in the subject line if email \n    notification is configured, as well as in other places, i.e. log messages.\n  * `cycle_pause_sec`: The number of seconds to wait in-between polls of the Pub/Sub topic. Defaults to 60.\n  * `firestore_collection`: The name of the Google Firestore collection to use for\n    persistent workflow state that downstream tools can query. If it doesn't exist yet, it will be\n    created. If this parameter is not provided, support for Firestore is turned off. \n  * `sweep_age_sec`: When an analysis directory (within the sssub_runs directory)\n     is older than this many seconds, remove it. Defaults to 604800 (1 week).\n\nThe user-supplied configuration file is validated against a built-in schema. \n\nInstallation\n============\nIn a later version of Python3, run::\n\n  pip3 install sssub\n\nIt is recommended to start your compute instance (that will run the monitor) using a service account\nwith the following roles:\n\n  * roles/storage.objectAdmin\n  * roles/datastore.owner\n\nAlternatively, give your compute instance the cloud-platform scope.\n\nDeployment:\n===========\nIt is suggested to use the Dockerfile that comes in the respository.\n\n\n.. _smon: https://pypi.org/project/sruns-monitor/\n.. _`notification configuration`: https://cloud.google.com/storage/docs/pubsub-notifications\n\n\n\n\n",
+        "description_content_type": "text/x-rst",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://pypi.org/project/sssub/",
+        "keywords": "bcl2fastq sequencing samplesheet monitor",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sssub",
+        "package_url": "https://pypi.org/project/sssub/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/sssub/",
+        "project_urls": {
+            "Homepage": "https://pypi.org/project/sssub/",
+            "Read the Docs": "https://sssub.readthedocs.io/en/latest"
+        },
+        "release_url": "https://pypi.org/project/sssub/0.1.1/",
+        "requires_dist": [
+            "sruns-monitor"
+        ],
+        "requires_python": "",
+        "summary": "Polls a GCP Pub/Sub topic for new SampleSheet notification messages in order to initiate bcl2fastq.",
+        "version": "0.1.1"
+    },
+    "last_serial": 6605237,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a7500c39b53de49d5a93ec93615953f",
+                    "sha256": "2045367a1a7bac142e5e449ac4b9226ea78f140c7f824ea9cacccf058f7bb780"
+                },
+                "downloads": -1,
+                "filename": "sssub-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8a7500c39b53de49d5a93ec93615953f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 15389,
+                "upload_time": "2020-01-13T23:56:22",
+                "upload_time_iso_8601": "2020-01-13T23:56:22.842428Z",
+                "url": "https://files.pythonhosted.org/packages/fe/39/b5b34807dec98eee4ec52cf64bcec427f6056ba948122fe8b0433c211718/sssub-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "edc401b18970594522d986803c345318",
+                    "sha256": "337a6a7ab9154d2b0832e731ebdf6c32775dbe85ff792718a4ead8ffbe0616de"
+                },
+                "downloads": -1,
+                "filename": "sssub-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "edc401b18970594522d986803c345318",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15378,
+                "upload_time": "2020-01-13T23:56:25",
+                "upload_time_iso_8601": "2020-01-13T23:56:25.496162Z",
+                "url": "https://files.pythonhosted.org/packages/b5/11/959ca18bd9fd5b47b160ece659ff14c03aca1f079f695507f819d47a2096/sssub-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "16c78889752d912bcdf7c12da06f891f",
+                    "sha256": "61454d30e2c041b2a05496240620b40acb9b67400689bd77ab979573fdaf5449"
+                },
+                "downloads": -1,
+                "filename": "sssub-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "16c78889752d912bcdf7c12da06f891f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 16495,
+                "upload_time": "2020-02-10T22:12:58",
+                "upload_time_iso_8601": "2020-02-10T22:12:58.193160Z",
+                "url": "https://files.pythonhosted.org/packages/45/43/9f1783589a7e0da50efde422044a05ca2b4daa8139a29e90c3ea311fd697/sssub-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fd1eff55f4e79019e5f22023ff19c91c",
+                    "sha256": "a4c6fbb9f2246889c29fe0f59e0a91f02db23daef842d5c80aa242efbd5cd508"
+                },
+                "downloads": -1,
+                "filename": "sssub-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fd1eff55f4e79019e5f22023ff19c91c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16541,
+                "upload_time": "2020-02-10T22:12:59",
+                "upload_time_iso_8601": "2020-02-10T22:12:59.783617Z",
+                "url": "https://files.pythonhosted.org/packages/d4/3a/7036e53b13e69e525d05e4423b035889d60cd6b25e2964c44c3e085e53bc/sssub-0.1.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "16c78889752d912bcdf7c12da06f891f",
+                "sha256": "61454d30e2c041b2a05496240620b40acb9b67400689bd77ab979573fdaf5449"
+            },
+            "downloads": -1,
+            "filename": "sssub-0.1.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "16c78889752d912bcdf7c12da06f891f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 16495,
+            "upload_time": "2020-02-10T22:12:58",
+            "upload_time_iso_8601": "2020-02-10T22:12:58.193160Z",
+            "url": "https://files.pythonhosted.org/packages/45/43/9f1783589a7e0da50efde422044a05ca2b4daa8139a29e90c3ea311fd697/sssub-0.1.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "fd1eff55f4e79019e5f22023ff19c91c",
+                "sha256": "a4c6fbb9f2246889c29fe0f59e0a91f02db23daef842d5c80aa242efbd5cd508"
+            },
+            "downloads": -1,
+            "filename": "sssub-0.1.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "fd1eff55f4e79019e5f22023ff19c91c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 16541,
+            "upload_time": "2020-02-10T22:12:59",
+            "upload_time_iso_8601": "2020-02-10T22:12:59.783617Z",
+            "url": "https://files.pythonhosted.org/packages/d4/3a/7036e53b13e69e525d05e4423b035889d60cd6b25e2964c44c3e085e53bc/sssub-0.1.1.tar.gz"
+        }
+    ]
+}

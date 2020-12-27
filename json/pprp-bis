@@ -1,0 +1,75 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 0,
+        "author": "Dustin Oprea",
+        "author_email": "myselfasunder@gmail.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [],
+        "description": "--------\nOverview\n--------\n\nThis package was a remedy to there being no PyPI-published, pure-Python \nRijndael (AES) implementations, and that nothing available, in general, was \ncompatible with both Python2 *and* Python3. The same is true of the PBKDF2 \nkey-expansion algorithm.\n\nThe encryptor takes a source generator (which yields individual blocks). There \nare source-generators provided for both data from a variable and data from a \nfile. It is trivial if you'd like to write your own. The encryptor and \ndecryptor functions are written as generators. Decrypted data has PKCS7\npadding. A utility function is provided to trim this (*trim_pkcs7_padding*).\n\nThe implementation includes Python2 and Python3 implementations of both \nRijndael and PBKDF2, and chooses the version when loaded.\n\nThe default block-size is 128-bits in order to be compatible with AES.\n\nThis project is also referred to as *pprp*, which stands for \"Pure Python \nRijndael and PBKDF2\".\n\n\n------------\nInstallation\n------------\n\nInstall via *pip*::\n\n    $ sudo pip install pprp\n\n\n-------\nExample\n-------\n\nEncrypt and decrypt the data, and compare the results. This example works in \nboth Python 2 and 3.\n\nTop imports and defines::\n\n    import sys\n    import io\n    import os.path\n    import hashlib\n\n    import pprp\n    import pprp.config\n\n    # Make the strings the right type for the current Python version.\n    def trans(text):\n        return text.encode('ASCII') if sys.version_info[0] >= 3 else text\n\n    passphrase = trans('password')\n    salt = trans('salt')\n    key_size = 32\n    data = (\"this is a test\" * 100).encode('ASCII')\n\nDo the key-expansion::\n\n    key = pprp.pbkdf2(passphrase, salt, key_size)\n\nCreate a source from available data::\n\n    sg = pprp.data_source_gen(data)\n\nFeed the source into the encryptor::\n\n    eg = pprp.rjindael_encrypt_gen(key, sg)\n\nFeed the encryptor into the decryptor::\n\n    dg = pprp.rjindael_decrypt_gen(key, eg)\n\nSink the output to a variable (and automatically trim the padding)::\n\n    decrypted = pprp.decrypt_sink(dg)\n\nThere is also a *decrypt_to_file_sink* sink that takes a file-object as the \nfirst argument.\n\nCheck the result::\n\n    assert data == decrypted\n\nThe following is a portion of the output of the example script \n(*test/example.py*). Notice that, due to this being an efficient, \ngenerator-based design, the encryption of each block is followed by a \ndecryption::\n\n    2014-07-01 12:24:13,182 - pprp.source - DEBUG - Yielding [data] source block: (0)-(0)\n    2014-07-01 12:24:13,182 - pprp.adapters - DEBUG - Encrypting and yielding encrypted block: (0)\n    2014-07-01 12:24:13,183 - pprp.adapters - DEBUG - Decrypting and yielding decrypted block: (0)\n    2014-07-01 12:24:13,183 - pprp.source - DEBUG - Yielding [data] source block: (1)-(16)\n    2014-07-01 12:24:13,183 - pprp.adapters - DEBUG - Encrypting and yielding encrypted block: (1)\n    2014-07-01 12:24:13,183 - pprp.adapters - DEBUG - Decrypting and yielding decrypted block: (1)\n    2014-07-01 12:24:13,183 - pprp.source - DEBUG - Yielding [data] source block: (2)-(32)\n    2014-07-01 12:24:13,183 - pprp.adapters - DEBUG - Encrypting and yielding encrypted block: (2)\n    2014-07-01 12:24:13,183 - pprp.adapters - DEBUG - Decrypting and yielding decrypted block: (2)\n    2014-07-01 12:24:13,184 - pprp.source - DEBUG - Yielding [data] source block: (3)-(48)\n    2014-07-01 12:24:13,184 - pprp.adapters - DEBUG - Encrypting and yielding encrypted block: (3)\n    2014-07-01 12:24:13,184 - pprp.adapters - DEBUG - Decrypting and yielding decrypted block: (3)\n    ...\n\n\n-----\nNotes\n-----\n\nThe generators can take a block-size in the event that you don't want the \ndefault. The default block-size can also be changed via the PPRP_BLOCK_SIZE \nenvironment variable.\n",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/jaraco/pprp-bis",
+        "keywords": "rijdael pbkdf2",
+        "license": "GPL 2",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pprp-bis",
+        "package_url": "http://pypi.python.org/pypi/pprp-bis",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/pprp-bis/0.2.6",
+        "requires_python": "",
+        "summary": "A pure-Python Rijndael (AES) and PBKDF2 library. Python2.7- and Python3-compatible.",
+        "version": "0.2.6"
+    },
+    "releases": {
+        "0.2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "caa1d6b79c2b84b6cc812a9b55c85f22",
+                    "sha256": "3f902b76bfded856102443d56fa527d54cd2822f29430b1305011786f76c02f4"
+                },
+                "downloads": 0,
+                "filename": "pprp-bis-0.2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "caa1d6b79c2b84b6cc812a9b55c85f22",
+                "packagetype": "sdist",
+                "path": "d4/d7/7f59cb90785da2ead5cd7016b6f38d4c37032e0e69ef4403c3c7aadcc55f/pprp-bis-0.2.6.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "3f902b76bfded856102443d56fa527d54cd2822f29430b1305011786f76c02f4",
+                "size": 14320,
+                "upload_time": "2018-04-15T01:33:55",
+                "url": "https://pypi.python.org/packages/d4/d7/7f59cb90785da2ead5cd7016b6f38d4c37032e0e69ef4403c3c7aadcc55f/pprp-bis-0.2.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "caa1d6b79c2b84b6cc812a9b55c85f22",
+                "sha256": "3f902b76bfded856102443d56fa527d54cd2822f29430b1305011786f76c02f4"
+            },
+            "downloads": 0,
+            "filename": "pprp-bis-0.2.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "caa1d6b79c2b84b6cc812a9b55c85f22",
+            "packagetype": "sdist",
+            "path": "d4/d7/7f59cb90785da2ead5cd7016b6f38d4c37032e0e69ef4403c3c7aadcc55f/pprp-bis-0.2.6.tar.gz",
+            "python_version": "source",
+            "sha256_digest": "3f902b76bfded856102443d56fa527d54cd2822f29430b1305011786f76c02f4",
+            "size": 14320,
+            "upload_time": "2018-04-15T01:33:55",
+            "url": "https://pypi.python.org/packages/d4/d7/7f59cb90785da2ead5cd7016b6f38d4c37032e0e69ef4403c3c7aadcc55f/pprp-bis-0.2.6.tar.gz"
+        }
+    ]
+}

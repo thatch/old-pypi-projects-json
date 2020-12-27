@@ -1,0 +1,118 @@
+{
+    "info": {
+        "author": "Patrick Lehmann",
+        "author_email": "Paebbels@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Utilities"
+        ],
+        "description": "![GitHub](https://img.shields.io/github/license/Paebbels/pyAttribute)  \n![PyPI - License](https://img.shields.io/pypi/l/pyAttribute)\n![GitHub release (latest by date)](https://img.shields.io/github/v/release/Paebbels/pyAttribute)\n![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/Paebbels/pyAttribute)\n![PyPI](https://img.shields.io/pypi/v/pyAttribute)\n![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyAttribute)\n![PyPI - Wheel](https://img.shields.io/pypi/wheel/pyAttribute)\n![PyPI - Status](https://img.shields.io/pypi/status/pyAttribute)\n\n# pyAttribute\n\n**.NET-like Attributes implemented as Python decorators**\n\nI have played a bit with class-based decorators and <del>as far as</del> I can tell it's possible to implement .NET-like attributes in Python.\n\n## So first let's develop a meaningful use case:\nMost of us know the Python `argparse` command line argument parser. This parser can handle sub-commands like `git commit -m \"message\"` where *commit* is a sub-command and `-m <message>` is a parameter of this sub-command parser. It's possible to assign a callback function to each sub-command parser.\n\n> **Python 3.4.2 for Windows** has a bug in handling callback functions. It's fixed in 3.5.0 (I haven't tested other 3.4.x versions).\n\nHere is a classic `argparse` example:\n\n```python\nclass MyProg():\n\tdef Run(self):\n\t\t# create a commandline argument parser\n\t\tMainParser = argparse.ArgumentParser(\n\t\t\tdescription = textwrap.dedent('''This is the User Service Tool.'''),\n\t\t\tformatter_class = argparse.RawDescriptionHelpFormatter,\n\t\t\tadd_help=False)\n\n\t\tMainParser.add_argument('-v', '--verbose', dest=\"verbose\", help='print out detailed messages', action='store_const', const=True, default=False)\n\t\tMainParser.add_argument('-d', '--debug', dest=\"debug\", help='enable debug mode', action='store_const', const=True, default=False)\n\t\tMainParser.set_defaults(func=self.HandleDefault)\n\t\tsubParsers = MainParser.add_subparsers(help='sub-command help')\n\n\t\t# UserManagement commads\n\t\t# create the sub-parser for the \"create-user\" command\n\t\tCreateUserParser = subParsers.add_parser('create-user', help='create-user help')\n\t\tCreateUserParser.add_argument(metavar='<Username>', dest=\"Users\", type=str, nargs='+', help='todo help')\n\t\tCreateUserParser.set_defaults(func=self.HandleCreateUser)\n\n\t\t# create the sub-parser for the \"remove-user\" command\n\t\tRemoveUserParser = subParsers.add_parser('remove-user', help='remove-user help')\n\t\tRemoveUserParser.add_argument(metavar='<UserID>', dest=\"UserIDs\", type=str, nargs='+', help='todo help')\n\t\tRemoveUserParser.set_defaults(func=self.HandleRemoveUser)\n\n\tdef HandleDefault(self, args):\n\t\tprint(\"HandleDefault:\")\n\n\tdef HandleCreateUser(self, args):\n\t\tprint(\"HandleCreateUser: {0}\".format(str(args.Users)))\n\n\tdef HandleRemoveUser(self, args):\n\t\tprint(\"HandleRemoveUser: {0}\".format(str(args.UserIDs)))\n\nmy = MyProg()\nmy.Run()\n```\n\nA better and more descriptive solution could look like this:\n\n```python\nclass MyProg():\n\tdef __init__(self):\n\t\tself.BuildParser()\n\t\t# ...\n\tdef BuiltParser(self):\n\t\t# 1. search self for methods (potential handlers)\n\t\t# 2. search this methods for attributes\n\t\t# 3. extract Command and Argument attributes\n\t\t# 4. create the parser with that provided metadata\n\n\t# UserManagement commads\n\t@CommandAttribute('create-user', help=\"create-user help\")\n\t@ArgumentAttribute(metavar='<Username>', dest=\"Users\", type=str, nargs='+', help='todo help')\n\tdef HandleCreateUser(self, args):\n\t\tprint(\"HandleCreateUser: {0}\".format(str(args.Users)))\n\n\t@CommandAttribute('remove-user',help=\"remove-user help\")\n\t@ArgumentAttribute(metavar='<UserID>', dest=\"UserIDs\", type=str, nargs='+', help='todo help')\n\tdef HandleRemoveUser(self, args):\n\t\tprint(\"HandleRemoveUser: {0}\".format(str(args.UserIDs)))\n```\n\n-------\n\nSo let's develop a solution step-by-step.\n\n## Step 1 - A common `Attribute` class\n\nSo let's develop a common `Attribute` class, which is also a class-based decorator. This decorator adds himself to a list called `__attributes__`, which is registered on the function which is to be decorated.\n\n```python\nclass Attribute():\n\tAttributesMemberName =  \"__attributes__\"\n\t_debug =                False\n\n\tdef __call__(self, func):\n\t\t# inherit attributes and append myself or create a new attributes list\n\t\tif (func.__dict__.__contains__(Attribute.AttributesMemberName)):\n\t\t\tfunc.__dict__[Attribute.AttributesMemberName].append(self)\n\t\telse:\n\t\t\tfunc.__setattr__(Attribute.AttributesMemberName, [self])\n\t\treturn func\n\n\tdef __str__(self):\n\t\treturn self.__name__\n\n\t@classmethod\n\tdef GetAttributes(self, method):\n\t\tif method.__dict__.__contains__(Attribute.AttributesMemberName):\n\t\t\tattributes = method.__dict__[Attribute.AttributesMemberName]\n\t\t\tif isinstance(attributes, list):\n\t\t\t\treturn [attribute for attribute in attributes if isinstance(attribute, self)]\n\t\treturn list()\n```\n\n## Step 2 - User defined attributes\n\nNow we can create custom attributes which inherit the basic decorative functionality from `Attribute`. I'll declare 3 attributes:\n\n - **DefaultAttribute** - If no sub-command parser recognizes a command, this decorated method will be the fallback handler.\n - **CommandAttribute** - Define a sub-command and register the decorated function as a callback.\n - **ArgumentAttribute** - Add parameters to the sub-command parser.\n\n```python\nclass DefaultAttribute(Attribute):\n\t__handler = None\n\n\tdef __call__(self, func):\n\t\tself.__handler = func\n\t\treturn super().__call__(func)\n\n\t@property\n\tdef Handler(self):\n\t\treturn self.__handler\n```\n\n```python\nclass CommandAttribute(Attribute):\n\t__command = \"\"\n\t__handler = None\n\t__kwargs =  None\n\n\tdef __init__(self, command, **kwargs):\n\t\tsuper().__init__()\n\t\tself.__command =  command\n\t\tself.__kwargs =   kwargs\n\n\tdef __call__(self, func):\n\t\tself.__handler = func\n\t\treturn super().__call__(func)\n\n\t@property\n\tdef Command(self):\n\t\treturn self.__command\n\n\t@property\n\tdef Handler(self):\n\t\treturn self.__handler\n\n\t@property\n\tdef KWArgs(self):\n\t\treturn self.__kwargs\n```\n\n```python\nclass ArgumentAttribute(Attribute):\n\t__args =   None\n\t__kwargs = None\n\n\tdef __init__(self, *args, **kwargs):\n\t\tsuper().__init__()\n\t\tself.__args =   args\n\t\tself.__kwargs = kwargs\n\n\t@property\n\tdef Args(self):\n\t\treturn self.__args\n\n\t@property\n\tdef KWArgs(self):\n\t\treturn self.__kwargs\n```\n\n## Step 3 - Building a helper mixin class to handle attributes on methods\n\nTo ease the work with attributes I implemented a `AttributeHelperMixin` class, that can:\n\n - retrieve all methods of a class\n - check if a method has attributes and\n - return a list of attributes on a given method.\n\n```python\nclass AttributeHelperMixin():\n\tdef GetMethods(self):\n\t\treturn {funcname: func\n\t\t\t\t\t\tfor funcname, func in self.__class__.__dict__.items()\n\t\t\t\t\t\tif hasattr(func, '__dict__')\n\t\t\t\t\t }.items()\n\n\tdef HasAttribute(self, method):\n\t\tif method.__dict__.__contains__(Attribute.AttributesMemberName):\n\t\t\tattributeList = method.__dict__[Attribute.AttributesMemberName]\n\t\t\treturn (isinstance(attributeList, list) and (len(attributeList) != 0))\n\t\telse:\n\t\t\treturn False\n\n\tdef GetAttributes(self, method):\n\t\tif method.__dict__.__contains__(Attribute.AttributesMemberName):\n\t\t\tattributeList = method.__dict__[Attribute.AttributesMemberName]\n\t\t\tif isinstance(attributeList, list):\n\t\t\t\treturn attributeList\n\t\treturn list()\n```\n\n## Step 4 - Build an application class\n\nNow it's time to build an application class that inherits from `MyBase` and from `ArgParseMixin`. I'll discuss `ArgParseMixin` later. The class has a normal constructor, which calls both base-class constructors. It also adds 2 arguments for *verbose* and *debug* to the main-parser. All callback handlers are decorated with the new Attributes.\n\n```python\nclass MyBase():\n\tdef __init__(self):\n\t\tpass\n\nclass prog(MyBase, ArgParseMixin):\n\tdef __init__(self):\n\t\timport argparse\n\t\timport textwrap\n\n\t\t# call constructor of the main interitance tree\n\t\tMyBase.__init__(self)\n\n\t\t# Call the constructor of the ArgParseMixin\n\t\tArgParseMixin.__init__(self,\n\t\t\tdescription = textwrap.dedent('''\\\n\t\t\t\tThis is the Admin Service Tool.\n\t\t\t\t'''),\n\t\t\tformatter_class = argparse.RawDescriptionHelpFormatter,\n\t\t\tadd_help=False)\n\n\t\tself.MainParser.add_argument('-v', '--verbose',  dest=\"verbose\",  help='print out detailed messages',  action='store_const', const=True, default=False)\n\t\tself.MainParser.add_argument('-d', '--debug',    dest=\"debug\",    help='enable debug mode',            action='store_const', const=True, default=False)\n\n\tdef Run(self):\n\t\tArgParseMixin.Run(self)\n\n\t@DefaultAttribute()\n\tdef HandleDefault(self, args):\n\t\tprint(\"DefaultHandler: verbose={0}  debug={1}\".format(str(args.verbose), str(args.debug)))\n\n\t@CommandAttribute(\"create-user\", help=\"my new command\")\n\t@ArgumentAttribute(metavar='<Username>', dest=\"Users\", type=str, help='todo help')\n\tdef HandleCreateUser(self, args):\n\t\tprint(\"HandleCreateUser: {0}\".format(str(args.Users)))\n\n\t@CommandAttribute(\"remove-user\", help=\"my new command\")\n\t@ArgumentAttribute(metavar='<UserID>', dest=\"UserIDs\", type=str, help='todo help')\n\tdef HandleRemoveUser(self, args):\n\t\tprint(\"HandleRemoveUser: {0}\".format(str(args.UserIDs)))\n\np = prog()\np.Run()\n```\n\n## Step 5 - The `ArgParseMixin` helper class.\n\nThis class constructs the `argparse` based parser with the provided data from attributes. The parsing process is invoked by `Run()`.\n\n```python\nclass ArgParseMixin(AttributeHelperMixin):\n\t__mainParser = None\n\t__subParser =  None\n\t__subParsers = {}\n\n\tdef __init__(self, **kwargs):\n\t\tsuper().__init__()\n\n\t\t# create a commandline argument parser\n\t\timport argparse\n\t\tself.__mainParser = argparse.ArgumentParser(**kwargs)\n\t\tself.__subParser =  self.__mainParser.add_subparsers(help='sub-command help')\n\n\t\tfor funcname,func in self.GetMethods():\n\t\t\tdefAttributes = DefaultAttribute.GetAttributes(func)\n\t\t\tif (len(defAttributes) != 0):\n\t\t\t\tdefAttribute = defAttributes[0]\n\t\t\t\tself.__mainParser.set_defaults(func=defAttribute.Handler)\n\t\t\t\tcontinue\n\n\t\t\tcmdAttributes = CommandAttribute.GetAttributes(func)\n\t\t\tif (len(cmdAttributes) != 0):\n\t\t\t\tcmdAttribute = cmdAttributes[0]\n\t\t\t\tsubParser = self.__subParser.add_parser(cmdAttribute.Command, **(cmdAttribute.KWArgs))\n\t\t\t\tsubParser.set_defaults(func=cmdAttribute.Handler)\n\n\t\t\t\tfor argAttribute in ArgumentAttribute.GetAttributes(func):\n\t\t\t\t\tsubParser.add_argument(*(argAttribute.Args), **(argAttribute.KWArgs))\n\n\t\t\t\tself.__subParsers[cmdAttribute.Command] = subParser\n\t\t\t\tcontinue\n\n\tdef Run(self):\n\t\t# parse command line options and process splitted arguments in callback functions\n\t\targs = self.__mainParser.parse_args()\n\t\t# because func is a function (unbound to an object), it MUST be called with self as a first parameter\n\t\targs.func(self, args)\n\n\t@property\n\tdef MainParser(self):\n\t\treturn self.__mainParser\n\n\t@property\n\tdef SubParsers(self):\n\t\treturn self.__subParsers\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Paebbels/pyAttribute",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pyAttribute",
+        "package_url": "https://pypi.org/project/pyAttribute/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pyAttribute/",
+        "project_urls": {
+            "Homepage": "https://github.com/Paebbels/pyAttribute"
+        },
+        "release_url": "https://pypi.org/project/pyAttribute/0.2.1/",
+        "requires_dist": null,
+        "requires_python": ">=3.5",
+        "summary": ".NET-like Attributes implemented as Python decorators.",
+        "version": "0.2.1"
+    },
+    "last_serial": 5955128,
+    "releases": {
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c741d91e2c11d42971cf007c436e1c8c",
+                    "sha256": "073a39e03a983e70fdb4c12f11c9b035c0caa434f90fe790569df00908b1a603"
+                },
+                "downloads": -1,
+                "filename": "pyAttribute-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c741d91e2c11d42971cf007c436e1c8c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5",
+                "size": 11825,
+                "upload_time": "2019-10-10T14:27:54",
+                "url": "https://files.pythonhosted.org/packages/f5/b2/705f33904ea1cc802761b672db7f3114fee06f6eff9f740d333260722212/pyAttribute-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c1b429172f0d0a5f145bc4dbf4b6d6b3",
+                    "sha256": "aa3ab6f81dfc585a39573ec330501b70df88ed816803a853a7203f8aa98baaed"
+                },
+                "downloads": -1,
+                "filename": "pyAttribute-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c1b429172f0d0a5f145bc4dbf4b6d6b3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5",
+                "size": 7784,
+                "upload_time": "2019-10-10T14:28:02",
+                "url": "https://files.pythonhosted.org/packages/31/eb/92e52970db141a018be4b6680ec57cf2145bdbe76e62e2e2a24541678dac/pyAttribute-0.2.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c741d91e2c11d42971cf007c436e1c8c",
+                "sha256": "073a39e03a983e70fdb4c12f11c9b035c0caa434f90fe790569df00908b1a603"
+            },
+            "downloads": -1,
+            "filename": "pyAttribute-0.2.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c741d91e2c11d42971cf007c436e1c8c",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.5",
+            "size": 11825,
+            "upload_time": "2019-10-10T14:27:54",
+            "url": "https://files.pythonhosted.org/packages/f5/b2/705f33904ea1cc802761b672db7f3114fee06f6eff9f740d333260722212/pyAttribute-0.2.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c1b429172f0d0a5f145bc4dbf4b6d6b3",
+                "sha256": "aa3ab6f81dfc585a39573ec330501b70df88ed816803a853a7203f8aa98baaed"
+            },
+            "downloads": -1,
+            "filename": "pyAttribute-0.2.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c1b429172f0d0a5f145bc4dbf4b6d6b3",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5",
+            "size": 7784,
+            "upload_time": "2019-10-10T14:28:02",
+            "url": "https://files.pythonhosted.org/packages/31/eb/92e52970db141a018be4b6680ec57cf2145bdbe76e62e2e2a24541678dac/pyAttribute-0.2.1.tar.gz"
+        }
+    ]
+}

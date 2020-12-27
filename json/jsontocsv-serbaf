@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "Serbaf",
+        "author_email": "serpucga@protonmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# JSON to CSV\n\nThis project consists on a set of tools in order to convert JSON items\nto CSV.\n\n## Version\nversion 1.0.1\n\n## Project structure\n\nFor the time being, the project consists of two Python files:\n* main.py\n* json2csv\\_lib.py\n\nThe directory thought for storing the input collections is:\n* ./input/\n\nAt the current moment there is only one one file of ~200MB called\ndiada2016.json.\n\nThe resulting data is stored at:\n* ./output/split\\_tweets\n* ./output/flattened\\_tweets\n* ./output/csv\\_converted\\_tweets\n\nUnless specified otherwise using the -o (--output) argument.\n\n## Example of use\n\nUsing the provided diada2016.json a basic example of use could be:\n\n```\n./main.py ./input/diada2016.json\n```\n\nThe main.py file contains all the code related to initialization of the\nprogram, global variables, and parsing the options and args passed by\nthe user. The options passed by the user will trigger one of the\ndifferent modes of execution and will determine the input and output\nfiles or directories. The four accepted modes of execution are:\n\n* \"Split\" a collection in individual tweets.\n* \"Flatten\" either a single tweet or a collection.\n* Convert from format flat-JSON to CSV, \"flat2csv\",\n  while applying a filter to exclude some fields\n* Apply all the previous steps in a single execution with \"json2csv\",\n  which converts a JSON collection to multiple single CSVs.\n\nThe final resulting CSVs and the intermediate results are all stored in\nthe ./output directory and its subdirectories. However, this paths are\nmanaged at main.py and could be changed at will.\n\n### Filter (added at 0.3.0)\n\nThe filter is regex-based and can be customized at the main.py. No\nfilter (or an empty filter) will include all the information, and the\nuser can add any number and kind of regexes to exclude fields. The\nfilter is applied in the flatJSON to CSV conversion stage, and it will\ncompare every key in the flattened dictionary with all the elements on\nthe filter list.\n\n### Command-line options and arguments (added at 0.4.0)\nNow the main.py script accepts a few options and arguments that allow\nthe user to be more specific about what kind of execution he wants and\nwhere to take the input from and where to store the output files.\nFor a complete specification of the options check \"./main.py -h\".\n\n### Include/exclude filters (added at 0.5.0)\nNow in addition to the filter implemented at v0.3.0, which was a\n\"excluding\" filter (that is, the regexes written in the filter that\nmatched with a key were NOT written to the final CSV file and all the\nrest were), now an \"inclusive\" filter has been added. This new filter\nwill only write to the CSV the key-value pairs where the key matches\nwith at least one of the regexes included in the filter. \nWhen the include filter is not empty, the exclude filter is ignored. To\nconvert a full file (all fields included) both filters should be empty.\nTo lighten the code files and reduce coupling the filters have been\nmoved from main.py to ./data/filters.py. Additional filters should be\nwritten there too.\nFinally, more code was added to the convert\\_json2csv function in the\nlibrary ./lib/json2csv.py to fold the array fields and include them in a\nunique field (excepting bounding\\_box coordinates which were only folded\nonce and still have 4 fields for the four coordinate points).\n\n#### Bugfix 0.5.1: CSV quoting\nFixed bug related to the lack of quotes in the CSV values, which made\nthe CSV formatters to interpret the produced documents wrong. For\nexample, a list [a, b, c, d] was interpreted as 4 different CSV values.\nNow it is written \"[a, b, c, d]\" and interpreted correctly. This applies\nto all the values because strings were troublesome too (booleans and\nnumbers probably didn't need that, but anyways).\nAlso, directory OLD removed and added a dir named samples to easily see\n3 examples of files produced by the program (json, flat json and csv).\nThis is provided instead of the converted files in the output subtree\ndirectory, which were probably too much (now ignored on .gitignore)\n\n### Initial unit testing + major bugfix (0.6.0)\nFirst test cases and tests implemented in a new directory specific for\ntesting. \nWhile working at it a tremendous bug was discovered: the splitting\noperation wasn't performing as expected for some JSON objects. However,\nthe error was silent and didn't take place in the first tweets of the\ncollection, reason why it passed unadvertedly for a long time. This\nerror had to do with strings including braces, which had to be ignored\nas they are not really part of the JSON structure. After that fix,\nanother bug appeared related to the escape character '\\', which in some\nfiles provoked an error when it appeared before a double quote.\nThe new algorithm manages properly escape characters and quotes and\nsplits the full 200MB collection correctly.\n\n#### Minor refactoring (0.6.1)\nChanged some names and code of the splitter, flattener and csv-converter\nalgorithms moved out to isolate the logic, strictly speaking, from the\nrest of the I/O managing code and whatever else.\n\n#### Added verbosity and minor refactoring (0.6.2)\nAdded a new mode, \"verbose\", activated with -v or --verbose.\nNon-critical messages (excepting invocation failures that suppose\ntermination and so) will only be displayed if this flag is activated.\nSome of the previous prints were put under verbose and some others were\nadded to provide more information about execution trace.\nAlso, minor refactoring was done in the main script.\n\n#### Added silent mode (0.6.3)\nAdded a new mode, \"silent\", activated with -s or --silent. This mode\noverrides verbose (and cancels it) if active. This mode not only\nsilences the messages provided with verbosity, but also the rest (error\nmessages and so) excepting the syntax help.\n\n#### Significant number of unit tests added (0.6.4)\nLots of unittests have been added. Most of them are not purely \"unit\",\nbecause they act over the main calls to split, flatten and convert to\ncsv, which in turn call to several complex json2csv library methods.\nHowever, these tests check that the overall features work as desired.\n\n#### New compression command-line option (0.6.5)\nNow the user can opt to activate or deactivate the array compression\nmode. The default mode (if no option is given) is no-compression, that\nis, the arrays are written as flattened elements in the CSV file. If the\noption -c is given, these arrays will be flattened 1 level.\n\n#### New UPV-compatible and remove dollar options (0.6.6)\nNow the user can opt to activate or deactivate a mode to remove the\ndollar headed fields added by Mongo. These are fields like created\\_at\nwhere Mongo sometimes automatically added a dollar-termination with the\ntype of the field, like created\\_at.$date. This mode removes the .$date\nand similar teminations. Since this is not the basic mode of operations\nand could induce bugs or unexpected behaviour for people working with\ndata from other origins, this functionality has been isolated. The\nUPV-compatible mode is equivalent to activating -c & -r, that is, the\narray-compression and remove-dollar options, simplified in a single\noption just because this is the mode I'm going to use more frequently.\n\n#### New filtering options (0.6.7)\nFilters are no longer hardcoded. Now, if user doesn't specify anything\nabout filters, none will be applied. The user can specify the path to an \nexclude or an include filter using the -e/--exclude and the -i/--include\ncommand-line options. Furthermore, the user can specify\n-f/--default-filters to use the default filters included in data/filters\n\n#### Overwrite prompts (0.6.8)\nNow the user will be prompted whenever a collection with the same path\nthan an already existing one is going to be generated. The user will be\nable to choose between overwriting or aborting the execution.\n\n#### Bugfix (0.6.9)\nBefore this version, the array compression and remove dollar modes didn't apply\nwhen there wasn't an include filter (that is, either with exclude filter or\nwithout any filters at all). This has been fixed and now any combination of\nfilters and modes should work correctly.\n\n### Added arg option to keep/discard the intermediate files (0.7.0)\nThe possibility of discarding or keeping the intermediate files (split and/or\nflattened JSONs) has been added as an invocation argument (-k / --keep-files).\nBefore this version these files were always kept. Now they are discarded by\ndefault and the -k options permits to keep them.\nBefore this version, the array compression and remove dollar modes didn't apply\nwhen there wasn't an include filter (that is, either with exclude filter or\nwithout any filters at all). This has been fixed and now any combination of\nfilters and modes should work correctly.\n\n### Large changes in the directory structure of the output (0.8.0)\nThis patch includes a big reestructuration of the directory hierarchy produced\nby the program. The three standard folders for output (split\\_tweets,\nflattened\\_tweets and csv\\_converted\\_tweets) cease to exist. Now the only\npreexistent folder for output is \"output\" itself. Everytime a collection is\nsplit, flattened or converted, a new output folder with the name of that\ncollection is created inside \"output\". These collections can have up to three\nsubdirectories called \"Split\", \"Flat\" and \"CSV\", every one of which contains\nthe type of files indicated by its name.\n\n#### Bugfixes (0.8.1)\nFixed some bugfixes related to the changes introduced at 0.8.0. E.g., in 0.8.0\none could not flatten the split directory of the same collection, because the\ncollection was removed before (the overwriting was performed over the top\ndirectory of the collection, and thus the input for the operation was removed\nbefore beginning to flatten). Tests have been adapted too\n\n## Added integer argument to the option compression/-c (0.9.0 / 1.0.0)\nNow the user cannot only specify if he wants to represent the arrays flattened\nor compressed in the CSV file, but also which depth of compression. A level of\n0 would equal no compression, a level 1 equals the old compression mode (and\nthe current UPV-compatible mode too), that is, to just unnest 1 level of\narrays, for example:\n\nhouse[0].dweller[0]: \"Ana\"\nhouse[0].dweller[1]: \"Roberto\"\nhouse[1].dweller[0]: \"Marina\"\n\nWould become:\nhouse[0].dweller: \"[Ana, Roberto]\"\nhouse[1].dweller: \"[Marina]\"\n\nNow, it is also possible to select a compression of depth 2 or more, which\nwould provide the followint output:\n\nhouse.dweller: \"[[Ana, Roberto], [Marina]]\"\n\nSome minor bugs fixed and tests adapted to the new feature.\nThis is the state of the program desired in the beginning of the development,\nand this version (with possible minor fixes) is the one expected for the 1.0.0\nrelease.\n\n#### Bugfix (1.0.1)\nFixed the array representation. Before this fix, the arrays of values were\nrepresented as \"[a, b, c]\", which could lead to tremendous bugs due to\nambiguity (the example array could have three values, \"a\", \"b\" and \"c\", or only\none, \"a, b, c\", or other combinations). The fixed notation solves that\nambiguity, because now the arrays are represented in the form: [\"a\", \"b\", \"c\"]\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/Serbaf/json-tools.git",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "jsontocsv-serbaf",
+        "package_url": "https://pypi.org/project/jsontocsv-serbaf/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/jsontocsv-serbaf/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/Serbaf/json-tools.git"
+        },
+        "release_url": "https://pypi.org/project/jsontocsv-serbaf/1.0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "JSON to CSV file converter",
+        "version": "1.0.1"
+    },
+    "last_serial": 4839297,
+    "releases": {
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "177078b90665a29b59cd6527cad34f35",
+                    "sha256": "b19210a2328e90d73b11248ae5d1323d2487e9611a17020506245acac6c91a3f"
+                },
+                "downloads": -1,
+                "filename": "jsontocsv_serbaf-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "177078b90665a29b59cd6527cad34f35",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 25422,
+                "upload_time": "2019-02-19T11:02:36",
+                "url": "https://files.pythonhosted.org/packages/a9/6c/6dc4477398d4dca6c7cb7a52aa89520c5968fc531a683d6a7b3d22185662/jsontocsv_serbaf-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bf6221dea4f257cd5d3e55b11e9ffde7",
+                    "sha256": "3573a530cd19dc2067cf8d476071839314f8ea099e9ad9ac7a29d3f129b1dde6"
+                },
+                "downloads": -1,
+                "filename": "jsontocsv-serbaf-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bf6221dea4f257cd5d3e55b11e9ffde7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 26883,
+                "upload_time": "2019-02-19T11:02:39",
+                "url": "https://files.pythonhosted.org/packages/dc/09/a5916c9d235ffe2315032617fd3ed41875b1476e6d0e3c821fa2a1449b44/jsontocsv-serbaf-1.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "177078b90665a29b59cd6527cad34f35",
+                "sha256": "b19210a2328e90d73b11248ae5d1323d2487e9611a17020506245acac6c91a3f"
+            },
+            "downloads": -1,
+            "filename": "jsontocsv_serbaf-1.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "177078b90665a29b59cd6527cad34f35",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 25422,
+            "upload_time": "2019-02-19T11:02:36",
+            "url": "https://files.pythonhosted.org/packages/a9/6c/6dc4477398d4dca6c7cb7a52aa89520c5968fc531a683d6a7b3d22185662/jsontocsv_serbaf-1.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "bf6221dea4f257cd5d3e55b11e9ffde7",
+                "sha256": "3573a530cd19dc2067cf8d476071839314f8ea099e9ad9ac7a29d3f129b1dde6"
+            },
+            "downloads": -1,
+            "filename": "jsontocsv-serbaf-1.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "bf6221dea4f257cd5d3e55b11e9ffde7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 26883,
+            "upload_time": "2019-02-19T11:02:39",
+            "url": "https://files.pythonhosted.org/packages/dc/09/a5916c9d235ffe2315032617fd3ed41875b1476e6d0e3c821fa2a1449b44/jsontocsv-serbaf-1.0.1.tar.gz"
+        }
+    ]
+}

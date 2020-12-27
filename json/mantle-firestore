@@ -1,0 +1,385 @@
+{
+    "info": {
+        "author": "Billcountry Mwaniki",
+        "author_email": "me@billcountry.tech",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "### Mantle Firestore Entities (BETA)([Docs](https://mantle-studio.github.io/models/))\n\nImplementation of models concept on top of Google cloud firestore.\nIt tries to make interaction with firestore as simple as possible for the developer.\n\n#### Installation\n```shell script\npip install mantle-firestore\n```\n\n#### Examples\n```python\n\"\"\"\nThis code creates a model with some possible scenarios when working with db.FirestoreModel\n\nAssume a case of mantle.studio where a user can have\n- Single login\n- Be in multiple projects\n- Have an account in each project\n\"\"\"\n\nfrom mantle.firestore import Entity, SERVER_TIMESTAMP, db\n\nclass User(Entity):\n    user_name = db.TextProperty( required=True)\n    email = db.TextProperty(required=True)\n    full_name = db.TextProperty(required=True)\n    password = db.TextProperty(required=False)\n    date_registered = db.DateTimeProperty(default=SERVER_TIMESTAMP)\n    __sub_collection__ = \"user_data\"\n\n\nclass Project(Entity):\n    name = db.TextProperty(required=True)\n    logo = db.BlobProperty()\n\n    def create_account(self, user, roles = None ):\n        if roles is None:\n            roles = [\"admin\"]\n        account = Account(user=user, roles=roles)\n        account.put()\n        return account\n\n\nclass Account(Entity):\n    __sub_collection__ = Project\n    user = db.ReferenceProperty(User)\n    roles = db.ListProperty(db.TextProperty())\n    date_added = db.DateTimeProperty(auto_add_now=True)\n    last_updated = db.DateTimeProperty(auto_now=True)\n\n# Then we can\nuser = User(user_name=\"john\", email=\"john@doe.fam\", password=\"123456\")\nuser.full_name = \"John Doe\"\nuser.put()\n# Get an existing user\njohn = User.get(user.id)\n\n# Query users\nuser2 = User.query().equal(\"email\", \"jane@doe.fam\")[0]\nusers = User.query()\nfor _user in users:\n    print(_user.email)\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mantle-studio/models",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "mantle-firestore",
+        "package_url": "https://pypi.org/project/mantle-firestore/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/mantle-firestore/",
+        "project_urls": {
+            "Homepage": "https://github.com/mantle-studio/models"
+        },
+        "release_url": "https://pypi.org/project/mantle-firestore/0.0.8/",
+        "requires_dist": [
+            "google-cloud-firestore"
+        ],
+        "requires_python": "",
+        "summary": "Implementation of entities concept on top of Google cloud firestore",
+        "version": "0.0.8"
+    },
+    "last_serial": 5932355,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4052ecbc46d18ed644f94e4a4143c73f",
+                    "sha256": "6cbc3e6802187390a611bafe97e547e6bfe5988b58a597598777b25dc23597fa"
+                },
+                "downloads": -1,
+                "filename": "mantle_firestore-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4052ecbc46d18ed644f94e4a4143c73f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9652,
+                "upload_time": "2019-08-08T11:28:47",
+                "upload_time_iso_8601": "2019-08-08T11:28:47.770221Z",
+                "url": "https://files.pythonhosted.org/packages/29/1b/e496308d92fe70b6a11d903cbf20ebc3e055ac249027a78513b7e2c17626/mantle_firestore-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0f53eaf2ec686e154705d801f734f5b",
+                    "sha256": "a2217b7fe479dc99b71d4e0b3e51699a54352f28480c68a0c3accead9a3ac714"
+                },
+                "downloads": -1,
+                "filename": "mantle-firestore-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c0f53eaf2ec686e154705d801f734f5b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7212,
+                "upload_time": "2019-08-08T11:24:27",
+                "upload_time_iso_8601": "2019-08-08T11:24:27.941336Z",
+                "url": "https://files.pythonhosted.org/packages/1f/6f/59a63c4f5e2aaac0f6c7140ed3438ee577513489bb0435224fc7cf9d4068/mantle-firestore-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "35a591bd17e97c9722345f340f0a7eb1",
+                    "sha256": "d780e36ff462f371f041d1fe9a2d8c0a9541a0ad05478ff9b6893b685670a6f1"
+                },
+                "downloads": -1,
+                "filename": "mantle_firestore-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "35a591bd17e97c9722345f340f0a7eb1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9652,
+                "upload_time": "2019-08-08T11:32:16",
+                "upload_time_iso_8601": "2019-08-08T11:32:16.910499Z",
+                "url": "https://files.pythonhosted.org/packages/eb/2b/bf57be8a8453d0aebd541cd277376bbf69bda31459d42b8ae2b6ab113874/mantle_firestore-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bbb0650463be51687d2de660ef100899",
+                    "sha256": "ad5fb3b8bb3da5e2be616f9ac70df441eb382a77f16857504c9a78d63e893517"
+                },
+                "downloads": -1,
+                "filename": "mantle-firestore-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bbb0650463be51687d2de660ef100899",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7228,
+                "upload_time": "2019-08-08T11:32:18",
+                "upload_time_iso_8601": "2019-08-08T11:32:18.268230Z",
+                "url": "https://files.pythonhosted.org/packages/a5/68/41cfd238e480182f78ab78205e9bc78711c811d254c31cc47fc2849b0155/mantle-firestore-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e6108c8352c956c39f7b6e9220e522be",
+                    "sha256": "8d68f406174d20b6a6570696f217809a8f3696b31ef80e8fc9ef6dcbef8370ba"
+                },
+                "downloads": -1,
+                "filename": "mantle_firestore-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e6108c8352c956c39f7b6e9220e522be",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9120,
+                "upload_time": "2019-09-24T02:29:26",
+                "upload_time_iso_8601": "2019-09-24T02:29:26.214785Z",
+                "url": "https://files.pythonhosted.org/packages/0e/ea/580b3ff3005cb85ffc3b697a61039ad5a246dec6385e8cf52aa791a8c4ef/mantle_firestore-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b75ed907eb91d279269e2599ba6d1025",
+                    "sha256": "02c1876d6e7bd3e8c9e10fde4e2b310a2d985b4ebf512da26ca67ab602940804"
+                },
+                "downloads": -1,
+                "filename": "mantle-firestore-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b75ed907eb91d279269e2599ba6d1025",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7316,
+                "upload_time": "2019-09-24T02:29:28",
+                "upload_time_iso_8601": "2019-09-24T02:29:28.310781Z",
+                "url": "https://files.pythonhosted.org/packages/1e/3b/0b88c18605e2fd924c26463bdc95635d33bb19b486ea80918fe5c0991b15/mantle-firestore-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a063b2e43440e24375a9b792e77f7b9",
+                    "sha256": "bd09eff39d5b7a735786bc7d5535a7ac81a9ec3048de0fe7c6b41348f3a98e54"
+                },
+                "downloads": -1,
+                "filename": "mantle_firestore-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7a063b2e43440e24375a9b792e77f7b9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9091,
+                "upload_time": "2019-09-25T13:08:20",
+                "upload_time_iso_8601": "2019-09-25T13:08:20.170776Z",
+                "url": "https://files.pythonhosted.org/packages/df/43/ff964b78c58ab9a53ecdcead31d13ab4966d4ce26b168f9b8d603f921955/mantle_firestore-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc31034d8f3aed8ca482fc3765219680",
+                    "sha256": "fec32933d9f62319fd16e0b578915f1bb0abc5d1014765a62196bf4d2eaea3f5"
+                },
+                "downloads": -1,
+                "filename": "mantle-firestore-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dc31034d8f3aed8ca482fc3765219680",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7288,
+                "upload_time": "2019-09-25T13:08:22",
+                "upload_time_iso_8601": "2019-09-25T13:08:22.386728Z",
+                "url": "https://files.pythonhosted.org/packages/a1/bd/be09bbe056584fff272f217231d2bf81092c446d213291e586a5f25ffdd7/mantle-firestore-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab461aa19029fb25ed06640c0776e0dc",
+                    "sha256": "a139ab5bc731365ca69b7f243eec4721f711f2eaa25a8c59eab12d247eda1889"
+                },
+                "downloads": -1,
+                "filename": "mantle_firestore-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ab461aa19029fb25ed06640c0776e0dc",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9089,
+                "upload_time": "2019-09-25T13:22:39",
+                "upload_time_iso_8601": "2019-09-25T13:22:39.131323Z",
+                "url": "https://files.pythonhosted.org/packages/45/54/21233f30de3a11d19f462e425d2b3f96fc5c87b31b58000a5638065112cb/mantle_firestore-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bed0c0c4e70cdef6997a1d3956eb75ff",
+                    "sha256": "3f044ba79f4fbf88dc8fbdbd3550e2ef32d95e10258954a5af06836690c0714b"
+                },
+                "downloads": -1,
+                "filename": "mantle-firestore-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bed0c0c4e70cdef6997a1d3956eb75ff",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7289,
+                "upload_time": "2019-09-25T13:22:40",
+                "upload_time_iso_8601": "2019-09-25T13:22:40.740681Z",
+                "url": "https://files.pythonhosted.org/packages/3e/53/a5bc0c2ca43b9a7a91035c44251058baea9245221790d0b80cdefb6f142c/mantle-firestore-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1063d4c252dd9fdf2d0956adb050d24d",
+                    "sha256": "485a55109a522e118e8012fb796cd030124608fee43cbb1d754f446f7890b8a5"
+                },
+                "downloads": -1,
+                "filename": "mantle_firestore-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1063d4c252dd9fdf2d0956adb050d24d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9098,
+                "upload_time": "2019-09-25T13:38:05",
+                "upload_time_iso_8601": "2019-09-25T13:38:05.349854Z",
+                "url": "https://files.pythonhosted.org/packages/1d/e3/7081ee027f1848be15045aa85a47fce56761b30c18dc4b918eb058765a92/mantle_firestore-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e1a328157fce678b8069761d59f43fe5",
+                    "sha256": "a8af2d59f4deb861c31b3e3129df35d1dbd352e428c4ba8754c3abd1594a9238"
+                },
+                "downloads": -1,
+                "filename": "mantle-firestore-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e1a328157fce678b8069761d59f43fe5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7287,
+                "upload_time": "2019-09-25T13:38:07",
+                "upload_time_iso_8601": "2019-09-25T13:38:07.170779Z",
+                "url": "https://files.pythonhosted.org/packages/6c/a9/c1e0e056cf94026d3974829bc9181255bdac065b3b953bb976adaf133b8e/mantle-firestore-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "03affa3e1fc0331d3b82b49ad5334af3",
+                    "sha256": "2ab8208089a205e2d0812ffe056d11d67bd85900ab376bf39e4e74ba4898051f"
+                },
+                "downloads": -1,
+                "filename": "mantle_firestore-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "03affa3e1fc0331d3b82b49ad5334af3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8980,
+                "upload_time": "2019-09-25T13:42:00",
+                "upload_time_iso_8601": "2019-09-25T13:42:00.822465Z",
+                "url": "https://files.pythonhosted.org/packages/45/2e/b3cee968fe061f97b921158b2c8485ae798c70c63ed7764c261e6400d81d/mantle_firestore-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ae93a4428ea988e2326640d2e5b7c9eb",
+                    "sha256": "0b8febbdeeb73fb06317c0a42625242b139de597b6ace60a8607475ae28555e8"
+                },
+                "downloads": -1,
+                "filename": "mantle-firestore-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ae93a4428ea988e2326640d2e5b7c9eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7172,
+                "upload_time": "2019-09-25T13:42:02",
+                "upload_time_iso_8601": "2019-09-25T13:42:02.382158Z",
+                "url": "https://files.pythonhosted.org/packages/7f/df/dfe3831932b31e375ad06d5d8f6a0b6c1e943597dcce4891318ef5f1864d/mantle-firestore-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "32ea805abc760eb837e03b7f804c74c7",
+                    "sha256": "d057fba6762b274f3b32afdd77731381f19d0709b530d817613731a57c0e7ee5"
+                },
+                "downloads": -1,
+                "filename": "mantle_firestore-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "32ea805abc760eb837e03b7f804c74c7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8982,
+                "upload_time": "2019-10-05T15:52:40",
+                "upload_time_iso_8601": "2019-10-05T15:52:40.647113Z",
+                "url": "https://files.pythonhosted.org/packages/f3/20/f1ae3e9f9007ed652fa1fecf9ef663f578617d415cece52b938a55b49ae2/mantle_firestore-0.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "afb830b5550609cf1e15be269fb5c5de",
+                    "sha256": "2fa71bf0d4b863dd1cef4c79beb7ad65e488e88ce922e2240e5219f53d52f06f"
+                },
+                "downloads": -1,
+                "filename": "mantle-firestore-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "afb830b5550609cf1e15be269fb5c5de",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7175,
+                "upload_time": "2019-10-05T15:52:42",
+                "upload_time_iso_8601": "2019-10-05T15:52:42.634781Z",
+                "url": "https://files.pythonhosted.org/packages/d9/34/c583f07b0f94e90edeae88778043e64fdf06e139a1ff900d05fc93d0ed7a/mantle-firestore-0.0.8.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "32ea805abc760eb837e03b7f804c74c7",
+                "sha256": "d057fba6762b274f3b32afdd77731381f19d0709b530d817613731a57c0e7ee5"
+            },
+            "downloads": -1,
+            "filename": "mantle_firestore-0.0.8-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "32ea805abc760eb837e03b7f804c74c7",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 8982,
+            "upload_time": "2019-10-05T15:52:40",
+            "upload_time_iso_8601": "2019-10-05T15:52:40.647113Z",
+            "url": "https://files.pythonhosted.org/packages/f3/20/f1ae3e9f9007ed652fa1fecf9ef663f578617d415cece52b938a55b49ae2/mantle_firestore-0.0.8-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "afb830b5550609cf1e15be269fb5c5de",
+                "sha256": "2fa71bf0d4b863dd1cef4c79beb7ad65e488e88ce922e2240e5219f53d52f06f"
+            },
+            "downloads": -1,
+            "filename": "mantle-firestore-0.0.8.tar.gz",
+            "has_sig": false,
+            "md5_digest": "afb830b5550609cf1e15be269fb5c5de",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7175,
+            "upload_time": "2019-10-05T15:52:42",
+            "upload_time_iso_8601": "2019-10-05T15:52:42.634781Z",
+            "url": "https://files.pythonhosted.org/packages/d9/34/c583f07b0f94e90edeae88778043e64fdf06e139a1ff900d05fc93d0ed7a/mantle-firestore-0.0.8.tar.gz"
+        }
+    ]
+}

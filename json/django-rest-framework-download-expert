@@ -1,0 +1,121 @@
+{
+    "info": {
+        "author": "Nishant Boro",
+        "author_email": "nishant4317@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "Django rest framework Download Expert\n=====================================\n\nThis module provides a simple way to serve files for download in django rest framework using Apache module Xsendfile.\n\nIt also has an additional feature of serving downloads only to users belonging to a particular group. This feature might \nbe useful for developers trying to give certain features to a group of users only.For example, a site where users belong to \neither a 'Premium' or 'Free' group. Apache modules like mod_ratelimit can be installed to limit download speed for users\nbelonging to 'Free' group.\n\nTo use this package in production make sure you have:\n\n* Apache web server installed with Mod WSGI configured\n\n* Apache module Xsendfile installed and configured\n\nInstallation\n------------\n\nInstall with pip:\n\n.. code-block:: python\n\n    pip install django-rest-framework-download-expert\n\n\nAdd the following app to your `INSTALLED_APPS`\n\n.. code-block:: python\n\n    INSTALLED_APPS = (\n        ...\n        'download_expert',\n    )\n\n\nConfiguration\n-------------\n\nInclude the path to your directory containing the file(s) which needs to be served for download by adding the following field in settings.py:\n\n.. code-block:: python\n\n    ...\n    SERVE_FILES_FROM = '/home/<user>/<project-name>/<folder-name>/' # just an example location on your remote server. The <folder-name> could be anywhere on the server. However, I recommend keeping it somewhere inside your 'home/<user>/<project-name>/' directory.\n\n\n**Setup your urls.py with some URL's:**\n\nThe file(s) would be available for download by sending requests to this url's.\nFor example,\n\n.. code-block:: python\n\n    ...\n    from django.urls import re_path\n    from . import views\n\n    urlpatterns = [\n        ...\n        re_path(r'^downloads/$', views.Downloads.as_view(), name='downloads'), # mandatory to put $ at the end of the url\n    ]\n\n**Setup your views.py:**\n\nFor example,\n\n.. code-block:: python\n\n    from rest_framework.permissions import IsAuthenticated\n    from rest_framework.views import APIView\n    from download_expert.permissions import IsGroupUser\n    from download_expert.xsendfile import base_xsendfile\n\n\n    class Downloads(APIView):\n\n        permission_classes = (IsAuthenticated, IsGroupUser,) # optional attribute. This module can work with any 3rd party authentication module\n        group_name = 'some_group' \n\n        def get(self, request):\n            response = base_xsendfile(request)\n            return response\n\n* permission_classes can set to IsGroupUser to allow only users belonging to a particular group to download the file. This lookup group can be set by defining an attribute 'group_name' in the view class. The module will look for the group name defined in 'group_name' attribute and check if the requested user belongs to this group.\n\n**Making requests for a file:**\n\nThis package uses query string URL's to serve a particular file for download.\nThe two queries available are: 'name' and'type'.\nFor example, if we define a pattern re_path(r'^downloads/$', views.Downloads.as_view(), name='downloads'),  in the urls.py,\nand make a GET request http://site-name.com/downloads/?name=some_file&type=rar , the module will check if this file exists in the\ndirectory defined in settings.py(SERVE_FILES_FROM attribute) and if its true, the file we be served for download.\n\nOf course, the view will throw a permission error if the user doesn't have the permissions defined in permission_classes.\n\nBest example use of this module:\n--------------------------------\n\nLet's say there are two groups, 'Premium' and 'Free'. We want to allow users belonging to 'Premium' group to download files at\nfull speed but those belonging to 'Free' group should be limited to a certain download speed.\n\n**urls.py:**\n\n.. code-block:: python\n\n    ...\n    from django.urls import re_path\n    from . import views\n\n    urlpatterns = [\n    ...\n    re_path(r'^downloads/p/$', views.PremiumUser.as_view(), name='premium'),\n    re_path(r'^downloads/f/$', views.FreeUser.as_view(), name='free'),\n    ]\n\n**views.py:**\n\n.. code-block:: python\n\n    from rest_framework.permissions import IsAuthenticated\n    from rest_framework.views import APIView\n    from download_expert.permissions import IsGroupUser\n    from download_expert.xsendfile import base_xsendfile\n\n\n    class PremiumUser(APIView):\n\n        permission_classes = (IsAuthenticated, IsGroupUser,)\n        group_name = 'Premium'\n\n        def get(self, request):\n            response = base_xsendfile(request)\n            return response\n\n\n    class FreeUser(APIView):\n        permission_classes = (IsAuthenticated, IsGroupUser)\n        group_name = 'Free'\n\n        def get(self, request):\n            response = base_xsendfile(request)\n            return response\n\nNow  install the apache module mod_ratelimit and configure it to set download speed limit for the url ending with: '../downloads/f/'.\nWhen an user belonging to 'Free' group makes a GET request to http://site-name.com/downloads/f/?name=some_file&type=rar ,\nthe user experiences a slower download speed. And when the same user tries to access http://site-name.com/downloads/p/?name=some_file&type=rar the request is denied cause the user is not a 'Premium' Group member.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/nishant-boro/django-rest-framework-download-expert",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django-rest-framework-download-expert",
+        "package_url": "https://pypi.org/project/django-rest-framework-download-expert/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-rest-framework-download-expert/",
+        "project_urls": {
+            "Homepage": "https://github.com/nishant-boro/django-rest-framework-download-expert"
+        },
+        "release_url": "https://pypi.org/project/django-rest-framework-download-expert/0.1/",
+        "requires_dist": [
+            "djangorestframework (>=3.0.1)"
+        ],
+        "requires_python": "",
+        "summary": "A simple tool to serve files for download in django-rest-framework using Apache module xsendfile",
+        "version": "0.1"
+    },
+    "last_serial": 5436445,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "db6d575982dac5bb1c820988e19f9e65",
+                    "sha256": "dbf3246639d0c43c2fe0bd10b43b344e90fa21b07fc414b8a42f9cba31fbf025"
+                },
+                "downloads": -1,
+                "filename": "django_rest_framework_download_expert-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "db6d575982dac5bb1c820988e19f9e65",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5405,
+                "upload_time": "2019-06-23T06:00:29",
+                "url": "https://files.pythonhosted.org/packages/2c/12/fbd4ea1f3d447361dad4d7df9ca83c83f9f35dc299b821abd6e5830afb6f/django_rest_framework_download_expert-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5a30cdea1d2ef06fb4ca2fb7faf03149",
+                    "sha256": "d170871db10ff3c803432bed77096c34ba58764ba4def6f7a2f012865a9b8471"
+                },
+                "downloads": -1,
+                "filename": "django-rest-framework-download-expert-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5a30cdea1d2ef06fb4ca2fb7faf03149",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4161,
+                "upload_time": "2019-06-23T06:00:32",
+                "url": "https://files.pythonhosted.org/packages/bf/03/9fb830f609a4868b398561f53cf3b76fb83a9628eb268e6610974b782d0a/django-rest-framework-download-expert-0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "db6d575982dac5bb1c820988e19f9e65",
+                "sha256": "dbf3246639d0c43c2fe0bd10b43b344e90fa21b07fc414b8a42f9cba31fbf025"
+            },
+            "downloads": -1,
+            "filename": "django_rest_framework_download_expert-0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "db6d575982dac5bb1c820988e19f9e65",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 5405,
+            "upload_time": "2019-06-23T06:00:29",
+            "url": "https://files.pythonhosted.org/packages/2c/12/fbd4ea1f3d447361dad4d7df9ca83c83f9f35dc299b821abd6e5830afb6f/django_rest_framework_download_expert-0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5a30cdea1d2ef06fb4ca2fb7faf03149",
+                "sha256": "d170871db10ff3c803432bed77096c34ba58764ba4def6f7a2f012865a9b8471"
+            },
+            "downloads": -1,
+            "filename": "django-rest-framework-download-expert-0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "5a30cdea1d2ef06fb4ca2fb7faf03149",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 4161,
+            "upload_time": "2019-06-23T06:00:32",
+            "url": "https://files.pythonhosted.org/packages/bf/03/9fb830f609a4868b398561f53cf3b76fb83a9628eb268e6610974b782d0a/django-rest-framework-download-expert-0.1.tar.gz"
+        }
+    ]
+}

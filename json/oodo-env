@@ -1,0 +1,373 @@
+{
+    "info": {
+        "author": "Jorge E. Obiols",
+        "author_email": "jorge.obiols@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Software Development :: Testing :: Unit",
+            "Topic :: System :: Software Distribution"
+        ],
+        "description": "[![Build Status](https://travis-ci.org/jobiols/odoo-env.svg?branch=master)](https://travis-ci.org/jobiols/odoo-env)\n[![codecov](https://codecov.io/gh/jobiols/odoo-env/branch/master/graph/badge.svg)](https://codecov.io/gh/jobiols/odoo-env)\n\nOdooenv\n=======\n\nDirectory structure\n\n    /odoo\n    \u251c\u2500\u2500 odoo-9.0\n    \u2502\u00a0\u00a0 \u251c\u2500\u2500 client_one\n    \u2502\u00a0\u00a0 \u2502    \u251c\u2500\u2500 config             odoo.conf\n    \u2502\u00a0\u00a0 \u2502    \u251c\u2500\u2500 data_dir           filestore\n    \u2502   \u2502    \u251c\u2500\u2500 backup_dir         zip files with backups\n    \u2502\u00a0\u00a0 \u2502    \u251c\u2500\u2500 log                odoo.log\n    \u2502\u00a0\u00a0 \u2502    \u251c\u2500\u2500 postgresql         postgres database\n    \u2502\u00a0\u00a0 \u2502    \u2514\u2500\u2500 sources            custom sources\n    \u2502   \u251c\u2500\u2500 extra-addons            repos from image for debug\n    \u2502   \u251c\u2500\u2500 dist-local-packages     packages from image for debug\n    \u2502   \u2514\u2500\u2500 dist-packages           pagkages from image for debug\n    \u251c\u2500\u2500 nginx\n        \u251c\u2500\u2500 conf\n        \u251c\u2500\u2500 log\n        \u2514\u2500\u2500 cert\n\n\nFunctionality\n------------- \n\n    usage: oe.py [-h] [-i] [-w] [-R] [-r] [-S] [-s] [-u] [-c CLIENT] [-v]\n                 [--debug] [--no-repos] [-d DATABASE] [-m MODULE] [--nginx]\n                 [-Q repo] [--backup-list] [--restore] [-f BACKUP_FILE] [-H]\n\n    ==========================================================================\n    Odoo Environment Manager v0.8.11 - by jeo Software <jorge.obiols@gmail.com>\n    ==========================================================================\n\n    optional arguments:\n      -h, --help          show this help message and exit\n      -i, --install       Install, requires -c option. Creates dir structure, and\n                          pull repos\n      -w, --write-config  Write config file.\n      -R, --run-env       Run postgres and aeroo images.\n      -r, --run-cli       Run client odoo, requires -c option\n      -S, --stop-env      Stop postgres and aeroo images.\n      -s, --stop-cli      Stop client images, requires -c options.\n      -u, --update-all    Update all requires -d -c and -m options. Use --debug to\n                          force update with host sources\n      -c CLIENT           Client name.\n      -v, --verbose       Go verbose mode. Prints every command\n      --debug             This option has the following efects: 1.- when doing an\n                          update all, (option -u) it forces debug mode. 2.- When\n                          running environment (option -R) it opens port 5432 to\n                          access postgres server databases. 3.- when doing a pull\n                          (option -p) it clones the full repo i.e. does not issue\n                          --depth 1 to git\n      --no-repos          Does not clone or pull repos used with -i or -p\n      -d DATABASE         Database name.\n      -m MODULE           Module to update or all for updating all the registered\n                          modules. You can specify multiple -m options. i.e. -m\n                          all forall modules -m sales stock for updating sales and\n                          stock modules\n      --nginx             Add nginx to installation: With -i creates nginx dir w/\n                          sample config file. with -r starts an nginx container\n                          linked to odoowith -s stops nginx containcer. You must\n                          add certificates and review nginx.conf file.\n      -Q repo             Perform QA running tests, argument are Repo to test.\n                          Need -d, -m and -c options Note: for the test to run in\n                          thedatabase there must be an admin user with password\n                          admin\n      --backup-list       List all backup files available for restore\n      --restore           Restores a backup from backup_dir\n      -f BACKUP_FILE      Filename to restore used with --restore\n      -H, --server-help   List server help requires -c option\n\nTool to manage docker based odoo environments\n\njeo Software (c) 2019 jorge.obiols@gmail.com\n\nThis code is distributed under the MIT license\n\nInstallation\n------------\n    pip install odoo-env\n    https://pypi.org/project/oodo-env/\n\nChangelog\n---------\n- [0.8.11]  - Fix --nginx installation\n- [0.8.10]  - Add --edm option to allow database manager on production\n- [0.8.9]   - When installed from pip --nginx does not work\n- [0.8.8]   - Disable database manager on login page in prod environment\n- [0.8.7]   - Working on Python 2.7 to 3.7\n- [0.8.6]   - Fix: when installing on prod make a Shallow Clone\n- [0.8.5]   - Fix test (option -Q) failing to run\n- [0.8.4]   - PyPi version increment\n- [0.8.3]   - PyPi version increment\n- [0.8.2]   - Docker installs at the end allowing abort \n- [0.8.1]   - Fix starting debug mode.\n- [0.8.0]   - Use kozera image for wdb, write the nginx.conf with the\n              proper client name.\n- [0.7.4]   - New parameter to attach to a running containcer in sd\n              Support for debug image in v11 (python3)\n              data/install_scripts.sh improvements and fixes   \n- [0.7.3]   - if odoo not in manifest do not start image instead showing \n              an error \n- [0.7.2]   - start aeroo on v > 9 \n- [0.7.1]   - Revert again go https \n- [0.7.0]   - Change protocol from https to ssh in order to use ssh keys.\n- [0.6.1]   - FIX working directory with version > 9. If odoo main \n              version was > 9 the directory added a dot ie /odoo-10.0./\n- [0.6.0]   - deprecate dbfilter. \n- [0.5.4]   - illformed manifest causing crash \n- [0.5.3]   - restore database with bad image \n- [0.5.2]   - sd was not copied to /usr/local/bin \n- [0.5.1]   - change postgres container name to pg-<client name> \n- [0.5.0]   - support for non github repos, i.e. bitbucket, gitlab, etc \n- [0.4.6]   - Odoo v10 do not run aeroo, find manifest\n- [0.4.5]   - Install_scripts now installs python and docker\n- [0.4.4]   - Do not expose 8072 when using Nginx\n- [0.4.3]   - No more rewriting config on update all\n- [0.4.2]   - Expose longpolling port in debug mode\n- [0.4.1]   - Fixes in test invocation \n- [0.4.0]   - Change QA invocation \n- [0.3.2]   - do not overwrite config while making QA \n- [0.3.1]   - Stop images instead of kill them on -s or -S \n- [0.3.0]   - Restore any automatic backup made with database_tools \n              module.\n            - List all available backup files\n            - write config file\n            - add help option -H (odoo help)\n- [0.2.1]   - bug On QA, expose port 1984 for debug purpoes with WDB\n- [0.2.0]   - Quality Assurance support, \n            - Add command sd rmall for removing all docker images in \n              memory\n- [0.1.0]   - Nginx support, \n            - Script to install docker (in script folder, for now you\n              have to execute manually)\n            - sd command (short for sudo docker plus some enhacements)\n- [0.0.2]   - Minor fixes\n- [0.0.1]   - Starting version\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jobiols/odoo-env",
+        "keywords": "odoo docker environment",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "oodo-env",
+        "package_url": "https://pypi.org/project/oodo-env/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/oodo-env/",
+        "project_urls": {
+            "Homepage": "https://github.com/jobiols/odoo-env"
+        },
+        "release_url": "https://pypi.org/project/oodo-env/0.8.11/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "An environment to manage Docker for Odoo",
+        "version": "0.8.11"
+    },
+    "last_serial": 5368402,
+    "releases": {
+        "0.8.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "84c4e3b2ce009e534ea1bcf167f1db12",
+                    "sha256": "c4d026b2019d06a83cdfdb42c4294cac12529951586ac9e838ee9738851dacaa"
+                },
+                "downloads": -1,
+                "filename": "oodo_env-0.8.10-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "84c4e3b2ce009e534ea1bcf167f1db12",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 19647,
+                "upload_time": "2019-06-06T17:20:41",
+                "url": "https://files.pythonhosted.org/packages/d5/49/a86178a731cd2799253abca4973db7881ba5d8694a7282d5763a55834829/oodo_env-0.8.10-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "107c37699ec0f29c34128f4f0a716dde",
+                    "sha256": "9163a47edf34e7096c1d1903b3efb4f8d2d3fde0320076d4cd01b05914290340"
+                },
+                "downloads": -1,
+                "filename": "oodo-env-0.8.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "107c37699ec0f29c34128f4f0a716dde",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16099,
+                "upload_time": "2019-06-06T17:20:43",
+                "url": "https://files.pythonhosted.org/packages/6f/e3/468dc54bb1b5361ebd420ad61928cc44afe53ef5d370f0e9ad4e6c078bcb/oodo-env-0.8.10.tar.gz"
+            }
+        ],
+        "0.8.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e16c8e39f98bc33bdf73b614a3759ad",
+                    "sha256": "76271d5a47286299ea4638d8cb477e0ecbc189d1d21dd7b2d1dbe3ba5cf1f6d6"
+                },
+                "downloads": -1,
+                "filename": "oodo_env-0.8.11-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9e16c8e39f98bc33bdf73b614a3759ad",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 20542,
+                "upload_time": "2019-06-06T18:08:02",
+                "url": "https://files.pythonhosted.org/packages/b0/51/67c06e7c34db859398b04791527b6ba7a6996dadc543381a793a0bc5285a/oodo_env-0.8.11-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e99b19abb3ca615684b05d56039a3602",
+                    "sha256": "620b2268939a5231e229169d9cd87f11209e1e1ac6c7d63ca57e6baf01ad5215"
+                },
+                "downloads": -1,
+                "filename": "oodo-env-0.8.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e99b19abb3ca615684b05d56039a3602",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16774,
+                "upload_time": "2019-06-06T18:08:04",
+                "url": "https://files.pythonhosted.org/packages/0d/f7/08d060d3ccbb787879a9befb8893d81609ba5fd8ce0ff74ee47bb9f5add7/oodo-env-0.8.11.tar.gz"
+            }
+        ],
+        "0.8.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "91b5a4b43e33e41aaa8a79f2a02d56f0",
+                    "sha256": "d3983dbbabc38b576c30026b716451625987af5815210a8460b8e2b5f1f9cc9b"
+                },
+                "downloads": -1,
+                "filename": "oodo_env-0.8.2-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "91b5a4b43e33e41aaa8a79f2a02d56f0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 18937,
+                "upload_time": "2019-05-03T06:04:30",
+                "url": "https://files.pythonhosted.org/packages/65/bc/8515674740e1595ce0d02e567cf20af69e4ed1fddc5321ede4509bbf843e/oodo_env-0.8.2-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fad7b3cb609680ea91634ccd1c4e561d",
+                    "sha256": "d1b22b626187e621bf41e4cc42bd5ede1e23c017adab533ae7915f0957cbc173"
+                },
+                "downloads": -1,
+                "filename": "oodo-env-0.8.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fad7b3cb609680ea91634ccd1c4e561d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15652,
+                "upload_time": "2019-05-03T06:04:32",
+                "url": "https://files.pythonhosted.org/packages/c2/70/b279a280b04f222985564dcee1019df2695143b34280b396e77b4d5c973f/oodo-env-0.8.2.tar.gz"
+            }
+        ],
+        "0.8.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "974e125621a41503ade10314417a7ee2",
+                    "sha256": "4401324c3737d6be7be5a104eb53e15e29e0f49fa19b0cf3f3a0faf67bcaee1d"
+                },
+                "downloads": -1,
+                "filename": "oodo_env-0.8.3-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "974e125621a41503ade10314417a7ee2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 18939,
+                "upload_time": "2019-05-03T06:25:06",
+                "url": "https://files.pythonhosted.org/packages/5d/4b/a27c44ef8de6eb1c0b5b6f19d435f8d4e2936dfcd0a8b5bd421d7b96406d/oodo_env-0.8.3-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e9012012e59260dc1e7ac850d88badb",
+                    "sha256": "037363a1f8e1a20e21f3258b69e78a4ebd389114e43b9f76ccdd4e3d809742da"
+                },
+                "downloads": -1,
+                "filename": "oodo-env-0.8.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2e9012012e59260dc1e7ac850d88badb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15654,
+                "upload_time": "2019-05-03T06:25:08",
+                "url": "https://files.pythonhosted.org/packages/9c/3c/816154a1fb5a8925a84a530c64cd69cbb9dd246462b2ddf3eed7a20c08c2/oodo-env-0.8.3.tar.gz"
+            }
+        ],
+        "0.8.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0cd923866f1c6e46dec19df2a5355ca9",
+                    "sha256": "e86decee47787d975430a5f86578d5230a2b8270824af5755ef427631b4bb73e"
+                },
+                "downloads": -1,
+                "filename": "oodo_env-0.8.5-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0cd923866f1c6e46dec19df2a5355ca9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 19195,
+                "upload_time": "2019-05-11T21:35:57",
+                "url": "https://files.pythonhosted.org/packages/a7/8f/5b8e25fa65bc7ea8fd1344d831ec09fc486a4630d685aa796db7208120ea/oodo_env-0.8.5-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1002ce12991d571e0674542938531fdc",
+                    "sha256": "5e22a3f10ce1eb066107f433b12d0ce359dc6b4815d6ec5d22eafce6314d03ee"
+                },
+                "downloads": -1,
+                "filename": "oodo-env-0.8.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1002ce12991d571e0674542938531fdc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15714,
+                "upload_time": "2019-05-11T21:36:00",
+                "url": "https://files.pythonhosted.org/packages/d3/80/22b3d8dc1f4c8a48fcba81f7069592dd6303b6404046e7bef2cd75216462/oodo-env-0.8.5.tar.gz"
+            }
+        ],
+        "0.8.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5924cca0ca3afe07c09e55b592b68339",
+                    "sha256": "3c61a03ebb05c78394a61958b67496499ce10b5f20423b4505cc043bd7e8a494"
+                },
+                "downloads": -1,
+                "filename": "oodo_env-0.8.6-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5924cca0ca3afe07c09e55b592b68339",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 18986,
+                "upload_time": "2019-05-19T01:58:52",
+                "url": "https://files.pythonhosted.org/packages/f9/71/6b558760b4e157032d7524a619f84f13358d6587a6f69d6a389150710c90/oodo_env-0.8.6-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "55525a15076c4873ec411c9d4ef2dff3",
+                    "sha256": "1e74dd3a0aadad62da351ff12504975b8f1481855f869df0c4e454607c2e7561"
+                },
+                "downloads": -1,
+                "filename": "oodo-env-0.8.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "55525a15076c4873ec411c9d4ef2dff3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15656,
+                "upload_time": "2019-05-19T01:58:54",
+                "url": "https://files.pythonhosted.org/packages/34/52/41da29f223d0da928eaaf4f8c451d483378fd53d608483ddb57e939570f9/oodo-env-0.8.6.tar.gz"
+            }
+        ],
+        "0.8.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9c7bc30dfc142444e50eb69bdde66f3",
+                    "sha256": "7d392fa902defc8f0e3644a46104f929427447ff65e0dafb27f592a61091975e"
+                },
+                "downloads": -1,
+                "filename": "oodo_env-0.8.7-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d9c7bc30dfc142444e50eb69bdde66f3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 19204,
+                "upload_time": "2019-05-19T06:54:39",
+                "url": "https://files.pythonhosted.org/packages/5e/0e/8727c57164bc221914d8cbb5e2af804d38ed13fc5cc07036062a2756ea91/oodo_env-0.8.7-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9f2610f42b6198f1a577a404df0f050b",
+                    "sha256": "9988b2b82bb8e3b3234f7827f16da660b1262c67a6cebf70aa2a36b9e93d9997"
+                },
+                "downloads": -1,
+                "filename": "oodo-env-0.8.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9f2610f42b6198f1a577a404df0f050b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15843,
+                "upload_time": "2019-05-19T06:54:40",
+                "url": "https://files.pythonhosted.org/packages/1d/f5/ad67a7eaed079534adff82b3d0b5a62c3a644593cd7fd8ccd51a4bc02c98/oodo-env-0.8.7.tar.gz"
+            }
+        ],
+        "0.8.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac6915cf84888c1c2580059eb8235ddf",
+                    "sha256": "2c1e4105a3f270f4c7a97ce71aa5e4a5cbff4fa619eebeb3b17ae77031460088"
+                },
+                "downloads": -1,
+                "filename": "oodo_env-0.8.8-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ac6915cf84888c1c2580059eb8235ddf",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 19518,
+                "upload_time": "2019-06-03T23:33:52",
+                "url": "https://files.pythonhosted.org/packages/be/50/b537acd869eb67e454837568119fbd7382cce12ba3dc0918b6551950a174/oodo_env-0.8.8-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "102845f00bf2cef2c6af4ca3c233565c",
+                    "sha256": "18f25341e374b92609e7e53958c8c5210f37b50773141d950ed097968c6fda26"
+                },
+                "downloads": -1,
+                "filename": "oodo-env-0.8.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "102845f00bf2cef2c6af4ca3c233565c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15981,
+                "upload_time": "2019-06-03T23:33:54",
+                "url": "https://files.pythonhosted.org/packages/e9/b9/2f98a078cb1b9b421614d30a839f1162be55252ec58161cb34e09c72f3e8/oodo-env-0.8.8.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9e16c8e39f98bc33bdf73b614a3759ad",
+                "sha256": "76271d5a47286299ea4638d8cb477e0ecbc189d1d21dd7b2d1dbe3ba5cf1f6d6"
+            },
+            "downloads": -1,
+            "filename": "oodo_env-0.8.11-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "9e16c8e39f98bc33bdf73b614a3759ad",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 20542,
+            "upload_time": "2019-06-06T18:08:02",
+            "url": "https://files.pythonhosted.org/packages/b0/51/67c06e7c34db859398b04791527b6ba7a6996dadc543381a793a0bc5285a/oodo_env-0.8.11-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e99b19abb3ca615684b05d56039a3602",
+                "sha256": "620b2268939a5231e229169d9cd87f11209e1e1ac6c7d63ca57e6baf01ad5215"
+            },
+            "downloads": -1,
+            "filename": "oodo-env-0.8.11.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e99b19abb3ca615684b05d56039a3602",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 16774,
+            "upload_time": "2019-06-06T18:08:04",
+            "url": "https://files.pythonhosted.org/packages/0d/f7/08d060d3ccbb787879a9befb8893d81609ba5fd8ce0ff74ee47bb9f5add7/oodo-env-0.8.11.tar.gz"
+        }
+    ]
+}

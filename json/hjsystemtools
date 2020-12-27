@@ -1,0 +1,347 @@
+{
+    "info": {
+        "author": "hayj",
+        "author_email": "hj@hayj.fr",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 1 - Planning",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Utilities"
+        ],
+        "description": "SystemTools\n===========\n\nThis project gathers some useful Python functions and class. We\norganized them in different modules:\n\n-  **systemtools.duration**\n-  **systemtools.logger**\n-  **systemtools.location**\n-  **systemtools.basics**\n-  **systemtools.number**\n-  **systemtools.file**\n-  **systemtools.system**\n\nTo install all:\n\n::\n\n    pip install hjsystemtools\n\nsystemtools.duration\n--------------------\n\nThis module provide some useful class to handle time.\n\n::\n\n    >>> from systemtools.duration import *\n\nTicToc\n~~~~~~\n\nThis class allow an easy print of computation time in your scripts:\n\n::\n\n    >>> tt = TicToc()\n    >>> tt.tic() # Start the timer\n    >>> <do something...>\n    >>> tt.tic() # Print the time duration (human readable) since the previous tic()\n    tic: 1s\n    >>> <do something...>\n    >>> tt.tic()\n    tic: 1s\n    >>> tt.toc() # Print the total duration\n\ntoc total duration: 2s\n\nYou can give ``msg`` parameter to add a message to the printed duration.\nYou can also choose to do not display anything using ``display=False``.\n\nBoth ``tic`` and ``toc`` methods return the time spent in seconds.\n\nProgressBar\n~~~~~~~~~~~\n\nA light alternative to `tqdm <https://github.com/tqdm/tqdm>`__. Just\nwrap your iterables with the ``pb`` funct:\n\n.. code:: python\n\n    for i in pb(range(iterationAmount)):\n        time.sleep(0.01)\n\nThis will display:\n\n::\n\n      0% [                    ]\n     20% [====                ] (1.6s left)\n     40% [========            ] (1.214s left)\n     60% [============        ] (0.813s left)\n     80% [================    ] (0.404s left)\n    100% [====================] (total duration: 2.03s, mean duration: 0.01s)\n\nBy default, ``pb`` will **not** display more than 10 messages to do not\ndisplay too much progress informations in the case you used the\n``nohup`` command, or used a ``Logger`` for example.\n\n``pb`` take the ``ProgressBar`` class init parameters. You can use the\nclass directly to handle your progress bar by hand giving an iteration\namount and by calling the ``tic()`` method at each iteration:\n\n.. code:: python\n\n    iterationAmount = 200\n    pb = ProgressBar(iterationAmount)\n    for i in range(iterationAmount):\n        time.sleep(0.01)\n        pb.tic()\n\nIf you work on a terminal, it will automatically display informations\nmore frenquently and replace the current line.\n\nInit parameters are (`see the code for more\ninformation <https://github.com/hayj/SystemTools/blob/master/systemtools/duration.py#L179>`__):\n\n-  **message**: will display this message at each ``tic()``\n-  **printRatio**: display a message at each\n   ``printRatio * iterationAmount`` times you call ``tic()``. Default is\n   0.1, meaning it will display 10%, 20%...\n\n``tic()`` parameters are:\n\n-  **extraMessage**: use this message if you want to display\n   informations about the current iteration.\n\n*Tested in Python 3 on Ubuntu.*\n\nTimer\n~~~~~\n\nThis class call a function each n seconds:\n\n::\n\n    >>> timer = Timer(myFunct, 5)\n    >>> timer.start()\n\nYou can stop it using:\n\n::\n\n    >>> timer.stop()\n\nSet ``sleepFirst=True`` if you don't want to call your funct at the\nstartup of the timer.\n\nsystemtools.logger\n------------------\n\nA Logger class is a wrapper over ``logging``.\n\n::\n\n    >>> from systemtools.logger import *\n    >>> logger = Logger(\"test.log\") # Give a file path\n    >>> logger.info(\"a\") # Print infos\n    >>> logger.error(\"b\") # Print errors...\n\nIf you created a class which contains ``logger`` and ``verbose`` like\nthis one:\n\n::\n\n    >>> class LoggerTest:\n    ...     def __init__(self, logger=None, verbose=True):\n    ...             self.logger = logger\n    ...             self.verbose = verbose\n\nAnd use functions ``log``, ``logError``... this way in a method of your\nclass:\n\n::\n\n    ...             log(\"Initialized....\", self)\n\nSo the log function will automaticllay check if verbose is True, and if\nthere is no ``logger``, it will simply print your message.\n\nYou can also use ``logException`` this way:\n\n::\n\n    ...             logException(e, self) # You can give message (string) and location (string) parameters\n\nYou can also give a ``Logger`` instead of a class instance:\n\n::\n\n    >>> log(\"a\", logger)\n    >>> logException(e, logger, verbose=myVerbose)\n    >>> ...\n\nsystemtools.location\n--------------------\n\nThis module gathers some useful functions on file system location.\n\n::\n\n    >>> from systemtools.location import *\n\n-  **sortedGlob(regex, caseSensitive=True, sortBy=GlobSortEnum.NAME,\n   reverse=False)**: This function works the same as glob.glob but\n   return an ordered list of files path. glob.glob return (by default) a\n   ordered list which can change across OS or executions and it is prone\n   to errors in your python script. You can use different orders via\n   sortBy: GlobSortEnum. the last one is the same as name but take into\n   account numbers (e.g. test1.txt < test10.txt).\n-  **homeDir()** : Return the path of your home dir.\n-  **tmpDir(\\ *file*\\ =None, subDir=None)**: Return the path of the tmp\n   dir, If you give ``__file__`` in first param, the tmp dir will be\n   \"tmp\" in the current directory, else it will be ~/tmp. You can set\n   ``subDir`` in parameters.\n-  **execDir(\\ *file*\\ =None)**: Get the current directory, it is better\n   to give ``__file__`` in parameter to be sure to get the dir of the\n   current Python script.\n-  **isDir(path)**: Return True is the given path is a directory.\n-  **isFile(path)**: Return True is the given path is a file.\n-  **decomposePath(path)**: Return a tuple (dir, filename, ext,\n   filenameAndExt) of a path.\n\nsystemtools.basics\n------------------\n\nThis module gathers some useful basics functions.\n\n::\n\n    >>> from systemtools.basics import *\n\n-  **listSubstract(a, b)**: Substract all ``b`` items from ``a``.\n-  **convertDate(readableDate=None, dateFormat=DATE\\_FORMAT.datetime)**:\n   Convert a readable date (wrote by a human) in a date format you\n   chose. Warning : utc shift may appear. DATE\\_FORMAT enum contains\n   \"datetimeString datetime timestamp arrow arrowString humanize\".\n-  **mergeDicts(dict1, ...)**: shallow copy of all dict and merge into a\n   new dict\n-  **reduceDictStr**: See the code for parameters. Reduce all strings of\n   a dict in order to print it.\n-  **stripAccents(text)**: Remove all accents of a string.\n-  **printLTS(l)**: Pretty print a list or a dict. Use ``listToStr``\n   internally.\n-  **listToStr(l)**: Convert a list or a dict to a pretty string.\n-  **floatAsReadable**: Convert a float to a readable string without\n   \"e-X\".\n-  **sortByKey(d)**: Sort a dict by the key. Return an ``OrderedDict``.\n-  **sortBy(l, desc=False, index=1)**: Sort a list of tuple (or an\n   itemized dict) by the specific index given in parameters.\n-  **chunks(l, n)**: return a list of list (of len n) from ``l``. You\n   can also use ``chunksYielder``.\n-  **split(l, n)**: split a list in n parts.\n-  **splitMaxSized(l, batchMaxSize)**: Split a list in multiple parts in\n   such a way that each part has a max size of batchMaxSize.\n-  **normalize(l)**: Normalize (between 0.0 and 1.0) all elements of a\n   list according to the sum of all elements.\n-  **getRandomInt(a=None, b=None, seed=None, count=1)**: Return a random\n   int between ``a`` and ``b``.\n-  **getRandomFloat(min=0.0, max=1.0, decimalMax=2)**: Return a random\n   float between ``min`` and ``max``.\n-  **getRandomStr(digitCount=10, withTimestamp=True)**: Return a random\n   string with a timestamp if enabled.\n-  **getRandomName(addInt=True, maxInt=100)**: Return a random name with\n   a random int.\n-  **Random class**: This class is useful when you want to seed random\n   values and reset it after the class usage. See the code for more\n   informations.\n-  **dictContains(d, key)**: Equivalent to\n   ``key in d and d[key] is not None``.\n-  **intersection(lists)**: Return the intersection of all lists.\n-  **reduceStr**: Reduce a str, you can set booleans removeNumbers,\n   toLowerCase, removeAccents and removePunct.\n-  **varname(p)**: Return the name of p from the Python script.\n-  **stripAllLines(text, removeBlank=True)**: Return the text but strip\n   all lines.\n-  **byteToStr(b)**: Convert bytes to str.\n-  **getDictSubElement(theDict, keys)**: This function browse the dict\n   as a tree and return the value in the path defined by keys which is a\n   list of dict keys. It return None if it doesn't find anything.\n   Example: ``getDictSubElement({'a': {'b': 1}}, ['a', 'b'])`` return\n   ``1``.\n-  **objectAsKey(o)**: Convert any object to a key, if if instead call\n   ``str(o)`` or ``repr(o)``, the string can change over executions of\n   your script due to the unordered nature of dictionnaries and sets.\n-  **reducedLTS(o, amount=25)**: Same as ``lts(o)`` but keep only\n   ``amount`` elements at the head and the tail of the object if it is a\n   list.\n-  **reduceBlank(text, keepNewLines=False) (aslias stripAll, trimAll)**:\n   Strip a string and reduce all blank space to a unique space. If you\n   set keepNewLines as True, it will keep a unique ':raw-latex:`\\n`' at\n   each blank space which contains a ':raw-latex:`\\n`' or a\n   ':raw-latex:`\\r`'.\n-  **linearScore(x, x1=0.0, x2=1.0, y1=0.0, y2=1.0,\n   stayBetween0And1=True)**: Give you a score f(x) defined by the linear\n   function line (x1, y1) (x2, y2).\n-  **camelCaseToUnderscoreCase(name)**: Convert a string which is\n   formatted as the camelCase norm to the underscore\\_case norm.\n-  **camelCaseToUnderscoreCaseDict(theDict)**: Turn each key of the dict\n   according to ``camelCaseToUnderscoreCase``.\n-  **tuplesToDict(tupleList)**: Convert a list of tuples to a dict in\n   such a way that the first element of each tuple will be the key.\n-  **findDuplicates(texts, strip=True)**: Return a list a duplicates\n   (indexes of texts in th list).\n-  **intByteSize(n)**: Return the size of an integer in bytes.\n\nsystemtools.number\n------------------\n\nThis module gathers some useful basics functions on number parsing.\n\n::\n\n    >>> from systemtools.number import *\n\n-  **parseNumber(text)**: Return the first number in the given text for\n   any locale.\n-  **getAllNumbers(text, removeCommas=False)**: Return all numbers in a\n   string. You can also use ``getFirstNumber``.\n-  **getFirstNumber(text)**: Get the first numbers of a string.\n-  **removeAllNumbers(text)**: Remove all numbers from a string.\n-  **truncateFloat(f, n)**: Truncates/pads a float f to n decimal places\n   without rounding.\n\nsystemtools.file\n----------------\n\nThis module gathers some useful functions on file and directories\nmanagement.\n\n::\n\n    >>> from systemtools.file import *\n\n-  **getLastModifiedTimeSpent(path,\n   timeSpentUnit=TIMESPENT\\_UNIT.HOURS)**: Return the time spent after\n   the last modified event on a path (file or directory).\n-  **strToFilename(text)**: Convert a string in a filename (storable on\n   the disk). So it will remove all non permitted chars.\n-  **mkdir(path)**: Create a directory if it doesn't already exist.\n-  **globRemove(globPattern)**: Remove file according to a glob pattern\n   similar to the glob lib.\n-  **removeFile(path)**: Remove a file or a list of files.\n-  **fileToStr(path)**: Load a file and return the string in.\n-  **fileToStrList**: Load a file and return a list of strings. You can\n   set ``strip`` as ``False`` to don't strip all lines, ``skipBlank`` as\n   ``False`` to keep blank lines, you can choose your comment start\n   indicator using ``commentStart`` (default is \"###\").\n-  **strToFile(text, path)**: Store a string in a file.\n-  **strToTmpFile(text, name=None, ext=\"\", addRandomStr=False)**: Store\n   a string to a tmp file (using ``tmpDir`` function). Example:\n   strToTmpFile(\"a\", \"test.txt\").\n-  **strListToTmpFile**: Use ``strToTmpFile`` but for a list of strings\n   which is concatened.\n-  **normalizeNumericalFilePaths(globRegex)**: This function get a glob\n   path and rename all \"file1.json\", \"file2.json\"... \"file20.json\" to\n   \"file01.json\", \"file02.json\"... \"file20.json\" to better sort the\n   folder by file names.\n-  **encryptFile(path, key, text=None, remove=True)**: This function\n   encrypt a file, if you give text in ``text`` parameter, the function\n   will create the file. Return True if all is ok. You need to install\n   7zip using ``sudo apt-get install p7zip-full`` on Linux. Set remove\n   as ``False`` if you don't want to remove the decrypted file.\n-  **decryptFile(path, key, remove=True)**: This function decrypt a file\n   and return the text. Set remove as ``False`` if you don't want to\n   remove the encrypted file.\n\nsystemtools.system\n------------------\n\nThis module gathers some useful functions on the OS management.\n\n::\n\n    >>> from systemtools.system import *\n\n-  **getUsedPorts()**: Return all busy ports on your machine (works on\n   Linux using netstat).\n-  **getUser()**: Equivalent to ``getpass.getuser()``\n-  **setCallTimeout(timeout) and resetCallTimeout()**: Use\n   ``setCallTimeout`` to set a timeout before calling a function (so you\n   can catch an Exception if the function is too long), then reset the\n   timeout.\n-  **getRAMTotal()**: Return the amount of RAM in Go\n-  **cpuCount()**: Equivalent to ``multiprocessing.cpu_count()``\n-  **isHostname(h)**: Return ``True`` if the hostname of the current\n   computer starts with ``h``.\n-  **getHostname()**: Equivalent to ``socket.gethostname()``\n-  **randomSleep(min=0.1, max=None)**: Sleep between min and max. If max\n   is None: max = min + 0.2 \\* min.\n-  **getMemoryPercent()**: Return the % of memory usage.\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "hjsystemtools",
+        "package_url": "https://pypi.org/project/hjsystemtools/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/hjsystemtools/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/hjsystemtools/0.0.90/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "This project gathers some useful basics Python functions and class.",
+        "version": "0.0.90"
+    },
+    "last_serial": 4205543,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "09d740ed30c82c3eb15e4b940e4bbaf1",
+                    "sha256": "0e3e8782e4d85e1d60da23bdb154cc20d3e9d862884bb1f3e3eda68dcc7f520a"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "09d740ed30c82c3eb15e4b940e4bbaf1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8126,
+                "upload_time": "2017-09-12T16:14:51",
+                "url": "https://files.pythonhosted.org/packages/b6/19/37948ecbfb8ec282080ddf8f699db3dd537d54eeacaea1de36532093b0f8/hjsystemtools-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f6d6ca90b415e318cccdb602a97f7dbf",
+                    "sha256": "ebdeacf742b1985d5a5f36b8417fbe7455eb8fe69a1f4e66772967b5c881b5c0"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f6d6ca90b415e318cccdb602a97f7dbf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8269,
+                "upload_time": "2017-09-12T17:23:44",
+                "url": "https://files.pythonhosted.org/packages/70/40/ad0b0922ae2d148ea615cacda6d0fcd8d7372941d74c0ac0195df9add66c/hjsystemtools-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c019060d27b56f7c10e92f2a896f35b3",
+                    "sha256": "f60711a17600250654f5b455a695789bd1be492724dcf4daf226ba722e7159a1"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c019060d27b56f7c10e92f2a896f35b3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22299,
+                "upload_time": "2017-12-11T20:10:14",
+                "url": "https://files.pythonhosted.org/packages/17/3b/cbaa8e28a32e6971732db093efb94d923f2ec27aec8b4da4e0c0ae7a7be9/hjsystemtools-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.61": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a8b7065e8ee63beb888a286bfd80cf19",
+                    "sha256": "9606786809d09002f36f0c0712359ae491d6439307137784f8e1acad087dd1db"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.61.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a8b7065e8ee63beb888a286bfd80cf19",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21904,
+                "upload_time": "2017-12-20T15:42:22",
+                "url": "https://files.pythonhosted.org/packages/eb/92/1c582097e8bcc8a2f379e1a0a51c5767423a3b3a6336fc8cea17e7a1257d/hjsystemtools-0.0.61.tar.gz"
+            }
+        ],
+        "0.0.62": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e36fec7940dc76920db65b6bedcda9a",
+                    "sha256": "c906bb9b1e1f5148a6fee81fd9aaad01ed62a9cd444cd2f404ed8ea4fb3331e9"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.62.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4e36fec7940dc76920db65b6bedcda9a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25734,
+                "upload_time": "2018-04-01T21:15:14",
+                "url": "https://files.pythonhosted.org/packages/36/28/d3ef7ccc2bfef8c6bcb2081d9b4eff85d5fe2a34a51e6abf718618dbbe54/hjsystemtools-0.0.62.tar.gz"
+            }
+        ],
+        "0.0.63": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b9a748c0534d6842db5a40e5773731df",
+                    "sha256": "fdef1c0b94ec20930e223b1140151d31f50e162903d5e2d24716d212f9a6bc2a"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.63.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b9a748c0534d6842db5a40e5773731df",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29624,
+                "upload_time": "2018-04-02T21:31:36",
+                "url": "https://files.pythonhosted.org/packages/f7/c8/f9badae6e1b62649b6b12273b6efc82494ba65afaec55161ac4302afd13c/hjsystemtools-0.0.63.tar.gz"
+            }
+        ],
+        "0.0.64": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5de4490f764cf8af75fcd32083a4fc93",
+                    "sha256": "1fcbba4650926d88af5a84799b5eb659760955196319b23bb19771b70f27d204"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.64.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5de4490f764cf8af75fcd32083a4fc93",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29629,
+                "upload_time": "2018-04-02T21:33:39",
+                "url": "https://files.pythonhosted.org/packages/49/02/e5e3a068cfb5228614fedc3b9b48dc8d6a183b4e36705d3601cf4b61d449/hjsystemtools-0.0.64.tar.gz"
+            }
+        ],
+        "0.0.65": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "53c1d3e3ab95b24d9a2c18f8b03b0db4",
+                    "sha256": "cc2489d7f9ec722157828fdb6807c692f1834528244e892889c25dfc332909f1"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.65.tar.gz",
+                "has_sig": false,
+                "md5_digest": "53c1d3e3ab95b24d9a2c18f8b03b0db4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 30332,
+                "upload_time": "2018-04-02T21:44:34",
+                "url": "https://files.pythonhosted.org/packages/07/f1/3c682cfe2c7e0506f7d2513af739086d1e1f06eb8c1428430a629ce473e7/hjsystemtools-0.0.65.tar.gz"
+            }
+        ],
+        "0.0.66": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed3a4164b31295f1af9bafdf5f8563ee",
+                    "sha256": "1275fb5e7bf939f9835493dd96b5dc75d796c313369f3cce001887ec57ecdf27"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.66.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ed3a4164b31295f1af9bafdf5f8563ee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 30602,
+                "upload_time": "2018-04-02T21:50:06",
+                "url": "https://files.pythonhosted.org/packages/a1/6f/add9f53e54948d82ca1b5c55ac317174389c45e0aebbae7b7fba43498987/hjsystemtools-0.0.66.tar.gz"
+            }
+        ],
+        "0.0.68": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "421992d5d15b9080209053afdb45c164",
+                    "sha256": "bc2b236ee8046190716c352ff57ab651a876ea9666db2816320a3789eb5a56e7"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.68.tar.gz",
+                "has_sig": false,
+                "md5_digest": "421992d5d15b9080209053afdb45c164",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 30382,
+                "upload_time": "2018-04-02T21:53:12",
+                "url": "https://files.pythonhosted.org/packages/f3/c0/84f49dea27a12068f195c9a9256034614728665aeeca4be78a890c58a414/hjsystemtools-0.0.68.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "930f8d95124849bd1e9353d980b5ac90",
+                    "sha256": "6e1ffe2cc9898f386a4da534a5c2855c9f618c4b4f353d69b85f20670c21307b"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "930f8d95124849bd1e9353d980b5ac90",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36804,
+                "upload_time": "2018-05-01T21:48:40",
+                "url": "https://files.pythonhosted.org/packages/80/3c/f0656ea05b5905a99fbbb30113a822e768158c71f04b1411da3a84d9f516/hjsystemtools-0.0.8.tar.gz"
+            }
+        ],
+        "0.0.81": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0950c37ec631aca0285d6c1a7d27d926",
+                    "sha256": "1dcfda0a0c5aa5243ee3d6beb860a09f2231c8efdd00e04ff3c340a2a2b74d7b"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.81.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0950c37ec631aca0285d6c1a7d27d926",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36760,
+                "upload_time": "2018-05-01T21:54:10",
+                "url": "https://files.pythonhosted.org/packages/74/e4/6c3e9d7fd0cbcb6409fb28537e6248f615b7bcbfb54e80f6bb85abbe7970/hjsystemtools-0.0.81.tar.gz"
+            }
+        ],
+        "0.0.82": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5d05440827753c7d4e39f9b7a01c0e81",
+                    "sha256": "4e28fecc957bf6414c68f47a8fe312c9056278084e2b78d0f3dd4f3664f24b37"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.82.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5d05440827753c7d4e39f9b7a01c0e81",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 37127,
+                "upload_time": "2018-05-15T15:49:47",
+                "url": "https://files.pythonhosted.org/packages/b6/fb/6662240d10a44ec49634cee9e555055e1d5b1ab2dbff3c31ff9660332ec5/hjsystemtools-0.0.82.tar.gz"
+            }
+        ],
+        "0.0.89": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94a3b8f566801715d9fa31374a91282f",
+                    "sha256": "836f278c75281ac98a8958ed9e7815638b85711afdfe7f7d1799411383aaf38c"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.89.tar.gz",
+                "has_sig": false,
+                "md5_digest": "94a3b8f566801715d9fa31374a91282f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 43783,
+                "upload_time": "2018-08-24T18:04:55",
+                "url": "https://files.pythonhosted.org/packages/81/e6/6bd07d8c30e0fa9f699b1214876ba281bb909f6f26eee281909442508f7c/hjsystemtools-0.0.89.tar.gz"
+            }
+        ],
+        "0.0.90": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "031ba7f83a2c96249211a554ecb5a308",
+                    "sha256": "3a1dfca1e9152dac097b3f5bb6ba22ee830eac0dcdbe01cab651410a7c8aeba5"
+                },
+                "downloads": -1,
+                "filename": "hjsystemtools-0.0.90.tar.gz",
+                "has_sig": false,
+                "md5_digest": "031ba7f83a2c96249211a554ecb5a308",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 44380,
+                "upload_time": "2018-08-24T23:48:18",
+                "url": "https://files.pythonhosted.org/packages/8e/47/f8e89836253c7c869dc421c63977f7ab6a7760aa56433d6ea98ba4881b95/hjsystemtools-0.0.90.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "031ba7f83a2c96249211a554ecb5a308",
+                "sha256": "3a1dfca1e9152dac097b3f5bb6ba22ee830eac0dcdbe01cab651410a7c8aeba5"
+            },
+            "downloads": -1,
+            "filename": "hjsystemtools-0.0.90.tar.gz",
+            "has_sig": false,
+            "md5_digest": "031ba7f83a2c96249211a554ecb5a308",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 44380,
+            "upload_time": "2018-08-24T23:48:18",
+            "url": "https://files.pythonhosted.org/packages/8e/47/f8e89836253c7c869dc421c63977f7ab6a7760aa56433d6ea98ba4881b95/hjsystemtools-0.0.90.tar.gz"
+        }
+    ]
+}

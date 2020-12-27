@@ -1,0 +1,327 @@
+{
+    "info": {
+        "author": "SuperCD",
+        "author_email": "supercd84@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy"
+        ],
+        "description": "# BentoML\n> From a model in ipython notebook to production API service in 5 minutes.\n\n![project status](https://www.repostatus.org/badges/latest/active.svg)\n![build status](https://travis-ci.org/bentoml/BentoML.svg?branch=master)\n![pypi status](https://img.shields.io/pypi/v/bentoml.svg)\n![python versions](https://img.shields.io/pypi/pyversions/bentoml.svg)\n\n\nBentoML is a python library for packaging and deploying machine learning\nmodels. It provides high-level APIs for defining an ML service and packaging\nits artifacts, source code, dependencies, and configurations into a\nproduction-system-friendly format that is ready for deployment.\n\n---\n\n- [Installation](#installation)\n- [Getting Started](#getting-started)\n- [Documentation (Coming soon!)](#getting-started)\n- [Examples](#examples)\n- [Releases and Contributing](#releases-and-contributing)\n- [License](#license)\n\n\n## Feature Highlights\n\n* __Multiple Distribution Format__ - Easily package your Machine Learning models\n  into a format that works best with your inference scenario:\n  * Docker Image - deploy as containers running REST API Server\n  * PyPI Package - integrate into your python applications seamlessly\n  * CLI tool - put your model into Airflow DAG or CI/CD pipeline\n  * Spark UDF - run batch serving on a large dataset with Spark\n  * Serverless Function - host your model on serverless platforms such as AWS Lambda\n\n* __Multiple Framework Support__ - BentoML supports a wide range of ML frameworks\n  out-of-the-box including [Tensorflow](https://github.com/tensorflow/tensorflow/),\n  [PyTorch](https://github.com/pytorch/pytorch),\n  [Scikit-Learn](https://github.com/scikit-learn/scikit-learn),\n  [xgboost](https://github.com/dmlc/xgboost) and can be easily extended to work\n  with new or custom frameworks.\n\n* __Deploy Anywhere__ - BentoML bundled ML service can be easily deployed with\n  platforms such as [Docker](https://www.docker.com/),\n  [Kubernetes](https://kubernetes.io/),\n  [Serverless](https://github.com/serverless/serverless),\n  [Airflow](https://airflow.apache.org) and [Clipper](http://clipper.ai),\n  on cloud platforms including AWS, Gogole Cloud, and Azure.\n\n* __Custom Runtime Backend__ - Easily integrate your python pre-processing code with\n  high-performance deep learning runtime backend, such as\n  [tensorflow-serving](https://github.com/tensorflow/serving).\n\n\n## Installation\n\n![python versions](https://img.shields.io/pypi/pyversions/bentoml.svg)\n![pypi status](https://img.shields.io/pypi/v/bentoml.svg)\n\n```python\npip install bentoml\n```\n\nVerify installation:\n\n```bash\nbentoml --version\n```\n\n\n## Getting Started\n\nLet's get started with a simple scikit-learn model as an example:\n\n```python\nfrom sklearn import svm\nfrom sklearn import datasets\n\nclf = svm.SVC(gamma='scale')\niris = datasets.load_iris()\nX, y = iris.data, iris.target\nclf.fit(X, y)\n```\n\nTo package this model with BentoML, you don't need to change anything in your\ntraining code. Simply create a new BentoService by subclassing it:\n\n```python\n%%writefile iris_classifier.py\nfrom bentoml import BentoService, api, env, artifacts\nfrom bentoml.artifact import PickleArtifact\nfrom bentoml.handlers import DataframeHandler\n\n# You can also import your own python module here and BentoML will automatically\n# figure out the dependency chain and package all those python modules\n\n@artifacts([PickleArtifact('model')])\n@env(conda_pip_dependencies=[\"scikit-learn\"])\nclass IrisClassifier(BentoService):\n\n    @api(DataframeHandler)\n    def predict(self, df):\n        # arbitrary preprocessing or feature fetching code can be placed here \n        return self.artifacts.model.predict(df)\n```\n\nThe `@artifacts` decorator here tells BentoML what artifacts are required when \npackaging this BentoService. Besides `PickleArtifact`, BentoML also provides\n`TfKerasModelArtifact`, `PytorchModelArtifact`, and `TfSavedModelArtifact` etc.\n\n`@env` is designed for specifying the desired system environment in order for this\nBentoService to load. Other ways you can use this decorator:\n\n* If you already have a requirement.txt file listing all python libraries you\nneed:\n```python\n@env(requirement_txt='../myproject/requirement.txt')\n```\n\n* Or if you are running this code in a Conda environment that matches the\ndesired production environment:\n```python\n@env(with_current_conda_env=True)\n```\n\nLastly `@api` adds an entry point for accessing this BentoService. Each\n`api` will be translated into a REST endpoint when [deploying as API\nserver](#serving-via-rest-api), or a CLI command when [running as a CLI\ntool](#use-as-cli-tool).\n\nEach API also requires a `Handler` for defining the expected input format. In\nthis case, `DataframeHandler` will transform either an HTTP request or CLI\ncommand arguments into a pandas Dataframe and pass it down to the user defined\nAPI function. BentoML also supports `JsonHandler`, `ImageHandler` and\n`TensorHandler`.\n\nNext, to save your trained model for production use with this custom\nBentoService class:\n\n```python\n# 1) import the custom BentoService defined above\nfrom iris_classifier import IrisClassifier\n\n# 2) `pack` it with required artifacts\nsvc = IrisClassifier.pack(model=clf)\n\n# 3) save packed BentoService as archive\nsvc.save('./bento_archive', version='v0.0.1')\n# archive will saved to ./bento_archive/IrisClassifier/v0.0.1/\n```\n\n_That's it._ You've just created your first BentoArchive. It's a directory\ncontaining all the source code, data and configurations files required to load\nand run a BentoService. You will also find three 'magic' files generated\nwithin the archive directory:\n\n* `bentoml.yml` - a YAML file containing all metadata related to this\n  BentoArchive\n* `Dockerfile` - for building a Docker Image exposing this BentoService as REST\n  API endpoint\n* `setup.py` - the config file that makes a BentoArchive 'pip' installable\n\n### Deployment & Inference Scenarios\n\n- [Serving via REST API](#serving-via-rest-api)\n- [Run REST API server with Docker](#run-rest-api-server-with-docker)\n- [Loading BentoService in Python](#loading-bentoservice-in-python)\n- [Use as PyPI Package](#use-as-pypi-package)\n- [Use as CLI tool](#use-as-cli-tool)\n\n\n#### Serving via REST API\n\nFor exposing your model as a HTTP API endpoint, you can simply use the `bentoml\nserve` command:\n\n```bash\nbentoml serve ./bento_archive/IrisClassifier/v0.0.1/\n```\n\nNote you must ensure the pip and conda dependencies are available in your python\nenvironment when using `bentoml serve` command. More commonly we recommend using\nBentoML API server with Docker:\n\n#### Run REST API server with Docker\n\nYou can build a Docker Image for running API server hosting your BentoML archive\nby using the archive folder as docker build context:\n\n```bash\ncd ./bento_archive/IrisClassifier/v0.0.1/\n\ndocker build -t iris-classifier .\n```\n\nNext, you can `docker push` the image to your choice of registry for deployment,\nor run it locally for development and testing:\n\n```\ndocker run -p 5000:5000 iris-classifier\n```\n\n#### Loading BentoService in Python\n\n`bentoml.load` is the enssential API for loading a BentoArchive into your\npython application:\n\n```python\nimport bentoml\n\n# yes it works with BentoArchive saved to s3 ;)\nbento_svc = bentoml.load('s3://my-bento-svc/iris_classifier/')\nbento_svc.predict(X[0])\n```\n\n#### Use as PyPI Package\n\nBentoML also supports distributing a BentoService as PyPI package, with the\ngenerated `setup.py` file. A BentoArchive can be installed with `pip`:\n\n```bash\npip install ./bento_archive/IrisClassifier/v0.0.1/\n```\n\n```python\nimport IrisClassifier\n\ninstalled_svc = IrisClassifier.load()\ninstalled_svc.predict(X[0])\n```\n\nWith the `setup.py` config, a BentoArchive can also be uploaded to pypi.org\nas a public python package, or to your organization's private PyPI index for all\ndevelopers in your organization to use:\n\n```bash\ncd ./bento_archive/IrisClassifier/v0.0.1/\n\n# You will need a \".pypirc\" config file before doing this:\n# https://docs.python.org/2/distutils/packageindex.html\npython setup.py sdist upload\n```\n\n#### Use as CLI tool\n\nWhen `pip install` a BentoML archive, it also provides you with a CLI tool for\naccessing your BentoService's APIs from the command line:\n\n```bash\npip install ./bento_archive/IrisClassifier/v0.0.1/\n\nIrisClassifier info  # this will also print out all APIs available\n\nIrisClassifier predict --input='./test.csv'\n```\n\nAlternatively, you can also use the `bentoml` cli to load and run a BentoArchive\ndirectly:\n\n```bash\nbentoml info ./bento_archive/IrisClassifier/v0.0.1/\n\nbentoml predict ./bento_archive/IrisClassifier/v0.0.1/ --input='./test.csv'\n```\n\n### More About BentoML\n\nWe build BentoML because we think there should be a much simpler way for machine\nlearning teams to ship models for production. They should not wait for\nengineering teams to re-implement their models for production environment or\nbuild complex feature pipelines for experimental models.\n\nOur vision is to empower Machine Learning scientists to build and ship their own\nmodels end-to-end as production services, just like software engineers do.\nBentoML is essentially this missing 'build tool' for Machine Learning projects.\n\n\n## Examples\n\nAll examples can be found in the\n[BentoML/examples](https://github.com/bentoml/BentoML/tree/master/examples)\ndirectory.\n\n- [Quick Start with sklearn](https://github.com/bentoml/BentoML/blob/master/examples/quick-start/main.py)\n- [Sentiment Analysis with Scikit-Learn](https://github.com/bentoml/BentoML/blob/master/examples/sklearn-sentiment-clf/sklearn-sentiment-clf.ipynb)\n- [Text Classification with Tensorflow Keras](https://github.com/bentoml/BentoML/blob/master/examples/tf-keras-text-classification/tf-keras-text-classification.ipynb)\n- [Fashion MNIST classification with Pytorch](https://github.com/bentoml/BentoML/blob/master/examples/pytorch-fashion-mnist/pytorch-fashion-mnist.ipynb) (Alpha)\n- [Fashion MNIST classification with Tensorflow Keras](https://github.com/bentoml/BentoML/blob/master/examples/tf-keras-fashion-mnist/tf-keras-fashion-mnist-classification.ipynb) (Alpha)\n- [Deploy with Serverless framework](https://github.com/bentoml/BentoML/blob/master/examples/deploy-with-serverless) (Alpha)\n- More examples coming soon!\n\n\n\n## Releases and Contributing\n\nBentoML is under active development and is evolving rapidly. **Currently it is a\nBeta release, we may change APIs in future releases**.\n\nWant to help build BentoML? Check out our\n[contributing documentation](https://github.com/bentoml/BentoML/blob/master/CONTRIBUTING.md).\n\nTo make sure you have a pleasant experience, please read the [code of conduct](https://github.com/bentoml/BentoML/blob/master/CODE_OF_CONDUCT.md).\nIt outlines core values and beliefs and will make working together a happier experience.\n\n\n\n## License\n\nBentoML is GPL-3.0 licensed, as found in the COPYING file.\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/SuperCD/BentoML",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "BentoML-kube",
+        "package_url": "https://pypi.org/project/BentoML-kube/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/BentoML-kube/",
+        "project_urls": {
+            "Bug Reports": "https://github.com/bentoml/BentoML/issues",
+            "Homepage": "https://github.com/SuperCD/BentoML",
+            "Source Code": "https://github.com/bentoml/BentoML"
+        },
+        "release_url": "https://pypi.org/project/BentoML-kube/0.1.7/",
+        "requires_dist": [
+            "prometheus-client",
+            "ruamel.yaml (>=0.15.0)",
+            "numpy",
+            "flask",
+            "gunicorn",
+            "six",
+            "click",
+            "pandas",
+            "dill",
+            "python-json-logger",
+            "boto3",
+            "Werkzeug",
+            "pathlib2",
+            "requests",
+            "packaging",
+            "prometheus-client ; extra == 'all'",
+            "ruamel.yaml (>=0.15.0) ; extra == 'all'",
+            "numpy ; extra == 'all'",
+            "flask ; extra == 'all'",
+            "gunicorn ; extra == 'all'",
+            "six ; extra == 'all'",
+            "click ; extra == 'all'",
+            "pandas ; extra == 'all'",
+            "dill ; extra == 'all'",
+            "python-json-logger ; extra == 'all'",
+            "boto3 ; extra == 'all'",
+            "Werkzeug ; extra == 'all'",
+            "pathlib2 ; extra == 'all'",
+            "requests ; extra == 'all'",
+            "packaging ; extra == 'all'",
+            "tox (==3.8.4) ; extra == 'all'",
+            "yapf (==0.26.0) ; extra == 'all'",
+            "pylint (==2.3.1) ; extra == 'all'",
+            "pytest (==4.4.0) ; extra == 'all'",
+            "tox-conda (==0.2.0) ; extra == 'all'",
+            "twine ; extra == 'all'",
+            "setuptools ; extra == 'all'",
+            "pycodestyle ; extra == 'all'",
+            "gitpython (>=2.0.2) ; extra == 'all'",
+            "opencv-python ; extra == 'all'",
+            "torch ; extra == 'all'",
+            "torchvision ; extra == 'all'",
+            "tensorflow ; extra == 'all'",
+            "opencv-python ; extra == 'cv2'",
+            "tox (==3.8.4) ; extra == 'dev'",
+            "yapf (==0.26.0) ; extra == 'dev'",
+            "pylint (==2.3.1) ; extra == 'dev'",
+            "pytest (==4.4.0) ; extra == 'dev'",
+            "tox-conda (==0.2.0) ; extra == 'dev'",
+            "twine ; extra == 'dev'",
+            "setuptools ; extra == 'dev'",
+            "pycodestyle ; extra == 'dev'",
+            "gitpython (>=2.0.2) ; extra == 'dev'",
+            "torch ; extra == 'pytorch'",
+            "torchvision ; extra == 'pytorch'",
+            "tensorflow ; extra == 'tensorflow'",
+            "pytest (==4.4.0) ; extra == 'test'",
+            "snapshottest (==0.5.0) ; extra == 'test'",
+            "mock (==2.0.0) ; extra == 'test'",
+            "tox (==3.8.4) ; extra == 'test'",
+            "opencv-python ; extra == 'test'"
+        ],
+        "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+        "summary": "BentoML-kube: a fork of BentoML for better working in kubernetes",
+        "version": "0.1.7"
+    },
+    "last_serial": 5251526,
+    "releases": {
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "001ea73e93e375c9c64ed59eccc67e96",
+                    "sha256": "ae61c373446cdf82d1383f0ab1c69386556c8de959034ec1d282ddd2229b57bf"
+                },
+                "downloads": -1,
+                "filename": "BentoML_kube-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "001ea73e93e375c9c64ed59eccc67e96",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 80124,
+                "upload_time": "2019-05-09T09:09:51",
+                "url": "https://files.pythonhosted.org/packages/5a/26/7aca3236dc821a9ee767eb95f8dc37d69757a0d907a04a51d964ae030c17/BentoML_kube-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6eaed9ff1b81b881fbad726f5d720b46",
+                    "sha256": "ccfffe92470898c37ad121d679ce0c5d83d00568aeeaf0b485cfd5060b0882dd"
+                },
+                "downloads": -1,
+                "filename": "BentoML-kube-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6eaed9ff1b81b881fbad726f5d720b46",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 34511,
+                "upload_time": "2019-05-09T09:09:52",
+                "url": "https://files.pythonhosted.org/packages/d6/58/19bac02b1ee7e935cb76eabe91c07095b50ce6b320080de36baef9ab62f7/BentoML-kube-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c60934b98d82816074edd4eed5888228",
+                    "sha256": "577fbc6d8f9dd01be207215893fdda5c4ecbcfc6598e408af7972faaac31e813"
+                },
+                "downloads": -1,
+                "filename": "BentoML_kube-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c60934b98d82816074edd4eed5888228",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 80128,
+                "upload_time": "2019-05-09T10:17:34",
+                "url": "https://files.pythonhosted.org/packages/66/51/b21463719a91372c2aff024a008a7eaac69d480ae6dc4634ce0b8e8bb600/BentoML_kube-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "31001898c08893d3d1e507bbbac7954c",
+                    "sha256": "2a9ae8aad60a10d7a238835c43a25811315cffc12261d52db40a7439fd5e8a49"
+                },
+                "downloads": -1,
+                "filename": "BentoML-kube-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "31001898c08893d3d1e507bbbac7954c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 34514,
+                "upload_time": "2019-05-09T10:17:36",
+                "url": "https://files.pythonhosted.org/packages/02/85/eb686fe9329e533a970e430e3b60aa1caa29a0ce6d481169c4008955c3a6/BentoML-kube-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0ed434b0455925b61473974ea7b71ada",
+                    "sha256": "e179dd3434e6eae2a1fb584ff83c1be69e335219ae9f5a15bcbb9977a736390c"
+                },
+                "downloads": -1,
+                "filename": "BentoML_kube-0.1.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0ed434b0455925b61473974ea7b71ada",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 80433,
+                "upload_time": "2019-05-10T09:34:34",
+                "url": "https://files.pythonhosted.org/packages/60/02/ce994f3c877105264a4d6a6a2319308da493fced1a182c25675a5053f5a6/BentoML_kube-0.1.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a2aec750d73845ff9497bf15be402020",
+                    "sha256": "89519b20486299219603c622c2b73425b82c79e033a431689cd3f01dfde93a95"
+                },
+                "downloads": -1,
+                "filename": "BentoML-kube-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a2aec750d73845ff9497bf15be402020",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 34861,
+                "upload_time": "2019-05-10T09:34:36",
+                "url": "https://files.pythonhosted.org/packages/ee/60/74bb4d4760d13add777c4d1c77419886af77e3822fa34cd93c23f4df6e21/BentoML-kube-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "29bd9d54414194a9f16d9092c2d20439",
+                    "sha256": "9c8f4545f6a5efed5b752d580590706092c170a0c247d947daf0abb3ec099ded"
+                },
+                "downloads": -1,
+                "filename": "BentoML_kube-0.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "29bd9d54414194a9f16d9092c2d20439",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 80488,
+                "upload_time": "2019-05-10T09:49:34",
+                "url": "https://files.pythonhosted.org/packages/74/8b/5dc0016cf84a7f5172e411517d8559db667c8008b7efe011595c1825f37e/BentoML_kube-0.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1e0134dbededb3a2090443093741eafc",
+                    "sha256": "15794f77c754ab2d871d2aabdf83d2c69c6dbc019b62624a220c41338a5a1868"
+                },
+                "downloads": -1,
+                "filename": "BentoML-kube-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1e0134dbededb3a2090443093741eafc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 34888,
+                "upload_time": "2019-05-10T09:49:35",
+                "url": "https://files.pythonhosted.org/packages/78/68/8dd025493e12a2bd0c96c23570b7cc8919b18e509c0283ecf1494481cd35/BentoML-kube-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "67c4e81bed001ed0bcf694ea1074ef47",
+                    "sha256": "e3d891b7586d5a04bd4edd2b44f7f86d2eb9ebae37e3c768b73badbc0d30f68f"
+                },
+                "downloads": -1,
+                "filename": "BentoML_kube-0.1.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "67c4e81bed001ed0bcf694ea1074ef47",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 80487,
+                "upload_time": "2019-05-10T10:04:05",
+                "url": "https://files.pythonhosted.org/packages/4c/44/337ea47fde811d17fd0822ab5d04f1bdc328f9ba8680016f3ebab6dd8050/BentoML_kube-0.1.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "87d3b626c7b4f188c38ea0734fbb4327",
+                    "sha256": "15e603db0e065199299e8b5a50f7058bd53e1fdff130334408531c7660e01f85"
+                },
+                "downloads": -1,
+                "filename": "BentoML-kube-0.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "87d3b626c7b4f188c38ea0734fbb4327",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+                "size": 34869,
+                "upload_time": "2019-05-10T10:04:07",
+                "url": "https://files.pythonhosted.org/packages/ff/60/c28c9c96d10caf820987e2569ecce73f85e0ad29d4ec23cbfba48c10126e/BentoML-kube-0.1.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "67c4e81bed001ed0bcf694ea1074ef47",
+                "sha256": "e3d891b7586d5a04bd4edd2b44f7f86d2eb9ebae37e3c768b73badbc0d30f68f"
+            },
+            "downloads": -1,
+            "filename": "BentoML_kube-0.1.7-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "67c4e81bed001ed0bcf694ea1074ef47",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+            "size": 80487,
+            "upload_time": "2019-05-10T10:04:05",
+            "url": "https://files.pythonhosted.org/packages/4c/44/337ea47fde811d17fd0822ab5d04f1bdc328f9ba8680016f3ebab6dd8050/BentoML_kube-0.1.7-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "87d3b626c7b4f188c38ea0734fbb4327",
+                "sha256": "15e603db0e065199299e8b5a50f7058bd53e1fdff130334408531c7660e01f85"
+            },
+            "downloads": -1,
+            "filename": "BentoML-kube-0.1.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "87d3b626c7b4f188c38ea0734fbb4327",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+            "size": 34869,
+            "upload_time": "2019-05-10T10:04:07",
+            "url": "https://files.pythonhosted.org/packages/ff/60/c28c9c96d10caf820987e2569ecce73f85e0ad29d4ec23cbfba48c10126e/BentoML-kube-0.1.7.tar.gz"
+        }
+    ]
+}

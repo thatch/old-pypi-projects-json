@@ -1,0 +1,85 @@
+{
+    "info": {
+        "author": "Jeff Bagley",
+        "author_email": "jeff_bagley@dell.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Dell Python RPA Package\n\n\n## What is it?\nThis Python package serves as a toolkit with custom built with functions useful to different teams within Dell.\n\n## Getting Started\n1. Install the package while off of the corporate network using:\n    ```\n    pip install dell_python_rpa -U\n    ```\n2. Create a file in the python project directory where you will be importing this package named \"configuration.yml\" which houses your network credentials in the following format\n\n    __Do not store this file in a shared directory__\n\n    ```\n    credentials:\n      user_name: 'example_username'\n      password: 'example_password'\n    ```\n\n## Usage\n[Examples using these functions](https://github.com/jgbagley/dell_python_rpa/tree/master/dell_python_rpa/example)\n---\n\n__MIDAS API Module__\n\nThis module is a wrapper for a Dell internal API to get real-time order information from OFS and BOSS.\nTo utilize it, pass a python list of Order Numbers into each function along with a parameter of to get order data returned in the form of a Pandas Dataframe . This includes all 5 web-service APIs currently exposed by MIDAS designed to return all information about the status, attributes, or history of an order. \n\n```\n# Importing Order Status Module\nfrom dell_python_rpa.udm import * \n\norders=['208432234','208435401','208457058']\n\nofs_status=get_ofs_status(orders)\n\nboss_status=get_boss_status(orders)\n\nroute_plan=get_route_plan(orders)\n\nproperties=get_ofs_properties(orders)\n\nboss_status_history=get_boss_status_history(orders)\n```\n___\n__OFS Module__\n\nThis module includes the necessary functionality to reassign orders and release orders from hold. These functions will only work successfully of the user executing them has the necessary privileges which would be required to perform that action through the User Interface.\n\n```\n# Importing OFS Module\nfrom dell_python_rpa.ofs import *\n\norders=['508432234','608435401','708457058']\n\n# Reassign orders by rules\nofs_reassign_orders(orders)\n\n# Reassign orders to a channel (example: MT12)\nofs_reassign_orders(orders,'OFS_MT12')\n\n# Release from Timebound Hold\nofs_hold_release(orders)\n\n# Release from FDD Hold\n# Options include: FDD, MABD, OP_HOLD, OPWAITHOLD, IP_TO_OFSHOLD, LARGE_ORDER_REVIEW, NATURAL_DISASTER\nofs_hold_release(orders,'FDD')\n```\n\n---\n__GPP Functions__\n\nThis module includes functions which are useful to the Global Production Planning Organization including querying Michael Bishop's DB and getting the latest CSR Data.\n\n```\n# Importing GPP Module\nfrom dell_python_rpa.gpp import * \n\n# Query Michael Bishops Database, results are a Pandas Dataframe\n# By default, the function will query the \"BACKLOG\" database\n# Use the db_name parameter if to specify a different db if necessary\n\ndirectory_of_sql_file='Queries\\gpp_bishop_example.sql'\nresult=bishops_query(directory_of_sql_file)\n\n# Get current CSR data in Pandas Dataframe\ncsr=get_csr()\n```\n---\n\n__UDM__\n\nThis module includes the functionality to execute a query on the UDM/FDL Oracle database. \nThe data returned will be in the datatype of a Pandas Dataframe. In order to use this module, you will need access to the database and the 'configuration.yml' file discussed above in the same directory as the python file calling the udm function.\nThe udm_query_2 function is the latest generation version which takes the directory of a SQL file as a parameter and also allows a second parameter which allows you to modify the query at runtime with parameters which can be calculated as part of your program. It does this by replacing the text  *-- INSERTVALUEHERE* in your sql query, so if you are going to use this capability, please include that string in your file.\n\n```\n# Importing UDM Module\nfrom dell_python_rpa.udm import * \n\n# Execute a query without modifying it\ndirectory_of_sql_file='Queries\\example_sql_file.sql'\nresult=udm_query_2(directory_of_sql_file)\n\n# Modify a query before executing it\ndirectory_of_sql_file='Queries\\example_sql_file.sql'\n\nquery_modifier='AND SO.SYSTEM_QTY > 10'\nresult=udm_query_2(directory_of_sql_file, query_modifier)\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jgbagley/dell_python_ofs",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "dell-python-ofs",
+        "package_url": "https://pypi.org/project/dell-python-ofs/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/dell-python-ofs/",
+        "project_urls": {
+            "Homepage": "https://github.com/jgbagley/dell_python_ofs"
+        },
+        "release_url": "https://pypi.org/project/dell-python-ofs/0.1/",
+        "requires_dist": [
+            "pandas",
+            "selenium",
+            "chromedriver-installer",
+            "openpyxl",
+            "xlrd"
+        ],
+        "requires_python": "",
+        "summary": "OFS Python package for the Dell RPA Team",
+        "version": "0.1"
+    },
+    "last_serial": 4756913,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a67fd2220a3f1a51602264b61f24d34f",
+                    "sha256": "6dd0d48e2594605ba4b72e86a11ae2f5d15bed2bbbc91afe6415ded4998e5a35"
+                },
+                "downloads": -1,
+                "filename": "dell_python_ofs-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a67fd2220a3f1a51602264b61f24d34f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4650,
+                "upload_time": "2019-01-29T22:01:47",
+                "url": "https://files.pythonhosted.org/packages/5c/55/01c08f442ac970ac5cdca4a459e9b5bc451bb251ef4882c76b89104277cb/dell_python_ofs-0.1-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a67fd2220a3f1a51602264b61f24d34f",
+                "sha256": "6dd0d48e2594605ba4b72e86a11ae2f5d15bed2bbbc91afe6415ded4998e5a35"
+            },
+            "downloads": -1,
+            "filename": "dell_python_ofs-0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a67fd2220a3f1a51602264b61f24d34f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 4650,
+            "upload_time": "2019-01-29T22:01:47",
+            "url": "https://files.pythonhosted.org/packages/5c/55/01c08f442ac970ac5cdca4a459e9b5bc451bb251ef4882c76b89104277cb/dell_python_ofs-0.1-py3-none-any.whl"
+        }
+    ]
+}

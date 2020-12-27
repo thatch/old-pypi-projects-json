@@ -1,0 +1,1690 @@
+{
+    "info": {
+        "author": "Zaman",
+        "author_email": "7amaaan@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Console",
+            "Intended Audience :: End Users/Desktop",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Utilities"
+        ],
+        "description": "\n# zsub\n\n[![Downloads](https://img.shields.io/pypi/dw/zsub.svg)](https://pypi.org/project/zsub/)\n[![Published Version](https://img.shields.io/pypi/v/zsub.svg)](https://pypi.org/project/zsub/)\n![GitHub Release](https://img.shields.io/github/release/7aman/zsub.svg?label=repo%20version)\n[![License: MIT](https://img.shields.io/github/license/7aman/zsub.svg)](https://github.com/7aman/zsub/blob/master/LICENSE)\n\n`zsub` downloads subtitles from [subscene.com](https://subscene.com/) and its persian clones\nsuch as [subf2m.co](https://subf2m.co/).  \n\n---\n\n## Table of Contents\n\n* [Install](#install)\n* [How to use](#how-to-use)\n  * [Login: `zsub login`](#login)\n  * [Download: `zsub dl`](#download)\n  * [Info: `zsub info`](#info)\n  * [Extract Previously Downloaded Subtitles: `zsub unzip`](#extract-previously-downloaded-subtitles)\n  * [Config: `zsub config`](#config)\n  * [Batch: `zsub batch`](#Batch-mode)\n  * [Clean: `zsub clean`](#Clean)\n  * [Update: `zsub update`](#Update)\n  * [Backup: `zsub backup`](#Backup)\n---\n\n## Install\n\n### unrar\n\nIf you want to handle rar files too, you need `unrar`. For most operating systems it can be downloaded from [unrar official site](https://www.rarlab.com/rar_add.htm). Windows users must download [this self-extractor archive](https://www.rarlab.com/rar/unrarw32.exe) and run it. It will ask a folder to extract `UnRar.exe` file. Point to a PATH directory such as `C:\\Windows`.  \nAlso unix user could install this tool from their official or unofficial repositories.  \n\nIf zsub can not find `unrar` executable in PATH, it will ignore rar files and prints a message instead.  \n\n### zsub\n\nLatest published release using pip3\n\n```shell\npython3 -m pip install --user --upgrade zsub\n#or\npip3 install --user --upgrade zsub\n```\n\nor install latest in progress version from github (not recommended)\n\n```shell\npip3 install  --user --upgrade git+https://github.com/7aman/zsub.git\n```\n\n## How to Use\n\n### Login\n\nSince June 2019, subscene added google re-captcha. If user log in, this captcha will not be required.  \nAt now (June 2019) it is easy to get a token even without user and password.  \n\n### Download\n\n```shell\nzsub dl -t Title of Movie or TV Series -l LNG1 [LNG2 ...] -d DESTINATION -s SITE -S -a|-A -o|-O -g|G\n```\n\nIt searches title through specified site. If there are matches it asks user to choose the best match (multiple choice is acceptable, ust be in comma separated format) or selects automatically the first one.  \nThen language filters are applied. Also previously downloaded subtitles will be ignored.  \nIt downloads remained links and saves them in `\"cache\"` folder. It will request multiple subtitles at same time to speed up the download process.\nThese new subtitles are extracted to `\"unzip\"` folder. To help find subtitles easily, name of language will be appended to the names of extracted subtitles. To avoid replacing files in `unzip` folder, if it is needed then existing one is renamed.  \n\nSwitches:  \n\n* `-t` is title to search. for example: `-t riverdale` or `-t riverdale first season`\n* `-l` is/are \"space separated\" language(s) that user interested in. It uses abbr for example: `-l en fa it`. Default: `en`\n* `-d` is `unzip` folder which downloaded subtitles will be extracted to. It supports `.` as current working directory and also relative paths to current working directory.\n* `-s` is site name to search through. (not full url, just name). supported:{`subscene`, `subf2m`, `hastisub`, `xyz`} Default: `subscene`\n* `-o`or `-O` determines if `zsub` must open the folder that subtitles are extracted into. `-o` for open the folder and `-O` for do nothing. Default: True (Open the folder)\n* `-a` or `-A` determines if `zsub` must automatically select best match (first result) from search results. `-a` for auto select and `-A` for ask user. Default: False (Ask for user to choose)\n* `-g` or `-G` determines if `zsub` must group extracted subtitles at destination by title and language. `-g` for grouping, `-G` for do nothing. default: `-g`\n* `-S` or `--simulation`: If you don't want to download all previously uploaded subs and just need to omit them on future download request, use these simulation switches. It creates empty zip file, instead of downloading subs. Then later if you search for this title it will ignore these files because it assumes this subtitle is already downloaded.\n\nExamples:\n\n```shell\n# if search keywords are distinctive enough, use auto select (-a)\nzsub dl -t riverdale third season -l fa -a\n\n# determine site. If site is not responding, zsub will choose first responding site automatically.\nzsub dl -t game of thrones -s subscene\n\n# movies, tv series, video musics are not different.\nzsub dl -t how to train your dragon\n\n# extract to a custom folder\n# extract here and relative to here (both windows and unix)\nzsub dl -t aquaman -d .\nzsub dl -t aquaman -d ./children/to/here\nzsub dl -t aquaman -d ../sibling/to/here\n# absolute and relative path (unix)\nzsub dl -t aquaman -d /absolute/path/to/a/destination\nzsub dl -t aquaman -d ~/relative/path/to/home/directory\n# absolute path (windows)\nzsub dl -t aquaman -d 'D:\\Movies\\Aquaman\\'\n```\n\n### Info\n\n```shell\nzsub info\nzsub info -v {-t|-s|-n}\nzsub info -vv\n```\n\nprints some useful information such as version and cache folder details.  \nWith `-v` lists all downloaded titles with size and number of files sorted by title (`-t`). for sorting based on size (s) and number of files (n) use `-s` and `-n`.  \nWith `-vv` lists titles in more details such as number of files for each language.\n\n### Extract Previously Downloaded Subtitles\n\n```shell\nzsub unzip -t Title of Movie or TV Series -l LNG1 [LNG2 ...] -d DESTINATION -a|-A -o|-O -g|-G\n```\n\nswitches are same as `zsub dl` [switches](#download) except there is no `-s` and `-S`. `zsub` searches through `\"cache\"` folder. Rest is same as the download process.\n\n### Config\n\n```shell\nzsub config show\nzsub config set OPTION VALUE\n```\n\ncommand to show or change default values.\n\n```shell\nzsub config set Defaults.site hastisub\n# to reset to default\nzsub config set Defaults.languages -\n```\n\n### Batch mode\n\n```shell\nzsub batch --add -s SITE\nzsub batch -s SITE -G -d DESTINATION\nzsub batch --print\nzsub batch --reset\n```\n\nUse `--add` switch to run a cli for adding titles to a list. This list can be used later by calling `zsub batch` command for checking new subtitles. It is suitable for TV Series that air weekly.\nBy default, downloaded subtitles will be grouped at destination. To cancel this grouping use `-G`\n\n### Clean\n\n```shell\nzsub clean -t TITLE -l LNG1 [LNG2 ...] [-0]\n```\n\nsearches cache directory for given title and language. then:\n\n* with `-0` or `--zero` it will replace each downloaded files with empty zip files.\n* without `-0` it will delete downloaded files completely.\n\n### Update\n\n```shell\nzsub update\n```\n\nwill check if there is a new version of zsub available.  \nAlso if last check for update was before 7 days ago, zsub will check for update at next call automatically.\n\n### Backup\n\nCreate a zip archive from cache and config folder. It accepts `-d` option for destination and `-o|-O` for opennig destination folder after backup is completed.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/7aman/zsub",
+        "keywords": "subtitle movie subscene",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "zsub",
+        "package_url": "https://pypi.org/project/zsub/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/zsub/",
+        "project_urls": {
+            "Homepage": "http://github.com/7aman/zsub",
+            "source": "http://github.com/7aman/zsub"
+        },
+        "release_url": "https://pypi.org/project/zsub/0.17.4/",
+        "requires_dist": [
+            "requests-futures (>=1.0.0)",
+            "beautifulsoup4 (>=4.8.0)",
+            "rarfile (>=3.1)"
+        ],
+        "requires_python": ">3.6",
+        "summary": "Download subtitle from subscene",
+        "version": "0.17.4"
+    },
+    "last_serial": 5900853,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f5b015e1592e03b76306bb3b1fd9af85",
+                    "sha256": "18b0752d03662f77287d1308344902486cb62566ec4036eff3089386ef462d40"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.1-py2.7.egg",
+                "has_sig": false,
+                "md5_digest": "f5b015e1592e03b76306bb3b1fd9af85",
+                "packagetype": "bdist_egg",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 1578,
+                "upload_time": "2018-11-03T23:51:47",
+                "url": "https://files.pythonhosted.org/packages/37/4b/f18acdfe05f03f97deee573554f3d8e37f76e0cf06bdc0bf5a00a17a8eaf/zsub-0.0.1-py2.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "710e43ed8127f37d40822d2b5702d1dc",
+                    "sha256": "bbc3c5b58194667782e23ef6b08771a2e875b98d4743a0037f907058b3dda529"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "710e43ed8127f37d40822d2b5702d1dc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 974,
+                "upload_time": "2018-11-03T23:51:48",
+                "url": "https://files.pythonhosted.org/packages/47/2a/a6605621ad8ca1863bb58543794013f0386c89471b63a1f05471f1cb6987/zsub-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "163983ea38929bbdca9c40abc786a774",
+                    "sha256": "1916ca133a1366f815b28024344d9a7b4ab745b9689a6753a5556796d73c7e3a"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "163983ea38929bbdca9c40abc786a774",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 7862,
+                "upload_time": "2018-11-04T19:30:48",
+                "url": "https://files.pythonhosted.org/packages/1c/96/aa983d541ea7b40316bb3f1e8a98bf9f77e0fd7d907ac6f11dca6ba05bd4/zsub-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "19fac5881b17dfa3ba4553700b24880f",
+                    "sha256": "930e91392bd275f873654e01713050c878f17739175c3d53e79993000313d6a7"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "19fac5881b17dfa3ba4553700b24880f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 6204,
+                "upload_time": "2018-11-04T19:30:49",
+                "url": "https://files.pythonhosted.org/packages/0e/80/eb3a415f7101ea6fb03488b7b5c775ff085661e068d1400d453e778c0ea1/zsub-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e58ec87528de9c8cbc5f75b208ac2bd",
+                    "sha256": "32cb71c6b789a3aec82a9e88e98c3c5d4a2eccd64af5ac3ddda841f51eb458bf"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0e58ec87528de9c8cbc5f75b208ac2bd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 8247,
+                "upload_time": "2018-12-04T02:36:11",
+                "url": "https://files.pythonhosted.org/packages/47/44/fb63fdee4e731057afd3f1c95480fdb2d91e09e45440f887feb5a8bab18e/zsub-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "befaa64e21c9ae262dec9930b147343c",
+                    "sha256": "fbf6bfc3f887b93909867f9801de38702eacc1d3a783b76c1ad01ce4a49dd123"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "befaa64e21c9ae262dec9930b147343c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 6380,
+                "upload_time": "2018-12-04T02:36:13",
+                "url": "https://files.pythonhosted.org/packages/e8/af/c205ed17b9c140ac75f9a859f16e05ef60679413acdaaab25bf93268f686/zsub-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "27f05590f5fcc8c435ca79771d77ff38",
+                    "sha256": "93fab182d955b4d9cbafb2691501e8497d9dbeb6f4c2fe56abc575d98f84857d"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.8.linux-x86_64.tar.gz",
+                "has_sig": false,
+                "md5_digest": "27f05590f5fcc8c435ca79771d77ff38",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 14990,
+                "upload_time": "2019-04-02T13:36:56",
+                "url": "https://files.pythonhosted.org/packages/ed/31/56e09eb85b5c15d072edc1abaaeefe721ab2ec4bb92f1fc41b0c0823a1bf/zsub-0.0.8.linux-x86_64.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "634f126dc29500b7c47133c45996ea97",
+                    "sha256": "5d8326d28e9d004395bdb7148a3fffdbc3b742f44f251a03d12092c280a8d593"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "634f126dc29500b7c47133c45996ea97",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 8804,
+                "upload_time": "2019-04-02T13:48:04",
+                "url": "https://files.pythonhosted.org/packages/f4/dd/482a2a354470fdb460c1f0ccad4dc17f5239fdfc86b7973ec60ec2087f17/zsub-0.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c4b88159980a6c757d90f6de24bfc13",
+                    "sha256": "b0e36646584ea144d91d2ad802ab0c57ce4bdaa2edc2b48bbcb32b5c2ae4be88"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7c4b88159980a6c757d90f6de24bfc13",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 7116,
+                "upload_time": "2019-04-02T13:48:06",
+                "url": "https://files.pythonhosted.org/packages/9f/00/818830223df05bca001c23dd0a7408dfe4fb32160e2d728b72e51fed6c77/zsub-0.0.9.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a95d57f15608d816ffe369dc21d585b8",
+                    "sha256": "45a2b58fae1091d499b8dfca85295ae15f82431176d838fac7df5b360f016a54"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a95d57f15608d816ffe369dc21d585b8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 12013,
+                "upload_time": "2019-04-04T19:08:21",
+                "url": "https://files.pythonhosted.org/packages/39/04/161be3c472beca3628054a05b18c48583a0598e4da4b5e042e4f38a44a08/zsub-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "24e790fcf6ef9a4587ec7d71497dd11f",
+                    "sha256": "45c4fb852f0f340c8d7af65ac298fe2ab2c80a011b7e053ca0a6f0d9e4688a88"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "24e790fcf6ef9a4587ec7d71497dd11f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 7703,
+                "upload_time": "2019-04-04T19:08:24",
+                "url": "https://files.pythonhosted.org/packages/98/74/fdab8f27e424cbf227dec1f5e694588fd2ae52f6a9ef40fdc8e490bb3a6e/zsub-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "546207cd5d40d8eb3f330416c2e47135",
+                    "sha256": "190e67f87beb6daaf7c0c127763e8a0866eb3a16361ee1d3736386787f62ed33"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "546207cd5d40d8eb3f330416c2e47135",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 13546,
+                "upload_time": "2019-04-05T11:42:01",
+                "url": "https://files.pythonhosted.org/packages/2d/be/e9d22cdc9e757bd493f7d47439229259c719865c67d36c58c6a4e6565464/zsub-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "60ea819b865d4814dc50951f63088697",
+                    "sha256": "e86f54cfc8ea0069d50a57d14d0dfcaf1a3458449eb317f55e6d114416277018"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "60ea819b865d4814dc50951f63088697",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 10880,
+                "upload_time": "2019-04-05T11:42:04",
+                "url": "https://files.pythonhosted.org/packages/fd/05/eaeab5a273fae495e070bf71db3782f921354210a0f2af5754d923f088eb/zsub-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "46683985b3302cedd92359b5747dd1f8",
+                    "sha256": "e66f05b33c823c1318852c9df17a232dd1dfcf2c8de62242c0aa8fb142261829"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "46683985b3302cedd92359b5747dd1f8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 13766,
+                "upload_time": "2019-04-05T13:00:35",
+                "url": "https://files.pythonhosted.org/packages/f3/d7/318dec81231df24a6c9cc8977e3a1d305254eaa7c29a0b026142e48cc374/zsub-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "740d05846d65825b80563f95dccece5e",
+                    "sha256": "04a814ec916e8d0bfa57abb5ca3705ae47b7bd64811b07cb60d13bdcc321a60e"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "740d05846d65825b80563f95dccece5e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 12077,
+                "upload_time": "2019-04-05T13:00:40",
+                "url": "https://files.pythonhosted.org/packages/f5/66/d0c75e35a7d8403b89231140c00d346ca6a09b6eaab17e663ade5c623305/zsub-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "838ef36db0660c7f766a0f0a5cceacf8",
+                    "sha256": "5f61671406ebc7894894db8357a060849fd131e245ec6a6f22ecd3ae37d3a5bb"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "838ef36db0660c7f766a0f0a5cceacf8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 13771,
+                "upload_time": "2019-04-05T18:54:41",
+                "url": "https://files.pythonhosted.org/packages/a1/a8/b26019c2eeefd7eb7103ba9df9d96eeff0f6ac570c90fecd3b46f1cee017/zsub-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0906aff2629d1d90ebd157335a7c3a7",
+                    "sha256": "0d030b2ab60d6a74f2d21b2ea8fd291374dccbd546d470d2c3018c66ed4dcb7f"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c0906aff2629d1d90ebd157335a7c3a7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 12097,
+                "upload_time": "2019-04-05T18:54:42",
+                "url": "https://files.pythonhosted.org/packages/b8/a2/0c2bdc977e6d6b4773984628fa9c5266c27dfbaa84e4b3965bed5a714c01/zsub-0.1.3.tar.gz"
+            }
+        ],
+        "0.10.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d100441cd14ada1ca18ea2a0ba0b084e",
+                    "sha256": "3b71259d8e0af84f54dcdc930d2e06bb73c99aa36635692001d5e18e47c27a51"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.10.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d100441cd14ada1ca18ea2a0ba0b084e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 19513,
+                "upload_time": "2019-06-01T09:48:22",
+                "url": "https://files.pythonhosted.org/packages/04/fd/a4651a6d62afc221b8ffbb8e76c4b6be4beb6b2c0f6146135ce6b39c27ae/zsub-0.10.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed6b331774d24c1a9f0043f48b9adddd",
+                    "sha256": "3c680f8db2041020b0551c9a9f0f27f91f0ec3d1a9d2769994436c65f24e17d2"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.10.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ed6b331774d24c1a9f0043f48b9adddd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 15481,
+                "upload_time": "2019-06-01T09:48:23",
+                "url": "https://files.pythonhosted.org/packages/4e/0d/8365947e9c4474af154132aaca9d170bc2ce2efa132b6bf133abc17ce0a8/zsub-0.10.0.tar.gz"
+            }
+        ],
+        "0.10.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "602316eba9f7cd77cfd6f246029d4073",
+                    "sha256": "194bf13b63b0dcb74d4f8905f9f3f78e3eb04c8c755846cc18ee5c53c1835b30"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.10.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "602316eba9f7cd77cfd6f246029d4073",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 19377,
+                "upload_time": "2019-06-03T21:10:49",
+                "url": "https://files.pythonhosted.org/packages/4e/cc/4c2167960cf8c3214c8daa1d8b16451615ae3ad6cbc4309d42fb967a146e/zsub-0.10.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9662d451ac714919698dacbc9c931c94",
+                    "sha256": "fe85b0f32189c9e5079005ab83321806f95c1f26a595f59eb19c37c054962e14"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.10.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9662d451ac714919698dacbc9c931c94",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 15440,
+                "upload_time": "2019-06-03T21:10:52",
+                "url": "https://files.pythonhosted.org/packages/9a/33/306b45461cf08cecd1d3a11522e42e6b47ef3eeb960e637de0379f696d56/zsub-0.10.1.tar.gz"
+            }
+        ],
+        "0.10.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b2e56e1ef059bdfc95e0f287b913edf3",
+                    "sha256": "86abcfc6a9981409f553d270521b362756bb16424cf46ab3c2f4596b1d3f3cae"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.10.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b2e56e1ef059bdfc95e0f287b913edf3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 19648,
+                "upload_time": "2019-06-05T03:17:29",
+                "url": "https://files.pythonhosted.org/packages/67/08/a74d69a20a7e44409958db0b29a77aeafc72ade52d8da0ec2343db40ada2/zsub-0.10.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab4ce1c3f3c67298dd8d6285e265b6d5",
+                    "sha256": "f3e1ad9fa0ffc70f9b00a4cff09321b2ce9c2fd01e1a7f2b3d6654f35972346f"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.10.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ab4ce1c3f3c67298dd8d6285e265b6d5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 15757,
+                "upload_time": "2019-06-05T03:17:31",
+                "url": "https://files.pythonhosted.org/packages/70/7b/a48604b2ccbf9a40c478f421b34de562418df367338431893261a0414978/zsub-0.10.2.tar.gz"
+            }
+        ],
+        "0.11.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8edc9d95308766d9449f543036720017",
+                    "sha256": "f5c62438c4a380db43dd3d0f4983533cd315fa41d473f568d44088741cbb9e9c"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.11.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8edc9d95308766d9449f543036720017",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 20877,
+                "upload_time": "2019-06-05T16:25:14",
+                "url": "https://files.pythonhosted.org/packages/84/aa/2ed341600cc2702069e5ac45b592bcb4119d3dabaa1e63c476f1ae79de1f/zsub-0.11.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f4817bf441cf4118cf916bed5e16bf0",
+                    "sha256": "fada5411839dbeb26074bd11de1f0fcdae154519b56c807c14eec680e9756f48"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.11.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3f4817bf441cf4118cf916bed5e16bf0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 16932,
+                "upload_time": "2019-06-05T16:25:16",
+                "url": "https://files.pythonhosted.org/packages/a0/8b/cc5a6665f2444ffa2d64311ef6515d5c223e582a729df572f73e491135c9/zsub-0.11.0.tar.gz"
+            }
+        ],
+        "0.12.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48f9c9ca16ba3cef69dd9e133a12c242",
+                    "sha256": "d3511ac4270928cfdac581d9c0b2928502fab643bfa500a1aacb061278d0b0b3"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.12.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "48f9c9ca16ba3cef69dd9e133a12c242",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 23326,
+                "upload_time": "2019-06-07T19:10:53",
+                "url": "https://files.pythonhosted.org/packages/58/22/9b476387de6784c7c14c0426eff684ce74d19e5076a5668c5e62e6d72fd8/zsub-0.12.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c474673750d75922ad47c1868b89a473",
+                    "sha256": "e064c49e9f0a22f2da44e0728a1153d046ce7831a338ffea5af081cffe4e6931"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.12.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c474673750d75922ad47c1868b89a473",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 19222,
+                "upload_time": "2019-06-07T19:10:59",
+                "url": "https://files.pythonhosted.org/packages/e3/f0/a2da02e721c9050ee168ca16be6384005ec6c746978bae4dbd596e5244d5/zsub-0.12.0.tar.gz"
+            }
+        ],
+        "0.12.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "db9a02510edf1d18a3e07f241d891307",
+                    "sha256": "7dc8535003131bd272db3dc5eb1debc8cb4f3085484faef367b4e0e13e0903fc"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.12.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "db9a02510edf1d18a3e07f241d891307",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 23023,
+                "upload_time": "2019-06-10T18:48:30",
+                "url": "https://files.pythonhosted.org/packages/b0/53/4385c497319237488c3a28aa643fd13e73aead3f97d0677660293d037807/zsub-0.12.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e7c8e95ce6d1616ef34763901764e43e",
+                    "sha256": "d55872ebae29032207c14778b8a5c2bc9472b8576cad338dae6c7cdabc4273e8"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.12.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e7c8e95ce6d1616ef34763901764e43e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 19031,
+                "upload_time": "2019-06-10T18:48:33",
+                "url": "https://files.pythonhosted.org/packages/f3/19/5b1c6b43aa2424bf52dbc0412aaa0170295bf7d83bb5b1ecafea22812328/zsub-0.12.1.tar.gz"
+            }
+        ],
+        "0.13.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95ddc44e6957f7ed8b111fc4898628e3",
+                    "sha256": "1bb23e94af441e23787d31073eeb3b095ef66b7c331ea54f05c59ddf4489bde2"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.13.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "95ddc44e6957f7ed8b111fc4898628e3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 24067,
+                "upload_time": "2019-06-12T00:00:10",
+                "url": "https://files.pythonhosted.org/packages/2a/62/d102ffab0678fa2271d1ffd640a41a178a4c984c910470a624c28c810c29/zsub-0.13.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca5a678bf3e8441574752b2923efdada",
+                    "sha256": "17a380b38e57f1b04a2e4d9cb2f842a40df9d12f46bb5a83b6d1b6a7be0e00f5"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.13.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ca5a678bf3e8441574752b2923efdada",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 19950,
+                "upload_time": "2019-06-12T00:00:12",
+                "url": "https://files.pythonhosted.org/packages/41/70/43b32b82d14607815c9e256f0e758457aa92ac5ceb98c61ae17f4786bfaf/zsub-0.13.0.tar.gz"
+            }
+        ],
+        "0.13.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2f371f45301270debab8f461a3d7a34",
+                    "sha256": "e9b09c01a199a461e884939b1d6cfe7ce6351cc824c787bb8a6a3a47ba2581b6"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.13.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f2f371f45301270debab8f461a3d7a34",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 24066,
+                "upload_time": "2019-06-12T21:15:12",
+                "url": "https://files.pythonhosted.org/packages/80/c0/e07b443f32ffa2baa906363ca94d5df3c075c08b7aed6d02f058d3c771f6/zsub-0.13.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d6b6736f3ec3cf35a1f197bbf14f5f0",
+                    "sha256": "75df30d487209d13aeed8dff4b39a9cb65b82c6878eee912d216f5d01df912e0"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.13.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4d6b6736f3ec3cf35a1f197bbf14f5f0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 19979,
+                "upload_time": "2019-06-12T21:15:14",
+                "url": "https://files.pythonhosted.org/packages/0a/9e/75563e6823525b806b4f0899c51cc05442a223040897d6e899257e5312fb/zsub-0.13.1.tar.gz"
+            }
+        ],
+        "0.13.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2faef42ea0c711ec7a95dd63f23cf4c",
+                    "sha256": "3b68f4623c8c0b1395f2ba702f21c3249b25fa52b125cce93864b0fab69aea04"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.13.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f2faef42ea0c711ec7a95dd63f23cf4c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 24084,
+                "upload_time": "2019-06-12T21:59:56",
+                "url": "https://files.pythonhosted.org/packages/12/7e/f77c4a57cb947e0a5cfe1300a933b6074bf4051cb7eac5a4370a15cf6a2c/zsub-0.13.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6fb07a3609883eb3c95321a4c44f5be1",
+                    "sha256": "3330842c81ce89901dd153549fc6b27c58412759ea7a1d186cd254d2482181fb"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.13.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6fb07a3609883eb3c95321a4c44f5be1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 19976,
+                "upload_time": "2019-06-12T21:59:58",
+                "url": "https://files.pythonhosted.org/packages/05/c9/55665bfb6e531166d958c933a15017a9cc9c297a12274b22387fa5525078/zsub-0.13.2.tar.gz"
+            }
+        ],
+        "0.14.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c7e8e37efd52960757e2581c8863479b",
+                    "sha256": "3c4cd42a5ae3d932b65c49b0bb782883d27d17aba8bd96b76a869670d5b1cd80"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.14.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c7e8e37efd52960757e2581c8863479b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 24467,
+                "upload_time": "2019-06-14T01:23:50",
+                "url": "https://files.pythonhosted.org/packages/4c/a7/553a83b95d1ab87380443f0ebc3bfbda8e7ae0686acd3d1a9966dc2be04f/zsub-0.14.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e27c6128f8a31c3a810cdd4e75ab4ca9",
+                    "sha256": "46cd94148a85b2aeeccaae067eb7140862aa70392464c7d357645fd2d3989330"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.14.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e27c6128f8a31c3a810cdd4e75ab4ca9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 20626,
+                "upload_time": "2019-06-14T01:23:53",
+                "url": "https://files.pythonhosted.org/packages/28/d8/a8a030cfd80007de19bfb010edd2df19901dd5f881967803321bbaad0f3c/zsub-0.14.0.tar.gz"
+            }
+        ],
+        "0.14.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c86cb7c234e0bc2b3f967d02797f0e0",
+                    "sha256": "415b18eecc5435f0d539c3f6b17e172d94f1d6bd63a5c32b0679cf352bb2e41f"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.14.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5c86cb7c234e0bc2b3f967d02797f0e0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 24834,
+                "upload_time": "2019-06-14T01:30:41",
+                "url": "https://files.pythonhosted.org/packages/89/19/5240691b4eed8a819d62bc46099d913fa0c0e2f98f772530705aa0e48621/zsub-0.14.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2390e5f3d47d24abd2afdbb72ab50898",
+                    "sha256": "4d12212b191e9def3568c34dc8578370994faf7bc056b350cb7c55fe37218de3"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.14.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2390e5f3d47d24abd2afdbb72ab50898",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 21252,
+                "upload_time": "2019-06-14T01:30:43",
+                "url": "https://files.pythonhosted.org/packages/13/fd/3c8d9aea09ae7b13a407717556f7de40be1f07cb76e6060109da56c674f8/zsub-0.14.1.tar.gz"
+            }
+        ],
+        "0.15.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6a8f785cf11932f4b3fef38135f12d45",
+                    "sha256": "91cc887bc37fede51942b61c8ea0182ea704223b3fe155c839d135c929505b7a"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.15.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6a8f785cf11932f4b3fef38135f12d45",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 25456,
+                "upload_time": "2019-06-16T18:06:01",
+                "url": "https://files.pythonhosted.org/packages/4b/d7/072d45b65fcfb37f969faf79e024aaf003d6a1f21971d520b7d917fe4035/zsub-0.15.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "abe1590871a49080d966eb824e3a5b76",
+                    "sha256": "9685873c31b6fa7974f0c7be41fc0549029342e58806f625af90ef60433ebef8"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.15.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "abe1590871a49080d966eb824e3a5b76",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 21933,
+                "upload_time": "2019-06-16T18:06:05",
+                "url": "https://files.pythonhosted.org/packages/79/b9/9c5df1a5085cea9b0b6c3aa66d4d5ae273ccde4da66e863234a07bd14f0b/zsub-0.15.0.tar.gz"
+            }
+        ],
+        "0.15.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7564c9f275d3fe52d2c4813eb13af460",
+                    "sha256": "79f027c511a9a2095e43c1a42690b98c328d07eb95c9c0b60a06d3e7898d66b8"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.15.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7564c9f275d3fe52d2c4813eb13af460",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 25906,
+                "upload_time": "2019-06-17T18:31:40",
+                "url": "https://files.pythonhosted.org/packages/5e/7c/b1655d5f634c1a552b8ca99acf85248721f7d1e9d8e4eb85dba6fd2c53f6/zsub-0.15.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "499eb54d13c9da3a87ff7bb3efb265ec",
+                    "sha256": "0dfd97bcc136c5479f5328f6d5e3bcbcb7528818d876fd18cbb867b445987596"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.15.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "499eb54d13c9da3a87ff7bb3efb265ec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 22062,
+                "upload_time": "2019-06-17T18:31:42",
+                "url": "https://files.pythonhosted.org/packages/27/55/c7c8226805c1349a709bf146f7d0bd9063048f7c85168c036e13b907503b/zsub-0.15.1.tar.gz"
+            }
+        ],
+        "0.15.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7fdc8b98c99c37fceed71cdb98595347",
+                    "sha256": "caad3540da72bf98a719fa3b7d3b94d15705279b3c2ec291ca51b07b1bd386b8"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.15.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7fdc8b98c99c37fceed71cdb98595347",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 25983,
+                "upload_time": "2019-06-17T20:34:32",
+                "url": "https://files.pythonhosted.org/packages/a4/38/c2f273442c04ea581520c32847c793e1d3560cace7a76e81e8125ae7b864/zsub-0.15.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dccf86dfc13e85c5f6eb78b5960e5eb7",
+                    "sha256": "50f394c7b8fc93da7511636ad36a9113d441eda2913ac773ef930b20293187ed"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.15.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dccf86dfc13e85c5f6eb78b5960e5eb7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 22143,
+                "upload_time": "2019-06-17T20:34:34",
+                "url": "https://files.pythonhosted.org/packages/47/2f/cc402861fba1341bed247fb667605b6025f109fdf7d73f91ab2f13667dd9/zsub-0.15.2.tar.gz"
+            }
+        ],
+        "0.15.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e5b04ba2f46bb1e052c3267bd2d77f5c",
+                    "sha256": "bd0d2ea563a92a1598edc85f35f9a8f6e3e82ad747c537b9d73eab80ab651aea"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.15.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e5b04ba2f46bb1e052c3267bd2d77f5c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 26834,
+                "upload_time": "2019-08-19T16:27:40",
+                "url": "https://files.pythonhosted.org/packages/17/76/085416dbefd92926c5b704a8a96b93bf20811bbbde6fa3a501f2ba2a8b11/zsub-0.15.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1494deb44f0a4d6e3dff420671942ff1",
+                    "sha256": "2455c98cc98c870ae2ea35d150790badc7b457dd17eeb42b11f8593d90b495ff"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.15.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1494deb44f0a4d6e3dff420671942ff1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 22672,
+                "upload_time": "2019-08-19T16:27:43",
+                "url": "https://files.pythonhosted.org/packages/a2/db/e3c436cfd3a7c3fbcba4eb9cd02c0a857216ae4cb6fadc022d0e2bc10a32/zsub-0.15.3.tar.gz"
+            }
+        ],
+        "0.16.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0c1fc11b8adfa28a7ae22a4ac2e73ba0",
+                    "sha256": "8c7f5b7329410e8faec89e67c55ad12c330e112bb11ecf7f00333d2d776a4e9c"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.16.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0c1fc11b8adfa28a7ae22a4ac2e73ba0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 27418,
+                "upload_time": "2019-08-20T19:13:50",
+                "url": "https://files.pythonhosted.org/packages/01/dd/84c862d6286b226f99f04c2bbe89f8dfb05e07ddc89c090a8671dda4645d/zsub-0.16.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "08aa7e442f7e47fcbab8bc99f19c2b25",
+                    "sha256": "4598d80f91af166e2fe4a81675832bc0daa6ed592e5cf98c8f23377614ab6e83"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.16.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "08aa7e442f7e47fcbab8bc99f19c2b25",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 22995,
+                "upload_time": "2019-08-20T19:13:52",
+                "url": "https://files.pythonhosted.org/packages/4f/b5/2bbfa60f1c1be8a40e7408a8d6073507b80eb7806647b5e2c4b3984dafce/zsub-0.16.0.tar.gz"
+            }
+        ],
+        "0.16.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc370c36770a5a5feceb9dddfbc0aa10",
+                    "sha256": "71a90995d8972c5ee0782bd3d1ebf0267817c4322bd5244345289d648e9537f7"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.16.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dc370c36770a5a5feceb9dddfbc0aa10",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 27782,
+                "upload_time": "2019-08-21T07:16:26",
+                "url": "https://files.pythonhosted.org/packages/e5/da/5744542133439194344be9eb57ac1e6bdb055b3489dc14ad99a1ba73af96/zsub-0.16.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6609c4ddab4be3937285c99884e8f6bd",
+                    "sha256": "5fc48d13ab8643803770d85de62dd791cbaf7d053608185f43b2d1b6402bec87"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.16.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6609c4ddab4be3937285c99884e8f6bd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 23301,
+                "upload_time": "2019-08-21T07:16:29",
+                "url": "https://files.pythonhosted.org/packages/55/d8/2ba1fdded0ab03e557c21d5d732dc073900493b93a42dc46e89a90bf3bc2/zsub-0.16.1.tar.gz"
+            }
+        ],
+        "0.16.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e4f2a72d06ed0ecd9c007791a24daeb3",
+                    "sha256": "31bb77158226343472e70d6afe6c08fc670e2e357f090e549ad3109e8e39d252"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.16.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e4f2a72d06ed0ecd9c007791a24daeb3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 28393,
+                "upload_time": "2019-09-11T08:20:27",
+                "url": "https://files.pythonhosted.org/packages/22/d7/2c8ade26ce9c3db2af6e554d2b8836727fd9bdf4c177eee1b4e33e17e185/zsub-0.16.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d80190e29d497041fe26ba8cb57439f8",
+                    "sha256": "b74ad1e53e9ca10356ffc723e426939ec568dd79536851017867f702e4c0a669"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.16.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d80190e29d497041fe26ba8cb57439f8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 23821,
+                "upload_time": "2019-09-11T08:20:29",
+                "url": "https://files.pythonhosted.org/packages/22/7b/0ca3f36f6446db2cba7504dcc3cb97a3772f19f21b2f174e6cf70a39b035/zsub-0.16.2.tar.gz"
+            }
+        ],
+        "0.17.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0bc1d8d339d8300e2911782d5c605e77",
+                    "sha256": "4acedb928798c87eaf9f322bb902348e2fa4d1abb2a85272207ec32a5692af10"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0bc1d8d339d8300e2911782d5c605e77",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 28433,
+                "upload_time": "2019-09-26T18:14:53",
+                "url": "https://files.pythonhosted.org/packages/e3/7c/deea1c6e8145cff15ab24de46218b13048123a42db75defc43098a59ede7/zsub-0.17.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c87619ce25b7339ed2ec4976b2fd044c",
+                    "sha256": "85ef39f8d32d0c6ac2a0b6ee7df8840158398527d9e874e025c75a740a3f33f6"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c87619ce25b7339ed2ec4976b2fd044c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 25373,
+                "upload_time": "2019-09-26T18:14:55",
+                "url": "https://files.pythonhosted.org/packages/f5/f0/aca0319e442020e99eb2c4e6ded6a432bcd2d25a2d077b8c4aab3c560370/zsub-0.17.0.tar.gz"
+            }
+        ],
+        "0.17.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "70e2da5d8dc6b283edc050999ee73628",
+                    "sha256": "c401b31d25cc8d3fc31e587ce4872415426bd9651132b8a3c8a9e5e9a95daba5"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "70e2da5d8dc6b283edc050999ee73628",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 28910,
+                "upload_time": "2019-09-27T15:06:48",
+                "url": "https://files.pythonhosted.org/packages/10/a4/c2a7ad636ee46d050e10ba5d4340c6e92b94c190251c413806ce2db406a4/zsub-0.17.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "677d38cb34c8f427f0cb9e779cc61eaa",
+                    "sha256": "f9a7b201f205993db01ac8b73d38ee1304da65183c198d8ab968f26ce215ace4"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "677d38cb34c8f427f0cb9e779cc61eaa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 25969,
+                "upload_time": "2019-09-27T15:06:50",
+                "url": "https://files.pythonhosted.org/packages/23/0f/963ec88154dca6c27ed4d0f08380f532708bbb5f24f529eac9ee1be6bedd/zsub-0.17.1.tar.gz"
+            }
+        ],
+        "0.17.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa1b253b014fdd8a90f4260386e3c001",
+                    "sha256": "4fc8c7028d20ce74f708c67c540624d35a9bf3d604bc905edc1c3adb6eb06992"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "aa1b253b014fdd8a90f4260386e3c001",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 29362,
+                "upload_time": "2019-09-27T16:16:40",
+                "url": "https://files.pythonhosted.org/packages/21/e6/cd54145af9626ec12bfc61ed4c77040e3642d1b06dcf7be1d30f65c6050f/zsub-0.17.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e805cfdbf7f7a2d9376025c21c652446",
+                    "sha256": "eb5e511666fab23c0b49038fd095eaf8d5ed7c54f3205aaf5953010ea9968967"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e805cfdbf7f7a2d9376025c21c652446",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 26396,
+                "upload_time": "2019-09-27T16:16:43",
+                "url": "https://files.pythonhosted.org/packages/a5/f3/20d656b239b48883d79fc4af02f46ce4fb555c6dc5c6cd91a2c71ce1c566/zsub-0.17.2.tar.gz"
+            }
+        ],
+        "0.17.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "45aa66e55ee5cf53d97984f07366a63c",
+                    "sha256": "57b4a525b18b43ef3f885d15a8a1ee910459d63ca2802029bac2723950434073"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "45aa66e55ee5cf53d97984f07366a63c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 29364,
+                "upload_time": "2019-09-27T16:39:01",
+                "url": "https://files.pythonhosted.org/packages/96/86/0abddeb73b3102a9c46d7852cace97eb94f8c2ce8bde5f7417d07d580fab/zsub-0.17.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e7b8825084208974b60701aa58225f3d",
+                    "sha256": "f527e95fc2a52291ab0dc5df762769bc0e6ed641e4c652a729341e98bdfc2c35"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e7b8825084208974b60701aa58225f3d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 26394,
+                "upload_time": "2019-09-27T16:39:04",
+                "url": "https://files.pythonhosted.org/packages/e1/20/bdf7b56005f020091ea9285beeed06fd319aa846f206c21e47779c36f9db/zsub-0.17.3.tar.gz"
+            }
+        ],
+        "0.17.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e75f5d6d8bb7de2200a6f95f9cdaa57",
+                    "sha256": "cfa9f614de51d054b6e59af498c15d406d12c8472382b8f264a4c8195160d48a"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4e75f5d6d8bb7de2200a6f95f9cdaa57",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 29412,
+                "upload_time": "2019-09-28T22:32:59",
+                "url": "https://files.pythonhosted.org/packages/09/05/0dd136c5b7f5be46b50749480900338e4d034d581cf4b4870f9e6bb9fd50/zsub-0.17.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1f632728097d1be1e7c062a5f6fbe45a",
+                    "sha256": "3217d9a4a4dcc51de4fbb2929fc9814dd879e8457a6fbf97037f33afc982b015"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.17.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1f632728097d1be1e7c062a5f6fbe45a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 26647,
+                "upload_time": "2019-09-28T22:33:02",
+                "url": "https://files.pythonhosted.org/packages/33/23/22b7146340401a7a6dc5b2f693350cc2822000e7a973bf9b77e8cc4d232a/zsub-0.17.4.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "906ee2c17c622276f4400e9126c77cca",
+                    "sha256": "63e44ae07e33d670eae4c61d162f2951b9a58d2e4a277ff8f5d8b5eb0e4ada04"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "906ee2c17c622276f4400e9126c77cca",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 13766,
+                "upload_time": "2019-04-09T04:04:32",
+                "url": "https://files.pythonhosted.org/packages/9d/7f/cd2c960092f499e74bafc22700f7923cc92e3d5f2358871e370a078155d1/zsub-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "586a84cb1d8111ba6036ee3d1be03d38",
+                    "sha256": "abdae45abf41a757c7a16ddaff08f0f46cb8ad7977a26d05fbef76db4bad3828"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "586a84cb1d8111ba6036ee3d1be03d38",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 12241,
+                "upload_time": "2019-04-09T04:04:34",
+                "url": "https://files.pythonhosted.org/packages/bf/e3/7f7410f6f45dc595d6ca69599b4300d0f2f63d6b40bfa36ddb9b7659e6ab/zsub-0.2.0.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "80d70f7f0eac7d784d3432fc5d7e26ad",
+                    "sha256": "70d9065885fe908a5ce7bdbadc575b2a9fc6158cedcbc7bb1c862ce0fc12c502"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "80d70f7f0eac7d784d3432fc5d7e26ad",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 11249,
+                "upload_time": "2019-04-11T19:39:29",
+                "url": "https://files.pythonhosted.org/packages/64/90/55a38b06c4b6f898ddd1db672e312532fe2287097556d3c2dc9da0d2065d/zsub-0.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "35cafcb71502cfbd41fa63decdbb0b0e",
+                    "sha256": "35f3dd568106bb76bd79182b3e4ed1519c4cb0d8ea2953e77c43c988ddea3a52"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "35cafcb71502cfbd41fa63decdbb0b0e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 10328,
+                "upload_time": "2019-04-11T19:39:31",
+                "url": "https://files.pythonhosted.org/packages/ec/23/af723281a28d176d769ef6b42798dec14744a972c6d7a4fe41e3292e0a8d/zsub-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "19114b26ebc57a15608a19c978da4583",
+                    "sha256": "1076fcbdedc3e722d8d541b73f13e9560b0ba6384b64a936ee8a40b0ed822940"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "19114b26ebc57a15608a19c978da4583",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 15627,
+                "upload_time": "2019-04-11T19:44:27",
+                "url": "https://files.pythonhosted.org/packages/33/f4/d2ba1544dd01737afd27048f4075436eea2fc61af683bccde4a7b3f4d1fb/zsub-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eceb913b6c5156003e1eb2486300dbd0",
+                    "sha256": "18e22220c1fe34f2216e884fc5d12097e31fd47edc9340fb37e33611443e93d1"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "eceb913b6c5156003e1eb2486300dbd0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 12662,
+                "upload_time": "2019-04-11T19:44:29",
+                "url": "https://files.pythonhosted.org/packages/9d/27/cb4a728aae5d208404648bff876d95414ecddf6a579d3678dab58d4f3892/zsub-0.3.1.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3072883a0c216c5356d9fb750b5021ef",
+                    "sha256": "febb48df98f934266713e6b81f93fcc8679156ff82de197dbe12dafcdb06849d"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.4.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3072883a0c216c5356d9fb750b5021ef",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 14705,
+                "upload_time": "2019-05-03T18:59:02",
+                "url": "https://files.pythonhosted.org/packages/1c/46/d61a143425a5d37fb7ed85afacbedba5f86c6b0f4490a2e794541bfe15e5/zsub-0.4.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c2dbc0c22f63b38d01959beefd320fae",
+                    "sha256": "bd0689871c1e3400f38a1b06b39f186a7a96fa03c16fbc2ce4c94d7d1c6632b1"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c2dbc0c22f63b38d01959beefd320fae",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 12145,
+                "upload_time": "2019-05-03T18:59:04",
+                "url": "https://files.pythonhosted.org/packages/11/10/122f9afccd24c16df53701de47a325883037c2e6fb3c7abd1b02ec7b1e47/zsub-0.4.0.tar.gz"
+            }
+        ],
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "591db6beecedff9cb4a98190298e1af0",
+                    "sha256": "a21b737579d0727d9ca6afe4520e5f884111f29e93492abca569260f9d7c443e"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.4.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "591db6beecedff9cb4a98190298e1af0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 14767,
+                "upload_time": "2019-05-03T20:30:29",
+                "url": "https://files.pythonhosted.org/packages/ab/1d/9f4142469b288354b7b14aaeaa840549619c70de86ae7ae850edd54c1752/zsub-0.4.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "530cdfb90ded8c669159e965f429eceb",
+                    "sha256": "c5c09b75bde571e5967fd5d24e920d1fa2274dd1318700d05be71f46c5d8ab91"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "530cdfb90ded8c669159e965f429eceb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 12172,
+                "upload_time": "2019-05-03T20:30:31",
+                "url": "https://files.pythonhosted.org/packages/23/c7/35db027525cbed1fabb23f6fdaf635ec2bf294a3ea770f6b117deb35de50/zsub-0.4.1.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac0402fedae30962244b916e64cff854",
+                    "sha256": "4b9a89d0e1b8e75fcf1dd61df4b227ba0e9af5d5d154522f0f7e3ab3c324dbef"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.4.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ac0402fedae30962244b916e64cff854",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 14788,
+                "upload_time": "2019-05-03T21:54:27",
+                "url": "https://files.pythonhosted.org/packages/10/5b/7fab7e285ed8799f0cc0119cf6227d3dd0df1c8aff99b307102258ce920b/zsub-0.4.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa6ae38e00700d0c08f873e7e1c8f255",
+                    "sha256": "66a2a90f2b306b1998ee37b994d95650deecaee73d45a62045a50092db18006e"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aa6ae38e00700d0c08f873e7e1c8f255",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 12197,
+                "upload_time": "2019-05-03T21:54:31",
+                "url": "https://files.pythonhosted.org/packages/f7/21/481ec6447d0a8ef47df8d6bad40047129307ee083e11e10c417312695a5d/zsub-0.4.2.tar.gz"
+            }
+        ],
+        "0.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "26d5124d99a7479116fc3dceb7109982",
+                    "sha256": "8962e4c79050e89f786f477ea94c7d3c8f08b531360eeb199cdb9d6ad3a11c73"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.5.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "26d5124d99a7479116fc3dceb7109982",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 16487,
+                "upload_time": "2019-05-04T17:45:35",
+                "url": "https://files.pythonhosted.org/packages/1d/85/16e15b756414d6df755aba7a0bae4b532251514a5ed26af3ee5c04f4d5c1/zsub-0.5.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dbecdf0a4d13843888c6b104c785b75c",
+                    "sha256": "bcac030148ed2dbb76e117481b57eacb3de08336164a955eb834236c4ede0b21"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dbecdf0a4d13843888c6b104c785b75c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 13333,
+                "upload_time": "2019-05-04T17:45:37",
+                "url": "https://files.pythonhosted.org/packages/2a/5d/e68d2d745ad9080b648fe4b03af1e958d4f965e4f8a944a9dbc51b6a4c70/zsub-0.5.0.tar.gz"
+            }
+        ],
+        "0.6.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9696b70c4ddf6f49ed4259caa6d32fea",
+                    "sha256": "0689f0744fb3179cd9af10efe3b7ffa01c5c762434797f2d0c3b0cf132337235"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.6.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9696b70c4ddf6f49ed4259caa6d32fea",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 16514,
+                "upload_time": "2019-05-08T15:43:37",
+                "url": "https://files.pythonhosted.org/packages/c8/05/c9b080725073ab8cbb4c5bdfcd9fb1d2be28723fc7fc5038c2c9d8c2375d/zsub-0.6.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "59cfbd21b753878c452f79960412e08a",
+                    "sha256": "c55f1ab25f7adac0dbf8ba76c4464fd264569b3460fee71fa923a29165445af0"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.6.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "59cfbd21b753878c452f79960412e08a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 13473,
+                "upload_time": "2019-05-08T15:43:39",
+                "url": "https://files.pythonhosted.org/packages/41/35/06f4e6324299cedb8de970740fd621bf855fabac483e6774b2d21031f1fb/zsub-0.6.0.tar.gz"
+            }
+        ],
+        "0.6.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "45683ad08a7c18d319d20a061ebc2191",
+                    "sha256": "13a9f0bee0a234c241aad6aec56b7767775c2360ded2a10e6c8f2efdc90053ff"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.6.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "45683ad08a7c18d319d20a061ebc2191",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 16479,
+                "upload_time": "2019-05-08T17:32:08",
+                "url": "https://files.pythonhosted.org/packages/15/8c/44db8541be8235b405b64ced8233e9e148c3b36f06370f41976f62736ae5/zsub-0.6.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9f42a06421582db936184c22a9fa1ed",
+                    "sha256": "e8bb4b004886439170c52129314b146fbac59afbb48a1a2f85b80fa66485e730"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.6.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d9f42a06421582db936184c22a9fa1ed",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 13399,
+                "upload_time": "2019-05-08T17:32:10",
+                "url": "https://files.pythonhosted.org/packages/c7/e3/dae776033379aa758af596a4ecdae8e6d70e9472644f1c3321bfb4a0dc51/zsub-0.6.1.tar.gz"
+            }
+        ],
+        "0.7.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f6c52ec8487820262ab9290b96e2a326",
+                    "sha256": "fcfb18341cc8e8191ed091348d982638848b362627b7185f85107d6a170882ce"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.7.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f6c52ec8487820262ab9290b96e2a326",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 17715,
+                "upload_time": "2019-05-10T14:26:53",
+                "url": "https://files.pythonhosted.org/packages/ed/4d/5bbb35703d9a912fd203836c4f9431cc0b0596517d91448d7b2edb513745/zsub-0.7.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3537f9de4f589530fb8638d6dbcffdec",
+                    "sha256": "dd9d64e491751ca94ea0ee90d2876e953a55b5cb6da54045c10021f28086925b"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.7.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3537f9de4f589530fb8638d6dbcffdec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 14297,
+                "upload_time": "2019-05-10T14:26:56",
+                "url": "https://files.pythonhosted.org/packages/9b/62/c9345d6d10c6430d655cc7235f0348fd982c9eb24a462bb7d5f840abd5e4/zsub-0.7.0.tar.gz"
+            }
+        ],
+        "0.8.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "388328f0ad9ff0d17b9c0be7ca718496",
+                    "sha256": "81a253f3efae0bf83b34a44224c6b29ec4a3b58d20d097531685808a14e1a302"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.8.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "388328f0ad9ff0d17b9c0be7ca718496",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 18034,
+                "upload_time": "2019-05-15T12:05:19",
+                "url": "https://files.pythonhosted.org/packages/fc/d0/35897c452dab9671f8e105ee40c3f096e47f807f33ce6de6ba9555bfec00/zsub-0.8.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "528a39092cd4135cc2b6a4d4d84142e2",
+                    "sha256": "73f8a775d09a6150a057f903693e739d76c14fc92f41f1525ee5e3b283b33f89"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.8.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "528a39092cd4135cc2b6a4d4d84142e2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 14550,
+                "upload_time": "2019-05-15T12:05:21",
+                "url": "https://files.pythonhosted.org/packages/ad/36/2f780c5cc075994e50d5b5ee298fdfe0f920154fdf50eba3a5cfb0102a60/zsub-0.8.0.tar.gz"
+            }
+        ],
+        "0.8.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6e2e7a8d7ea280d0f7b777e72ec19def",
+                    "sha256": "f06fa3a395bbcac63627cded22b120db2254ab751fefb5574a0679850bd6f1b2"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.8.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6e2e7a8d7ea280d0f7b777e72ec19def",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 18287,
+                "upload_time": "2019-05-15T12:51:54",
+                "url": "https://files.pythonhosted.org/packages/ae/e7/6eb1d647516bc4c6795e2f8c093ca8953d349c699289ad9a50b35ed28eb8/zsub-0.8.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e2cc540573ffc08de3d07f2b6f41ff8",
+                    "sha256": "6137e06b2324527c2d253adbb4d2abb2972bfaf6d63d21de95909b18aeb1a986"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.8.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3e2cc540573ffc08de3d07f2b6f41ff8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 15021,
+                "upload_time": "2019-05-15T12:51:55",
+                "url": "https://files.pythonhosted.org/packages/de/cb/71e66ebc6dfc57a2b0d3fada86d5e088171562de3e5951e3e455ad517564/zsub-0.8.1.tar.gz"
+            }
+        ],
+        "0.9.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78243aa888971cd22d4ac6a710cc83a0",
+                    "sha256": "5fe6d612c708d5aaacc7bbc0eee008809ca4d363107bcad4982c49ac6dd28603"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.9.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "78243aa888971cd22d4ac6a710cc83a0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 18481,
+                "upload_time": "2019-05-17T13:11:15",
+                "url": "https://files.pythonhosted.org/packages/c3/d8/f636c6cfae1139eaa8ecf76c9dd352d637ee3d0f784be95678d928336889/zsub-0.9.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1367a19ae6d6fc2beee3009186195a2d",
+                    "sha256": "2ccb32aa5fe0516d62aad0d3bd61cdb695034b6bb9aff04ac3ca5e50beb848ba"
+                },
+                "downloads": -1,
+                "filename": "zsub-0.9.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1367a19ae6d6fc2beee3009186195a2d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 15430,
+                "upload_time": "2019-05-17T13:11:17",
+                "url": "https://files.pythonhosted.org/packages/b4/d2/43dda9f638470e715a58cbed65f6b87cb0b8aaf89a8ab7f0dabbd8d48db4/zsub-0.9.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4e75f5d6d8bb7de2200a6f95f9cdaa57",
+                "sha256": "cfa9f614de51d054b6e59af498c15d406d12c8472382b8f264a4c8195160d48a"
+            },
+            "downloads": -1,
+            "filename": "zsub-0.17.4-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "4e75f5d6d8bb7de2200a6f95f9cdaa57",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">3.6",
+            "size": 29412,
+            "upload_time": "2019-09-28T22:32:59",
+            "url": "https://files.pythonhosted.org/packages/09/05/0dd136c5b7f5be46b50749480900338e4d034d581cf4b4870f9e6bb9fd50/zsub-0.17.4-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1f632728097d1be1e7c062a5f6fbe45a",
+                "sha256": "3217d9a4a4dcc51de4fbb2929fc9814dd879e8457a6fbf97037f33afc982b015"
+            },
+            "downloads": -1,
+            "filename": "zsub-0.17.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1f632728097d1be1e7c062a5f6fbe45a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">3.6",
+            "size": 26647,
+            "upload_time": "2019-09-28T22:33:02",
+            "url": "https://files.pythonhosted.org/packages/33/23/22b7146340401a7a6dc5b2f693350cc2822000e7a973bf9b77e8cc4d232a/zsub-0.17.4.tar.gz"
+        }
+    ]
+}

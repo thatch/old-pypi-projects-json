@@ -1,0 +1,354 @@
+{
+    "info": {
+        "author": "Luke Gregor",
+        "author_email": "lukegre@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "Buoyancy Glider Utils\n=====================\n\nThis is a tool to read and process Seaglider data from basestation netCDF format to a level2 QC phase.\nFor more information see the documentation of the main variable processing functions with the `calc_` prefix.\nBelow is a short example of how to use the data to read in and process variables.\n\n\nEXAMPLE USAGE\n-------------\nThis package is meant to be used in an interactive environment - ideally Jupyter Notebook\n\n```python\n%pylab inline\nimport BuoyancyGliderUtils as bgu\n\nsg543 = bgu.seaglider.load_basestation_netCDF_files('path_to_data/p5430*.nc')\n\n# Load all variables needed for processing (excluding time, position and depth dimensions)\nsg543.load_multiple_vars([\n\t'temperature',\n\t'salinity',\n\t'pressure',\n\t'eng_wlbb2flvmt_Chlsig',\n\t'eng_wlbb2flvmt_wl470sig',\n\t'eng_wlbb2flvmt_wl700sig',\n\t'eng_qsp_PARuV',\n])\n\n# DataFrame of science variables with dimension `sg_data_point`\ndf = sg543.data['sg_data_point']\n\n# Remove outliers and smooth temperature and salinity\ntemp = bgu.calc_physics(df.temperature, df.dives, df.depth)\nsalt = bgu.calc_physics(df.salinity, df.dives, df.depth)\n\n# Backscattering processing and despiking\nbb1, bb1_spikes, fig1 = bgu.calc_bb1(df.eng_wlbb2flvmt_wl470sig, temp, salt, df.dives, df.depth, 50, 1.29e-5)\nbb2, bb2_spikes, fig2 = bgu.calc_bb2(df.eng_wlbb2flvmt_wl700sig, temp, salt, df.dives, df.depth, 50, 3.50e-6)\n\n# Get theoretical PAR curve from exponential curve fit\npar = bgu.calc_par(df.eng_qsp_PARuV, df.dives, df.depth, t, 6.678e-4, 10.6)\n\n# Despike fluorescence and correct for quenching\nflr_qnch, flr, qnch_layer, figs = bgu.calc_fluorescence(\n\tdf.eng_wlbb2flvmt_Chlsig, bb1, par,\n\tdf.dives, df.depth, df.time, df.latitude, df.longitude,\n\t50, 0.0173, return_figure=True)\n\n# See the demo file for more info\n```\n\n\nABOUT\n-----\nThis work was funded by the CSIR (where Luke was working at the time of writing the code).\n\n- Version: 0.4.5\n- Author:  Luke Gregor, Tommy Ryan-Keogh\n- Email:   lukegre@gmail.com\n- Date:    2018-12-18\n- Institution: Council for Scientific and Industrial Research\n- Research group: Southern Ocean Carbon - Climate Observatory (SOCCO)\n\nPlease use the guidlines given on https://integrity.mit.edu/handbook/writing-code to cite this code.\n\n**Example citation:**\nSource: buoyancy_glider_utils [https://gitlab.com/socco/BuoyancyGliderUtils](https://gitlab.com/socco/BuoyancyGliderUtils) retrieved on 15 July 2018.\n\n\nCHANGE LOG\n----------\n**v0.4.5** (2018-12-18)\n\n- printv function replaces if verbose: print (neater)\n- figure text is now slightly bigger\n- improved savitzky_golay - data not lost when there are nans\n- quenching_correction no longer requires PAR / quenching mask\n\n**v0.4.2** (2018-11-12)\n\n- cleaning functions now seperated into seperate script\n- plotting made more robust with catches if x is not psuedo-discrete\n- blob outlier detection added\n\n**v0.4.1** (2018-10-31)\n\n- `seperate_spikes` has been moved to tools and has been renamed to `despike`\n- quenching correction has been fixed\n- `bin_depths` renamed to `grid_data` and input is now `x, y, var` instead of `var, x, y`\n- `neighbourhood_iqr` has been deprecated! It wasn't doing anything\n- fixed despiking and quenching reports (figures)\n\n**v0.4** (2018-10-19)\n\n- Added `calc_oxygen` module for both sbe and aanderaa oxygen optodes\n- Added 3D plotting function `plot.section3D`\n- `optics.seperate_spikes` added to calc_physics\n- Updated `optics.find_bad_profiles` to either use deep mean or median\n- User control on existing functions more explicit and robust\n\n\n**v0.3.4** (2018-08-31)\n\n- Photic depth function has been updated and is now more robust\n- Package now available on pypi\n\n\n**v0.3** (2018-07-23)\n\n- Added calibration module that lets users calibrate gliders from bottle data\n- A new density function that calculates density from corrected salinity and uses surface pressure as a reference pressure\n- seaglider module now has a `load_basestation_netCDF_files` function that makes loading data more explicit.\n- updated the demo file to include the new functions.\n\n**v0.2** (2018-07-13)\n\n- fixed bug when correcting for quenching (`index[0] does not exist` reported by Tommy)\n- made an MLD function that works on ungridded data that returns output as a mask or depths\n- `plot.bin_size` now accounts for nans that slocum glider data has\n- quenching correction can now be calculated without PAR as input\n- only one backscatter function - now the wavelength needs to be set\n- section plots are rasterized\n- deprication warning (`DataFrame.from_items`) in `optics.sunrise_sunset`\n- Slocum output from GEOMAR MATLAB scripts can be imported with `slocum.load_geomar_slocum_matfile`\n- `SeaGliderDataset.load_multiple_vars` returns the DataFrame if one dimension otherwise a dictionary of DataFrames\n- Added a function `tools.mask_to_depth` to convert boolean layers to depths as a series indexed by dive number\n\n\nPACKAGE STRUCTURE\n-----------------\nNOTE: This package structure is defined by the `__init__.py` file\n\n- calc_physics - for temperature and salinity\n- calc_bb - backscatter\n- calc_fluorescence - fluorescence and quenching correction\n- calc_par - get theoretical PAR\n- calibration\n\t- bottle_matchup\n\t- model_figs\n\t- robust_linear_fit\n- plot\n\t- pcolormesh\n\t- contourf\n\t- scatter\n\t- bin_size\n\t- save_figures_to_pdf\n\t- section3D\n- tools\n\t- grid_data\n\t- mask_to_depth\n\t- time_average_per_dive\n\t- merge_dimensions\n\t- gaussian_kernel\n- cleaning\n\t- despike\n\t- savitzky_golay\n\t- despiking_report\n\t- rolling_window\n\t- mask_bad_dive_fraction\n\t- horizontal_diff_outliers\n\t- outlier_bounds_iqr\n\t- outlier_bounds_std\n- optics\n\t- backscatter_dark_count\n\t- find_bad_profiles\n\t- fluorescence_dark_count\n\t- par_dark_count\n\t- par_fill_surface\n\t- par_scaling\n\t- photic_depth\n\t- quenching_correction\n\t- quenching_report\n\t- sunset_sunrise\n- physics\n\t- mixed_layer_depth\n\t- potential_density\n\t- brunt_vaisala\n- seaglider\n\t- load_basestation_netCDF_files\n- slocum\n\t- load_geomar_slocum_matfile\n\n\nACKNOWLEDGEMENTS\n----------------\n- ion_functions.data.flo_functions: Christopher Wingard, Craig Risien, Russell Desiderio\n- Tommy Ryan-Keogh and the other co-authors of Thomalla et al. (2017)\n- The SOCCO team for feedback and bug reporting\n- gibbs seawater package and seawater packages are used in BGU\n\n\nTO DO\n-----\n- Integrate the EGO gliders NetCDF format (http://dx.doi.org/10.13155/34980)\n- Add the concept of data provenence and processing tracking to the package.\n  This may require files to be returned as NetCDF from the processing functions\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/socco/BuoyancyGliderUtils",
+        "keywords": "",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "buoyancy-glider-utils",
+        "package_url": "https://pypi.org/project/buoyancy-glider-utils/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/buoyancy-glider-utils/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/socco/BuoyancyGliderUtils"
+        },
+        "release_url": "https://pypi.org/project/buoyancy-glider-utils/0.4.5/",
+        "requires_dist": [
+            "matplotlib",
+            "seawater",
+            "tqdm",
+            "scipy",
+            "numpy",
+            "xarray",
+            "pandas",
+            "astral",
+            "netCDF4",
+            "numexpr",
+            "plotly",
+            "gsw"
+        ],
+        "requires_python": "",
+        "summary": "Tools and utilities for buoyancy glider data processing.",
+        "version": "0.4.5"
+    },
+    "last_serial": 4611902,
+    "releases": {
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "83dd6bd307cfc63fd59a4fa53e0a35f9",
+                    "sha256": "f10862cc5dc70c4f8c8c9efb8b0e4d61ecf942e7c01e09de3b0380d881054fcb"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "83dd6bd307cfc63fd59a4fa53e0a35f9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 38554,
+                "upload_time": "2018-08-31T09:02:03",
+                "upload_time_iso_8601": "2018-08-31T09:02:03.909521Z",
+                "url": "https://files.pythonhosted.org/packages/f9/ed/aebc56db7b347fcb7332d707e519bf7fe342a62016a513ae5a03edb65021/buoyancy_glider_utils-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d4438d32e91babf1290c6d90e2152494",
+                    "sha256": "4a568c59fa39eb66c4719ffcb61dc3dd4f30e4eb66d8e0d0c49f72e095655809"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d4438d32e91babf1290c6d90e2152494",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36652,
+                "upload_time": "2018-08-31T09:02:05",
+                "upload_time_iso_8601": "2018-08-31T09:02:05.729003Z",
+                "url": "https://files.pythonhosted.org/packages/26/cd/1ede0e636fbbcfa7df2e01931b053e1a5991ea42941b5eca110593448154/buoyancy_glider_utils-0.3.1.tar.gz"
+            }
+        ],
+        "0.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "325a19d44517cecdeedc940ca63da35c",
+                    "sha256": "d7ea3df97c5f39ee33602377c51c633bc185cf7043b4d6edd5729bc01649ecd8"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.3.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "325a19d44517cecdeedc940ca63da35c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 38471,
+                "upload_time": "2018-08-31T09:07:52",
+                "upload_time_iso_8601": "2018-08-31T09:07:52.403770Z",
+                "url": "https://files.pythonhosted.org/packages/0e/57/ca183d451a7ffce82f606ecc045e664c117c84416066196dd33e11e98437/buoyancy_glider_utils-0.3.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aced6f59dd0150d24669b220fb6a37f1",
+                    "sha256": "ef1c14ba6900ac3f1aa4fdf719e4b052735f12a884d947c08d8b4b4f9cc6b4c9"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aced6f59dd0150d24669b220fb6a37f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36593,
+                "upload_time": "2018-08-31T09:07:53",
+                "upload_time_iso_8601": "2018-08-31T09:07:53.819664Z",
+                "url": "https://files.pythonhosted.org/packages/af/31/a44bb51e575e449ed9bdbfea416c73cbda9c1cb48cd54c1ce9fcee732bfa/buoyancy_glider_utils-0.3.2.tar.gz"
+            }
+        ],
+        "0.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8da5213c03b754cfd10dcb404da7e9a",
+                    "sha256": "a550e23388e5953576e42aa0d15a3e8ae94f7973a2e94819039a69c0e2684ec9"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.3.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c8da5213c03b754cfd10dcb404da7e9a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 38474,
+                "upload_time": "2018-08-31T09:18:03",
+                "upload_time_iso_8601": "2018-08-31T09:18:03.877323Z",
+                "url": "https://files.pythonhosted.org/packages/02/35/a373c2c73124d4adfb1895e1e114c1005ca8e5c8385d9e963d86920108de/buoyancy_glider_utils-0.3.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8078bc9eb10d022055d030e12dcdcc95",
+                    "sha256": "20b361682fca6d64a4e62900ffdf09e600dc0d95ec7759fea951675be08ae99f"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8078bc9eb10d022055d030e12dcdcc95",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36595,
+                "upload_time": "2018-08-31T09:18:05",
+                "upload_time_iso_8601": "2018-08-31T09:18:05.624419Z",
+                "url": "https://files.pythonhosted.org/packages/06/d7/6123bd7341c54b5398cf72dddf593402a0584399c131dc9fd89073f9867e/buoyancy_glider_utils-0.3.3.tar.gz"
+            }
+        ],
+        "0.3.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b9266eb7f50d53b620c23df923c9b2f9",
+                    "sha256": "485c53cf14ad38462e9bb4bd0585ac6a9134b1d6fdcff876d82f48cd88924b0d"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.3.4-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b9266eb7f50d53b620c23df923c9b2f9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 38475,
+                "upload_time": "2018-08-31T09:22:29",
+                "upload_time_iso_8601": "2018-08-31T09:22:29.473997Z",
+                "url": "https://files.pythonhosted.org/packages/75/2c/17f74767fd36836cd472ae9e83f3de91212d6a3b5864d85855c7255e26c3/buoyancy_glider_utils-0.3.4-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "193c583c85c6ca1bf79e8ad000ec2794",
+                    "sha256": "22bfb159d57a2557212feb800814fc0a8be1ca755e872bbc406f6ad9ea750792"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.3.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "193c583c85c6ca1bf79e8ad000ec2794",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36593,
+                "upload_time": "2018-08-31T09:22:30",
+                "upload_time_iso_8601": "2018-08-31T09:22:30.957485Z",
+                "url": "https://files.pythonhosted.org/packages/58/08/171e23e82eb9e28e6cb09b8cf76f07e1620c824a8c55dd6ad176c915eac2/buoyancy_glider_utils-0.3.4.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0c16ed59d52367c0ddb5ee8d335fd9c1",
+                    "sha256": "25aeea66306836f0c59cc983376a73f2a0d531d8b028af98d177a6f016a5f2b0"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0c16ed59d52367c0ddb5ee8d335fd9c1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 40401,
+                "upload_time": "2018-10-19T13:56:06",
+                "upload_time_iso_8601": "2018-10-19T13:56:06.018260Z",
+                "url": "https://files.pythonhosted.org/packages/ae/8f/098f933ed739b894f993ff58aee6408fc418bd810860d2e3769f218f1249/buoyancy_glider_utils-0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a597df99223221dcf0c799cbd20e92e4",
+                    "sha256": "ec9fc6837701e862ac50982cbb31a445e8be2b2497bf8828785c5476f3efcb2a"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a597df99223221dcf0c799cbd20e92e4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 38618,
+                "upload_time": "2018-10-19T13:56:07",
+                "upload_time_iso_8601": "2018-10-19T13:56:07.777386Z",
+                "url": "https://files.pythonhosted.org/packages/af/98/787e92761a4649dead505a12d91b099d507499a92e94250817ecb04eb260/buoyancy_glider_utils-0.4.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c314d0efeb9487e6e206beb423b84e33",
+                    "sha256": "a14b367660156954391c880000c2301bfeaed4f6ea21936ee66890e89a10e9e3"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.4.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c314d0efeb9487e6e206beb423b84e33",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 46937,
+                "upload_time": "2018-11-12T15:29:01",
+                "upload_time_iso_8601": "2018-11-12T15:29:01.624535Z",
+                "url": "https://files.pythonhosted.org/packages/fe/6b/141b36b56f3607445e80e57629c28de9f5ff113fb151a9389dc8358b013e/buoyancy_glider_utils-0.4.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c927c02d6a9a81aa0f4e3105494fd2a6",
+                    "sha256": "7139fd434e7d1cf7cf6fca9e2b882eb0e00e99934003f691d23e964a3ed3236f"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c927c02d6a9a81aa0f4e3105494fd2a6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 44808,
+                "upload_time": "2018-11-12T15:29:05",
+                "upload_time_iso_8601": "2018-11-12T15:29:05.956004Z",
+                "url": "https://files.pythonhosted.org/packages/b8/e0/decd6538ac1e4825b1d2bc5935ee5de7d82624cae4a5817acf34377e2ae3/buoyancy_glider_utils-0.4.2.tar.gz"
+            }
+        ],
+        "0.4.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "10a1a06eb48abd79b8864dce3a12845d",
+                    "sha256": "18c8eeac677324a8554b58ed32182ceafa3e302c7188e1570d650a9eff51df04"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.4.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "10a1a06eb48abd79b8864dce3a12845d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 47097,
+                "upload_time": "2018-12-18T11:59:05",
+                "upload_time_iso_8601": "2018-12-18T11:59:05.873726Z",
+                "url": "https://files.pythonhosted.org/packages/b1/91/c6c9c86aca1a7d6da4458bd09b4906cac3c3c55b8ec9d7806967dc600418/buoyancy_glider_utils-0.4.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f95a9290a6ce7b54222d8b239078f270",
+                    "sha256": "88ffcbe417fe46a89d4951fe3e740e6c08e6d9d04118f6981b1eb0c0a3b76828"
+                },
+                "downloads": -1,
+                "filename": "buoyancy_glider_utils-0.4.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f95a9290a6ce7b54222d8b239078f270",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 45210,
+                "upload_time": "2018-12-18T11:59:20",
+                "upload_time_iso_8601": "2018-12-18T11:59:20.871097Z",
+                "url": "https://files.pythonhosted.org/packages/94/a2/75b2b0988508bcb41a3618bdd4f8a39d054e5203780c0c1a28884752931a/buoyancy_glider_utils-0.4.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "10a1a06eb48abd79b8864dce3a12845d",
+                "sha256": "18c8eeac677324a8554b58ed32182ceafa3e302c7188e1570d650a9eff51df04"
+            },
+            "downloads": -1,
+            "filename": "buoyancy_glider_utils-0.4.5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "10a1a06eb48abd79b8864dce3a12845d",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 47097,
+            "upload_time": "2018-12-18T11:59:05",
+            "upload_time_iso_8601": "2018-12-18T11:59:05.873726Z",
+            "url": "https://files.pythonhosted.org/packages/b1/91/c6c9c86aca1a7d6da4458bd09b4906cac3c3c55b8ec9d7806967dc600418/buoyancy_glider_utils-0.4.5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f95a9290a6ce7b54222d8b239078f270",
+                "sha256": "88ffcbe417fe46a89d4951fe3e740e6c08e6d9d04118f6981b1eb0c0a3b76828"
+            },
+            "downloads": -1,
+            "filename": "buoyancy_glider_utils-0.4.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f95a9290a6ce7b54222d8b239078f270",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 45210,
+            "upload_time": "2018-12-18T11:59:20",
+            "upload_time_iso_8601": "2018-12-18T11:59:20.871097Z",
+            "url": "https://files.pythonhosted.org/packages/94/a2/75b2b0988508bcb41a3618bdd4f8a39d054e5203780c0c1a28884752931a/buoyancy_glider_utils-0.4.5.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,121 @@
+{
+    "info": {
+        "author": "Daniil Minukhin",
+        "author_email": "ddddsa@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Documentation",
+            "Topic :: Utilities"
+        ],
+        "description": "# Overview\n\nCombinedOptions is a module which helps you cope with the options from foliant.yml and tag options.\n\nModule has two classes:\n- **Options** which extends functionality of an options dictionary,\n- **CombinedOptions** which allows to combine config and tag options into one dictionary-like object.\n\n# Usage\n\nTo use functions and classes from this module, install it with command\n\n```bash\npip3 install foliatncontrib.utils.combinedoptions\n```\n\n## Options class\n\nOptions class wraps around the options dictionary, for example from your foliant.yaml file, and gives it some extra functionality.\n\n**Init parameters**\n\n- `options` (dict, required) \u2014 the pure dictionary with options.\n- `defaults` (dict, optional) \u2014 dictionary with default values, usually declared at the top of the preprocessor class.\n- `convertors` (dict, optional) \u2014 dictionary with key = option name, value = convertor function which will be applied to the value of an option with such name before storing in class.\n- `validators` (dict, optional) \u2014 dictionary with key = option name, value = validator function which will be applied to the value of this option. Function should check for validity and raise ValidationError if the check fails.\n\nLet's say you have such options in your config:\n\n```yaml\npreprocessors:\n    - MyAwesomePreprocessor:\n        config: config.xml\n        articles:\n            - a1\n            - a2\n            - a3\n        store_log: true\n```\n\nFoliant will parse this config into a dictionary which will look like this:\n\n```python\n>>> config_options = {'config': 'config.xml', 'articles': ['a1','a2','a3'], 'store_log': True}\n\n```\n\nLet's say you have a `defaults` dictionary in your preprocessor source code looking like this:\n\n```python\n>>> defaults = {'config': 'config.xml', 'articles': []}\n\n```\n\nLet's import the `Options` class to look at some of its functions:\n\n```python\n>>> from foliant.preprocessors.utils.combined_options import Options\n\n```\n\nTo use the class we need to supply our options dictionary and the dictionary with default values to the class constructor:\n\n```python\n>>> options = Options(config_options, defaults)\n\n```\n\n> Note that supplying the dictionary with defaults is not required, it is needed only for the work of `is_default` class method\n\nThe resulting object acts just like a dictionary:\n\n```python\n>>> options['config']\n'config.xml'\n>>> 'articles' in options\nTrue\n>>> options.get('missing', 'value')\n'value'\n\n```\n\nBut now, since we've given it a dictionary with default values, we can check if the value set in options differs from its default:\n\n```python\n>>> options.is_default('config')\nTrue\n>>> options.is_default('articles')\nFalse\n>>> options.is_default('store_log')\nFalse\n\n```\n\nAnother function of this class is that it can validate option values and convert them.\n\nValidators and convertors are functions which you'll have to create yourself. A few of them are already available in the module though, check the source code.\n\n**Validators**\n\nValidator is a function that takes option value as parameter and raises `ValidationError` it the value is wrong in some way.\n\nFor example, if you want to be sure that type the option user supplied is a string you can write a validator like this:\n\n```python\n>>> from foliant.preprocessors.utils.combined_options import ValidationError\n>>> def validate_is_str(option):\n...     if type(option) is not str:\n...         raise ValidationError('Value should be string!')\n\n```\n\nTo add validator to your options object, supply it in the constructor:\n\n```python\n>>> config_options = {'check': 123}\n>>> options = Options (config_options, validators={'check': validate_is_str})\nTraceback (most recent call last):\n  ...\nfoliant.preprocessors.utils.combined_options.ValidationError: Error in option \"check\": Value should be string!\n\n```\n\nYou see, it even didn't allow us to create an options object because the value of the parameter is wrong. You should handle this error on your own.\n\n**Converters**\n\nSometimes you have to convert the value of the option that user provided before using it. Converters are functions that are applied to certain options and replace their value in the Options object with the converted result of this function.\n\nFor example, if we need a comma-separated string has to be converted into a list, we can write this kind of convertor:\n\n```python\n>>> def convert_to_list(option):\n...     if type(option) is str:\n...         return option.split(',')\n...     else:\n...         return option\n\n```\n\nSo now let's attach our convertor to an option object:\n\n```python\n>>> config_options = {'names': 'Sam,Ben,Dan'}\n>>> options = Options(config_options, convertors={'names': convert_to_list})\n>>> options['names']\n['Sam', 'Ben', 'Dan']\n\n```\n\n## CombinedOptions class\n\nCombinedOptions is designed to merge several options dictionaries into one object. It is a common task when you have some global options set in foliant.yml but they can be overriden by tag options in Markdown source. The result is a dictionary-like CombinedOptions object which has all options from config and from the tag. Which option to use if they overlap is described by `priority` parameter.\n\nCombinedOptions is inherited from Options class and repeats all its functionality.\n\n**Init parameters**\n\n- `options` (dict, required) \u2014 dictionary where key = priority, value = option dictionary.\n- `priority` (str) \u2014 initial priority (if not set = first key from options dict).\n\nRemaining parameters are the same as in Options class:\n\n- `defaults` (dict, optional) \u2014 dictionary with default values, usually declared at the top of the preprocessor class.\n- `convertors` (dict, optional) \u2014 dictionary with key = option name, value = convertor function which will be applied to the value of this option before storing in class.\n- `validators` (dict, optional) \u2014 dictionary with key = option name, value = validator function which will be applied to the value of this option. Function should check for validity and raise ValidationError if the check fails.\n\nTo illustrate CombinedOptions' handiness let's assume that you have two option dictionaries, one came from foliant.yml and the other one \u2014 from the tag you are currently processing:\n\n```python\n>>> config_options = {'config': 'config.xml', 'dpi': 300}\n>>> tag_options = {'dpi': 500, 'caption': 'Main screen'}\n\n```\n\nLet's combine these two options in one object. To do this we will have to pack them into a single dictionary under arbitrary keys, and supply a priority string which should be one of aforementioned keys:\n\n```python\n>>> from foliant.preprocessors.utils.combined_options import CombinedOptions\n>>> options = CombinedOptions({'config': config_options, 'tag': tag_options}, priority='tag')\n\n```\n\nNote that we've given tag_options a priority by supplying parameter `priority='tag'`\n\nNow look at the values we are getting:\n\n```python\n>>> options['config']  # we have option from config_options\n'config.xml'\n>>> options['caption']  # we also have an option from tag_options\n'Main screen'\n>>> options['dpi']  # when we ask option which occurs in both, we get one from tag_options\n500\n\n```\n\nOf course, CombinedOptions supports validation and convertors just as the Options class does.\n\nYou can also change the priority on fly. To do this just give a new value to the `priority` attribute:\n\n```python\n>>> options.priority = 'config'\n>>> options['dpi']\n300\n\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/foliant-docs/foliantcontrib.utils.combinedoptions",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "foliantcontrib.utils.combinedoptions",
+        "package_url": "https://pypi.org/project/foliantcontrib.utils.combinedoptions/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/foliantcontrib.utils.combinedoptions/",
+        "project_urls": {
+            "Homepage": "https://github.com/foliant-docs/foliantcontrib.utils.combinedoptions"
+        },
+        "release_url": "https://pypi.org/project/foliantcontrib.utils.combinedoptions/1.0.0/",
+        "requires_dist": [
+            "foliant (>=1.0.8)",
+            "PyYAML"
+        ],
+        "requires_python": "",
+        "summary": "",
+        "version": "1.0.0"
+    },
+    "last_serial": 4819513,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2d41fc232553685056c0440376c69e6d",
+                    "sha256": "276817a781bba850d0f7a1b6ca593e2d61d8919e7a8329e297c80ced68ffe947"
+                },
+                "downloads": -1,
+                "filename": "foliantcontrib.utils.combinedoptions-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2d41fc232553685056c0440376c69e6d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6839,
+                "upload_time": "2019-02-14T09:22:33",
+                "url": "https://files.pythonhosted.org/packages/46/58/983f392c5e05ed6d1bab644a3cc003d31e4d908d4fd1c0d8848e68c2b410/foliantcontrib.utils.combinedoptions-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa065f4b7a3cc31faa302ecb47a615f1",
+                    "sha256": "50e66effa7b73784fce99b33f0ea53947c6f15d0cb49f05667d098ed2036ceef"
+                },
+                "downloads": -1,
+                "filename": "foliantcontrib.utils.combinedoptions-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aa065f4b7a3cc31faa302ecb47a615f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5821,
+                "upload_time": "2019-02-14T09:22:35",
+                "url": "https://files.pythonhosted.org/packages/51/15/568f254eb50f8f4e1e91716a7f93419fbf9e296b37f6901632842e441148/foliantcontrib.utils.combinedoptions-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2d41fc232553685056c0440376c69e6d",
+                "sha256": "276817a781bba850d0f7a1b6ca593e2d61d8919e7a8329e297c80ced68ffe947"
+            },
+            "downloads": -1,
+            "filename": "foliantcontrib.utils.combinedoptions-1.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2d41fc232553685056c0440376c69e6d",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 6839,
+            "upload_time": "2019-02-14T09:22:33",
+            "url": "https://files.pythonhosted.org/packages/46/58/983f392c5e05ed6d1bab644a3cc003d31e4d908d4fd1c0d8848e68c2b410/foliantcontrib.utils.combinedoptions-1.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "aa065f4b7a3cc31faa302ecb47a615f1",
+                "sha256": "50e66effa7b73784fce99b33f0ea53947c6f15d0cb49f05667d098ed2036ceef"
+            },
+            "downloads": -1,
+            "filename": "foliantcontrib.utils.combinedoptions-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "aa065f4b7a3cc31faa302ecb47a615f1",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5821,
+            "upload_time": "2019-02-14T09:22:35",
+            "url": "https://files.pythonhosted.org/packages/51/15/568f254eb50f8f4e1e91716a7f93419fbf9e296b37f6901632842e441148/foliantcontrib.utils.combinedoptions-1.0.0.tar.gz"
+        }
+    ]
+}

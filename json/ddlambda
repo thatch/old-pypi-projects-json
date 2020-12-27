@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "Datadog, Inc.",
+        "author_email": "dev@datadoghq.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# datadog-lambda-layer-python\n\nDatadog Lambda Layer for Python (2.7, 3.6 and 3.7) enables custom metric submission from AWS Lambda functions, and distributed tracing between serverful and serverless environments.\n\n## Installation\n\nDatadog Lambda Layer can be added to a Lambda function via AWS Lambda console, [AWS CLI](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html#configuration-layers-using) or [Serverless Framework](https://serverless.com/framework/docs/providers/aws/guide/layers/#using-your-layers) using the following ARN.\n\n```\narn:aws:lambda:<AWS_REGION>:464622532012:layer:Datadog-<PYTHON_RUNTIME>:<VERSION>\n```\n\nReplace `<AWS_REGION>` with the AWS region where your Lambda function is published to. Replace `<PYTHON_RUNTIME>` with `Datadog-Python27` with `Datadog-Python36` or `Datadog-Python37` that matches your Lambda's Python runtime. Replace `<VERSION>` with the latest layer version that can be found from [CHANGELOG](CHANGELOG.md). For example,\n\n```\narn:aws:lambda:us-east-1:464622532012:layer:Datadog-Python37:1\n```\n\nThe Datadog API must be defined as an environment variable via [AWS CLI](https://docs.aws.amazon.com/lambda/latest/dg/env_variables.html) or [Serverless Framework](https://serverless-stack.com/chapters/serverless-environment-variables.html):\n\n* DD_API_KEY or DD_KMS_API_KEY (if encrypted by KMS)\n\nSet the following Datadog environment variable to `datadoghq.eu` to send your data to the Datadog EU site.\n\n* DD_SITE\n\nIf your Lambda function powers a performance-critical task (e.g., a consumer-facing API). You can avoid the added latencies of metric-submitting API calls, by setting the following Datadog environment variable to `True`. Custom metrics will be submitted asynchronously through CloudWatch Logs and [the Datadog log forwarder](https://github.com/DataDog/datadog-serverless-functions/tree/master/aws/logs_monitoring).\n\n* DD_FLUSH_TO_LOG\n\n### The Serverless Framework\n\nIf your Lambda function is deployed using the Serverless Framework, refer to this sample `serverless.yml`.\n\n```yaml\nprovider:\n  name: aws\n  runtime: python3.7\n  tracing:\n    lambda: true\n    apiGateway: true\n\nfunctions:\n  hello:\n    handler: handler.hello\n    events:\n      - http:\n          path: hello\n          method: get\n    layers:\n      - arn:aws:lambda:<AWS_REGION>:464622532012:layer:Datadog-<PYTHON_RUNTIME>:<VERSION>\n    environment:\n      DD_API_KEY: <DD_API_KEY>\n```\n\n\n## Basic Usage\n\n```python\nimport requests\nfrom datadog_lambda.wrapper import datadog_lambda_wrapper\nfrom datadog_lambda.metric import lambda_metric\n\n@datadog_lambda_wrapper\ndef lambda_handler(event, context):\n    lambda_metric(\"my_metric\", 10, tags=['tag:value'])\n    requests.get(\"https://www.datadoghq.com\")\n```\n\n\n## Custom Metrics\n\nCustom metrics can be submitted using `lambda_metric` and the Lambda handler function needs to be decorated with `@datadog_lambda_wrapper`. The metrics are submitted as [distribution metrics](https://docs.datadoghq.com/graphing/metrics/distributions/). \n\n**IMPORTANT NOTE:** If you have already been submitting the same custom metric as non-distribution metric (e.g., gauge, count, or histogram) without using the Datadog Lambda Layer, you MUST pick a new metric name to use for `lambda_metric`. Otherwise that existing metric will be converted to a distribution metric and the historical data prior to the conversion will be no longer queryable.\n\n```python\nfrom datadog_lambda.wrapper import datadog_lambda_wrapper\nfrom datadog_lambda.metric import lambda_metric\n\n@datadog_lambda_wrapper\ndef lambda_handler(event, context):\n    lambda_metric(\n        \"coffee_house.order_value\",  # metric\n        12.45,  # value\n        tags=['product:latte', 'order:online']  # tags\n    )\n```\n\n### VPC\nIf your Lambda function is associated with a VPC, you need to ensure it has [access to the public internet](https://aws.amazon.com/premiumsupport/knowledge-center/internet-access-lambda-function/).\n\n\n## Distributed Tracing\n\n[Distributed tracing](https://docs.datadoghq.com/tracing/guide/distributed_tracing/?tab=python) allows you to propagate a  trace context from a service running on a host to a service running on AWS Lambda, and vice versa, so you can see performance end-to-end. Linking is implemented by injecting Datadog trace context into the HTTP request headers.\n\nDistributed tracing headers are language agnostic, e.g., a  trace can be propagated between a Java service running on a host to a Lambda function written in Python.\n\nBecause the trace context is propagated through HTTP request headers, the Lambda function needs to be triggered by AWS API Gateway or AWS Application Load Balancer.\n\nTo enable this feature, you simple need to decorate your Lambda handler function with `@datadog_lambda_wrapper`.\n\n```python\nimport requests\nfrom datadog_lambda.wrapper import datadog_lambda_wrapper\n\n@datadog_lambda_wrapper\ndef lambda_handler(event, context):\n    requests.get(\"https://www.datadoghq.com\")\n```\n\nNote, the Datadog Lambda Layer is only needed to enable *distributed* tracing between Lambda and non-Lambda services. For standalone Lambda functions, traces can be found in Datadog APM after configuring [the X-Ray integration](https://docs.datadoghq.com/integrations/amazon_xray/).\n\n### Patching\n\nBy default, widely used HTTP client libraries, such as `requests`, `urllib2` and `urllib.request` are patched automatically to inject Datadog trace context into outgoing requests.\n\nYou can also manually retrieve the Datadog trace context (i.e., http headers in a Python dict) and inject it to request headers when needed.\n\n```python\nimport requests\nfrom datadog_lambda.wrapper import datadog_lambda_wrapper\nfrom datadog_lambda.tracing import get_dd_trace_context\n\n@datadog_lambda_wrapper\ndef lambda_handler(event, context):\n    headers = get_dd_trace_context()\n    requests.get(\"https://www.datadoghq.com\", headers=headers)\n```\n\n### Sampling\n\nThe traces for your Lambda function are converted by Datadog from AWS X-Ray traces. X-Ray needs to sample the traces that the Datadog tracing agent decides to sample, in order to collect as many complete traces as possible. You can create X-Ray sampling rules to ensure requests with header `x-datadog-sampling-priority:1` or `x-datadog-sampling-priority:2` via API Gateway always get sampled by X-Ray.\n\nThese rules can be created using the following AWS CLI command.\n\n```bash\naws xray create-sampling-rule --cli-input-json file://datadog-sampling-priority-1.json\naws xray create-sampling-rule --cli-input-json file://datadog-sampling-priority-2.json\n```\n\nThe file content for `datadog-sampling-priority-1.json`:\n```json\n{\n    \"SamplingRule\": {\n        \"RuleName\": \"Datadog-Sampling-Priority-1\",\n        \"ResourceARN\": \"*\",\n        \"Priority\": 9998,\n        \"FixedRate\": 1,\n        \"ReservoirSize\": 100,\n        \"ServiceName\": \"*\",\n        \"ServiceType\": \"AWS::APIGateway::Stage\",\n        \"Host\": \"*\",\n        \"HTTPMethod\": \"*\",\n        \"URLPath\": \"*\",\n        \"Version\": 1,\n        \"Attributes\": {\n            \"x-datadog-sampling-priority\": \"1\"\n        }\n    }\n}\n```\n\nThe file content for `datadog-sampling-priority-2.json`:\n```json\n{\n    \"SamplingRule\": {\n        \"RuleName\": \"Datadog-Sampling-Priority-2\",\n        \"ResourceARN\": \"*\",\n        \"Priority\": 9999,\n        \"FixedRate\": 1,\n        \"ReservoirSize\": 100,\n        \"ServiceName\": \"*\",\n        \"ServiceType\": \"AWS::APIGateway::Stage\",\n        \"Host\": \"*\",\n        \"HTTPMethod\": \"*\",\n        \"URLPath\": \"*\",\n        \"Version\": 1,\n        \"Attributes\": {\n            \"x-datadog-sampling-priority\": \"2\"\n        }\n    }\n}\n```\n\n### Non-proxy integration\n\nIf your Lambda function is triggered by API Gateway via [the non-proxy integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started-lambda-non-proxy-integration.html), then you have to [set up a mapping template](https://aws.amazon.com/premiumsupport/knowledge-center/custom-headers-api-gateway-lambda/), which passes the Datadog trace context from the incoming HTTP request headers to the Lambda function via the `event` object.\n\nIf your Lambda function is deployed by the Serverless Framework, such a mapping template gets created by default.\n\n\n## Opening Issues\n\nIf you encounter a bug with this package, we want to hear about it. Before opening a new issue, search the existing issues to avoid duplicates.\n\nWhen opening an issue, include the Datadog Lambda Layer version, Python version, and stack trace if available. In addition, include the steps to reproduce when appropriate.\n\nYou can also open an issue for a feature request.\n\n\n## Contributing\n\nIf you find an issue with this package and have a fix, please feel free to open a pull request following the [procedures](CONTRIBUTING.md).\n\n\n## License\n\nUnless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.\n\nThis product includes software developed at Datadog (https://www.datadoghq.com/). Copyright 2019 Datadog, Inc.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/DataDog/datadog-lambda-layer-python",
+        "keywords": "datadog aws lambda layer",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ddlambda",
+        "package_url": "https://pypi.org/project/ddlambda/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ddlambda/",
+        "project_urls": {
+            "Homepage": "https://github.com/DataDog/datadog-lambda-layer-python"
+        },
+        "release_url": "https://pypi.org/project/ddlambda/0.2.0/",
+        "requires_dist": null,
+        "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, <4",
+        "summary": "The Datadog AWS Lambda Layer",
+        "version": "0.2.0"
+    },
+    "last_serial": 5584458,
+    "releases": {
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a9072fde7dbd4dc15e8cfc40a715da6f",
+                    "sha256": "6956c6560596e9583a27c682468df8f5437a095713641fcf5c28378f95aefa55"
+                },
+                "downloads": -1,
+                "filename": "ddlambda-0.2.0-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a9072fde7dbd4dc15e8cfc40a715da6f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, <4",
+                "size": 14662,
+                "upload_time": "2019-07-25T17:47:25",
+                "url": "https://files.pythonhosted.org/packages/19/aa/b62fa1072ef750655042431982ab127582ddbcce87a08bd7a0066110238e/ddlambda-0.2.0-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f05c4a94ad0b576130f6af8f54709ec2",
+                    "sha256": "4ab81c90f470885a49af7122a8ebef4eac635e4e58e51c1fb948857fbed6433c"
+                },
+                "downloads": -1,
+                "filename": "ddlambda-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f05c4a94ad0b576130f6af8f54709ec2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, <4",
+                "size": 7813,
+                "upload_time": "2019-07-25T17:47:29",
+                "url": "https://files.pythonhosted.org/packages/5b/4a/8f72466e4994aa1a82f0df865aeb79589343eee668938f98cb1837d1c7d7/ddlambda-0.2.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a9072fde7dbd4dc15e8cfc40a715da6f",
+                "sha256": "6956c6560596e9583a27c682468df8f5437a095713641fcf5c28378f95aefa55"
+            },
+            "downloads": -1,
+            "filename": "ddlambda-0.2.0-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a9072fde7dbd4dc15e8cfc40a715da6f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, <4",
+            "size": 14662,
+            "upload_time": "2019-07-25T17:47:25",
+            "url": "https://files.pythonhosted.org/packages/19/aa/b62fa1072ef750655042431982ab127582ddbcce87a08bd7a0066110238e/ddlambda-0.2.0-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f05c4a94ad0b576130f6af8f54709ec2",
+                "sha256": "4ab81c90f470885a49af7122a8ebef4eac635e4e58e51c1fb948857fbed6433c"
+            },
+            "downloads": -1,
+            "filename": "ddlambda-0.2.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f05c4a94ad0b576130f6af8f54709ec2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, <4",
+            "size": 7813,
+            "upload_time": "2019-07-25T17:47:29",
+            "url": "https://files.pythonhosted.org/packages/5b/4a/8f72466e4994aa1a82f0df865aeb79589343eee668938f98cb1837d1c7d7/ddlambda-0.2.0.tar.gz"
+        }
+    ]
+}

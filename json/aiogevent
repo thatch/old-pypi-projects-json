@@ -1,0 +1,122 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 1,
+        "author": "Victor Stinner",
+        "author_email": "victor.stinner@gmail.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python"
+        ],
+        "description": "aiogevent implements the asyncio API (PEP 3156) on top of gevent. It makes\npossible to write asyncio code in a project currently written for gevent.\n\naiogevent allows to use greenlets in asyncio coroutines, and to use asyncio\ncoroutines, tasks and futures in greenlets: see ``yield_future()`` and\n``wrap_greenlet()`` functions.\n\nThe main visible difference between aiogevent and trollius is the behaviour of\n``run_forever()``: ``run_forever()`` blocks with trollius, whereas it runs in a\ngreenlet with aiogevent. It means that aiogevent event loop can run in an\ngreenlet while the Python main thread runs other greenlets in parallel.\n\n* `aiogevent on Python Cheeseshop (PyPI)\n  <https://pypi.python.org/pypi/aiogevent>`_\n* `aiogevent at Bitbucket\n  <https://bitbucket.org/haypo/aiogevent>`_\n* Copyright/license: Open source, Apache 2.0. Enjoy!\n\nSee also the `aioeventlet project <http://aioeventlet.readthedocs.org/>`_.\n\n\nHello World\n===========\n\nCode::\n\n    import aiogevent\n    import trollius as asyncio\n\n    def hello_world():\n        print(\"Hello World\")\n        loop.stop()\n\n    asyncio.set_event_loop_policy(aiogevent.EventLoopPolicy())\n    loop = asyncio.get_event_loop()\n    loop.call_soon(hello_world)\n    loop.run_forever()\n    loop.close()\n\n\n\nAPI\n===\n\naiogevent specific functions:\n\n.. warning::\n   aiogevent API is not considered as stable yet.\n\nyield_future\n------------\n\nyield_future(future, loop=None):\n\n   Wait for a future, a task, or a coroutine object from a greenlet.\n\n   Yield control other eligible greenlet until the future is done (finished\n   successfully or failed with an exception).\n\n   Return the result or raise the exception of the future.\n\n   The function must not be called from the greenlet running the aiogreen\n   event loop.\n\n   Example of greenlet waiting for a trollius task. The ``progress()``\n   callback is called regulary to see that the event loop in not blocked::\n\n        import aiogevent\n        import gevent\n        import trollius as asyncio\n        from trollius import From, Return\n\n        def progress():\n            print(\"computation in progress...\")\n            loop.call_later(0.5, progress)\n\n        @asyncio.coroutine\n        def coro_slow_sum(x, y):\n            yield From(asyncio.sleep(1.0))\n            raise Return(x + y)\n\n        def green_sum():\n            loop.call_soon(progress)\n\n            task = asyncio.async(coro_slow_sum(1, 2))\n\n            value = aiogevent.yield_future(task)\n            print(\"1 + 2 = %s\" % value)\n\n            loop.stop()\n\n        asyncio.set_event_loop_policy(aiogevent.EventLoopPolicy())\n        gevent.spawn(green_sum)\n        loop = asyncio.get_event_loop()\n        loop.run_forever()\n        loop.close()\n\n   Output::\n\n        computation in progress...\n        computation in progress...\n        computation in progress...\n        1 + 2 = 3\n\nwrap_greenlet\n-------------\n\nwrap_greenlet(gt):\n\n   Wrap a greenlet into a Future object.\n\n   The Future object waits for the completion of a greenlet. The result or\n   the exception of the greenlet will be stored in the Future object.\n\n   Greenlet of greenlet and gevent modules are supported: ``gevent.greenlet``\n   and ``greenlet.greenlet``.\n\n   The greenlet must be wrapped before its execution starts. If the\n   greenlet is running or already finished, an exception is raised.\n\n   For ``gevent.Greenlet``, the ``_run`` attribute must be set. For\n   ``greenlet.greenlet``, the ``run`` attribute must be set.\n\n   Example of trollius coroutine waiting for a greenlet. The ``progress()``\n   callback is called regulary to see that the event loop in not blocked::\n\n        import aiogevent\n        import gevent\n        import trollius as asyncio\n        from trollius import From, Return\n\n        def progress():\n            print(\"computation in progress...\")\n            loop.call_later(0.5, progress)\n\n        def slow_sum(x, y):\n            gevent.sleep(1.0)\n            return x + y\n\n        @asyncio.coroutine\n        def coro_sum():\n            loop.call_soon(progress)\n\n            gt = gevent.spawn(slow_sum, 1, 2)\n            fut = aiogevent.wrap_greenlet(gt, loop=loop)\n\n            result = yield From(fut)\n            print(\"1 + 2 = %s\" % result)\n\n        asyncio.set_event_loop_policy(aiogevent.EventLoopPolicy())\n        loop = asyncio.get_event_loop()\n        loop.run_until_complete(coro_sum())\n        loop.close()\n\n   Output::\n\n        computation in progress...\n        computation in progress...\n        computation in progress...\n        1 + 2 = 3\n\n\nInstallation\n============\n\nInstall aiogevent with pip\n--------------------------\n\nType::\n\n    pip install aiogevent\n\nInstall aiogevent on Windows with pip\n-------------------------------------\n\nProcedure for Python 2.7:\n\n* If pip is not installed yet, `install pip\n  <http://www.pip-installer.org/en/latest/installing.html>`_: download\n  ``get-pip.py`` and type::\n\n  \\Python27\\python.exe get-pip.py\n\n* Install aiogevent with pip::\n\n  \\Python27\\python.exe -m pip install aiogevent\n\n* pip also installs dependencies: ``eventlet`` and ``trollius``\n\nManual installation of aiogevent\n--------------------------------\n\nRequirements:\n\n- Python 2.6 or 2.7\n- gevent 0.13 or newer\n- trollius 0.3 or newer (``pip install trollius``), but trollius 1.0 or newer\n  is recommended\n\nType::\n\n    python setup.py install\n\n\nTo do\n=====\n\n* support gevent versions older than 0.13. With version older than 0.13, import\n  gevent raise \"ImportError: .../python2.7/site-packages/gevent/core.so:\n  undefined symbol: current_base\"\n* support gevent monkey patching: enable py27_patch in tox.ini\n* enable py33 environments in tox.ini: gevent 1.0.1 does not support Python 3,\n  need a new release. Tests pass on the development (git) version of gevent.\n\n\ngevent and Python 3\n===================\n\nThe development version of gevent has an experimental support of Python 3.\nSee the `gevent issue #38: python3\n<https://github.com/gevent/gevent/issues/38>`_.\n\n\nThreading\n=========\n\ngevent does not support threads: the aiogevent must run in the main thread.\n\n\nChangelog\n=========\n\n2014-12-18: Version 0.2\n-----------------------\n\n* Rename the ``link_future()`` function to ``yield_future()``\n* Add run_aiotest.py\n* tox now also runs aiotest test suite\n\n2014-11-25: Version 0.1\n-----------------------\n\n* First public release",
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://pypi.python.org/pypi/aiogevent",
+        "keywords": null,
+        "license": "Apache License 2.0",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "aiogevent",
+        "package_url": "http://pypi.python.org/pypi/aiogevent",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/aiogevent/0.2",
+        "requires_python": null,
+        "summary": "asyncio API (PEP 3156) implemented on top of gevent",
+        "version": "0.2"
+    },
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "downloads": 1780,
+                "filename": "aiogevent-0.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "397301196b53cdcbe9bd18b37066c677",
+                "packagetype": "bdist_wheel",
+                "path": "86/fd/3bb9a3ddf6cb2515bf388d5a65b62bb2cd4927139b00cdf2543e4bc8d0d2/aiogevent-0.1-py2-none-any.whl",
+                "python_version": "2.7",
+                "size": 8273,
+                "upload_time": "2014-11-25T21:21:07",
+                "url": "https://pypi.python.org/packages/86/fd/3bb9a3ddf6cb2515bf388d5a65b62bb2cd4927139b00cdf2543e4bc8d0d2/aiogevent-0.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 1443,
+                "filename": "aiogevent-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "833d7e20becb306060aa6cdde744427e",
+                "packagetype": "sdist",
+                "path": "57/70/4e640a343654b03566d5c25696d19f078116fc549a3270a4c0eef9e22e75/aiogevent-0.1.tar.gz",
+                "python_version": "source",
+                "size": 19332,
+                "upload_time": "2014-11-25T21:21:04",
+                "url": "https://pypi.python.org/packages/57/70/4e640a343654b03566d5c25696d19f078116fc549a3270a4c0eef9e22e75/aiogevent-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "downloads": 1701,
+                "filename": "aiogevent-0.2-py27-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bfec75421fa99fb68af175acb1d4592f",
+                "packagetype": "bdist_wheel",
+                "path": "9a/58/38a084c81397229cf4c608edac9f14f4dce16384cb39b7f5f4b784f13f78/aiogevent-0.2-py27-none-any.whl",
+                "python_version": "2.7",
+                "size": 8670,
+                "upload_time": "2014-12-18T12:25:03",
+                "url": "https://pypi.python.org/packages/9a/58/38a084c81397229cf4c608edac9f14f4dce16384cb39b7f5f4b784f13f78/aiogevent-0.2-py27-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 1640,
+                "filename": "aiogevent-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a2b9c1b4c0ee367e978f7ca54687e825",
+                "packagetype": "sdist",
+                "path": "43/f9/b9949a861d966cf26883df737e957ac35af7cb60ea2bc5e66c2d803f543c/aiogevent-0.2.tar.gz",
+                "python_version": "source",
+                "size": 15921,
+                "upload_time": "2014-12-18T12:25:00",
+                "url": "https://pypi.python.org/packages/43/f9/b9949a861d966cf26883df737e957ac35af7cb60ea2bc5e66c2d803f543c/aiogevent-0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 1701,
+            "filename": "aiogevent-0.2-py27-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "bfec75421fa99fb68af175acb1d4592f",
+            "packagetype": "bdist_wheel",
+            "path": "9a/58/38a084c81397229cf4c608edac9f14f4dce16384cb39b7f5f4b784f13f78/aiogevent-0.2-py27-none-any.whl",
+            "python_version": "2.7",
+            "size": 8670,
+            "upload_time": "2014-12-18T12:25:03",
+            "url": "https://pypi.python.org/packages/9a/58/38a084c81397229cf4c608edac9f14f4dce16384cb39b7f5f4b784f13f78/aiogevent-0.2-py27-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "downloads": 1640,
+            "filename": "aiogevent-0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a2b9c1b4c0ee367e978f7ca54687e825",
+            "packagetype": "sdist",
+            "path": "43/f9/b9949a861d966cf26883df737e957ac35af7cb60ea2bc5e66c2d803f543c/aiogevent-0.2.tar.gz",
+            "python_version": "source",
+            "size": 15921,
+            "upload_time": "2014-12-18T12:25:00",
+            "url": "https://pypi.python.org/packages/43/f9/b9949a861d966cf26883df737e957ac35af7cb60ea2bc5e66c2d803f543c/aiogevent-0.2.tar.gz"
+        }
+    ]
+}

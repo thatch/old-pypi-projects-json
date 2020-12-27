@@ -1,0 +1,269 @@
+{
+    "info": {
+        "author": "scpketer",
+        "author_email": "scpketer3@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2"
+        ],
+        "description": "# Eventualpy (ex pyvent)\n[![Build Status](https://travis-ci.org/scpketer/eventualpy.svg?branch=v1.2)](https://travis-ci.org/scpketer/eventualpy)\n[![PyPI version](https://badge.fury.io/py/eventualpy.svg)](https://badge.fury.io/py/eventualpy)\n\nA lightweight Python event managing module.\n\nRenamed to Eventualpy, see\n[issue #1](https://github.com/scpketer/eventualpy/issues/1) for details.\n\n## Installation\nInstall directly from PyPI - run the following command:\n\n```sh\npy -m pip install eventualpy\n```\n\n## Basic features\n1.  Back compatibility with Python 2.x\n2.  Decorator-based handler subscription\n3.  Event priority system\n4.  Handler exception handling just in time of event call\n\n## Handling events\nBefore you create event handler, you'll need\nto import `eventualpy` and initalize event manager:\n\n```python\nfrom eventualpy import Event\nfrom eventualpy import EventManager\nfrom eventualpy import EventPriority\n\nem = EventManager()\n```\n\nAlso, you can create custom `Event` class:\n\n```python\nclass ExampleCustomEvent(Event):\n    def __init__(self, argument):\n        super(ExampleCustomEvent, self).__init__()\n        self.argument = argument\n```\n\nDo not forget to invoke\n`super(ExampleCustomEvent, self).__init__()`, `EventManager`\nchecks `Event.cancelled` attribute in event call process.\n\n### Defining a default-priority event handler\nLet's assume that we have already written\ncustom event and imported the classes.\nThen, just decorate some function with `@em.subscribe(Event)`.\nPlease note that we pass **type**, but not the object.\n\n```Python\n@em.subscribe(ExampleCustomEvent)\ndef handle(event):\n    print(\"I'm an event handler!\")\n```\n\nIf you're good with just that, skip to the [Calling events](#calling-events).\n\n### Defining a priority of event handler\nIn the example above, we have written a very basic handler with a default\npriority.\nTo let the handler be the first or last,\nyou can define a priority of a handler.\n\nUse `EventPriority` enum for better code readability,\nor use custom priority (integer) value.\n\n```python\n@em.subscribe(ExampleCustomEvent, priority=EventPriority.HIGHEST)\ndef handle(event):\n    print(\"I'm an event handler, I am executed before all the others!\")\n```\n\n```python\n@em.subscribe(ExampleCustomEvent, priority=5)\ndef handle(event):\n    print(\"I'm an event handler, I am executed before all the others!\")\n```\n\nHandlers with equal priority are not sorted,\nand remain in order they were subscripted.\n\n### Dynamic/decorator-less handler subscription\nIn some cases, it can be useful to subscribe to the event dynamically,\nwhich is better done without decorators.\n\nBasically, decorator - is a function. So you can just call it:\n\n```python\nem.subscribe(ExampleCustomEvent)\n```\n\nBut, there's some important thing.\n`em.subscribe(event)` returns another function,\nwhich takes function as an argument (too much \"function\", eh?).\n\nSo let's just give it some lambda:\n\n```python\nem.subscribe(ExampleCustomEvent)(lambda event: print(event.argument))\n```\n\nWe're just calling function `em.subscribe(event)` has returned,\npassing lambda expression as an argument.\n\nThe code above is equivalent to a subscription with decorator.\n\n### Cancelling the event, and ignoring cancellation\nIf you don't want next handlers to process the event,\nyou can *cancel* the event.\n\nBut, if handlers *ignore* cancellation, this won't help.\n\nSo, how do we cancel stuff and process cancelled?\n\n```python\n@em.subscribe(ExampleCustomEvent)\ndef handle(event):\n    process_stuff(event)\n    event.cancelled = True\n```\n\nThis handler *cancels* the event, and next handlers will not receive the event,\nunless they explicitly *declare* their intention to ignore cancellation.\n\n```python\n@em.subscribe(ExampleCustomEvent, ignore_cancelled=True)\ndef handle(event):\n    process_stuff(event)\n```\n\nThis handler will receive event, even in case some handler has cancelled it.\n\n## Calling events\n### Simple call\nOnce we're done with subscripting the handlers, we need to call the event.\n\nIt's pretty simple:\n\n```python\nevent_obj = ExampleCustomEvent(\"argument string\")\n\nem.call(event_obj)\n```\n\nHandlers will receive the event object\nyou have passed to the `call(event)` function.\n\n### Handling exceptions\nHandlers are the functions, too, and there is a chance that they raise\nsome exception.\nHow do we know when something throws an exception?\n\nBy default, `call(event)` does nothing in case of exception - it just ignores\nthe exception.\nBut if you need to catch it, pass an exception catcher function.\n\n```python\nevent_obj = ExampleCustomEvent(\"argument string\")\n\nem.call(event_obj, on_exception=lambda e: print(e))\n```\n\nIn this example, when handler raises an exception, it will be printed out.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/scpketer/eventualpy",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "eventualpy",
+        "package_url": "https://pypi.org/project/eventualpy/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/eventualpy/",
+        "project_urls": {
+            "Homepage": "https://github.com/scpketer/eventualpy"
+        },
+        "release_url": "https://pypi.org/project/eventualpy/1.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A lightweight event manager written on Python",
+        "version": "1.3"
+    },
+    "last_serial": 5248977,
+    "releases": {
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "455cfc6cd974a8b25a1487784c9fb2f3",
+                    "sha256": "790dc6576da1d4d5e6b048d12493f7fb0e99810a4a481121893bbcfadb122b99"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "455cfc6cd974a8b25a1487784c9fb2f3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5366,
+                "upload_time": "2018-10-31T09:15:41",
+                "upload_time_iso_8601": "2018-10-31T09:15:41.009673Z",
+                "url": "https://files.pythonhosted.org/packages/59/ec/dbc78f0367026c453ddb605b1eec24d33816b690be8f8bc3b03dfc990b7c/eventualpy-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "01894ea6540ca344a496faa2302e5834",
+                    "sha256": "11a6af48c6f67b7a744cc9021f8b5d8b8f8d3256a169690b98a522bca550e881"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "01894ea6540ca344a496faa2302e5834",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3147,
+                "upload_time": "2018-10-31T09:15:42",
+                "upload_time_iso_8601": "2018-10-31T09:15:42.273291Z",
+                "url": "https://files.pythonhosted.org/packages/45/a9/61d19184d8837052552cfae7779cae8b218df0a3196ccc6ad1eb1d876f83/eventualpy-1.0.1.tar.gz"
+            }
+        ],
+        "1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12611bb9b1569ea9d9b7c1b7b5647fef",
+                    "sha256": "a258ace124a54af5287868be0683c0f49f4f998f5482da791717bb8ec1397414"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "12611bb9b1569ea9d9b7c1b7b5647fef",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5913,
+                "upload_time": "2018-10-31T16:11:47",
+                "upload_time_iso_8601": "2018-10-31T16:11:47.204653Z",
+                "url": "https://files.pythonhosted.org/packages/31/2d/5bfaa7cbcb6f444acec5201f090c5803aaed2b2ad727fe927e441142a541/eventualpy-1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "60886548d998d8c5a36d0e79c1deeb3d",
+                    "sha256": "c1fabe20fa4f6009733ded2806a69a00d4e1b96e998a216d0ab2293188512b4a"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "60886548d998d8c5a36d0e79c1deeb3d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3497,
+                "upload_time": "2018-10-31T16:11:48",
+                "upload_time_iso_8601": "2018-10-31T16:11:48.497048Z",
+                "url": "https://files.pythonhosted.org/packages/22/0f/edee83932c1b27703eecf63e1890227b6db5bc3991b6267e696387952045/eventualpy-1.1.tar.gz"
+            }
+        ],
+        "1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d24f4d6326f4bbd79f78ef6da5efdbc4",
+                    "sha256": "d25be71a65b77a7ad69168e729072b3ff136d90f70323de755459b2116f8a582"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d24f4d6326f4bbd79f78ef6da5efdbc4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6902,
+                "upload_time": "2018-11-01T14:57:23",
+                "upload_time_iso_8601": "2018-11-01T14:57:23.932229Z",
+                "url": "https://files.pythonhosted.org/packages/4e/eb/a60316a01aeb933124004121c5b6218681a02fe57b62a5870fe4089d0fc8/eventualpy-1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6c07c95b7245698057941a3fc23dbbe6",
+                    "sha256": "02c47378ecf5383bab3c22892602108eee27d181b61972b5a5f580d4ab8b228a"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6c07c95b7245698057941a3fc23dbbe6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3923,
+                "upload_time": "2018-11-01T14:57:27",
+                "upload_time_iso_8601": "2018-11-01T14:57:27.734196Z",
+                "url": "https://files.pythonhosted.org/packages/1a/09/924f6833447ba4b0acaa3c7efa80d3658b9af5b18c19d8bc332796d2b0df/eventualpy-1.2.tar.gz"
+            }
+        ],
+        "1.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4db09e792c21b40e2b3a5e14e9e1234f",
+                    "sha256": "86fdd7e3dda2b17b400662a0c85bccb729b90fbdda771f5ed6c8846b5b196b49"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4db09e792c21b40e2b3a5e14e9e1234f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6944,
+                "upload_time": "2018-11-02T04:37:26",
+                "upload_time_iso_8601": "2018-11-02T04:37:26.870491Z",
+                "url": "https://files.pythonhosted.org/packages/83/69/3082ab0f51aca4e0bf76a8fc2497cbc538f742929079a0501fe72ef3dbef/eventualpy-1.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b9f78dfeacdc11e0e66ce07beb929cef",
+                    "sha256": "76779ebcb763351a400b07611ea65a4e419692bb64757c329b7caf70b941669c"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b9f78dfeacdc11e0e66ce07beb929cef",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3943,
+                "upload_time": "2018-11-02T04:37:29",
+                "upload_time_iso_8601": "2018-11-02T04:37:29.022839Z",
+                "url": "https://files.pythonhosted.org/packages/08/49/dfbc430d24357f5f8f281efad7d9cdc850f657af7789cf79b21c8c9d0724/eventualpy-1.2.1.tar.gz"
+            }
+        ],
+        "1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0d2d2fe7a7aa0b314d0de559825e1e9d",
+                    "sha256": "94ef0556f495278cac74a6e354ada793e5ff9d4fda558dfdaa6de6ad101ba53e"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0d2d2fe7a7aa0b314d0de559825e1e9d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5226,
+                "upload_time": "2019-05-09T19:03:16",
+                "upload_time_iso_8601": "2019-05-09T19:03:16.086595Z",
+                "url": "https://files.pythonhosted.org/packages/2a/da/2ec2141674b1388457fc5c076a85b99fdcf9e34103a690880e1a51a77f17/eventualpy-1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "25d5add862ab0a6e4d1f66f45f290642",
+                    "sha256": "70e293c16bbb21898db7f166545ae0b5196a79335e6b938b3da5d96967e2ce5c"
+                },
+                "downloads": -1,
+                "filename": "eventualpy-1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "25d5add862ab0a6e4d1f66f45f290642",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3922,
+                "upload_time": "2019-05-09T19:03:17",
+                "upload_time_iso_8601": "2019-05-09T19:03:17.509368Z",
+                "url": "https://files.pythonhosted.org/packages/a7/f5/9b3d091d5ddb5095ca0fa9de5d80e86aee7dd55d9260c7a994c2117519de/eventualpy-1.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0d2d2fe7a7aa0b314d0de559825e1e9d",
+                "sha256": "94ef0556f495278cac74a6e354ada793e5ff9d4fda558dfdaa6de6ad101ba53e"
+            },
+            "downloads": -1,
+            "filename": "eventualpy-1.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "0d2d2fe7a7aa0b314d0de559825e1e9d",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 5226,
+            "upload_time": "2019-05-09T19:03:16",
+            "upload_time_iso_8601": "2019-05-09T19:03:16.086595Z",
+            "url": "https://files.pythonhosted.org/packages/2a/da/2ec2141674b1388457fc5c076a85b99fdcf9e34103a690880e1a51a77f17/eventualpy-1.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "25d5add862ab0a6e4d1f66f45f290642",
+                "sha256": "70e293c16bbb21898db7f166545ae0b5196a79335e6b938b3da5d96967e2ce5c"
+            },
+            "downloads": -1,
+            "filename": "eventualpy-1.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "25d5add862ab0a6e4d1f66f45f290642",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 3922,
+            "upload_time": "2019-05-09T19:03:17",
+            "upload_time_iso_8601": "2019-05-09T19:03:17.509368Z",
+            "url": "https://files.pythonhosted.org/packages/a7/f5/9b3d091d5ddb5095ca0fa9de5d80e86aee7dd55d9260c7a994c2117519de/eventualpy-1.3.tar.gz"
+        }
+    ]
+}

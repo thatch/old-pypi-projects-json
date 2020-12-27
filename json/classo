@@ -1,0 +1,145 @@
+{
+    "info": {
+        "author": "Leo Simpson",
+        "author_email": "leo.bill.simpson@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "Constrained sparse regression functions in Python\n\n\n\n1) Different type of problem : \n\t- Least square :\t\t\t\n\t- Huber  : \n\t- Concomitant Least square :\n\t- Concomitant Huber : \n\n2) Different methods for solving the problems : \n\nFour main methods have been implemented for those.\n\n\n\t-Forward Backward splitting method:\n\t\tStandard way to solve a convex minimisation problem with an addition of\n\t\tsmooth and non-smooth function : Projected Proximal Gradient Descent. This\n\t\tmethod only works with the two non concomitants problems. For the huber\n\t\tproblem, we use the second formulation.\n\n\t-No-proj method\n\t\tSimilar to the Projected Proximal Gradient Descent, but which does not involve\n\t\ta projection, which can be difficult to compute for some matrix C. Only for\n\t\tnon concomitant problems.\n\n\t-Double prox method\n\t\tUse of Doulgas Rachford splitting algorithm which use the proximal operator of\n\t\tboth functions. It also solves concomitant problems, but it is usefull even in the\n\t\tnon concomitant case because it is usually more efficient than forward backward\n\t\tsplitting method. For the huber problem, we use the second formulation, then\n\t\twe change it into a Least square problem of dimension m (m + d) instead of m d.\n\n\t-ODE method  \n\t\tFrom the KKT conditions, we can derive an simple ODE for the solution of\n\t\tthe non concomitants problems, which shows that the solution is piecewise-\n\t\taffine. For the least square, as the problem can always be reported to a a non\n\t\tconcomitant problem for another lambda, one can use the whole non-concomitant-\n\t\tpath computed with the ODE method to then solve the concomitant-path.\n\n\n3) Two main functions \n\nFor solving the problem for a fix \\lambda : \n\nfixlasso (matrix, lam, typ ='LS ', meth ='choose ', plot_time =True, plot_sol =True, plot_sigm =True, rho = 1.345)\n\n\t-matrix\n\t\tMatrices (A;C; y) of the problem.\n\n\t-lam\n\t\tLambda/lambdamax in [0; 1] where lambdamax is a majoration of the lambda when the solution is null \n\t\t(depends on the type of problem).\n\n\t-typ\n\t\tType of problem : 'Huber', 'Concomitant' , 'Concomitant Huber' or 'LS'. \n\t\tAny other string will set the type of problem to Least Square.\n\n\t-meth\n\t\tMethod to solve the problem. If wrong input, the algorithm choose the method according to lambda\n\t\t\tPossibilities for types 'LS' and 'Huber' : 'FB', 'Noproj', '2prox', 'ODE'.\n\t\t\tPossibilities for type 'Concomitant' : '2prox', 'ODE'.\n\t\t\tPossibilities for type 'Concomitant Huber' : '2prox'.\n\n\t-plot_time\n\t\tIf set to True : prints the running time.\n\n\t-plot_sol\n\t\tIf set to True : plots the solution in a bars diagram.\n\n\t-plot_sigm\n\t\tIf set to True and the type we solve a concomitant problem : prints sigma/sigmamax.\n\n\t-rho\n\t\tNormalized rho for non-concomitant Huber problem : rho * sqrt(m) / norm_inf(y)\n\t\tUnormalized sigma for concomitant Huber problem.\n\n\n\t-returns\n\t\tThe function returns : \n\t\t\tAn 'numpy.ndarray' type vector representing the solution betafor non concomitant problems, \n\t\t\tA tuple containing beta and sigma for the concomitant problems.\n\n\n\n\n\n\nFor solving the problem for the whole path :\n\npathlasso (matrix, lambdas ='choose ', lamin =1e -2, typ='LS ', meth ='ODE ', plot_time =True, plot_sol =True, plot_sigm =True, rho = 1.345, compare = False )\n\n\n\n\t-matrix\n\t\tMatrices (A;C; y) of the problem.\n\n\t-lambdas\n\t\tGives the list of lambda/lambdamax in [0; 1] where we need the problem to be solved. \n\t\tIf a boolean is given, it is the next parameter that will give the path.\n\n\t-lamin\n\t\tIf lambdas is a boolean, it gives the lambda/lambdamax minimum : \n\t\tthe algorithm will solve the problem for all lambda in [lamin * lambdamax; lambdamax] \n\t\t(with 100 points).\t\n\n\t-typ\n\t\tType of problem : 'Huber', 'Concomitant' , 'Concomitant Huber' or 'LS'. \n\t\tAny other string will set the type of problem to Least Square.\n\n\t-meth\n\t\tMethod to solve the problem. If wrong input, the algorithm choose the method according to lambda.\n\t\t\tPossibilities for types 'LS' and 'Huber' : 'FB', 'Noproj', '2prox', 'ODE'.\n\t\t\tPossibilities for type 'Concomitant' : '2prox', 'ODE'.\n\t\t\tPossibilities for type 'Concomitant Huber' : '2prox'.\n\n\t\tFor each case except 'ODE', the algorithm solves the problem for each lambda of the path using warm starts.\n\n\n\t-plot_time\n\t\tIf set to True : prints the running time.\n\n\t-plot_sol\n\t\tIf set to True : plots the solution in a bars diagram.\n\n\t-plot_sigm\n\t\tIf set to True and the type we solve a concomitant problem : prints sigma/sigmamax.\n\n\t-rho\n\t\tNormalized rho for non-concomitant Huber problem : rho * sqrt(m) / norm_inf(y)\n\t\tUnormalized sigma for concomitant Huber problem.\n\n\n\t-returns\n\t\tThe function returns :  a list 'numpy.ndarray' type vector representing the solution beta for each lambda ;\n\t\tthe list of lambda corresponding (unormalized), \n\t\talso the list of sigmas for the concomitant problems.\n\n\n\n\n\n4) Little functions :\n\nFor computing the theoretical lambda/lambdamax in the case of concomitant problems :  \n\n\tmodel_selection(m,d)\n\n\t\tWhere m is the number of sample and d the number of parameter, it returns : lam0 = sqrt(2/m) invPhi(1-t), with invPhi the quantile function for the standard normal distribution, and t is the solution to the equation t*p = invPhi(1-t)**4 + 2*invPhi(1-t)**2\n\n\n\nFor computing the solution using cross-validation and the previous main functions : \n\n\tCV(matrices,k=5,typ='LS',test=0.4,lamin=1e-2, print_lam= True)\n\n\t\tWhere k is the number of 'cluster' used, test is the proportion of sample kept for testing, and print lam tells us if the function also print the lambda/lambdamax used. The function returns the solution Beta as a 'numpy.ndarray'.\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Leo-Simpson/CLasso",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "classo",
+        "package_url": "https://pypi.org/project/classo/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/classo/",
+        "project_urls": {
+            "Homepage": "https://github.com/Leo-Simpson/CLasso"
+        },
+        "release_url": "https://pypi.org/project/classo/0.0.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Algorithms for constrained Lasso problems",
+        "version": "0.0.2"
+    },
+    "last_serial": 5553697,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "efa00d26d84722fdecd2459e1f1e7e2f",
+                    "sha256": "0fe83c3e8866258b1c670608d9308652e83527852253cafb9879c583bddf1d45"
+                },
+                "downloads": -1,
+                "filename": "classo-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "efa00d26d84722fdecd2459e1f1e7e2f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 29016,
+                "upload_time": "2019-07-18T22:18:44",
+                "url": "https://files.pythonhosted.org/packages/bf/cb/545b745f937c9821c1c52f09c1b1cf31f158707d7aed2b5a790574d96d29/classo-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c716f06accfa15efb993131e7f0b830a",
+                    "sha256": "3b9ead0dc534bce7ac9a77b5bc620199e4edaee0686af9b45bfa39702b389e61"
+                },
+                "downloads": -1,
+                "filename": "classo-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c716f06accfa15efb993131e7f0b830a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19342,
+                "upload_time": "2019-07-18T22:18:46",
+                "url": "https://files.pythonhosted.org/packages/59/2a/32cafe2a4169020214cb594c38add1ff14b67abd77575717656ef0d470d8/classo-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6466593494efecad7ea92d2e46dddf94",
+                    "sha256": "4320c5044fa4e9a5046fbc63b935f78e94a73c4f103f531799e3fa4503494304"
+                },
+                "downloads": -1,
+                "filename": "classo-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6466593494efecad7ea92d2e46dddf94",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 29016,
+                "upload_time": "2019-07-18T22:23:24",
+                "url": "https://files.pythonhosted.org/packages/c1/f9/e19e11aecea944431386302657f42451ea2fe618400af44a74b0f0dd9b19/classo-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ad6a59a7d1135962c1888cb5937772f",
+                    "sha256": "a2f2ddcb59a3bff76c564d5b7bfa48616f0d596a087c7762becf609b91dcaec9"
+                },
+                "downloads": -1,
+                "filename": "classo-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2ad6a59a7d1135962c1888cb5937772f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19345,
+                "upload_time": "2019-07-18T22:23:25",
+                "url": "https://files.pythonhosted.org/packages/1e/ad/ddb2b9bfebf1ef5c216d267ee7fa20c8cca2e7c8f70ae5adc178f95901d8/classo-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6466593494efecad7ea92d2e46dddf94",
+                "sha256": "4320c5044fa4e9a5046fbc63b935f78e94a73c4f103f531799e3fa4503494304"
+            },
+            "downloads": -1,
+            "filename": "classo-0.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "6466593494efecad7ea92d2e46dddf94",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 29016,
+            "upload_time": "2019-07-18T22:23:24",
+            "url": "https://files.pythonhosted.org/packages/c1/f9/e19e11aecea944431386302657f42451ea2fe618400af44a74b0f0dd9b19/classo-0.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2ad6a59a7d1135962c1888cb5937772f",
+                "sha256": "a2f2ddcb59a3bff76c564d5b7bfa48616f0d596a087c7762becf609b91dcaec9"
+            },
+            "downloads": -1,
+            "filename": "classo-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "2ad6a59a7d1135962c1888cb5937772f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 19345,
+            "upload_time": "2019-07-18T22:23:25",
+            "url": "https://files.pythonhosted.org/packages/1e/ad/ddb2b9bfebf1ef5c216d267ee7fa20c8cca2e7c8f70ae5adc178f95901d8/classo-0.0.2.tar.gz"
+        }
+    ]
+}

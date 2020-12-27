@@ -1,0 +1,170 @@
+{
+    "info": {
+        "author": "Ruben Sanchez-Garcia",
+        "author_email": "rsanchez@cnb.csic.es",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# Carbon Cleaner\n**Carbon Cleaner** (carbon_cleaner_em) is a python package designed to segment cryo-EM micrographs into:\n\n  - carbon/high-contrast region \n  - good regions\n  \nso that incorrectly picked coordinates can be easily ruled out\n\nTo get a complete description of usage execute\n\n`cleanMics -h`\n\n##### Example\n\n`cleanMics  -c path/to/inputCoords/ -o path/to/outputCoords/ -b 180 -s 1.0   -i  /path/to/micrographs/ --predictedMaskDir path/to/store/masks --deepThr 0.5`\n\n\n## INSTALLATION:\n\n### anaconda (recommended)\n\n1) Install anaconda Python 3x version from https://www.anaconda.com/distribution/\n\n2) Create an environment for carbon_cleaner  \n  `conda create -n env_carbon_cleaner_em python=3.6`\n\n3) Activate environment (each time you want to use carbon_cleaner you will need to activate it)  \n  `conda activate env_carbon_cleaner_em`\n  \n4) Install carbon_cleaner_em from repository  \n  ` conda install -c rsanchez1369 carbon-cleaner-em`\n\n5) Download deep learning model  \n  `cleanMics --download`\n\n6) Ready!\n  \n### pip/source option:\n\n\n1) install CUDA and cudnn in such a way that tensorflow (https://www.tensorflow.org/) can be executed. \n   Carbon_cleaner is compatible with CUDA-8,CUDA-9 and CUDA-10.\n   Tensorflow version will be automatically selected according your CUDA version and installed later.\n   CUDA is available at https://developer.nvidia.com/cuda-toolkit and cudnn is available at\n   https://developer.nvidia.com/cudnn.  \n   Easy cudnn instalation can be performed automatically at step 2 using python module cudnnenv\n\n1.1) (optional) create virtual environment  \n```\npip install virtualenv\nvirtualenv --system-site-packages -p python3 ./env_carbon_cleaner_em\nsource ./env_carbon_cleaner_em/bin/activate\n```\n2) Install carbon_cleaner_em  \n```\ngit clone https://github.com/rsanchezgarc/carbon_cleaner_em.git\ncd carbon_cleaner_em\npython setup.py install\n```\n  or  \n`pip install carbon_cleaner_em`\n\n2.1) If cudnn not installed yet, install install cudnnenv  \n`pip install cudnnenv`  \n \n and execute  \n`cudnnenv install [VERSION]`, where recommended versions are \"v6-cuda8\" for CUDA-8, \"v7.0.1-cuda9\" for CUDA-9 and\n\"v7.4.1-cuda10\" for CUDA-10.  \n \n3) Download deep learning model  \n  `cleanMics --download`\n  \n4) Ready!  \n\n### scipion option:\n\n1) Install scipion version 2.0+ from http://scipion.i2pc.es/  \n\n2) Install xmipp either from plugin manager or from command line  \n  `scipion installp -p scipion-em-xmipp`  \n\n3) Install deepLearningToolkit either from plugin manager or from command line  \n  `scipion installb deepLearningToolkit`  \n\n4) Ready!\n\n## USAGE\n\nCarbon Cleaner employs an U-net-based deep learning model to segmentate micrographs into good regions and bad regions. Thus, it is mainly used as a post-processing step after particle picking in which coordinates selected in high contrast artefacts, such as carbon, will be ruled out. Additionally, it can be employed to generate binary masks so that particle pickers can be prevented from considering problematic regions.\nThus, carbon_cleaner employs as a mandatory argument a(some) micrograph(s) fileneame(s) and the particle size in pixels. Additionally it can recive as input:\n\n1) A directory where picked coordinates are located and another directory where scored/cleaned coordiantes will be saved. Coordinates will be saved in pos format or plain text (columns whith header colnames x and y) are located. \nThere must be one different coordinates file for each micrograph named as the micrograph and the output coordiantes will preserve the naming.  \nE.g. -c path/to/inputCoordsDirectory/ -o /path/to/outputCoordsDirectory/  \nAllowed formats are xmipp pos and raw text tab separated with at least two columns named as xcoor, ycoor in the header.\nRaw text file example:\n```\nmicFname1.tab:\n###########################################\nxcoor ycoor otherInfo1 otherInfo2\n12  143  -1  0.1\n431  4341  0  0.2\n323  321  1  0.213\n###########################################\n```\n2) A directory where predicted masks will be saved (mrc format).\nE.g. --predictedMaskDir path/where/predictedMasksWillBeSaved/  \n\n3) A downsampling factor (can be less than 1 if actually upsampling was performed) in case the coordinates where picked from\nmicrographs at different scale.  \nE.g. -s 1.5 #will downsample coordiantes by a factor 1.5 and then it will apply the predicted mask that is as big as the imput micrographs  \n\n4) Any combination of previous options.  \n\nTrained carbon cleaner model is available at http://campins.cnb.csic.es/carbon_cleaner/ and can be automatically download executing  \n`cleanMics --download`\n\n#TO CONTINUE\n\nBeware that if you installed carbon_cleaner using pip/source, then CUDA and cudnn libraries should be\navailable prior execution, so if CUDA is not found, export its path prior execution  \n```\nexport LD_LIBRARY_PATH=/path/to/cuda/cuda-9.0/lib64:$LD_LIBRARY_PATH\n```\nand then execute `cleanMics`  \n\n#### Examples\n\n```\n#Donwload deep learning model\ncleanMics --download\n    \n#Compute masks from imput micrographs and store them\ncleanMics  -c path/to/inputCoords/ -b $BOX_SIXE  -i  /path/to/micrographs/ --predictedMaskDir path/to/store/masks\n\n#Rule out input bad coordinates (threshold<0.5) and store them into path/to/outputCoords\ncleanMics  -c path/to/inputCoords/ -o path/to/outputCoords/ -b $BOX_SIXE -s $DOWN_FACTOR  -i  /path/to/micrographs/ --deepThr 0.5\n\n#Compute goodness scores from input coordinates and store them into path/to/outputCoords\ncleanMics  -c path/to/inputCoords/ -o path/to/outputCoords/ -b $BOX_SIXE -s $DOWN_FACTOR  -i  /path/to/micrographs/ --deepThr 0.5     \n```\n\n```\ncleanMics  -c /home/rsanchez/ScipionUserData/projects/2dAverages_embeddings/Runs/008337_XmippParticlePickingAutomatic/extra/ -o ~/tmp/carbon_cleaner_em/coordsCleaned/ -b 180 -s 1.0   --inputMicsPath  /home/rsanchez/ScipionUserData/projects/2dAverages_embeddings/Runs/002321_ProtImportMicrographs/extra/stack_0002_2x_SumCorr.mrc --predictedMaskDir /home/rsanchez/tmp/carbon_cleaner_em/micsPreds --deepThr 0.5\n```",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/rsanchezgarc/carbon_cleaner_em",
+        "keywords": "cryo-EM deep learning",
+        "license": "Apache 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "carbon-cleaner-em",
+        "package_url": "https://pypi.org/project/carbon-cleaner-em/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/carbon-cleaner-em/",
+        "project_urls": {
+            "Homepage": "https://github.com/rsanchezgarc/carbon_cleaner_em"
+        },
+        "release_url": "https://pypi.org/project/carbon-cleaner-em/0.15/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Deep learning for cryo-EM micrograph cleaning",
+        "version": "0.15"
+    },
+    "last_serial": 5278603,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "68e333fdee925b74f3685e6966686a4d",
+                    "sha256": "75ddba54339a96f7a02ec52384d9677254a7831a77198bbf3faa05c8695e2aef"
+                },
+                "downloads": -1,
+                "filename": "carbon_cleaner_em-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "68e333fdee925b74f3685e6966686a4d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8561,
+                "upload_time": "2019-05-06T15:15:04",
+                "url": "https://files.pythonhosted.org/packages/0e/5c/b7646f37cd2ee51a9ee0ab94cc4643ea2de555b62091c0c5a9a4ede1cda3/carbon_cleaner_em-0.1.tar.gz"
+            }
+        ],
+        "0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c02c708bdfcea8b5ee580622491c1bd",
+                    "sha256": "73141a90db427530dd3f207a57183cc06e0b870757e2d6915910f5a1657dc69d"
+                },
+                "downloads": -1,
+                "filename": "carbon_cleaner_em-0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8c02c708bdfcea8b5ee580622491c1bd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10095,
+                "upload_time": "2019-05-07T13:46:42",
+                "url": "https://files.pythonhosted.org/packages/2f/bc/489f60b252b9be817cf14ae013d46c2e18cca0b71fd6227e1cbb102577fa/carbon_cleaner_em-0.11.tar.gz"
+            }
+        ],
+        "0.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2da0701bafa39ca9cf7d53e8855041ba",
+                    "sha256": "82924342e7cdce1dc62407a8bb2537fc8c9968c2a1223c0e56d75989d6cb30a1"
+                },
+                "downloads": -1,
+                "filename": "carbon_cleaner_em-0.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2da0701bafa39ca9cf7d53e8855041ba",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11051,
+                "upload_time": "2019-05-08T17:11:06",
+                "url": "https://files.pythonhosted.org/packages/6a/47/739cece6fd7efbc18a167a8887a4ac7a44adde643c104e61d8fea1c7885d/carbon_cleaner_em-0.12.tar.gz"
+            }
+        ],
+        "0.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "597a175b0b1bd90562a74d357d28f265",
+                    "sha256": "59bc5a115d7d74c1df6c70f6b656b0609599ddbfee89d554138790d35d7c835c"
+                },
+                "downloads": -1,
+                "filename": "carbon_cleaner_em-0.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "597a175b0b1bd90562a74d357d28f265",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11029,
+                "upload_time": "2019-05-13T11:56:57",
+                "url": "https://files.pythonhosted.org/packages/24/1d/5d322f58b2567e2e3002558a1c89e7683c0d873cc70edfc66b1254a1733d/carbon_cleaner_em-0.13.tar.gz"
+            }
+        ],
+        "0.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "353d656eb65f34afa4ac4de0c50d1fe1",
+                    "sha256": "3192264e56108f0f9badbe078a8bb9bbe454ae646a5354580c2ab5e3e7f38adc"
+                },
+                "downloads": -1,
+                "filename": "carbon_cleaner_em-0.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "353d656eb65f34afa4ac4de0c50d1fe1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11021,
+                "upload_time": "2019-05-13T12:09:35",
+                "url": "https://files.pythonhosted.org/packages/21/ad/65e6439e76765e3e4e278c840328d52f9ebb1876a65f54ed92b27cbb167e/carbon_cleaner_em-0.14.tar.gz"
+            }
+        ],
+        "0.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b4505265d6ed8d885d7ef692b3080b83",
+                    "sha256": "48934b09deb0f714e52d20d571f9d2841d642d50f409e81f6b3f1aa8586a84e4"
+                },
+                "downloads": -1,
+                "filename": "carbon_cleaner_em-0.15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b4505265d6ed8d885d7ef692b3080b83",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12171,
+                "upload_time": "2019-05-16T17:47:27",
+                "url": "https://files.pythonhosted.org/packages/6f/c3/4d1de12be56ac16ae6e7e7c428091c0647b932b6178d190fefc13e211043/carbon_cleaner_em-0.15.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b4505265d6ed8d885d7ef692b3080b83",
+                "sha256": "48934b09deb0f714e52d20d571f9d2841d642d50f409e81f6b3f1aa8586a84e4"
+            },
+            "downloads": -1,
+            "filename": "carbon_cleaner_em-0.15.tar.gz",
+            "has_sig": false,
+            "md5_digest": "b4505265d6ed8d885d7ef692b3080b83",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12171,
+            "upload_time": "2019-05-16T17:47:27",
+            "url": "https://files.pythonhosted.org/packages/6f/c3/4d1de12be56ac16ae6e7e7c428091c0647b932b6178d190fefc13e211043/carbon_cleaner_em-0.15.tar.gz"
+        }
+    ]
+}

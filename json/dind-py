@@ -1,0 +1,365 @@
+{
+    "info": {
+        "author": "Christian Tragesser",
+        "author_email": "christian@evoen.net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Python docker-in-docker delivery pipeline library\n[![pipeline status](https://gitlab.com/christianTragesser/dind-py/badges/master/pipeline.svg)](https://gitlab.com/christianTragesser/dind-py/commits/master)\n\n### Why?\nI'm currently experimenting with docker-in-docker delivery pipelines written in a *high-level language* hoping to capitalize on object-oriented concepts native to Python.  While bash does provide the simple ability to script docker-in-docker pipelines; at a certain scale, creating and maintaining independent scripts across multiple repositories or projects becomes cumbersome and inefficient.\n\n##### Why Python 2.7 by default?\nFor most Docker development workstations(popular Linux distros or MacOS) Python 2.7 is as natively available as bash. A major focus of this tooling is minimal dependencies however, this library should be compatible with Python 3 as well.\n\n#### Examples\n* Build image and run container\n```python\nimport os\nfrom dind import Pipeline\n\ndirPath = os.path.dirname(os.path.realpath(__file__))\nbuildPath = dirPath+'/docker/'\nlocalTag = 'local/foo:latest'\n\npipeline = Pipeline()\npipeline.buildImage(buildPath, localTag)\npipeline.runContainerDetached(localTag)\n```\n\n* Run testing framework from a dedicated testing image\n```python\nimport os\nfrom dind import Pipeline\n\ndirPath = os.path.dirname(os.path.realpath(__file__))\nvolumes = { dirPath: { 'bind': '/tmp', 'mode': 'rw' } }\ntestDir = '/tmp/tests'\n\npipeline = Pipeline(dockerRegistry='registry.gitlab.com/christiantragesser/')\npipeline.runContainerInteractive(\n    image=pipeline.dockerRegistry+'dind:latest',\n    name='foo-test', working_dir=testDir,\n    volumes=volumes, command='pytest')\n```\n\n* Orchestrate application stack for UAT testing then remove all containers if tests are successful\n```python\nimport os\nfrom dind import Pipeline\n\ndirPath = os.path.dirname(os.path.realpath(__file__))\ncleanUp = []\n\nuat_volume = { dirPath: { 'bind': '/tmp', 'mode': 'rw' } }\ntestDir = '/tmp/tests'\ndb_env_vars = {\n            'MYSQL_ROOT_PASSWORD': 'root',\n            'MYSQL_DATABASE': 'foo-db',\n            'MYSQL_ROOT_HOST': '%'\n}\napp_env_vars = {\n            'DB_HOST': 'mysql-test',\n            'DB_USER': 'root',\n            'DB_PASSWORD': 'root',\n            'DATABASE': 'foo-db'\n}\n\npl = Pipeline()\ncleanUp.append(pl.runContainerDetached(image='mysql:5.7', name='mysql-test', environment=db_env_vars))\ncleanUp.append(pl.runContainerDetached(image='local/poc_app', name='foo-app-test', environment=app_env_vars))\npl.runContaineInteractive(image='tutum/curl:latest', name='foo-uat',\n                      working_dir=testDir, volumes=uat_volume,\n                      command='./uat.sh foo-app-test:5000')\npl.purgeContainers(cleanUp)\n``` \n* Perform CVE scan on a docker image\n```python\nfrom dind import Pipeline\n\npl = Pipeline()\npl.cveScan('nginx:latest')\n```\n#### API reference\n* **Pipeline**(_network='ci_net', dockerRegistry='library/'_)\n\n  ```class dind.dind.Pipeline```\n  - **createNetwork(** _network_ **)** | Create docker pipeline network.  \n  parameters:\n    + network(_str_) - Name of pipeline network, default `ci_net`\n  - **buildImage(** _path, tag_ **)** | Build docker image.  \n  parameters:\n    + path(_str_) - Path to the directory containing the Dockerfile.\n    + tag(_str_) - Tag applied to newly built image.\n  - **pullImage(** _image_ **)** | Pull an image of the given name, similar to the `docker pull` command. If no tag is specified, all tags from that repository will be pulled.  \n  parameters:\n    + image(_str_) - Image name to pull.\n  - **runContainerDetached(** _image, stderr=None, ports=None, volumes=None, name=None, environment=None, network=_<obj network\\>_, command=None, detach=True, remove=False_ **)** |\n  Performs pull action on provided image, runs a daemonized container, then returns the container ID.  \n  parameters:\n    + environment(_dict or list_) - Environment variables to set inside the container.\n    + image(_str_) - The image to update and run.\n    + name(_str_) - The name for this container.\n    + ports(_dict_) - Port bindings to the container. The keys of the dictionary are the ports to bind inside the container, either as an integer or a string in the form port/protocol, where the protocol is either tcp or udp. The values of the dictionary are the corresponding ports to open on the host.\n    + volumes(_dict_) - Configure volumes mounted inside the container.\n  - **runContainerInteractive(** _image, command, name=None, volumes=None, working_dir='/root', tty=True, environment=None, stdin_open=True, network=_<obj network\\>_, auto_remove=False_ **)** | Performs pull action on provided image, runs an interactive container implementing provided command, then returns container stdout logs and command exit status(zero or non-zero).  \n  parameters:\n    + command(_str_) - The command to run in the container.\n    + environment(_dict or list_) - Environment variables to set inside the container.\n    + image(_str_) - The image to update and run.\n    + name(_str_) - The name for this container.\n    + ports(_dict_) - Port bindings to the container. The keys of the dictionary are the ports to bind inside the container, either as an integer or a string in the form port/protocol, where the protocol is either tcp or udp. The values of the dictionary are the corresponding ports to open on the host.\n    + volumes(_dict_) - Configure volumes mounted inside the container.\n    + working_dir(_str_) - Path to the working directory.\n  - **purgeContainers(** _ids_ **)** | Force deletion of container by container ID.  \n  parameters:\n    + ids(_list_) - List of container IDs to delete.\n  - **cveScan(** _scanImage_ **)** | Perform CVE scan of docker image using [CoreOS Clair](https://coreos.com/clair/docs/latest/).  \n  parameters:\n    + scanImage(_str_) - The image to scan.\n\n#### Install\nInstall on docker host:\n* From [PyPi](https://pypi.org/project/dind-py/)\n```sh\n$ pip install dind-py\n```\n\nor\n\n* Via docker:\n\n```sh\n$ docker run --rm -it \\\n    -v /var/run/docker.sock:/var/run/docker.sock \\\n    -v $PWD:/tmp \\\n    -w /tmp \\\n    registry.gitlab.com/christiantragesser/dind-py:latest /bin/sh\n```\n\n* For Python 3:\n\n```sh\n$ docker run --rm -it \\\n    -v /var/run/docker.sock:/var/run/docker.sock \\\n    -v $PWD:/tmp \\\n    -w /tmp \\\n    registry.gitlab.com/christiantragesser/dind-py:3 /bin/sh\n```",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/christianTragesser/dind-py",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "dind-py",
+        "package_url": "https://pypi.org/project/dind-py/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/dind-py/",
+        "project_urls": {
+            "Homepage": "https://github.com/christianTragesser/dind-py"
+        },
+        "release_url": "https://pypi.org/project/dind-py/0.1.19/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A docker-in-docker pipeline library",
+        "version": "0.1.19"
+    },
+    "last_serial": 4596654,
+    "releases": {
+        "0.1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94e3062fe82dd2b005d4cd4b9cc692aa",
+                    "sha256": "03c655139af7b17f531c3340fa725caea5416918853db33da83d49e3ddb7af97"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "94e3062fe82dd2b005d4cd4b9cc692aa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4140,
+                "upload_time": "2018-12-13T15:15:41",
+                "url": "https://files.pythonhosted.org/packages/d6/80/8689b6203f28aee55cbc5282e14e25a079fa4fa305f8df9c67f6ce23b559/dind-py-0.1.10.tar.gz"
+            }
+        ],
+        "0.1.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2d823a89881af0ecad3f3549775ff734",
+                    "sha256": "25fec720ff339e8bfc3af982753b092c4e237c207f9d4d52564546095f7b09d5"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2d823a89881af0ecad3f3549775ff734",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4171,
+                "upload_time": "2018-12-13T15:18:29",
+                "url": "https://files.pythonhosted.org/packages/cc/4e/0fc8e2b0a72da8a406d2c9cfb9916897000b5f3c32cbc5b6c632bf212bc0/dind-py-0.1.11.tar.gz"
+            }
+        ],
+        "0.1.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ebacc4971d0817cd4522bf2539c86aa3",
+                    "sha256": "81347608c37e0cc84380262186d6a19093e1acf7d9fb482f64521059fe00405d"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ebacc4971d0817cd4522bf2539c86aa3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4139,
+                "upload_time": "2018-12-13T15:22:35",
+                "url": "https://files.pythonhosted.org/packages/88/e5/d38d9c6229bc0b58a330afa8c16caa360d90ba5dcc45cca37e16f7d1f6bd/dind-py-0.1.12.tar.gz"
+            }
+        ],
+        "0.1.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cedecddafc74660cf2d8a76b6c579f67",
+                    "sha256": "8f5c8bce5acd515321ab7a4ef386616fa338fb2909f45b87732b52ac365ba393"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cedecddafc74660cf2d8a76b6c579f67",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4185,
+                "upload_time": "2018-12-13T15:29:29",
+                "url": "https://files.pythonhosted.org/packages/e6/3d/60cb6a0f7d7919e0e6f16c86227fe8b740e9f0455e82cf43e07a09af2f18/dind-py-0.1.13.tar.gz"
+            }
+        ],
+        "0.1.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "28092faac740ae1e401660851c0ddabc",
+                    "sha256": "9bc322a1d466c7cabf58d8385dfadb193fcd19f98f10fa5a1ea37f1311279f28"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "28092faac740ae1e401660851c0ddabc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4156,
+                "upload_time": "2018-12-13T15:46:26",
+                "url": "https://files.pythonhosted.org/packages/d7/df/993992b095bcff9b1475fce4072bdb7bf12450acdb6926dbe2acac5e9d8f/dind-py-0.1.14.tar.gz"
+            }
+        ],
+        "0.1.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "198577455990ea8afba1c2a2122f6341",
+                    "sha256": "f62979ba9a26eafbca9ab5a87a0731765f6eb395111fbf8e43786d3d6705a7ba"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "198577455990ea8afba1c2a2122f6341",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4184,
+                "upload_time": "2018-12-13T16:03:20",
+                "url": "https://files.pythonhosted.org/packages/7d/f1/056c51636381a152bc29c305ac51c06bdeff40f221226a175f04b50f09f6/dind-py-0.1.15.tar.gz"
+            }
+        ],
+        "0.1.16": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "322ee9ab67aab176b8fb668f42888cb8",
+                    "sha256": "c8ee25d184f8a815144d5183ff1229a6e1812c327c6f4a932d40607b9b041f29"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.16.tar.gz",
+                "has_sig": false,
+                "md5_digest": "322ee9ab67aab176b8fb668f42888cb8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4144,
+                "upload_time": "2018-12-13T16:10:17",
+                "url": "https://files.pythonhosted.org/packages/88/7e/4e4f253f0d06777587506b5613919805c9e3c3ebdb3f012107e62f94fa94/dind-py-0.1.16.tar.gz"
+            }
+        ],
+        "0.1.17": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "34f3a352c8c83e543e4660538081c26a",
+                    "sha256": "be82b63624fce368317fb8707ba591e91e3cef41bd8357bb6c0cba19c45d41b4"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.17.tar.gz",
+                "has_sig": false,
+                "md5_digest": "34f3a352c8c83e543e4660538081c26a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4832,
+                "upload_time": "2018-12-13T19:34:21",
+                "url": "https://files.pythonhosted.org/packages/0a/9a/6b06e44e0a47bcc72a644ebd877088af3c3055cd623fe4f5be5307f25a40/dind-py-0.1.17.tar.gz"
+            }
+        ],
+        "0.1.18": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "74d45c1522fe00a4911e494987128916",
+                    "sha256": "2e048c608dcdbba8a1293d476a19b1ac11c1aa1158b4ceb6b8c709700ae51457"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.18.tar.gz",
+                "has_sig": false,
+                "md5_digest": "74d45c1522fe00a4911e494987128916",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4872,
+                "upload_time": "2018-12-13T19:42:47",
+                "url": "https://files.pythonhosted.org/packages/6b/c0/038e31011866ee162d57d400b9e1cd5a9cc04d4b3537be3629ccc9132c5f/dind-py-0.1.18.tar.gz"
+            }
+        ],
+        "0.1.19": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c4d6d30a68354606a03b8c68160d9157",
+                    "sha256": "280b978aa10d5f651a10330b04f0ad510b48b8019372a3a59bc563a8054bb78d"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.19.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c4d6d30a68354606a03b8c68160d9157",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4869,
+                "upload_time": "2018-12-13T20:16:03",
+                "url": "https://files.pythonhosted.org/packages/ba/b2/8245e7afad940215a556c580278831a4f5ba9be5115ba3868f4c83aeb458/dind-py-0.1.19.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec65c2cc3976ba9e89ebf8ee7be12699",
+                    "sha256": "e5743e7565f15b240618b4989bd77b8535b04e2c5d8910d99cb4c6c2be3af0f3"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ec65c2cc3976ba9e89ebf8ee7be12699",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3207,
+                "upload_time": "2018-12-12T04:07:37",
+                "url": "https://files.pythonhosted.org/packages/a7/ec/bfab9d326f649000d979dc348f6182061776c83ae6afc17b9e31ef340bc2/dind-py-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bcfac86a9f350e7a851946bba1c75982",
+                    "sha256": "9a0bd9b0ce3b692f51f60e5da13c4c4bdfd8f52067add0f1ceb37e2a68a6b439"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bcfac86a9f350e7a851946bba1c75982",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3208,
+                "upload_time": "2018-12-12T14:58:19",
+                "url": "https://files.pythonhosted.org/packages/3d/b4/6be2aa79f4da3e24f4189cc8266e09785154aba9a6b65e12adeca60c6b24/dind-py-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ae43443ae358cee3bad8e70338b8bbfb",
+                    "sha256": "46d183e705bde01927e1ff9886c0515e479fa272d05cfddcf5584ea6cbed2e0a"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ae43443ae358cee3bad8e70338b8bbfb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3203,
+                "upload_time": "2018-12-12T17:46:07",
+                "url": "https://files.pythonhosted.org/packages/b5/5a/1be59724f849604ae0a3e4dd6a11172d1cee76700fa8e8d83474482acd72/dind-py-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6897d53fbda5051711e7eb6f2a2341ea",
+                    "sha256": "a8b4ab6bf0a029137ee5d928af9e5c1f62a1d97d82bbf617172035c7a2191fab"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6897d53fbda5051711e7eb6f2a2341ea",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3213,
+                "upload_time": "2018-12-13T01:39:34",
+                "url": "https://files.pythonhosted.org/packages/42/80/f045985b52a542771b2bdba3e41688bc78ad06d9227ae922cf6ceade648d/dind-py-0.1.7.tar.gz"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1653426b7e78c30fe45f243e61ef7c96",
+                    "sha256": "b1b6d8578f43af4c2b0c2c8df58858e683104872043257e1fd3f4dc3c407487d"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1653426b7e78c30fe45f243e61ef7c96",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4131,
+                "upload_time": "2018-12-13T13:07:55",
+                "url": "https://files.pythonhosted.org/packages/a3/0a/2364f53a705f0c8c6cbaf12f0a051bbfc92e800232c8f7c8ccf6ace29d60/dind-py-0.1.8.tar.gz"
+            }
+        ],
+        "0.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "73cb9ee96d0a4384a9f26eacb5e9c3eb",
+                    "sha256": "5579ccfd2b0a363c6297e92e80e298df8f687f726abd545bdd89b3cfa1261c5b"
+                },
+                "downloads": -1,
+                "filename": "dind-py-0.1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "73cb9ee96d0a4384a9f26eacb5e9c3eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4159,
+                "upload_time": "2018-12-13T15:09:32",
+                "url": "https://files.pythonhosted.org/packages/ad/71/25ef82678b72e174654a7548e2c9854318d09c9a08cadbbc4c8cdfb77451/dind-py-0.1.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c4d6d30a68354606a03b8c68160d9157",
+                "sha256": "280b978aa10d5f651a10330b04f0ad510b48b8019372a3a59bc563a8054bb78d"
+            },
+            "downloads": -1,
+            "filename": "dind-py-0.1.19.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c4d6d30a68354606a03b8c68160d9157",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 4869,
+            "upload_time": "2018-12-13T20:16:03",
+            "url": "https://files.pythonhosted.org/packages/ba/b2/8245e7afad940215a556c580278831a4f5ba9be5115ba3868f4c83aeb458/dind-py-0.1.19.tar.gz"
+        }
+    ]
+}

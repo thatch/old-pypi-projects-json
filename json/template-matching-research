@@ -1,0 +1,193 @@
+{
+    "info": {
+        "author": "Emmanuel Mireku",
+        "author_email": "Emmanuelmireku15@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: Microsoft :: Windows",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Template Matching Research\n\nThe main purpose of this project is to create a lightweight script that can detect browsers on a user's screen. The browsers to be detected are chrome, firefox, edge, and opera. This project will serve as an API to detect the browsers. The project utilizes the [OpenCV library](https://docs.opencv.org/master/) with the help of [Adrian Rosebrock's](https://github.com/jrosebr1) [imutils library](https://github.com/jrosebr1/imutils) and his [template matching optimization](https://www.pyimagesearch.com/2015/01/26/multi-scale-template-matching-using-python-opencv/), [numpy](https://numpy.org/) and [pyautogui](https://pyautogui.readthedocs.io/en/latest/)\n\n## Installation\n\nUse the [pip](https://pip.pypa.io/en/stable/) package manager to install foobar.\n\n```bash\npip install template_matching_research\n```\n\n## Usage\n\n```python\nfrom browsers_detector import *\n\nauto_detect_taskbar() # returns True if a browser is detected\ndetect_desktop(\"chrome\") # moves mouse to location of browser and return True if browser is detected\ndetect_taskbar(\"opera\") # moves mouse to location of browser and return True if browser is detected\n```\n\n## Logging into BlackBoard with browser_detector\n\n```python\n# This automatically detects any browser on the desktop\n# to open it and go to the blackboard link.\nfrom object_detection import *\nimport pyautogui\nfrom time import sleep\ndetection = auto_detect_desktop()\nif detection is False:\n    pyautogui.hotkey(\"win\", \"d\")\n    detection = auto_detect_desktop() \n    if detection is False:\n        print()\n    else:\n        pyautogui.doubleClick()\n        sleep(.5)\n        pyautogui.hotkey(\"win\", \"up\")\n        pyautogui.hotkey(\"ctrl\", \"l\")\n        pyautogui.typewrite(\"brockport.open.suny.edu\")\n        sleep(.5)\n        pyautogui.press(\"enter\")\nelse:\n    pyautogui.doubleClick()\n    sleep(.5)\n    pyautogui.hotkey(\"win\", \"up\")\n    pyautogui.hotkey(\"ctrl\", \"l\")\n    pyautogui.typewrite(\"brockport.open.suny.edu\")\n    sleep(.5)\n    pyautogui.press(\"enter\")\n```\n\n## Updates\nThis is still a continuing project and will be updated most times, unfortunately, this is only tested on windows operating system as of now\n\n## The Functions\n\n### grab_screen(): \n> #### This function takes a screenshot and saves it into the \"data/screenshots\" folder and it is saved as \"screen_shot.JPG\". This will also convert the image into grayscale, detect the edges of the image and return it for detection.\n```python\ngrab_screen() \n# returns image\n```\n\n### load_template(image): \n> *image* = name of any file located in the \"data/templates\" folder\n\n> #### This function takes an image file from the \"templates\" folder, read it as grayscale, detect the edges and return it for detection. If there is an error None is returned.\n```python\nload_template(\"chrome_taskbar.JPG\") \n# returns template or None if there is an error\n```\n\n### start_scaling_match(template, screen_shot, scale=\"u\", threshold=.55):\n>  *template* = the return value from the load_template() method.\n\n>  *screen_shot* = The return value from the grab_screen() method.\n\n>  *scale* = the default value is \"u\" meaning scale up and it could be changed to \"d\" to scale down. This is used to determine if the main image should be scaled up during the detection process. \n\n>  *threshold* = the threshold determines whether the image is detected or not. The default value is .55\n\n> #### This function takes in the template object, screen_shot object, a scale value, and a threshold. This function adopts a [template matching algorithm](https://www.pyimagesearch.com/2015/01/26/multi-scale-template-matching-using-python-opencv/) which optimize the template-matching function from the [OpenCV library](https://docs.opencv.org/master/). The algorithm is basically scaling either up or down while applying the template-matching function and comparing the value of the match to the threshold until the value is greater than or equal to the threshold then the location or coordinates (x, y) of the match is returned with a boolean(next_image) value of False. If the value is less than the threshold then the location would be (0,0) with a next_image boolean of True. the next_image is used to determine if a different image should be used to detect a browser.\n\n```python\ntemplate = load_template(\"chrome_desktop.JPG\")\nscreen_shot = grab_screen()\nstart_scaling_match(template, screen_shot, \"d\", .75)\n# if image is found returns x, y, next_image=False else return 0, 0, next_image=True\n# or\n# it could be called like:\nstart_scaling_match(load_template(\"chrome_taskbar.JPG\"), grab_screen(), \"d\", .50) \n```\n\n### process(template, scale):\n>  *template* = the return value from the load_template() method.\n\n>  *scale* = the default value is \"u\" meaning scale up and it could be changed to \"d\" to scale down. This is used to determine if the main image should be scaled up during the detection process. \n\n\n> #### This function calls the load_template(), grab_screen(), and start_scaling_match() combine them together to gain the absolute position of the match on the screen and a boolean value. It takes in a template object and a scale value to determine whether the image should be scale up or down during the matching process.\n\n```python\nprocess(\"chrome_taskbar.JPG\", \"u\")\n# returns x, y of match and next_image=False if a match is found.\n```\n\n### auto_detect_taskbar(): \n> #### This function will automatically detect any of the browsers on the Windows taskbar. If a match is found the mouse pointer would be moved to the location of the match and a boolean value of True is returned. If there is no match False is returned.\n```python\nauto_detect_taskbar() \n# returns True if the match is found and False if the match is not found\n```\n\n### auto_detect_desktop(): \n> #### This function will automatically detect any of the browsers on the Windows desktop. If a match is found the mouse pointer would be moved to the location of the match and a boolean value of True is returned. If there is no match False is returned.\n```python\nauto_detect_taskbar() \n# returns True if the match is found and False if the match is not found\n```\n\n### detect_taskbar(browser): \n> *browser* = name of any of the browsers (chrome, opera, edge, firefox)\n\n> #### This function will try to detect the browser on the Windows taskbar and if it is found it will return True and move the mouse pointer to the location of the match. If no match was found it will return False.\n```python\ndetect_taskbar(\"chrome\") \n# returns True if a match is found and False if there were no matches.\n```\n\n### detect_desktop(browser): \n> *browser* = name of any of the browsers (chrome, opera, edge, firefox)\n\n> #### This function will try to detect the browser on the Windows desktop and if it is found it will return True and move the mouse pointer to the location of the match. If no match was found it will return False.\n```python\ndetect_desktop(\"firefox\") \n# returns True if a match is found and False if there were no matches.\n```\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/emire1/template_matching_research",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "template-matching-research",
+        "package_url": "https://pypi.org/project/template-matching-research/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/template-matching-research/",
+        "project_urls": {
+            "Homepage": "https://github.com/emire1/template_matching_research"
+        },
+        "release_url": "https://pypi.org/project/template-matching-research/1.0.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "Detect chrome, firefox, edge, and opera browsers on a windows OS screen",
+        "version": "1.0.0"
+    },
+    "last_serial": 6166783,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fc69e31893670a82acd44d15a82fc506",
+                    "sha256": "164603d277e3896156f9132bdf4da731bd03e726d32b4e0b35a2efbcd99d7a41"
+                },
+                "downloads": -1,
+                "filename": "template_matching_research-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fc69e31893670a82acd44d15a82fc506",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 6073,
+                "upload_time": "2019-11-20T05:00:55",
+                "upload_time_iso_8601": "2019-11-20T05:00:55.560534Z",
+                "url": "https://files.pythonhosted.org/packages/ab/9a/28473bba5362c522ef300ec1d42c249e6d5fa0f3eca3b8904bacec3f9fb3/template_matching_research-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c7e5895181fb86720890f50289679012",
+                    "sha256": "2ef1031b9e8f05d1b37f121ff0d6714df86274f68cdce9d9906976ad5bcbd3ae"
+                },
+                "downloads": -1,
+                "filename": "template_matching_research-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c7e5895181fb86720890f50289679012",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4751,
+                "upload_time": "2019-11-20T05:00:57",
+                "upload_time_iso_8601": "2019-11-20T05:00:57.910594Z",
+                "url": "https://files.pythonhosted.org/packages/04/0a/7d37909bd9c6fe64594fac3f908e154e15db3e24c8fb57be0048161f0f6e/template_matching_research-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "faa4c37820a7145d579a307f6c26a774",
+                    "sha256": "1d2ec33a8e1ae2e30770e20fa86b57e6f31784fd1440c447ae2c97487c77db02"
+                },
+                "downloads": -1,
+                "filename": "template_matching_research-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "faa4c37820a7145d579a307f6c26a774",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 6079,
+                "upload_time": "2019-11-20T05:30:52",
+                "upload_time_iso_8601": "2019-11-20T05:30:52.976408Z",
+                "url": "https://files.pythonhosted.org/packages/97/c9/af548880d2bb710cf81cb6e8454ae0bcfbcc7f313482710bfb9071b71051/template_matching_research-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1b456cb9ad703c4d22be446b1b6fce0f",
+                    "sha256": "9ed86549b3e574ca0eaa7bd2c024219838f51d6a7f145848ed61b0d9136688dd"
+                },
+                "downloads": -1,
+                "filename": "template_matching_research-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1b456cb9ad703c4d22be446b1b6fce0f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4758,
+                "upload_time": "2019-11-20T05:30:54",
+                "upload_time_iso_8601": "2019-11-20T05:30:54.549773Z",
+                "url": "https://files.pythonhosted.org/packages/fd/91/4dcd204c009937dce6cdeeab171cbf0b1a32c92cbc167ce28bc93f8420c7/template_matching_research-0.0.3.tar.gz"
+            }
+        ],
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e5bb5327ee51c8ed40f31602519c86d2",
+                    "sha256": "fc90e94577c89505f0c90b7e12140b740c6a97b9c8572ab66f012fe40816828f"
+                },
+                "downloads": -1,
+                "filename": "template_matching_research-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e5bb5327ee51c8ed40f31602519c86d2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 6073,
+                "upload_time": "2019-11-20T05:34:02",
+                "upload_time_iso_8601": "2019-11-20T05:34:02.009517Z",
+                "url": "https://files.pythonhosted.org/packages/f8/ce/26f9d3890750700f29fd4125aa1da00516ef55beaddeb79366d6be879939/template_matching_research-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d816dd8665994de5768bb7270a768f75",
+                    "sha256": "8380bc1f820409e8cb51c574ae6c3c8991051d24dc8af4223765faacb80f2608"
+                },
+                "downloads": -1,
+                "filename": "template_matching_research-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d816dd8665994de5768bb7270a768f75",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4739,
+                "upload_time": "2019-11-20T05:34:03",
+                "upload_time_iso_8601": "2019-11-20T05:34:03.493827Z",
+                "url": "https://files.pythonhosted.org/packages/1c/01/4affdb0e8244f482a445e25053c9e4414d74174240eb5b39634b1ff4b4a9/template_matching_research-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e5bb5327ee51c8ed40f31602519c86d2",
+                "sha256": "fc90e94577c89505f0c90b7e12140b740c6a97b9c8572ab66f012fe40816828f"
+            },
+            "downloads": -1,
+            "filename": "template_matching_research-1.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "e5bb5327ee51c8ed40f31602519c86d2",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 6073,
+            "upload_time": "2019-11-20T05:34:02",
+            "upload_time_iso_8601": "2019-11-20T05:34:02.009517Z",
+            "url": "https://files.pythonhosted.org/packages/f8/ce/26f9d3890750700f29fd4125aa1da00516ef55beaddeb79366d6be879939/template_matching_research-1.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d816dd8665994de5768bb7270a768f75",
+                "sha256": "8380bc1f820409e8cb51c574ae6c3c8991051d24dc8af4223765faacb80f2608"
+            },
+            "downloads": -1,
+            "filename": "template_matching_research-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d816dd8665994de5768bb7270a768f75",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 4739,
+            "upload_time": "2019-11-20T05:34:03",
+            "upload_time_iso_8601": "2019-11-20T05:34:03.493827Z",
+            "url": "https://files.pythonhosted.org/packages/1c/01/4affdb0e8244f482a445e25053c9e4414d74174240eb5b39634b1ff4b4a9/template_matching_research-1.0.0.tar.gz"
+        }
+    ]
+}

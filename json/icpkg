@@ -1,0 +1,124 @@
+{
+    "info": {
+        "author": "Farzad Senart",
+        "author_email": "farzad.senart@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: GNU Affero General Public License v3",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.8"
+        ],
+        "description": "<a id=\"top\" name=\"top\"></a>\n\n# ic\n\n[![Status][badge-status]][home-pypi]\n[![License][badge-license]][license]\n\n_[ic][home-github]_ is an open-source infrastructure as code development\nkit to **describe** your cloud architecture in a **predictable**,\n**repeatable**, and **composable** way using the Python programming\nlanguage and AWS CloudFormation. It **provides an isomorphism** and\n**eliminates the impedance mismatch** between your source code, the\nintermediary _Abstract Resource Tree_, the low-level AWS CloudFormation\ntemplate, and your deployed cloud resources.\n\n---\n\n_ic_, at its heart, can be assimilated to a **restricted Python\ninterpreter**, which, given a set of source files, performs some\ntransformations, and produces a **human readable AWS CloudFormation\ntemplate**. As it has no opinion on how you have to deploy your\ninfrastructure, it **integrates seamlessly** in your existing CI/CD\npipeline.\n\nIn _ic_, **everything is a resource**, and a resource can either be\ntranspiled to an AWS CloudFormation stack or be composed into a\nhigher-level abstraction. You can consider your whole **infrastructure\nas a nested tree** of an arbitrary level. Plus, as _ic_ resources are\n**pure Python**, you are free to partition, compose, and share any\nsub-tree using **your favorite Python tools** and package repositories.\n\n_ic_ comes with a purpose-built **type system** to provide you with\nenhanced **code completion and feedback from within your IDE**. It also\nextracts metadata directly from the official [AWS CloudFormation\nResource Specification][cloudformation-spec] so that you always have\naccess to the **latest AWS resources**.\n\n<details>\n<summary><b>Table of Contents</b></summary>\n\n<br/>\n<!-- https://github.com/thlorenz/doctoc --->\n<!-- START doctoc generated TOC please keep comment here to allow auto update -->\n<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->\n\n- [Installation](#installation)\n- [Example](#example)\n- [Usage](#usage)\n  - [Prerequisites](#prerequisites)\n  - [Authoring](#authoring)\n  - [Transpiling](#transpiling)\n  - [Debugging](#debugging)\n- [Contributing](#contributing)\n- [Thanks](#thanks)\n- [License](#license)\n\n<!-- END doctoc generated TOC please keep comment here to allow auto update -->\n\n</details>\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n## Installation\n\n> Please note, as _ic_ is pure **Python 3.8**, you can use any custom\n> setup by installing the [`icpkg` package from PyPI][home-pypi].\n\nThe easiest way to play with _ic_ is using [Visual Studio Code][vscode]\nwith a [Development Container][vscode-devcontainer], which means you\nneed to have a working [Docker installation][docker-install]. We put\ntogether [everything you need to start][starter] crafting your\nfirst infrastructure brick.\n\n1.  Download and extract the starter kit archive:\n\n    ```shell\n    mkdir brick; cd brick\n    curl -L https://github.com/lifadev/ic-starter/archive/master.tar.gz | tar -xzv --strip-components=1\n    ```\n\n2.  Prepare your development container Docker image:\n\n    ```shell\n    cd .devcontainer; make; cd -\n    ```\n\n3.  Open the starter kit with Visual Studio Code and click _\"Reopen in\n    Container\"_ when prompted:\n\n    ```shell\n    code .\n    ```\n\nFrom here, you can either continue reading what follows or get a quick\nglimpse by [deploying the starter kit][starter].\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n## Example\n\nThe below example (extracted from the [starter kit][starter]) generates\nan AWS CloudFormation _stack_ for an Amazon API Gateway backed by an AWS\nLambda function. It produces a simple \"Hello, World!\" message.\n\n```python\n# src/brick/__init__.py\n\nfrom icaws import (\n    AWSStr,\n    aws_account_id,\n    aws_apigateway,\n    aws_iam,\n    aws_lambda,\n    aws_logs,\n    aws_region,\n    awsasset,\n    awsdeferred,\n    awsformat,\n    awslink,\n)\nfrom iccore import Union, resource\n\n\n@resource\ndef hello_world(name: str) -> AWSStr:\n    return endpoint(\"endpoint\", handler(\"handler\"))\n\n\n@resource\ndef handler(name: str) -> aws_lambda.Function:\n    role = aws_iam.Role(\n        \"role\",\n        AssumeRolePolicyDocument=dict(\n            Version=\"2012-10-17\",\n            Statement=dict(\n                Effect=\"Allow\",\n                Principal=dict(Service=\"lambda.amazonaws.com\"),\n                Action=\"sts:AssumeRole\",\n            ),\n        ),\n        ManagedPolicyArns=[\n            \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n        ],\n    )\n    function = aws_lambda.Function(\n        \"function\",\n        Runtime=\"nodejs10.x\",\n        Code=aws_lambda.Function.CodeType(ZipFile=awsasset(\"handler.js\").text),\n        Handler=\"index.handle\",\n        Role=role.Arn,\n    )\n    log_group = aws_logs.LogGroup(\n        \"log_group\",\n        LogGroupName=awsformat(\"/aws/lambda/{function}\", function=function.Ref),\n    )\n    return function\n\n\n@resource\ndef endpoint(\n    name: str,\n    handler: aws_lambda.Function,\n    stage: Union[str, AWSStr] = awsdeferred(\"dev\"),\n) -> AWSStr:\n    api = aws_apigateway.RestApi(\"api\", Name=\"hello_world\")\n    method = aws_apigateway.Method(\n        \"method_get\",\n        RestApiId=api.Ref,\n        ResourceId=api.RootResourceId,\n        HttpMethod=\"GET\",\n        AuthorizationType=\"NONE\",\n        Integration=aws_apigateway.Method.IntegrationType(\n            Type=\"AWS_PROXY\",\n            IntegrationHttpMethod=\"POST\",\n            Uri=awsformat(\n                \"arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions/{function}/invocations\",\n                region=aws_region,\n                function=handler.Arn,\n            ),\n        ),\n    )\n    permission = aws_lambda.Permission(\n        \"permission_invoke\",\n        FunctionName=handler.Arn,\n        Action=\"lambda:InvokeFunction\",\n        Principal=\"apigateway.amazonaws.com\",\n        SourceArn=awsformat(\n            \"arn:aws:execute-api:{region}:{account}:{api}/*/GET/\",\n            region=aws_region,\n            account=aws_account_id,\n            api=api.Ref,\n        ),\n    )\n    deployment = aws_apigateway.Deployment(\n        \"deployment\", RestApiId=api.Ref, StageName=stage\n    )\n    awslink(deployment, method)\n    url = awsformat(\n        \"https://{api}.execute-api.{region}.amazonaws.com/{stage}\",\n        api=api.Ref,\n        region=aws_region,\n        stage=stage,\n    )\n    return url\n```\n\n<details>\n<summary>Generated AWS CloudFormation template</summary>\n\n<br/>\n\n```yaml\n# Code generated by ic; DO NOT EDIT.\nAWSTemplateFormatVersion: \"2010-09-09\"\nParameters:\n  ICS3Bucket:\n    Type: String\n    AllowedPattern: .+\n  ICS3Prefix:\n    Type: String\n    Default: \"\"\n  EndpointStageJ2VIGA5D:\n    Type: String\n    Default: dev\nResources:\n  EndpointApiFDSEHVHU:\n    Type: AWS::ApiGateway::RestApi\n    Properties:\n      Name: hello_world\n  EndpointDeploymentGW2JFGSI:\n    Type: AWS::ApiGateway::Deployment\n    DependsOn:\n      - EndpointMethodGetG32CKNG4\n    Properties:\n      RestApiId: !Ref EndpointApiFDSEHVHU\n      StageName: !Ref EndpointStageJ2VIGA5D\n  EndpointMethodGetG32CKNG4:\n    Type: AWS::ApiGateway::Method\n    Properties:\n      AuthorizationType: NONE\n      HttpMethod: GET\n      Integration:\n        Type: AWS_PROXY\n        IntegrationHttpMethod: POST\n        Uri:\n          !Sub [\n            \"arn:aws:apigateway:${A0}:lambda:path/2015-03-31/functions/${A1}/invocations\",\n            { A0: !Ref \"AWS::Region\", A1: !GetAtt HandlerFunctionY3NGR3AL.Arn },\n          ]\n      ResourceId: !GetAtt EndpointApiFDSEHVHU.RootResourceId\n      RestApiId: !Ref EndpointApiFDSEHVHU\n  EndpointPermissionInvokeE7KNPQ2V:\n    Type: AWS::Lambda::Permission\n    Properties:\n      Action: lambda:InvokeFunction\n      FunctionName: !GetAtt HandlerFunctionY3NGR3AL.Arn\n      Principal: apigateway.amazonaws.com\n      SourceArn:\n        !Sub [\n          \"arn:aws:execute-api:${A0}:${A1}:${A2}/*/GET/\",\n          {\n            A0: !Ref \"AWS::Region\",\n            A1: !Ref \"AWS::AccountId\",\n            A2: !Ref EndpointApiFDSEHVHU,\n          },\n        ]\n  HandlerFunctionY3NGR3AL:\n    Type: AWS::Lambda::Function\n    Properties:\n      Code:\n        ZipFile: |\n          exports.handle = async () => ({\n            statusCode: 200,\n            body: \"Hello, World!\"\n          });\n      Handler: index.handle\n      Role: !GetAtt HandlerRoleYQATF6FD.Arn\n      Runtime: nodejs10.x\n  HandlerLogGroupO5BT5OXX:\n    Type: AWS::Logs::LogGroup\n    Properties:\n      LogGroupName: !Sub [\"/aws/lambda/${A0}\", A0: !Ref HandlerFunctionY3NGR3AL]\n  HandlerRoleYQATF6FD:\n    Type: AWS::IAM::Role\n    Properties:\n      AssumeRolePolicyDocument:\n        Statement:\n          Action: sts:AssumeRole\n          Effect: Allow\n          Principal:\n            Service: lambda.amazonaws.com\n        Version: \"2012-10-17\"\n      ManagedPolicyArns:\n        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\nOutputs:\n  ID:\n    Value: 270785f8c07d83cfbbc17db41ed20b43ca57a810\n  Value:\n    Value: !Sub\n      - '\"${A0}\"'\n      - A0:\n          !Sub [\n            \"https://${A0}.execute-api.${A1}.amazonaws.com/${A2}\",\n            {\n              A0: !Ref EndpointApiFDSEHVHU,\n              A1: !Ref \"AWS::Region\",\n              A2: !Ref EndpointStageJ2VIGA5D,\n            },\n          ]\n```\n\n</details>\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n## Usage\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n### Prerequisites\n\n_ic_ relies heavily on your AWS CLI configuration for anything related\nto AWS credentials and configs, which means you need to have a working\n[AWS CLI installation][awscli-install]. In particular, **before\nperforming any _ic_ specific command**, you need to select an **AWS\nprofile** and an **AWS region** by exporting the following environment\nvariables, according to your preferences:\n\n```shell\nexport AWS_DEFAULT_PROFILE=sandbox\nexport AWS_DEFAULT_REGION=us-east-1\n```\n\nNote that if you are using the [starter kit][starter], then proceed as\nfollows:\n\n```shell\naws_config sandbox us-east-1\n```\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n### Authoring\n\nAn infrastructure brick starts **as simple as a regular Python module**\ncontaining **at least one** abstract **resource** (a node in the tree) and\none concrete resource (a leaf in the tree).  \n**Each node must have at least one positional argument**, its name. And\nyou must provide a name upon instantiation of each node.\n\nYou are free to create as many resources (both as function or classes)\nas you want, along with as many regular functions or classes for\nauxiliary purposes. However, to guarantee predictability and\nrepeatability, some restrictions apply. As a general rule of thumb,\n**anything that introduces any randomness or that is difficult to grasp\nfor an absolute beginner in Python is rejected by the interpreter**.  \nIn Particular, all filesystem accesses, standard Python modules imports,\nand other features like threading, exceptions, magic methods, etc. are\nprohibited.\n\n> Even though types are optional, we advocate using them right from the\n> beginning and everywhere.\n\n```python\nfrom iccore import resource\nfrom icaws import aws_lambda\n\n@resource\ndef hello_world(name: str) -> None:\n    aws_lambda.Function(\"my_awesome_function\", ...)\n```\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n### Transpiling\n\nTo generate the low-level AWS CloudFormation template, use the _ic_ CLI\n`dump` command and **provide your Python module and its main resource**.\n_ic_ uses the standard Python import machinery to load your module.\nYou are free to proceed as you please to structure your project and\nits dependencies. Note, that **you cannot provide a relative module**\nbut your current working directory is automatically added to the Python\nmodules search path.\n\nIn case you have any additional **keyword arguments** for your main\nresource, **you can provide a JSON or a YAML file** to the command. This\nfile must contain **the exact set of key and value pairs** as required\nby your resource.\n\n```shell\n$ ic dump brick:hello_world config.yaml\n```\n\nThe `dump` command creates a `build` directory inside your current\nworking directory.\n\n```shell\nbuild/\n\u251c\u2500\u2500 config.json      # The config you have provided to the command\n\u251c\u2500\u2500 metadata.json    # Metadata for the internal usage of ic utils\n\u251c\u2500\u2500 source.zip       # All the source files used to generate the template\n\u2514\u2500\u2500 template.yaml    # The AWS CloudFormation template\n```\n\n**To benefit from the isomorphism** created by _ic_ between your Python\nsource code and your real infrastructure, you need to **upload the\nentire content of the `build` directory to Amazon S3**.\n\nThe _ic_ CLI `upload` command looks for the following keys in your\npreviously selected AWS profile, uploads the build artifacts, and\noutputs the URL of the AWS CloudFormation template.\n\n```ini\n# ~/.aws/config\n[profile sandbox]\nic_s3_bucket = ic-deployment-bucket-1234\n# ic_s3_prefix = foo/bar-\n```\n\n```shell\n$ ic upload\nupload template.yaml\nupload config.json\nupload metadata.json\nupload source.zip\nhttps://ic-deployment-bucket-1234.s3.amazonaws.com/instances/abcd7890/template.yaml\n```\n\nFrom here, you are free to **use whatever tool you want** to deploy your\nstack.\n\n```shell\n$ aws cloudformation deploy \\\n    --capabilities CAPABILITY_IAM \\\n    --template-file build/template.yaml \\\n    --stack-name hello-world\n```\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n### Debugging\n\nThe _ic_ CLI `tree` command allows you to leverage the **one-to-one\nrelationship** that exists between your Python source code, the Abstract\nResource Tree, and your cloud resources.\n\nYou can uniformly **visualize the resource tree** of both your local\nPython module and your already deployed stack.\n\n```\n$ ic tree brick:hello_world     # The local module\n$ ic tree hello-world           # The already deployed stack\n\nroot\n\u251c\u2500\u2500 endpoint\n\u2502   \u251c\u2500\u2500 api AWS::ApiGateway::RestApi\n\u2502   \u251c\u2500\u2500 deployment AWS::ApiGateway::Deployment\n\u2502   \u251c\u2500\u2500 method_get AWS::ApiGateway::Method\n\u2502   \u2514\u2500\u2500 permission_invoke AWS::Lambda::Permission\n\u2514\u2500\u2500 handler\n    \u251c\u2500\u2500 function AWS::Lambda::Function\n    \u251c\u2500\u2500 log_group AWS::Logs::LogGroup\n    \u2514\u2500\u2500 role AWS::IAM::Role\n```\n\nYou can **directly access your stack resources** in the AWS Management\nConsole.\n\n```\n$ ic tree hello-world --link\n\nroot\n\u251c\u2500\u2500 endpoint\n\u2502   \u251c\u2500\u2500 api https://console.aws.amazon.com/apigateway/home?region=us-east-1#/apis/abcd1234\n\u2502   \u251c\u2500\u2500 deployment\n\u2502   \u251c\u2500\u2500 method_get\n\u2502   \u2514\u2500\u2500 permission_invoke\n\u2514\u2500\u2500 handler\n    \u251c\u2500\u2500 function https://console.aws.amazon.com/lambda/home?region=us-east-1#functions/hello-world-HandlerFunctionY3NGR3AL-ABCD1234\n    \u251c\u2500\u2500 log_group https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logStream:group=/aws/lambda/hello-world-HandlerFunctionY3NGR3AL-ABCD1234\n    \u2514\u2500\u2500 role https://console.aws.amazon.com/iam/home?#/roles/hello-world-HandlerRoleYQATF6FD-ABCD1234\n```\n\nAnd you can also **inspect the source code line** responsible for the\ninstantiation of a given resource in your stack.\n\n```\n$ ic tree hello-world --inspect\nroot\n\u251c\u2500\u2500 endpoint /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:30\n\u2502   \u251c\u2500\u2500 api /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:69\n\u2502   \u251c\u2500\u2500 deployment /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:98\n\u2502   \u251c\u2500\u2500 method_get /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:70\n\u2502   \u2514\u2500\u2500 permission_invoke /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:86\n\u2514\u2500\u2500 handler /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:30\n    \u251c\u2500\u2500 function /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:49\n    \u251c\u2500\u2500 log_group /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:56\n    \u2514\u2500\u2500 role /tmp/tmptvgadjvf/workspaces/starter/src/brick/__init__.py:35\n```\n\n> Give a try to the _ic_ CLI `tree-beta` command too!\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n## Contributing\n\nThe primary purpose of this project is to provide the easiest way to\nbuild and debug cloud-native architectures while preserving\npredictability and repeatability. We are grateful to the community for\nany contribution. You may, for example, proof-read the documentation,\nsubmit bugs and fixes, provide improvements, discuss new axes of\nevolution or spread the word around you.\n\n- [Open an issue][issues-new]\n- [Contact us on Twitter][home-twitter]\n\n[<img src=\"https://raw.githubusercontent.com/lifadev/ic/master/assets/arrow-up.png\" align=\"right\">](#top)\n\n## Thanks\n\nWe want to thank and express our gratitude to\n[Ben Kehoe](https://twitter.com/ben11kehoe) warmly. He spent a lot of\nhis time giving us invaluable advice. His expertise and vision in the\nInfrastructure as Code domain account for a considerable part of the\nevolution of this project.\n\n## License\n\nCopyright 2019 Farzad Senart and Lionel Suss. All rights reserved.\n\nUnless otherwise stated, the source code of the project is released\nunder the [GNU Affero General Public License Version 3][license-agpl].  \nPlease note, however, that all public interfaces subject to be embedded\nwithin your source code are released under the [Apache License Version\n2][license-apache]. Refer to the header of each file or to the LICENSE\nfile present in the parent directory where appropriate.\n\n[awscli-install]: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv1.html\n[badge-license]: https://img.shields.io/badge/license-AGPL3%2FApache2-green?style=flat-square\n[badge-status]: https://img.shields.io/badge/package-0.1.3-yellow?style=flat-square\n[cloudformation-spec]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-resource-specification.html\n[docker-install]: https://docs.docker.com/install/\n[home-pypi]: https://pypi.org/project/icpkg/\n[home-github]: https://github.com/lifadev/ic\n[home-twitter]: https://twitter.com/lifadev\n[issues-new]: https://github.com/lifadev/ic/issues/new\n[license]: https://github.com/lifadev/ic#license\n[license-agpl]: https://www.gnu.org/licenses/agpl-3.0.txt\n[license-apache]: http://www.apache.org/licenses/LICENSE-2.0.txt\n[starter]: https://github.com/lifadev/ic-starter\n[vscode]: https://code.visualstudio.com/\n[vscode-devcontainer]: https://code.visualstudio.com/docs/remote/containers\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "AGPL-3.0-only",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "icpkg",
+        "package_url": "https://pypi.org/project/icpkg/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/icpkg/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/icpkg/0.1.3/",
+        "requires_dist": [
+            "boto3 (>=1.11.1,<2.0.0)",
+            "click (>=7.0,<8.0)",
+            "flask (>=1.1.1,<2.0.0)",
+            "jinja2 (>=2.10.3,<3.0.0)",
+            "ruamel.yaml (>=0.16.5,<0.17.0)",
+            "tqdm (>=4.41.1,<5.0.0)",
+            "treelib (>=1.5.5,<2.0.0)",
+            "typing_extensions (>=3.7.4.1,<4.0.0.0)"
+        ],
+        "requires_python": ">=3.8,<4.0",
+        "summary": "cloud architecture bricks",
+        "version": "0.1.3"
+    },
+    "last_serial": 6452931,
+    "releases": {
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6ebaac656a5d231d4ecb7cd37f9c92a0",
+                    "sha256": "1089bebc3101fb9107f4fe708c498fe23407f1d26df0aa4fdbaba54c98bd1ba9"
+                },
+                "downloads": -1,
+                "filename": "icpkg-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6ebaac656a5d231d4ecb7cd37f9c92a0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.8,<4.0",
+                "size": 1622544,
+                "upload_time": "2020-01-14T17:15:07",
+                "upload_time_iso_8601": "2020-01-14T17:15:07.471216Z",
+                "url": "https://files.pythonhosted.org/packages/dd/46/7deeb200acb93372de89e517e58187677b8457c95aec31a58b7ec3548449/icpkg-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "99bbfd2c947797df568884ce4fc6ce8c",
+                    "sha256": "8232bfde3e13d3c5fc776ab92672b416caa0c11654f9a2aa392b023cb5b74ad8"
+                },
+                "downloads": -1,
+                "filename": "icpkg-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "99bbfd2c947797df568884ce4fc6ce8c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.8,<4.0",
+                "size": 1352666,
+                "upload_time": "2020-01-14T17:15:11",
+                "upload_time_iso_8601": "2020-01-14T17:15:11.021661Z",
+                "url": "https://files.pythonhosted.org/packages/1f/90/5943eb04b358f6a940458bd3f3f4810a15f18855132d603a71a819c15a5c/icpkg-0.1.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6ebaac656a5d231d4ecb7cd37f9c92a0",
+                "sha256": "1089bebc3101fb9107f4fe708c498fe23407f1d26df0aa4fdbaba54c98bd1ba9"
+            },
+            "downloads": -1,
+            "filename": "icpkg-0.1.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "6ebaac656a5d231d4ecb7cd37f9c92a0",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.8,<4.0",
+            "size": 1622544,
+            "upload_time": "2020-01-14T17:15:07",
+            "upload_time_iso_8601": "2020-01-14T17:15:07.471216Z",
+            "url": "https://files.pythonhosted.org/packages/dd/46/7deeb200acb93372de89e517e58187677b8457c95aec31a58b7ec3548449/icpkg-0.1.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "99bbfd2c947797df568884ce4fc6ce8c",
+                "sha256": "8232bfde3e13d3c5fc776ab92672b416caa0c11654f9a2aa392b023cb5b74ad8"
+            },
+            "downloads": -1,
+            "filename": "icpkg-0.1.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "99bbfd2c947797df568884ce4fc6ce8c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.8,<4.0",
+            "size": 1352666,
+            "upload_time": "2020-01-14T17:15:11",
+            "upload_time_iso_8601": "2020-01-14T17:15:11.021661Z",
+            "url": "https://files.pythonhosted.org/packages/1f/90/5943eb04b358f6a940458bd3f3f4810a15f18855132d603a71a819c15a5c/icpkg-0.1.3.tar.gz"
+        }
+    ]
+}

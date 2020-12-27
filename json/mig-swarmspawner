@@ -1,0 +1,409 @@
+{
+    "info": {
+        "author": "Rasmus Munk",
+        "author_email": "rasmus.munk@nbi.ku.dk",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "==============================\nSwarmSpawner\n==============================\n\n.. image:: https://travis-ci.org/rasmunk/SwarmSpawner.svg?branch=master\n    :target: https://travis-ci.org/rasmunk/SwarmSpawner\n\n\n**MiG SwarmSpawner** enables `JupyterHub <https://github\n.com/jupyterhub/jupyterhub>`_ to spawn jupyter notebooks that can interact\nwith the MiG infrastructure.\n\nMore info about Docker Services `here <https://docs.docker.com/engine/reference/commandline/service_create/>`_.\n\n\nPrerequisites\n================\n\nPython version 3.3 and above is required.\n\n\nInstallation\n================\n\n.. code-block:: sh\n\n   pip install mig-swarmspawner\n\nInstallation from GitHub\n============================\n\n.. code-block:: sh\n\n   git clone https://github.com/rasmunk/SwarmSpawner\n   cd SwarmSpawner\n   python setup.py install\n\nConfiguration\n================\n\nYou can find an example jupyter_config.py inside `examples <examples>`_.\n\nThe spawner\n================\nDocker Engine in Swarm mode and the related services work in a different way compared to Docker containers.\n\nTell JupyterHub to use SwarmSpawner by adding the following lines to your `jupyterhub_config.py`:\n\n.. code-block:: python\n\n        c.JupyterHub.spawner_class = 'mig.SwarmSpawner'\n        c.JupyterHub.hub_ip = '0.0.0.0'\n        # This should be the name of the jupyterhub service\n        c.SwarmSpawner.jupyterhub_service_name = 'NameOfTheService'\n\nWhat is ``jupyterhub_service_name``?\n\nInside a Docker engine in Swarm mode the services use a `name` instead of a `ip` to communicate with each other.\n'jupyterhub_service_name' is the name of ther service for the JupyterHub.\n\nNetworks\n============\nIt's important to put the JupyterHub service (also the proxy) and the services that are running jupyter notebook inside the same network, otherwise they couldn't reach each other.\nSwarmSpawner use the service's name instead of the service's ip, as a consequence JupyterHub and servers should share the same overlay network (network across nodes).\n\n.. code-block:: python\n\n        #list of networks\n        c.SwarmSpawner.networks = [\"mynetwork\"]\n\n\nDefine the services inside jupyterhub_config.py\n===============================================\nYou can define *container_spec*, *resource_spec* and *networks* inside **jupyterhub_config.py**.\n\nContainer_spec__\n-------------------\n__ https://github.com/docker/docker-py/blob/master/docs/user_guides/swarm_services.md\n\n\nThe ``command`` and ``args`` definitions depends on the image that you are using.\nI.e the command must be possible to execute in the selected image\nThe '/usr/local/bin/start-singleuser.sh' is provided by the jupyter\n`base-notebook <https://github.com/jupyter/docker-stacks/tree/master/base-notebook>`_\nThe start-singleuser.sh ``args`` assumes that the launched image is extended from a version of this.\n\n.. code-block:: python\n\n    c.SwarmSpawner.container_spec = {\n                  # The command to run inside the service\n                  'args' : ['/usr/local/bin/start-singleuser.sh']\n          }\n\n\n**Note:** in a container spec, ``args`` sets the equivalent of CMD in the Dockerfile, ``command`` sets the equivalent of ENTRYPOINT.\nThe notebook server command should not be the ENTRYPOINT, so generally use ``args``, not ``command``, to specify how to launch the notebook server.\n\nSee this `issue <https://github.com/cassinyio/SwarmSpawner/issues/6>`_  for more info.\n\nDockerimages\n---------------------\n\nTo define which images are available to the users, a list of dockerimages must be declared\nThe individual dictionaries also makes it possible to define whether the image should mount any volumes when it is spawned\n\n.. code-block:: python\n\n    # Available docker images the user can spawn\n    c.SwarmSpawner.dockerimages = [\n        {'image': 'jupyter/base-notebook:30f16d52126f',\n         'name': 'Minimal python notebook'},\n        {'image': 'nielsbohr/base-notebook:latest',\n         'name': 'Image with automatic {replace_me} mount, supports Py2/3 and R,',\n         'mounts': mounts}\n    ]\n\n\nTo make the user able to select between the available images, the following must be set.\nIf this is not the case, the user will simply spawn an instance of the default image. i.e. dockerimages[0]\n\n.. code-block:: python\n\n    # Before the user can select which image to spawn,\n    # user_options has to be enabled\n    c.SwarmSpawner.use_user_options = True\n\nThis enables an image select form in the users /hub/home url path when a notebook hasen't been spawned already.\n\n\nBind a Host dir\n---------------------\nWith ``'type':'bind'`` you mount a local directory of the host inside the container.\n\n*Remember that source should exist in the node where you are creating the service.*\n\n.. code-block:: python\n\n        notebook_dir = os.environ.get('NOTEBOOK_DIR') or '/home/jovyan/work'\n        c.SwarmSpawner.notebook_dir = notebook_dir\n\n.. code-block:: python\n\n        mounts = [{'type' : 'bind',\n                'source' : 'MountPointOnTheHost',\n                'target' : 'MountPointInsideTheContainer',}]\n\n\nVolumes\n-------\nWith ``'type':'volume'`` you mount a Docker Volume inside the container.\nIf the volume doesn't exist it will be created.\n\n.. code-block:: python\n\n        mounts = [{'type' : 'volume',\n                'source' : 'NameOfTheVolume',\n                'target' : 'MountPointInsideTheContainer',}]\n\n\nNamed path\n--------------\nFor both types, volume and bind, you can specify a ``{username}`` inside the source:\n\n.. code-block:: python\n\n        mounts = [{'type' : 'volume',\n                'source' : 'jupyterhub-user-{username}',\n                'target' : 'MountPointInsideTheContainer',}]\n\n\nusername will be the hashed version of the username.\n\n\nMount an anonymous volume\n-------------------------\n**This kind of volume will be removed with the service.**\n\n.. code-block:: python\n\n        mounts = [{'type' : 'volume',\n                'target' : 'MountPointInsideTheContainer',}]\n\n\nSSHFS mount\n----------------\n\nIt is also possible to mount a volume that is an sshfs mount to another host\nsupports either passing ``{id_rsa}`` or ``{password}`` that should be used to authenticate,\nin addition the typical sshfs flags are supported, defaults to port 22\n\n.. code-block:: python\n\n\n    mounts = [{'type': 'volume',\n               'driver_config': 'rasmunk/sshfs:latest',\n               'driver_options': {'sshcmd': '{sshcmd}', 'id_rsa': '{id_rsa}',\n                                  'big_writes': '', 'allow_other': '',\n                                  'reconnect': '', 'port': '2222'},\n               'source': 'sshvolume-user-{username}',\n               'target': '/home/jovyan/work'\n               }]\n\n\nResource_spec\n---------------\n\nYou can also specify some resource for each service\n\n.. code-block:: python\n\n        c.SwarmSpawner.resource_spec = {\n                        'cpu_limit' : 1000, # (int) \u2013 CPU limit in units of 10^9 CPU shares.\n                        'mem_limit' : int(512 * 1e6), # (int) \u2013 Memory limit in Bytes.\n                        'cpu_reservation' : 1000, # (int) \u2013 CPU reservation in units of 10^9 CPU shares.\n                        'mem_reservation' : int(512 * 1e6), # (int) \u2013 Memory reservation in Bytes\n                        }\n\nUsing user_options\n--------------------\n\nThere is the possibility to set parameters using ``user_options``\n\n.. code-block:: python\n\n        # To use user_options in service creation\n        c.SwarmSpawner.use_user_options = False\n\n\nTo control the creation of the services you have 2 ways, using **jupyterhub_config.py** or **user_options**.\n\nRemember that at the end you are just using the `Docker Engine API <https://docs.docker.com/engine/api/>`_.\n\n**user_options, if used, will overwrite jupyter_config.py for services.**\n\nIf you set ``c.SwarmSpawner.use_user_option = True`` the spawner will use the dict passed through the form or as json body when using the Hub Api.\n\nThe spawner expect a dict with these keys:\n\n.. code-block:: python\n\n        user_options = {\n                'container_spec' : {\n                        # (string or list) command to run in the image.\n                        'args' : ['/usr/local/bin/start-singleuser.sh'],\n                        # name of the image\n                        'Image' : '',\n                        'mounts' : mounts,\n                        'resource_spec' : {\n                                # (int) \u2013 CPU limit in units of 10^9 CPU shares.\n                                'cpu_limit': int(1 * 1e9),\n                                # (int) \u2013 Memory limit in Bytes.\n                                'mem_limit': int(512 * 1e6),\n                                # (int) \u2013 CPU reservation in units of 10^9 CPU shares.\n                                'cpu_reservation': int(1 * 1e9),\n                                # (int) \u2013 Memory reservation in bytes\n                                'mem_reservation': int(512 * 1e6),\n                                },\n                        # list of constrains\n                        'placement' : [],\n                        # list of networks\n                        'network' : [],\n                        # name of service\n                        'name' : ''\n                        }\n                }\n\n\nNames of the Jupyter notebook service inside Docker engine in Swarm mode\n--------------------------------------------------------------------------\n\nWhen JupyterHub spawns a new Jupyter notebook server the name of the service will be ``{service_prefix}-{service_owner}-{service_suffix}``\n\nYou can change the service_prefix in this way:\n\nPrefix of the service in Docker\n\n.. code-block:: python\n\n        c.SwarmSpawner.service_prefix = \"jupyterhub\"\n\n\n``service_owner`` is the hexdigest() of the hashed ``user.name``.\n\nIn case of named servers (more than one server for user) ``service_suffix`` is the name of the server, otherwise is always 1.\n\nDownloading images\n-------------------\nDocker Engine in Swarm mode downloads images automatically from the repository.\nEither the image is available on the remote repository or locally, if not you will get an error.\n\nBecause before starting the service you have to complete the download of the image is better to have a longer timeout (default is 30 secs)\n\n.. code-block:: python\n\n        c.SwarmSpawner.start_timeout = 60 * 5\n\n\nYou can use all the docker images inside the `Jupyter docker-stacks`_.\n\n.. _Jupyter docker-stacks: https://github.com/jupyter/docker-stacks\n\n\nCredit\n=======\n`DockerSpawner <https://github.com/jupyterhub/dockerspawner>`_\n`CassinyioSpawner <https://github.com/cassinyio/SwarmSpawner>`_\n\n\nLicense\n=======\nAll code is licensed under the terms of the revised BSD license.\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/rasmunk/SwarmSpawner",
+        "keywords": "Interactive,Interpreter,Shell,Web",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "mig-swarmspawner",
+        "package_url": "https://pypi.org/project/mig-swarmspawner/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/mig-swarmspawner/",
+        "project_urls": {
+            "Homepage": "https://github.com/rasmunk/SwarmSpawner"
+        },
+        "release_url": "https://pypi.org/project/mig-swarmspawner/0.0.9/",
+        "requires_dist": [
+            "jupyterhub (>=0.9.1)",
+            "docker (>=3.4.1)"
+        ],
+        "requires_python": "",
+        "summary": " MiG-SwarmSpawner enables JupyterHub to spawn jupyter notebooks that can interact with the MiG infrastructure.",
+        "version": "0.0.9"
+    },
+    "last_serial": 4174513,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "66f81bf72d9a00121806b04787da88f1",
+                    "sha256": "52ba7ae0a9570eb8fd044e04062a0272fbbee7bd251d88a8f00eab0e879533af"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "66f81bf72d9a00121806b04787da88f1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13565,
+                "upload_time": "2018-03-11T22:00:38",
+                "url": "https://files.pythonhosted.org/packages/7e/d1/d9e7aae5a1daf1ea841cf861a131e7321053bbd8941fc784a30c57cec5c2/mig_swarmspawner-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "188a90f53d1881e8c37e0003f0c4d0ca",
+                    "sha256": "70de9a32f679cc2b040bdd12fc53f41ae7453724afea4f58a863ea5cad916928"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "188a90f53d1881e8c37e0003f0c4d0ca",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9891,
+                "upload_time": "2018-03-11T22:00:39",
+                "url": "https://files.pythonhosted.org/packages/6d/ef/6dd0fcdb5a42f431d7a3cd2ad5d66baf475976abf8661764ecfe18d772b6/mig-swarmspawner-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "457abe6b4c20369db8b90e80554f7523",
+                    "sha256": "aabd1cb3cefd872acc02f4afea40bb24208ad51eabc9af5c58d8db6f50259302"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "457abe6b4c20369db8b90e80554f7523",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13801,
+                "upload_time": "2018-03-12T15:13:21",
+                "url": "https://files.pythonhosted.org/packages/ff/af/f47b74a16c360967c22ae63fd67793e4c9e344745eb6bd8b3f362f1e3822/mig_swarmspawner-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "311bb27394a5ac8bf4ccd1256a98e654",
+                    "sha256": "0468f094c44d3e82f972c39ea39bc7ab3106014c8a272ad2d2be7eeef466b147"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "311bb27394a5ac8bf4ccd1256a98e654",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10093,
+                "upload_time": "2018-03-12T15:13:22",
+                "url": "https://files.pythonhosted.org/packages/db/37/4a786b51d40698eff10b6b4567e3fdc2e5d0ec9f6c8c6b2822a34766dde1/mig-swarmspawner-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "63dfcd1337bbc96a1fdad2a1d27b8f58",
+                    "sha256": "5b5cebed7087a927d7258ce9f267c4067362910d4135dff6893d28de8c56b49e"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "63dfcd1337bbc96a1fdad2a1d27b8f58",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13565,
+                "upload_time": "2018-03-13T09:02:56",
+                "url": "https://files.pythonhosted.org/packages/ce/99/b04ca0065b39f4a0c07b003df865b8ba8779c22809444bc2e0b96cb1a22c/mig_swarmspawner-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "09cf79f83b97bbfa1219156d11176d53",
+                    "sha256": "565c089a0004c95597d15f1e6a04a0ddfc4e15cf10181d0e7ce774cbb6d03856"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "09cf79f83b97bbfa1219156d11176d53",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9876,
+                "upload_time": "2018-03-13T09:02:57",
+                "url": "https://files.pythonhosted.org/packages/98/5e/b502c5afdf48d5038791e977acae856f7c762a2817e5a7309591a77d2265/mig-swarmspawner-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed391ddc627c9405e3baecbf2157d828",
+                    "sha256": "589d66d5596c7b73038b1dcba902fd31356ff91703d685340ec7db710eff8002"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ed391ddc627c9405e3baecbf2157d828",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13564,
+                "upload_time": "2018-03-13T13:44:55",
+                "url": "https://files.pythonhosted.org/packages/85/8d/4aabd3becee0f1e0c9b3a372f40579c0006a8b576bcae24be439e6a841cb/mig_swarmspawner-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1e976475196d1b85c5d082baa7387e9d",
+                    "sha256": "b0badf9d3622a7c0cdca64d20a6dadae536dd3e7b6aec178370642bd9cbf5623"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1e976475196d1b85c5d082baa7387e9d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9875,
+                "upload_time": "2018-03-13T13:44:56",
+                "url": "https://files.pythonhosted.org/packages/6d/66/54bac05420ca39e4b7ebae2e40fe11057543f2364dca1b69b799ea2901aa/mig-swarmspawner-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0925f93a6d3ef9757ae1fc43a67b9519",
+                    "sha256": "1e6723bd25a659c0c9a8a679e4421aad801bf102760d18be17f93d086d22ded7"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0925f93a6d3ef9757ae1fc43a67b9519",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13553,
+                "upload_time": "2018-03-13T15:10:49",
+                "url": "https://files.pythonhosted.org/packages/8b/72/1c10a28679665f2dee73de6b42348285179556ecf9b0275415f3fd4bf190/mig_swarmspawner-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c6e627a57315d88ae241d9f10ddd5733",
+                    "sha256": "31f5b071080d9f8bcabc4fe39d050677d7ae0634ed06452bbe348a84eaf845a0"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c6e627a57315d88ae241d9f10ddd5733",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9868,
+                "upload_time": "2018-03-13T15:10:50",
+                "url": "https://files.pythonhosted.org/packages/c7/81/297f6cd223174e81a37adc98397f18b9868d37e81c23e330ab9364efd310/mig-swarmspawner-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cb8477da4649f027536ec30a52ca4929",
+                    "sha256": "3275b88cd3d60a9039ff4ab90acc8580e8171d9f40904a7c318c1d50b86384ab"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "cb8477da4649f027536ec30a52ca4929",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13591,
+                "upload_time": "2018-03-14T14:55:36",
+                "url": "https://files.pythonhosted.org/packages/e5/00/3a4c5778119f850542366b349c960d5b324db6df37c577b593e755314261/mig_swarmspawner-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9a24270698413ceb2ca39695d170ea06",
+                    "sha256": "6659add11523a258ecf27331cb399a6992ceebd6f4966390a4c3c83156289263"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9a24270698413ceb2ca39695d170ea06",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9912,
+                "upload_time": "2018-03-14T14:55:39",
+                "url": "https://files.pythonhosted.org/packages/2a/fb/65bb42f378b9ca57afde904b6fd261770d72815fbe8b264f15257217a897/mig-swarmspawner-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "70570b2504b0145c539a5790349185b0",
+                    "sha256": "1e9fdcda6983b3d554ea3e865d26a78b7ac1b893728f8d9d61d9bf940de492ee"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "70570b2504b0145c539a5790349185b0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10994,
+                "upload_time": "2018-04-03T14:12:41",
+                "url": "https://files.pythonhosted.org/packages/a8/61/59ad6515f6fb6c6814087951283ebb894c3f979affabfaf41ad0cdfea8c5/mig_swarmspawner-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0c5a9d19bb87f679803755999236bc4",
+                    "sha256": "f881eb0574b7301382cc442601b3eab2b76b40b742c4896f5894202c7d011816"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c0c5a9d19bb87f679803755999236bc4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11259,
+                "upload_time": "2018-04-03T14:12:41",
+                "url": "https://files.pythonhosted.org/packages/d5/f9/b3cb3982c386f005d2b8c5eefce9056099b4bf4fb2f0415bd225b84d229b/mig-swarmspawner-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec4fcfd228582e3987f40851df4fe677",
+                    "sha256": "82406c028a7a0ace98b95a018d2f03044aa5b48c30c6ae95dcb73b17fa755511"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ec4fcfd228582e3987f40851df4fe677",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10991,
+                "upload_time": "2018-04-03T15:06:14",
+                "url": "https://files.pythonhosted.org/packages/0a/5f/1a6265b1cd99829b1a728c546cd30576e978aacba706c70cf70367fc85ae/mig_swarmspawner-0.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9b1f913d846ba2d83cbb690f6a9a23b3",
+                    "sha256": "aafc61851fb9ce740a91798ab0680092c13b0b7df2f77fcde6e258f7e0301d43"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9b1f913d846ba2d83cbb690f6a9a23b3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11268,
+                "upload_time": "2018-04-03T15:06:15",
+                "url": "https://files.pythonhosted.org/packages/6e/60/8d173d364ce86b59a2deda87d78061ec1bf9109dadc88e0ef7e3313e4130/mig-swarmspawner-0.0.8.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "768246003a91d94f429408eee84c2307",
+                    "sha256": "19a9ad47e21a35442e18d21d8ec0425b7f627b7a3731c4680466f91740fba8b4"
+                },
+                "downloads": -1,
+                "filename": "mig_swarmspawner-0.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "768246003a91d94f429408eee84c2307",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12163,
+                "upload_time": "2018-08-15T21:23:21",
+                "url": "https://files.pythonhosted.org/packages/40/56/f95f34d3ba1e55282b0e5885e70a1a179e9a450aa50fd96fe564dbb410c8/mig_swarmspawner-0.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "428030693b7f2da18b6dece30924c27c",
+                    "sha256": "136b541d3a82e4e40a7e272b802c2ed1a75373dc28568dbc58c42554eb78cb9e"
+                },
+                "downloads": -1,
+                "filename": "mig-swarmspawner-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "428030693b7f2da18b6dece30924c27c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12392,
+                "upload_time": "2018-08-15T21:23:23",
+                "url": "https://files.pythonhosted.org/packages/14/45/c0d0cb7ad026a1e965208353279884e227db5b6bf7e22766b30bdd01054f/mig-swarmspawner-0.0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "768246003a91d94f429408eee84c2307",
+                "sha256": "19a9ad47e21a35442e18d21d8ec0425b7f627b7a3731c4680466f91740fba8b4"
+            },
+            "downloads": -1,
+            "filename": "mig_swarmspawner-0.0.9-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "768246003a91d94f429408eee84c2307",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 12163,
+            "upload_time": "2018-08-15T21:23:21",
+            "url": "https://files.pythonhosted.org/packages/40/56/f95f34d3ba1e55282b0e5885e70a1a179e9a450aa50fd96fe564dbb410c8/mig_swarmspawner-0.0.9-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "428030693b7f2da18b6dece30924c27c",
+                "sha256": "136b541d3a82e4e40a7e272b802c2ed1a75373dc28568dbc58c42554eb78cb9e"
+            },
+            "downloads": -1,
+            "filename": "mig-swarmspawner-0.0.9.tar.gz",
+            "has_sig": false,
+            "md5_digest": "428030693b7f2da18b6dece30924c27c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12392,
+            "upload_time": "2018-08-15T21:23:23",
+            "url": "https://files.pythonhosted.org/packages/14/45/c0d0cb7ad026a1e965208353279884e227db5b6bf7e22766b30bdd01054f/mig-swarmspawner-0.0.9.tar.gz"
+        }
+    ]
+}

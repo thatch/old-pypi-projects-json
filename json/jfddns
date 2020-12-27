@@ -1,0 +1,362 @@
+{
+    "info": {
+        "author": "Josef Friedrich",
+        "author_email": "josef@friedrich.rocks",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": ".. image:: http://img.shields.io/pypi/v/jfddns.svg\n    :target: https://pypi.python.org/pypi/jfddns\n\n.. image:: https://travis-ci.org/Josef-Friedrich/jfddns.svg?branch=master\n    :target: https://travis-ci.org/Josef-Friedrich/jfddns\n\nAbout\n-----\n\n`jfddns <https://pypi.org/project/jfddns>`_  is a HTTP based API to\ndynamically update DNS records (DynDNS). It\u2019s uses Python and the\nFlask web framework to accomplish this task.\n\nInstallation\n------------\n\nInstall ``jfddns`` into the directory\n``/usr/local/share/python-virtualenv/jfddns`` using a virtual\nenvironment.\n\n.. code-block:: text\n\n    python3 -m venv /usr/local/share/python-virtualenv/jfddns\n    source /usr/local/share/python-virtualenv/jfddns/bin/activate\n    pip3 install jfddns\n\n\nThe working directory of our flask web API is in the directory\n``/var/www/dyndns.example.com``. Create a file\n``/var/www/dyndns.example.com/jfddns.ini``.\n\n.. code-block:: ini\n\n    [uwsgi]\n    module = jfddns.webapp:app\n\n    master = true\n    processes = 5\n\n    socket = /var/www/dyndns.example.com/jfddns.sock\n    chmod-socket = 664\n    uid = www-data\n    gid = www-data\n    vacuum = true\n\n    die-on-term = true\n\n\nExample configuration file for nginx:\n``/etc/nginx/sites-available/dyndns.example.com.``\n\n.. code-block:: text\n\n    server {\n    \tserver_name dyndns.example.com;\n    \tlisten 80;\n    \tlisten [::]:80;\n    \treturn 301 https://$host$request_uri;\n    }\n\n    server {\n    \tlisten 443 ssl;\n    \tlisten [::]:443 ssl;\n    \tserver_name dyndns.example.com;\n    \tssl_certificate /etc/letsencrypt/live/dyndns.example.com/fullchain.pem;\n    \tssl_certificate_key /etc/letsencrypt/live/dyndns.example.com/privkey.pem;\n\n    \tlocation / {\n    \t\t\tinclude uwsgi_params;\n    \t\t\tuwsgi_pass unix:/var/www/dyndns.example.com/jfddns.sock;\n    \t}\n\n    }\n\n\n``/etc/systemd/system/jfddns-uwsgi.service``\n\n.. code-block:: text\n\n    [Unit]\n    Description=uWSGI instance to serve jfddns\n    After=network.target\n\n    [Service]\n    User=www-data\n    Group=www-data\n    WorkingDirectory=/var/www/dyndns.example.com\n    Environment=\"PATH=/usr/local/share/python-virtualenv/jfddns/bin\"\n    ExecStart=/usr/local/share/python-virtualenv/jfddns/bin/uwsgi --ini uwsgi.ini\n\n    [Install]\n    WantedBy=multi-user.target\n\nConfiguration\n-------------\n\n``jfddns`` requires a configuration file in the YAML markup language.\n\n``jfddns`` looks on three places for its configuration. It picks the\nfirst existing configuration file and ignores the later in this order:\n\n1. Custom path specified in the environment variable\n   ``JFDDNS_CONFIG_FILE``\n2. Current working directory of the ``jfddns`` app (cwd):\n   ``<cwd>/.jfddns.yml``\n3. ``/etc/jfddns.yml``\n\n.. code-block:: yaml\n\n    ---\n    secret: 12345678\n    nameserver: 127.0.0.1\n    jfddns_domain: dyndns.example.com\n    zones:\n      - name: example.com\n        tsig_key: tPyvZA==\n\n* ``secret``: A password like secret string. The secret string has to\n  be at least 8 characters long and only alphnumeric characters are\n  allowed.\n* ``nameserver``: The IP address of your nameserver. Version 4 or\n  version 6 are allowed. Use ``127.0.0.1`` to communicate with your\n  nameserver on the same machine.\n* ``jfddns_domain``: The domain to serve the ``jfddns`` HTTP API. This\n  key is only used in the usage page. Can be omitted.\n* ``zones``: At least one zone specified as a list.\n\nUsage\n-----\n\n``jfddns`` offers two HTTP web APIs to update DNS records. A simple\nand a more restricted one using only path segments and a more flexible\nusing query strings.\n\nUpdate by path\n^^^^^^^^^^^^^^\n\n1. ``<your-domain>/update-by-path/secret/fqdn``\n2. ``<your-domain>/update-by-path/secret/fqdn/ip_1``\n3. ``<your-domain>/update-by-path/secret/fqdn/ip_1/ip_2``\n\nUpdate by query\n^^^^^^^^^^^^^^^\n\n``<your-domain>/update-by-query?secret=secret&fqdn=fqdn&ip_1=1.2.3.4``\n\nArguments for the query string\n\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\n\n* ``secret``: A password like secret string. The secret string has to\n  be at least 8 characters long and only alphnumeric characters are\n  allowed.\n* ``fqdn``: The Fully-Qualified Domain Name (e. g. ``www.example.com``).\n  If you specify the argument ``fqdn``, you don\u2019t have to specify the\n  arguments ``zone_name`` and ``record_name``.\n* ``zone_name``: The zone name (e. g. ``example.com``). You have to\n  specify the argument ``record_name``.\n* ``record_name``: The record name (e. g. ``www``). You have to\n  specify the argument ``zone_name``.\n* ``ip_1``: A IP address, can be version 4 or version 6.\n* ``ip_2``: A second IP address, can be version 4 or version 6. Must\n  be a different version than ``ip_1``.\n* ``ipv4``: A IP address version 4.\n* ``ipv6``: A IP address version 6.\n* ``ttl``: Time to live. The default value is 300.\n\nDelete by path\n^^^^^^^^^^^^^^\n\nHit this url to delete a DNS record corresponding to the ``fqdn``.\nBoth ipv4 and ipv6 entries are deleted.\n\n``<your-domain>/delete-by-path/secret/fqdn``",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Josef-Friedrich/jfddns",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "jfddns",
+        "package_url": "https://pypi.org/project/jfddns/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/jfddns/",
+        "release_url": "https://pypi.org/project/jfddns/1.0.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A simple dynamic DNS update HTTP based API using python and the flask web framework.",
+        "version": "1.0.0"
+    },
+    "last_serial": 4017722,
+    "releases": {
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "519a8276de0103f13ec07a9cbb2c7119",
+                    "sha256": "53f6e668685ef73cb16938b669cde2df02b9898634085f2e1d1b2982272b7124"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "519a8276de0103f13ec07a9cbb2c7119",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 31434,
+                "upload_time": "2018-06-19T10:15:42",
+                "url": "https://files.pythonhosted.org/packages/06/d4/d52db1433db1a2bbd936642c928a9d8b203ec349a31df440badd7cde9ace/jfddns-0.1.4.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4bd988f990a7b0903068340c357cdcd0",
+                    "sha256": "047bb5e6291712a169a3d53fe7f55f501d92d8769ae02bf51a9abd7df8dc6269"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4bd988f990a7b0903068340c357cdcd0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 31701,
+                "upload_time": "2018-06-19T16:09:12",
+                "url": "https://files.pythonhosted.org/packages/f8/81/d7ddf0ecf3a1f9a7636e95bd2276c99e386b1cd4abf93009874de5815c44/jfddns-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "79a66df33e1662c2994b6b1fe7a22747",
+                    "sha256": "13241cbf6868da9876c5eab0860d7ab8a151cea5b0e4b2946b897c8c2593271b"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "79a66df33e1662c2994b6b1fe7a22747",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 34745,
+                "upload_time": "2018-06-19T18:27:52",
+                "url": "https://files.pythonhosted.org/packages/4c/33/1fde583d0fe580e391d552ea316155cd78e6124b3cf9a510f6db458c4330/jfddns-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a1b79eb711956e4208f82ad58d1021f",
+                    "sha256": "b794b6e6d2f78bf4bcd7562fe77eee4aa1a03ef6aaa3ab1d5af62c314c34729d"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7a1b79eb711956e4208f82ad58d1021f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 34752,
+                "upload_time": "2018-06-20T14:12:10",
+                "url": "https://files.pythonhosted.org/packages/7a/8f/fedcd7cfb299ea9b78d14e92dcb5765f7a3866598aa080dbab6bc9b91d26/jfddns-0.2.10.tar.gz"
+            }
+        ],
+        "0.2.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "32a2c0bc284b2eb6355600a5bae58e41",
+                    "sha256": "18c1d4e730803a651558207b9b493778fc5f307481f666fe5e7f4e38d8c34deb"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "32a2c0bc284b2eb6355600a5bae58e41",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 35369,
+                "upload_time": "2018-06-21T21:18:09",
+                "url": "https://files.pythonhosted.org/packages/a5/bf/137303eec7fe57a7563e8af4a912075b1fc157d298c91a7c2b50c96dbd42/jfddns-0.2.11.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fe4181c451558945654fefb34e79f2c9",
+                    "sha256": "2d2f93d7f26dc19df70f10085ce02df7f7684d210d2fee293eb71f95af9e49f5"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fe4181c451558945654fefb34e79f2c9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 34751,
+                "upload_time": "2018-06-19T18:38:58",
+                "url": "https://files.pythonhosted.org/packages/5c/32/13d8cb4a11bdf2e6d494cefc3b252fd9e732f11ef7d43079af3e79199464/jfddns-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6752df76811243f8f85f3efe76be5df9",
+                    "sha256": "3b7686c40e090eb57b70cba7aff1b8c242a55aa7e493b53d1d7a193d4f6685bb"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6752df76811243f8f85f3efe76be5df9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 34754,
+                "upload_time": "2018-06-19T18:48:06",
+                "url": "https://files.pythonhosted.org/packages/1d/36/8f41beb27548507c8430bb0c013473c016ea525797f4d0e33e841b6a01e8/jfddns-0.2.3.tar.gz"
+            }
+        ],
+        "0.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "caae044f67472dbe4e982cb11191fee6",
+                    "sha256": "0dfad016968baa38b657f305890efc3af44bf678d4aeb323c44ddf472e3d3704"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "caae044f67472dbe4e982cb11191fee6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 34741,
+                "upload_time": "2018-06-19T19:15:05",
+                "url": "https://files.pythonhosted.org/packages/e7/29/de8c263ca5be1d3fe36b7add2299888870c88959afe08593f9165f788334/jfddns-0.2.4.tar.gz"
+            }
+        ],
+        "0.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "455e47e897321491c095959483b5dc2f",
+                    "sha256": "d49a9b64e24ad6fcd265e384c67087e314ebf05eed65bbc7ff233f92917db7c0"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "455e47e897321491c095959483b5dc2f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 34744,
+                "upload_time": "2018-06-20T05:26:44",
+                "url": "https://files.pythonhosted.org/packages/69/60/a9de8143e3a6eecde8342550625a60a5bd01942e85e7c3d07298d926d949/jfddns-0.2.7.tar.gz"
+            }
+        ],
+        "0.2.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "535c3d38dec0fe1dac4d58edfbc4aeca",
+                    "sha256": "b8c321a0409bc8a7c955935b36023becd0fd5c79fd883b9848a91a54eb0d268f"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.2.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "535c3d38dec0fe1dac4d58edfbc4aeca",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 34742,
+                "upload_time": "2018-06-20T14:05:12",
+                "url": "https://files.pythonhosted.org/packages/ce/29/7e22d07a137d57a426da309eae1a96024f5fa993d1aaa730f612d891c37a/jfddns-0.2.9.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8826978d9e073cfb616860e7ebd47fa9",
+                    "sha256": "3b0fb2c38ba86486f13ccd216028f836aca2bebe58c0700120599f5d5feadd33"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8826978d9e073cfb616860e7ebd47fa9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 35440,
+                "upload_time": "2018-06-23T06:20:03",
+                "url": "https://files.pythonhosted.org/packages/bb/48/8ad2b62c167676e715c10ca30fcd7e44178c02177bdd5d56708c937cb040/jfddns-0.3.0.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b374e80983cf4e30ad3a2ea2b3dcb634",
+                    "sha256": "81b4493bbc6c9ef279bb121278422eab1f8b4aa50f1915c9290c970f3439672b"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b374e80983cf4e30ad3a2ea2b3dcb634",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 35965,
+                "upload_time": "2018-06-23T15:34:56",
+                "url": "https://files.pythonhosted.org/packages/cf/d6/0cd048eb02b96b991b7b76c2460302a717ce48663b87b5aecdf5fa56f5b6/jfddns-0.4.0.tar.gz"
+            }
+        ],
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f760d22e0ce8d1db451b4759d07d708c",
+                    "sha256": "d1063bcde7664c8c29d26ba8b73319e29cf521ede4c96452ba02f66ed2b4e2ff"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f760d22e0ce8d1db451b4759d07d708c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 35844,
+                "upload_time": "2018-06-23T19:14:45",
+                "url": "https://files.pythonhosted.org/packages/85/3f/852f65a553c05294189b396170beaf4eaf54a128faeacfdcb2dc63df07af/jfddns-0.4.1.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "85713c30fdf3c48b9c9fdab98205a80e",
+                    "sha256": "29585d7ddd2b1fcad64f067dd792e95b02c5db7ed4a5c0fa4eace484bf8c070c"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "85713c30fdf3c48b9c9fdab98205a80e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 60892,
+                "upload_time": "2018-06-25T20:53:53",
+                "url": "https://files.pythonhosted.org/packages/07/73/5b36aa73395feabf2b56f8b24a177f9a7067cde1e2f370528133e82394e4/jfddns-0.4.2.tar.gz"
+            }
+        ],
+        "0.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "782878dc6843fec2f2631bb98a780602",
+                    "sha256": "bf77eb05be7a3d4e7687079db15283958eb8494d27337493076eebd34090d584"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "782878dc6843fec2f2631bb98a780602",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 61908,
+                "upload_time": "2018-06-26T10:05:41",
+                "url": "https://files.pythonhosted.org/packages/52/f5/d5cac3f356496a5d84b7b520bf56e94e9bf4bfb02221a03ce7145949e3d0/jfddns-0.4.3.tar.gz"
+            }
+        ],
+        "0.4.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e14f9ca497b6e20d60178e41c964e0a4",
+                    "sha256": "a3eb48039ba09a5131679611b637a4525574479c1b647c3c1a8100f3a9849d55"
+                },
+                "downloads": -1,
+                "filename": "jfddns-0.4.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e14f9ca497b6e20d60178e41c964e0a4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 62383,
+                "upload_time": "2018-06-27T14:57:35",
+                "url": "https://files.pythonhosted.org/packages/c0/39/210fbf6a5cf0b40478f07a8aaf1be87bbe6934bfa20e7602c85f2e6480b6/jfddns-0.4.4.tar.gz"
+            }
+        ],
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a103f8a4487297086c6197c2be2d3f0b",
+                    "sha256": "64931ca033582c723e7d10c0700f4c36a38d676f5621a9a90f5841817814b88a"
+                },
+                "downloads": -1,
+                "filename": "jfddns-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a103f8a4487297086c6197c2be2d3f0b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 62459,
+                "upload_time": "2018-06-30T07:24:10",
+                "url": "https://files.pythonhosted.org/packages/8a/55/bb17536a9e0b77fb195e14c79c980499f562877ee9ef0d0e47b3deadeb4c/jfddns-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a103f8a4487297086c6197c2be2d3f0b",
+                "sha256": "64931ca033582c723e7d10c0700f4c36a38d676f5621a9a90f5841817814b88a"
+            },
+            "downloads": -1,
+            "filename": "jfddns-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a103f8a4487297086c6197c2be2d3f0b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 62459,
+            "upload_time": "2018-06-30T07:24:10",
+            "url": "https://files.pythonhosted.org/packages/8a/55/bb17536a9e0b77fb195e14c79c980499f562877ee9ef0d0e47b3deadeb4c/jfddns-1.0.0.tar.gz"
+        }
+    ]
+}

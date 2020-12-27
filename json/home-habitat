@@ -1,0 +1,266 @@
+{
+    "info": {
+        "author": "Adam Weidner",
+        "author_email": "aweidner6993@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "==========\nHabitat\n==========\n\nHabitat provides a convenient way for UNIX users to keep their home directories\nin sync across multiple computers.  Think of it like package management for home\ndirectories.  This is a package that's aimed at end users.\n\nInstallation\n============\n\nThe easiest way to install habitat is to use::\n\n    pip install home_habitat\n\nThis will install all the dependencies for the script.  Habitat also depends on\na library called ``pycrypto``, which has to be compiled using ``gcc``.  On\nDebian based distributions, you can run::\n\n    apt-get install python-dev\n\nTo make sure you have the proper libraries installed for ``pycrypto`` to be\ncompiled during the habitat installation process.\n\nNext, you are going to need a configuration file.  It's possible to run habitat\nwithout a configuration file, but it's inconvenient and not recommended.  The\nbasics of a configuration file look a little bit like this::\n\n    [servers]\n        [[default]]\n            connection_string=user@host:port\n            package_directory=\".\"\n    [packages]\n        [[default]]\n            files=\"\"\"\n            file1,\n            file2,\n            file3,\n            etc\n            \"\"\"\n\nThis basic configuration file sets up two things:\n\n1. A server to connect to when you start habitat\n2. A list of files to be used in the push and pull process\n\n``default`` is a special keyword that will be used whenever you don't specify a\nname for a package or server.\n\nYou should save your config file as either ``~/habitat.conf`` or\n``~/.habitat.conf`` so that habitat can find it when it runs.\n\nIn addition, you will need an sftp server running on some remote computer that\nyou have access to.  This computer will be used to store all of your packages\nafter you create them.\n\nOperations\n=========\n\nThere are two operations that habitat can perform, either a push or a pull.\nPushing takes in a server name that appears in your ``habitat.conf`` file or a\nconnection string as well as a package name.  This process will find all the\nnamed files in your package (relative to your current package name), verify they\nexist, place them all in a .tar.gz file named after the package name in your\nconfig file, and the upload them to the server you choose by way of sftp.\n\nFor example, using the above config file, we could do the following::\n    \n    habitat push\n\nIn our home directory.  This would take file1, file2, file3, and etc, verify\ntheir existence, then place them in ``default.tar.gz``.  This file would then be\nuploaded to the default server.  You would be prompted for a password, and then\nthe file transfer would occur, placing default.tar.gz in your home directory on\nthe remote server.\n\nThe next operation is a pull and is done with the following::\n\n    habitat pull\n\nThis command does what you would expect.  It connects to the server you specify\n(default in this case), grabs the package you specify (also default in this\ncase), and extracts it to your current directory.  For our example, you would\nget file1, file2, and file3 placed in your current directory after this\noperation.\n\nOptions\n=======\n\nBeyond defaults, habitat has options, which are listed below:\n\n* -d : turns debug mode on and off\n* -c [user@host:port] : specifies a connection string to use\n* -s [server] : specifies a named server (one that appears in habitat.conf) to use\n\nIn addition to accepting the push/pull argument, habitat accepts another\nargument which is a named package (in habitat.conf).  Given this information,\nhabitat will package the appropriate files.  In the case of a default package\nnot being able to be found, habitat will ask to package all files in the current\ndirectory as the default named package.  If you choose to do so, everything will\nbe packaged.\n\nOptions in habitat.conf\n=======================\n\nFirst, a preferences section can be added to habitat.conf with the\nfollowing arguments:\n\n[preferences]\ndebug = true|false\ndebug=false\ndefault_file_type=\"some file type\" (default .tar.gz)\ndefault_tar_name=\"some file name\" (default is default)\n\nEssentially, these options do what you would expect.  The default file type will\nspecify a default file type for habitat to use when it is doing it's packaging.\nPresently, habitat relies on the ``tar`` command to unpack files, so it is\nnot advised to change this argument until it has been tested more fully.\nDefault file name will change the default package to another identifier.  If\nthis name is changed, it must also be changed in the packages section.\n\nNext, the servers section.  Each sub-heading represents the name of a server.\nAt minimum, any server requires a connection_string (which must be valid), and a\npackage_directory (the directory on the server that all packages will be\nstored).  An additional option, use_public_private_key, may be set to true if\nyou have password-less ssh set up for that server.\n\nFinally, the packages section.  At present, the only option for the packages\nsection is the files argument.  The argument MUST start and end with triple\nquotes, and be a comma delineated list of files OR directories.  If ANY of the\nfiles don't exist, the entire process will fail.  Additionally, all paths are\nrelative from the directory that habitat was launched in.  If you want absolute\npaths, you are welcome to use them.\n\nProject Status\n==============\n\nCurrently, the project is in VERY early stages of development.  You are likely\nto encounter bugs as the project is developed.  If you find any, feel free to\nreport them.  Moreover, if you would like to contribute to this source in any\nway, have at it.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/aweidner/habitat",
+        "keywords": null,
+        "license": "LICENSE.txt",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "home_habitat",
+        "package_url": "https://pypi.org/project/home_habitat/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/home_habitat/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://bitbucket.org/aweidner/habitat"
+        },
+        "release_url": "https://pypi.org/project/home_habitat/0.3.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Synch your home directory.  Everywhere.",
+        "version": "0.3.1"
+    },
+    "last_serial": 792972,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e1e392e1857970d8c14a0599dde095d3",
+                    "sha256": "71ea47be73615a964217ab2d21d6a74091d03f5a73e548d4332821df14841537"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e1e392e1857970d8c14a0599dde095d3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4904,
+                "upload_time": "2012-05-21T02:04:31",
+                "url": "https://files.pythonhosted.org/packages/51/cc/48bdbaa5c40267d77ad9aeb1c4c8912984c1acc03b746247489e6bbcdbd2/home_habitat-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a7993f55aabf64e94227525218c227d6",
+                    "sha256": "a2e6fa53540736d4bb4e61880b002a0f4899872dccb0062b3876ac5ef6bbca20"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a7993f55aabf64e94227525218c227d6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4905,
+                "upload_time": "2012-05-21T02:06:20",
+                "url": "https://files.pythonhosted.org/packages/de/58/c382d9ace4735e301c178c5577403ad22e5e4901212e771b1096a09b7b43/home_habitat-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5cadfdd5023af917ef3a2537e19afc2e",
+                    "sha256": "39ece4f54d10997fa15a4b60df327e0b42144b6922429b99e9b47d435ecc1359"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5cadfdd5023af917ef3a2537e19afc2e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4876,
+                "upload_time": "2012-05-21T02:15:23",
+                "url": "https://files.pythonhosted.org/packages/4f/e1/73337018bbee8192f5dce7f58fcfaf79b9bd0a9e45ed88c5b6420e9c6de5/home_habitat-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "785607eee51e61d27b48ffcca5116d12",
+                    "sha256": "73d2dacd898e1155743d26043728eb3064f732dd1fcb15b77d1bd33d38cc9621"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "785607eee51e61d27b48ffcca5116d12",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4887,
+                "upload_time": "2012-05-21T22:57:24",
+                "url": "https://files.pythonhosted.org/packages/4a/53/4238a5adc1e9af74824b82322f250a1b5d78c54cb2459f626200c02fcc81/home_habitat-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0a0238716ed278eb66487c537cf22334",
+                    "sha256": "9d3c1055b39d407c581c38de0fc115dcf248742f3e864ef68276f7dd401ca7f1"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0a0238716ed278eb66487c537cf22334",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7613,
+                "upload_time": "2012-05-23T01:06:15",
+                "url": "https://files.pythonhosted.org/packages/b3/44/189ed38f0206595e11ef37698eeae056e3a2743fb5fd6f068dd00295c740/home_habitat-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "27d8d27706a42f81660fad412e133fd4",
+                    "sha256": "663a76b11e09e4a4b5acb51091a01cccc7f064d21243a05d8c1d1e02d13c5f44"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "27d8d27706a42f81660fad412e133fd4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8234,
+                "upload_time": "2012-05-23T01:10:56",
+                "url": "https://files.pythonhosted.org/packages/5d/90/5f236ff0c72f418642f6005491af1d55630f9a6d28eaa4fa2e5b3fc14839/home_habitat-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2fb085e855441bb8ebf476d03eb77d32",
+                    "sha256": "010cc48a3743b29857c8083998762519e857951bbdf8d26c28efb7276d9d1f7d"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2fb085e855441bb8ebf476d03eb77d32",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8345,
+                "upload_time": "2012-05-23T01:12:57",
+                "url": "https://files.pythonhosted.org/packages/f3/54/ef0006f06a0bf1837d0370dd911d107c01a1c8bb58f9f14e0788715b90df/home_habitat-0.1.6.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2daf24db2e7008f9752e336442a11315",
+                    "sha256": "2bcd65b34cd72c474493cdba0ad953ef3068f2a6e31852ecea368a13bbc46f8c"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2daf24db2e7008f9752e336442a11315",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8188,
+                "upload_time": "2012-05-24T23:27:43",
+                "url": "https://files.pythonhosted.org/packages/26/2a/a609001e5a6c30a921166189c0b9decda8f93e080f662864178b83f859f8/home_habitat-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "843296949939e318b78b68bc913c9ade",
+                    "sha256": "d7332ab11080f7792d7289dd8c33dacadefdfaaae057bb9b0ed4874dc8b38b1e"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "843296949939e318b78b68bc913c9ade",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8266,
+                "upload_time": "2012-05-24T23:38:11",
+                "url": "https://files.pythonhosted.org/packages/10/a4/fa69584f6401166345bf0451d8c1a74750f29c654d22aefb9589bc2db222/home_habitat-0.2.1.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e676795db5737563e213a6cf03d97e9",
+                    "sha256": "67b38030bac0c4e0f8953cb14688112fbc2b41dfc49fcb98dbc3515b520c9b91"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3e676795db5737563e213a6cf03d97e9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11490,
+                "upload_time": "2012-06-06T00:01:25",
+                "url": "https://files.pythonhosted.org/packages/e6/a2/919d30f563f6472b16868e40bb69827e2f11ac7ef776b53620d2803ac920/home_habitat-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "66bfcd927b02015a2a5a7889debe92fa",
+                    "sha256": "b7fbe3daabf551140e4b8f085801187a3bf2637af0cf8a308164444deb5b370c"
+                },
+                "downloads": -1,
+                "filename": "home_habitat-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "66bfcd927b02015a2a5a7889debe92fa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11924,
+                "upload_time": "2012-06-07T00:41:33",
+                "url": "https://files.pythonhosted.org/packages/7a/c8/927050b9db9186bcf991bb1827cf71ab3f06932f6044218a34f446b57e76/home_habitat-0.3.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "66bfcd927b02015a2a5a7889debe92fa",
+                "sha256": "b7fbe3daabf551140e4b8f085801187a3bf2637af0cf8a308164444deb5b370c"
+            },
+            "downloads": -1,
+            "filename": "home_habitat-0.3.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "66bfcd927b02015a2a5a7889debe92fa",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11924,
+            "upload_time": "2012-06-07T00:41:33",
+            "url": "https://files.pythonhosted.org/packages/7a/c8/927050b9db9186bcf991bb1827cf71ab3f06932f6044218a34f446b57e76/home_habitat-0.3.1.tar.gz"
+        }
+    ]
+}

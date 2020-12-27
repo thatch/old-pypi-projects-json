@@ -1,0 +1,258 @@
+{
+    "info": {
+        "author": "Michal Charemza",
+        "author_email": "michal@charemza.name",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Framework :: AsyncIO",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# aiodeduplicate [![CircleCI](https://circleci.com/gh/michalc/aiodeduplicate.svg?style=svg)](https://circleci.com/gh/michalc/aiodeduplicate) [![Test Coverage](https://api.codeclimate.com/v1/badges/5e70552f9dd435a18326/test_coverage)](https://codeclimate.com/github/michalc/aiodeduplicate/test_coverage)\n\nDeduplicate concurrent asyncio Python coroutine calls. This offers a short-lived cache: for any given set of arguments, this cache lasts only for the length of a single call.\n\n\n## Installation\n\n```base\npip install aiodeduplicate\n```\n\n## Usage\n\nFor a coroutine whose arguments are hashable, you can create a _deduplicated_ version by passing it to `deduplicate_concurrent`. Any concurrent calls to this version that have the same arguments will result in only a _single_ run of original coroutine. \n\nFor example, creating 3 concurrent invocations of a coroutine where 2 of them have identical arguments\n\n```python\nimport asyncio\nfrom aiodeduplicate import deduplicate_concurrent\n\nasync def main():\n    deduplicated_coro = deduplicate_concurrent(coro)\n\n    results = await asyncio.gather(*[\n        deduplicated_coro('a'),\n        deduplicated_coro('a'),\n        deduplicated_coro('b'),\n    ])\n    print(results)\n\n    await deduplicated_coro('a')\n\nasync def coro(value):\n    print('Inside coro', value)\n    await asyncio.sleep(1)\n    return value\n\nloop = asyncio.get_event_loop()\nloop.run_until_complete(main())\nloop.close()\n```\n\nwill only run `coro` twice, as shown by the output\n\n```\nInside coro a\nInside coro b\n['a', 'a', 'b']\n```\n\n\n## Use cases\n\nThis can be used to deduplicate a function making calls to an API, and if\n\n- you expect many concurrent calls;\n- identical concurrent calls are idempotent;\n- there are enough such calls that are identical to justify such a caching layer.\n\nIt can also be used to avoid concurrency edge cases/race conditions with multiple tasks accessing shared resources. For example, multiple tasks may need to dynamically create shared UDP sockets. To ensure that this dynamic generation isn't called by multiple tasks at the same time for the same address, it can be wrapped with `deduplicate_concurrent`.\n\nThe function `deduplicate_concurrent` works with both coroutines, and functions that return a future.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/michalc/aiodeduplicate",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "aiodeduplicate",
+        "package_url": "https://pypi.org/project/aiodeduplicate/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/aiodeduplicate/",
+        "project_urls": {
+            "Homepage": "https://github.com/michalc/aiodeduplicate"
+        },
+        "release_url": "https://pypi.org/project/aiodeduplicate/0.0.5/",
+        "requires_dist": null,
+        "requires_python": "~=3.5",
+        "summary": "Deduplicate concurrent asyncio Python function calls",
+        "version": "0.0.5"
+    },
+    "last_serial": 5008979,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8bf064016f7ae73c8eb7e8ba3e561a65",
+                    "sha256": "94cee292c185d2eb71e6c66a5d66a9798144e9a5d1557f83b12f8be01e9518f2"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8bf064016f7ae73c8eb7e8ba3e561a65",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.5",
+                "size": 3281,
+                "upload_time": "2019-03-30T15:02:58",
+                "url": "https://files.pythonhosted.org/packages/88/72/6293e88b634486dd766bbc9c5ae1e152ee36ac119de65edd2e33296ebc24/aiodeduplicate-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "951cefe3c0e0d993056914a03e4c3735",
+                    "sha256": "b997622606ec43dddf0ac6e7fcd4afe79511dc0adc635d62b270d9d6b7dd7e01"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "951cefe3c0e0d993056914a03e4c3735",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": "~=3.5",
+                "size": 2196,
+                "upload_time": "2019-03-30T15:03:00",
+                "url": "https://files.pythonhosted.org/packages/7c/45/1e394bdcc1d932d4d568fc90f82910b8ffb7e2973764e1b0573329a9f1a8/aiodeduplicate-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f5dc29a85a5bcfe23bb6614e31c576ce",
+                    "sha256": "2b983c519228d01955c81e59e7ddb0d5d7cf88ea592b97074ea78570eb864a56"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f5dc29a85a5bcfe23bb6614e31c576ce",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.5",
+                "size": 3432,
+                "upload_time": "2019-03-31T08:46:07",
+                "url": "https://files.pythonhosted.org/packages/b6/5f/9949fdc978c939d1bf5ae0dc39769785714ed25fb241dfd0d7b7407792be/aiodeduplicate-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "64655ce333b45d98806d227b44fafd6b",
+                    "sha256": "592d9c147b04beb45fa8f463d29c90b9ae3be1de1bfdad4324ce664dc8b823bc"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "64655ce333b45d98806d227b44fafd6b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": "~=3.5",
+                "size": 2368,
+                "upload_time": "2019-03-31T08:46:08",
+                "url": "https://files.pythonhosted.org/packages/20/3b/3ddfb78a57b4b07acfac3e458ccc08fca8d4c9c2a0404798e5b27a92cdba/aiodeduplicate-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0b79f7583b714adcad33827f3585355a",
+                    "sha256": "f61fa666e366554ddd040f1175dbf5bf9c2c6ca35f59f316563437851e7adaae"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0b79f7583b714adcad33827f3585355a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.5",
+                "size": 3440,
+                "upload_time": "2019-03-31T09:30:15",
+                "url": "https://files.pythonhosted.org/packages/dd/1b/1322805c37bf708616405c60ecf4cd26367b05d92004bfac120a893eb567/aiodeduplicate-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b9888913f3674953e4438c9bb71c9276",
+                    "sha256": "9bdccb22cedf5f8d8cc4103b1e9d9fb2338af75fe59b453584a7b14605bc33cb"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b9888913f3674953e4438c9bb71c9276",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": "~=3.5",
+                "size": 2373,
+                "upload_time": "2019-03-31T09:30:17",
+                "url": "https://files.pythonhosted.org/packages/6c/84/5aebb361fd75a0ab25fd6b7584dfccf99e8a53063790453199a5727a46ab/aiodeduplicate-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6721a1196a5efe8001902a4d36625999",
+                    "sha256": "e443cf9b6dd28b805f8d560cda9c1b765a95a49c84ee02a8087ac42a2657c0e8"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6721a1196a5efe8001902a4d36625999",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.5",
+                "size": 3430,
+                "upload_time": "2019-03-31T09:33:51",
+                "url": "https://files.pythonhosted.org/packages/ec/35/461a2d7776742e78122fc642d417cdb8ff54622f78a55840dd993d2c5f9a/aiodeduplicate-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "85f2f5ccb45a2757aa5f3d96aa3bcaa7",
+                    "sha256": "3c5bd663e25e453c868675ac12a3fa47582cc882c35db6f5775db4400db2d606"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "85f2f5ccb45a2757aa5f3d96aa3bcaa7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": "~=3.5",
+                "size": 2364,
+                "upload_time": "2019-03-31T09:33:52",
+                "url": "https://files.pythonhosted.org/packages/6c/b3/7a60869d82bd92286540bd14cfa3315969098f96db287c1d44696027b020/aiodeduplicate-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "094983c4b74ce6798f63307e50d91eed",
+                    "sha256": "0ed6737890af5c296a9131af3d62255a880b0094b2b8b1ff3dc82dc855e5c914"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "094983c4b74ce6798f63307e50d91eed",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": "~=3.5",
+                "size": 3426,
+                "upload_time": "2019-03-31T09:35:59",
+                "url": "https://files.pythonhosted.org/packages/ed/a2/79ebfa23512a56b66804542ad3c75c6bcbd9a384a4b6c0767441b1ae007f/aiodeduplicate-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "354156b3127b17b4acc6ba0da0b3cef3",
+                    "sha256": "305d2b206a8a1a001c27346904321606b17a585fec6bf2a578b5c2e4874c63d0"
+                },
+                "downloads": -1,
+                "filename": "aiodeduplicate-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "354156b3127b17b4acc6ba0da0b3cef3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": "~=3.5",
+                "size": 2368,
+                "upload_time": "2019-03-31T09:36:00",
+                "url": "https://files.pythonhosted.org/packages/1a/b9/9c367762787d744890509290325d90d0d7e4ce587b6e0f5be0d79d4a2720/aiodeduplicate-0.0.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "094983c4b74ce6798f63307e50d91eed",
+                "sha256": "0ed6737890af5c296a9131af3d62255a880b0094b2b8b1ff3dc82dc855e5c914"
+            },
+            "downloads": -1,
+            "filename": "aiodeduplicate-0.0.5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "094983c4b74ce6798f63307e50d91eed",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": "~=3.5",
+            "size": 3426,
+            "upload_time": "2019-03-31T09:35:59",
+            "url": "https://files.pythonhosted.org/packages/ed/a2/79ebfa23512a56b66804542ad3c75c6bcbd9a384a4b6c0767441b1ae007f/aiodeduplicate-0.0.5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "354156b3127b17b4acc6ba0da0b3cef3",
+                "sha256": "305d2b206a8a1a001c27346904321606b17a585fec6bf2a578b5c2e4874c63d0"
+            },
+            "downloads": -1,
+            "filename": "aiodeduplicate-0.0.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "354156b3127b17b4acc6ba0da0b3cef3",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": "~=3.5",
+            "size": 2368,
+            "upload_time": "2019-03-31T09:36:00",
+            "url": "https://files.pythonhosted.org/packages/1a/b9/9c367762787d744890509290325d90d0d7e4ce587b6e0f5be0d79d4a2720/aiodeduplicate-0.0.5.tar.gz"
+        }
+    ]
+}

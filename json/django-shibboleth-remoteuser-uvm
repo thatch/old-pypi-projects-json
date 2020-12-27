@@ -1,0 +1,195 @@
+{
+    "info": {
+        "author": "Brown University Library",
+        "author_email": "bdr@brown.edu",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "django-shibboleth-remoteuser\n============================\n\n|build-status|\n\nMiddleware for using Shibboleth with Django.\nRequires Django 1.3 or above for RemoteAuthMiddleware.\n\nRequirements\n------------\n\n* shibboleth-sp service installed on your system\n* shibboleth module enabled or compiled on your web server\n* Django >= 1.8 for version > 0.6 or Django > 1.3 for version <= 0.6\n\nInstallation and configuration\n------------------------------\n1.  Either checkout and run ``python setup.py install`` or install directly\n    from GitHub using ``pip``:\n\n    .. code-block:: bash\n\n        pip install git+https://github.com/Brown-University-Library/django-shibboleth-remoteuser.git\n\n2.  In ``settings.py``:\n\n    * Enable the RemoteUserBackend.\n\n      .. code-block:: python\n\n          AUTHENTICATION_BACKENDS += (\n              'shibboleth.backends.ShibbolethRemoteUserBackend',\n          )\n\n    * Add the Django Shibboleth middleware.\n      You must add\n      ``django.contrib.auth.middleware.ShibbolethRemoteUserMiddleware``\n      to the ``MIDDLEWARE_CLASSES`` setting after\n      ``django.contrib.auth.middleware.AuthenticationMiddleware``.\n      For example:\n\n      .. code-block:: python\n\n          MIDDLEWARE_CLASSES = (\n              ...\n              'django.contrib.auth.middleware.AuthenticationMiddleware',\n              'shibboleth.middleware.ShibbolethRemoteUserMiddleware',\n              ...\n          )\n\n    * Map Shibboleth attributes to Django User models.\n      The attributes must be stated in the form they have in the HTTP headers.\n      Use this to populate the Django User object from Shibboleth attributes.\n\n      The first element of the tuple states if the attribute is required or not.\n      If a required element is not found in the parsed Shibboleth headers,\n      an exception will be raised. For example, ``(True, \"required_attribute\")``,\n      ``(False, \"optional_attribute)``.\n\n      .. code-block:: python\n\n          SHIBBOLETH_ATTRIBUTE_MAP = {\n              \"shib-user\": (True, \"username\"),\n              \"shib-given-name\": (True, \"first_name\"),\n              \"shib-sn\": (True, \"last_name\"),\n              \"shib-mail\": (False, \"email\"),\n          }\n\n    * Set the ``LOGIN_URL`` to the login handler of your Shibboleth installation.\n      In most cases, this will be something like:\n\n      .. code-block:: python\n\n          LOGIN_URL = 'https://your_domain.edu/Shibboleth.sso/Login'\n\n3.  Apache configuration - make sure the Shibboleth attributes are available\n    to the app.  The app url doesn't need to require Shibboleth.\n\n    .. code-block:: xml\n\n        <Location /app>\n          AuthType shibboleth\n          Require shibboleth\n        </Location>\n\n\nVerify configuration\n--------------------\nIf you would like to verify that everything is configured correctly,\nfollow the next two steps below.  It will create a route in your application\nat ``/yourapp/shib/`` that echos the attributes obtained from Shibboleth.\nIf you see the attributes you mapped above on the screen, all is good.\n\n* Add shibboleth to installed apps.\n\n  .. code-block:: python\n\n      INSTALLED_APPS += (\n          'shibboleth',\n      )\n\n\n* Add below to ``urls.py`` to enable the included sample view.\n  This view just echos back the parsed user attributes,\n  which can be helpful for testing.\n\n  .. code-block:: python\n\n      urlpatterns += [\n          url(r'^shib/', include('shibboleth.urls', namespace='shibboleth')),\n      ]\n\n\nAt this point, the django-shibboleth-remoteuser middleware should be complete.\n\nOptional\n--------\n\nTemplate tags\n~~~~~~~~~~~~~\n\nTemplate tags are included which will allow you to place ``{{ login_link }}``\nor ``{{ logout_link }}`` in your templates for routing users to the\nlogin or logout page. These are available as a convenience and are not required.\nTo activate, add the following to ``settings.py``:\n\n.. code-block:: python\n\n    TEMPLATES = [\n        {\n        ...\n            'OPTIONS': {\n                'context_processors': [\n                    ...\n                    'shibboleth.context_processors.login_link',\n                    'shibboleth.context_processors.logout_link',\n                    ...\n                ],\n            },\n        ...\n        },\n    ]\n\n\nPermission group mapping\n~~~~~~~~~~~~~~~~~~~~~~~~\n\nIt is possible to map a list of attributes to Django permission groups.\n``django-shibboleth-remoteuser`` will generate the groups from the\nsemicolon-separated values of these attributes. They will be available\nin the Django admin interface and you can assign\nyour application permissions to them.\n\n.. code-block:: python\n\n   SHIBBOLETH_GROUP_ATTRIBUTES = ['Shibboleth-affiliation', 'Shibboleth-isMemberOf']\n\nBy default this value is empty and will not affect your group settings.\nBut when you add attributes to ``SHIBBOLETH_GROUP_ATTRIBUTES``\nthe user will only associated with those groups. Be aware that the user\nwill be removed from groups not defined in ``SHIBBOLETH_GROUP_ATTRIBUTES``,\nif you enable this setting. Some installations may create a lot of groups.\nYou may check your group attributes at\n``https://your_domain.edu/Shibboleth.sso/Session``\nbefore activating this feature.\n\n\nFields identified in ``SHIBBOLETH_GROUP_ATTRIBUTES`` can be a string of group\nnames with a delimiter. By default the delimiter is `;`, but this can be\noverridden to be one or many delimiters using the ``SHIBBOLETH_GROUP_DELIMITERS``\nsetting.\n\nFor example, given:\n  - ``SHIBBOLETH_GROUP_ATTRIBUTES = ['Shibboleth-isMemberOf']``\n  - request headers includes: ``Shibboleth-isMemberOf: 'users;admins,managers'``\n\n=========================== =======================================\nSHIBBOLETH_GROUP_DELIMITERS Parsed Groups\n=========================== =======================================\ndefault                     ``users`` and ``admins,managers``\n``[',']``                   ``users;admins`` and ``managers``\n``[',', ';']``              ``users``, ``admins``, and ``managers``\n=========================== =======================================\n\n.. |build-status| image:: https://travis-ci.org/Brown-University-Library/django-shibboleth-remoteuser.svg?branch=master&style=flat\n   :target: https://travis-ci.org/Brown-University-Library/django-shibboleth-remoteuser\n   :alt: Build status",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Brown-University-Library/django-shibboleth-remoteuser",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django-shibboleth-remoteuser-uvm",
+        "package_url": "https://pypi.org/project/django-shibboleth-remoteuser-uvm/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-shibboleth-remoteuser-uvm/",
+        "project_urls": {
+            "Homepage": "https://github.com/Brown-University-Library/django-shibboleth-remoteuser"
+        },
+        "release_url": "https://pypi.org/project/django-shibboleth-remoteuser-uvm/0.11/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "",
+        "version": "0.11"
+    },
+    "last_serial": 6582708,
+    "releases": {
+        "0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "34c56eefb13a13c14911189558c19aea",
+                    "sha256": "bb64ca47faaf60abfd5fbe771d12548fcbea7218f9f0404a85e30c916174b90b"
+                },
+                "downloads": -1,
+                "filename": "django-shibboleth-remoteuser-uvm-0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "34c56eefb13a13c14911189558c19aea",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12716,
+                "upload_time": "2019-10-22T17:00:10",
+                "upload_time_iso_8601": "2019-10-22T17:00:10.310072Z",
+                "url": "https://files.pythonhosted.org/packages/5e/13/d57469b1e7e03e302219acd10a56148186d527fea0883e62ed94d1c09ec1/django-shibboleth-remoteuser-uvm-0.11.tar.gz"
+            }
+        ],
+        "0.12a1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6f0ec20ed3106defb9793a290d4e1165",
+                    "sha256": "8dbc24d4fde797057fcc78d9d3282d62b4dbd5a3173ff1c1053f8463d93eb3fa"
+                },
+                "downloads": -1,
+                "filename": "django_shibboleth_remoteuser_uvm-0.12a1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6f0ec20ed3106defb9793a290d4e1165",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 15402,
+                "upload_time": "2020-02-05T14:36:09",
+                "upload_time_iso_8601": "2020-02-05T14:36:09.395647Z",
+                "url": "https://files.pythonhosted.org/packages/8e/76/648f562b0de0d452a7a495effcb2e04af373e7243dae3f77cad03fe1015a/django_shibboleth_remoteuser_uvm-0.12a1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78a6a10f2aff7391aba7953b6ee9be3d",
+                    "sha256": "ecd8285cdefbc6b6fa96b6f3cb3c27a8065088c132a7d951fe3ecf952c74dab8"
+                },
+                "downloads": -1,
+                "filename": "django-shibboleth-remoteuser-uvm-0.12a1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "78a6a10f2aff7391aba7953b6ee9be3d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13544,
+                "upload_time": "2020-02-05T14:36:10",
+                "upload_time_iso_8601": "2020-02-05T14:36:10.769589Z",
+                "url": "https://files.pythonhosted.org/packages/1b/a1/cca083aa6f83cbd909f38bdbab188570a41cb0724d213a8b1d8ff83d9c5e/django-shibboleth-remoteuser-uvm-0.12a1.tar.gz"
+            }
+        ],
+        "0.12a1.post1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b40781020ff624adc50ec941de971ac3",
+                    "sha256": "a5e76160ab8f6e65b9aff0ea9b425da47af9c7eefe6b636d132433329d31e810"
+                },
+                "downloads": -1,
+                "filename": "django_shibboleth_remoteuser_uvm-0.12a1.post1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b40781020ff624adc50ec941de971ac3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 15463,
+                "upload_time": "2020-02-05T15:08:19",
+                "upload_time_iso_8601": "2020-02-05T15:08:19.462651Z",
+                "url": "https://files.pythonhosted.org/packages/3e/8a/3aac22dc17e7ed21edc24ce1f2c8333a6fb9668caa7c470cbf668c0d2b50/django_shibboleth_remoteuser_uvm-0.12a1.post1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "048edf31ccd1cc7f83e3456f7426a9cd",
+                    "sha256": "1decd9f22fd1baf1a36887da4a14b5c548d49cffaa80c3ded9804a77117a7dea"
+                },
+                "downloads": -1,
+                "filename": "django-shibboleth-remoteuser-uvm-0.12a1.post1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "048edf31ccd1cc7f83e3456f7426a9cd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13591,
+                "upload_time": "2020-02-05T15:08:21",
+                "upload_time_iso_8601": "2020-02-05T15:08:21.208970Z",
+                "url": "https://files.pythonhosted.org/packages/20/dc/490ef35efb4453758d76cc35d98afd4e99cf17741133832faf030d6c6041/django-shibboleth-remoteuser-uvm-0.12a1.post1.tar.gz"
+            }
+        ],
+        "0.12a1.post2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "194b6984b61ee6475edef40a4494e341",
+                    "sha256": "5d4dc63920bf7097ced182e1a3a8cd04f78efcf163b45cf3197ab344a1cb39d3"
+                },
+                "downloads": -1,
+                "filename": "django_shibboleth_remoteuser_uvm-0.12a1.post2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "194b6984b61ee6475edef40a4494e341",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 15462,
+                "upload_time": "2020-02-06T15:18:52",
+                "upload_time_iso_8601": "2020-02-06T15:18:52.953171Z",
+                "url": "https://files.pythonhosted.org/packages/3b/23/21f1e64340cc2c708901feabacca53b5a2d3c940b0d8f1233d65d0d7bcc3/django_shibboleth_remoteuser_uvm-0.12a1.post2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "22942808be12de49115671d923bd6100",
+                    "sha256": "b6a727d4b2d61bc19d142fb4f71a2193d2f53d244be721ab000bc9e6c6b14abe"
+                },
+                "downloads": -1,
+                "filename": "django-shibboleth-remoteuser-uvm-0.12a1.post2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "22942808be12de49115671d923bd6100",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13621,
+                "upload_time": "2020-02-06T15:18:54",
+                "upload_time_iso_8601": "2020-02-06T15:18:54.620531Z",
+                "url": "https://files.pythonhosted.org/packages/58/df/c6d6c91ca201e45d1c4692769ce08073b272d53b364205aab8a0641b48d5/django-shibboleth-remoteuser-uvm-0.12a1.post2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "34c56eefb13a13c14911189558c19aea",
+                "sha256": "bb64ca47faaf60abfd5fbe771d12548fcbea7218f9f0404a85e30c916174b90b"
+            },
+            "downloads": -1,
+            "filename": "django-shibboleth-remoteuser-uvm-0.11.tar.gz",
+            "has_sig": false,
+            "md5_digest": "34c56eefb13a13c14911189558c19aea",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12716,
+            "upload_time": "2019-10-22T17:00:10",
+            "upload_time_iso_8601": "2019-10-22T17:00:10.310072Z",
+            "url": "https://files.pythonhosted.org/packages/5e/13/d57469b1e7e03e302219acd10a56148186d527fea0883e62ed94d1c09ec1/django-shibboleth-remoteuser-uvm-0.11.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,125 @@
+{
+    "info": {
+        "author": "el.ideal-ideas",
+        "author_email": "el.idealideas@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: Chinese (Simplified)",
+            "Natural Language :: English",
+            "Natural Language :: Japanese",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8"
+        ],
+        "description": "# System Requirements\n- Python >= 3.7\n- moca_core\n- aioredis\n\n# Installation\n```\npip install moca_async_redis_cache==1.0.0\nor\npip install moca_async_redis_cache\n```\n\n# Overview\n##### English\nThis is a simple async redis cache module. Developed by el.ideal-ideas for Moca System. \n\n---\n##### \u65e5\u672c\u8a9e\n\u3053\u308c\u306fel.ideal-ideas\u306b\u3088\u3063\u3066\u958b\u767a\u3055\u308c\u305f\u30e2\u30ab\u30b7\u30b9\u30c6\u30e0\u306e\u305f\u3081\u306e\u30b7\u30f3\u30d7\u30eb\u306a\u975e\u540c\u671fRedis\u30ad\u30e3\u30c3\u30b7\u30e5\u30e2\u30b8\u30e5\u30fc\u30eb\u3067\u3059\u3002\n\n---\n##### \u7b80\u4f53\u4e2d\u6587\n\u8fd9\u662fel.ideal-ideas\u4e3a\u8309\u5ba2\u7cfb\u7edf\u5f00\u53d1\u7684\u5f02\u6b65\u5316Redis\u7f13\u5b58\u6a21\u5757\u6a21\u5757\u3002\n\n\n# Usage Example\n\n```python\n# Instantiate the MocaAsyncRedisCache class.\n# MocaAsyncRedisCache\u306e\u30a4\u30f3\u30b9\u30bf\u30f3\u30c8\u5316\u3002\n# \u521b\u5efaMocaAsyncRedisCache\u7684\u5b9e\u4f8b\u3002\ncache = MocaAsyncRedisCache()\n\n# Initialize the connection pool.\n# \u30b3\u30cd\u30af\u30b7\u30e7\u30f3\u30d7\u30fc\u30eb\u306e\u521d\u671f\u5316\n# \u521d\u59cb\u5316\u8fde\u63a5\u6c60\u3002\ncache.init_connection_pool(('127.0.0.1', 6379), 0)\n\n# Set cache\n# \u30ad\u30e3\u30c3\u30b7\u30e5\u3092\u4fdd\u5b58\n# \u4fdd\u5b58\u7f13\u5b58\ncache.set('test_key', 'test_value', 60)\n\n# Get cache\n# \u30ad\u30e3\u30c3\u30b7\u30e5\u53d6\u5f97\n# \u83b7\u53d6\u7f13\u5b58\ncache.get('test_key')\n\n```\n\n###### Main Methods\n\n- async def init_connection_pool(address: Union[Tuple[str, int], str], db: int, password: Optional[str] = None, ssl: Optional[SSLContext] = None, encoding: Optional[str] = None, minsize: int = 1, maxsize: int = 10, loop=None) -> Tuple[bool, str]:\n    - creates a new connection pool\n    - \u65b0\u3057\u3044\u30b3\u30cd\u30af\u30b7\u30e7\u30f3\u30d7\u30fc\u30eb\u3092\u4f5c\u6210\u3057\u307e\u3059\u3002\n    - \u65b0\u5efa\u4e00\u4e2a\u8fde\u63a5\u6c60\u3002\n\n- def set_connection_pool(pool: ConnectionsPool) -> None:\n    - add a connection pool to this instance.\n    - \u65e2\u5b58\u30b3\u30cd\u30af\u30b7\u30e7\u30f3\u30d7\u30fc\u30eb\u3092\u8ffd\u52a0\u3057\u307e\u3059\u3002\n    - \u6dfb\u52a0\u8fde\u63a5\u6c60\u3002\n\n- def set_encoding(encoding: Optional[str]) -> None:\n    - Set the encoding.\n    - \u6587\u5b57\u30b3\u30fc\u30c9\u3092\u8a2d\u5b9a\u3057\u307e\u3059\u3002\n    - \u8bbe\u5b9a\u6587\u5b57\u7f16\u7801\u3002\n\n- async def execute(command: str, args: Tuple) -> Tuple[bool, Any, str]:\n    - This method can execute any redis command.\n    - \u4efb\u610f\u306eRedis\u30b3\u30de\u30f3\u30c9\u3092\u5b9f\u884c\u53ef\u80fd\n    - \u53ef\u6267\u884c\u4efb\u610f\u7684Redis\u547d\u4ee4\u3002\n\n- async def set(key: str, value: int, expire: int = -1) -> Tuple[bool, str]:\n    - Set a value\n    - \u5024\u3092\u8a2d\u5b9a\u3057\u307e\u3059\u3002\n    - \u4fdd\u5b58\u4e00\u4e2a\u503c\u3002\n\n- async def get(key: str, default: Optional[int] = None) -> Tuple[Optional[int], str]:\n    - Get a value\n    - \u5024\u3092\u53d6\u5f97\u3057\u307e\u3059\u3002\n    - \u83b7\u53d6\u4e00\u4e2a\u503c\u3002\n\n- async def clear(key: str) -> Tuple[bool, str]:\n    - remove the value\n    - \u5024\u3092\u524a\u9664\u3057\u307e\u3059\u3002\n    - \u5220\u9664\u6240\u9009\u7684\u503c\u3002\n\n- async def clear_db() -> Tuple[bool, str]:\n    - Clear the database.\n    - \u30c7\u30fc\u30bf\u30d9\u30fc\u30b9\u3092\u30af\u30ea\u30a2\u3057\u307e\u3059\u3002\n    - \u6e05\u7a7a\u6570\u636e\u5e93\u3002\n\n# License\n\n- MIT License\n\n```\nCopyright 2020.1.17 <el.ideal-ideas: https://www.el-ideal-ideas.com>\n\nPermission is hereby granted, free of charge, \nto any person obtaining a copy of this software \nand associated documentation files (the \"Software\"),\nto deal in the Software without restriction, \nincluding without limitation the rights to use, copy, \nmodify, merge, publish, distribute, sublicense, \nand/or sell copies of the Software, and to permit persons\nto whom the Software is furnished to do so, \nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be\nincluded in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF \nANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED \nTO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A \nPARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL \nTHE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, \nDAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, \nTORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH \nTHE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n```\n\n# Other Information\n- el.ideal-ideas\n    - https://www.el-ideal-ideas.com\n- aioredis\n    - https://github.com/aio-libs/aioredis\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/el-ideal-ideas/MocaAsyncRedisCache",
+        "keywords": "Moca,MocaAsyncRedisCache,cache,redis",
+        "license": "Type license() to see the full license text",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "moca-async-redis-cache",
+        "package_url": "https://pypi.org/project/moca-async-redis-cache/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/moca-async-redis-cache/",
+        "project_urls": {
+            "Homepage": "https://github.com/el-ideal-ideas/MocaAsyncRedisCache"
+        },
+        "release_url": "https://pypi.org/project/moca-async-redis-cache/1.0.0/",
+        "requires_dist": [
+            "moca-core",
+            "aioredis"
+        ],
+        "requires_python": "",
+        "summary": "A simple async redis cache module.",
+        "version": "1.0.0"
+    },
+    "last_serial": 6628227,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5108a7d3149b698a79503be2399d14a5",
+                    "sha256": "273d44679f8666e2cbef0c80909bb848a65b2a8d5de516a6745c07a9998a5c6a"
+                },
+                "downloads": -1,
+                "filename": "moca_async_redis_cache-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5108a7d3149b698a79503be2399d14a5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7056,
+                "upload_time": "2020-02-14T05:09:01",
+                "upload_time_iso_8601": "2020-02-14T05:09:01.813380Z",
+                "url": "https://files.pythonhosted.org/packages/0f/2c/338dd35aa68cd4565b98b666edb58816df9af057bbc3533456298d2dfb37/moca_async_redis_cache-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d573ae659ff8a07d1a541791f3acf045",
+                    "sha256": "6258b55966346aa82b56bdd648b594507d9a2d56da3b0fb6e5d61e4ad6e6448c"
+                },
+                "downloads": -1,
+                "filename": "moca_async_redis_cache-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d573ae659ff8a07d1a541791f3acf045",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5592,
+                "upload_time": "2020-02-14T05:09:04",
+                "upload_time_iso_8601": "2020-02-14T05:09:04.556579Z",
+                "url": "https://files.pythonhosted.org/packages/88/11/945e1c6a944ca8e99d257928bda31fba0bcbaff990de477ce22dcc8f8675/moca_async_redis_cache-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5108a7d3149b698a79503be2399d14a5",
+                "sha256": "273d44679f8666e2cbef0c80909bb848a65b2a8d5de516a6745c07a9998a5c6a"
+            },
+            "downloads": -1,
+            "filename": "moca_async_redis_cache-1.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "5108a7d3149b698a79503be2399d14a5",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 7056,
+            "upload_time": "2020-02-14T05:09:01",
+            "upload_time_iso_8601": "2020-02-14T05:09:01.813380Z",
+            "url": "https://files.pythonhosted.org/packages/0f/2c/338dd35aa68cd4565b98b666edb58816df9af057bbc3533456298d2dfb37/moca_async_redis_cache-1.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d573ae659ff8a07d1a541791f3acf045",
+                "sha256": "6258b55966346aa82b56bdd648b594507d9a2d56da3b0fb6e5d61e4ad6e6448c"
+            },
+            "downloads": -1,
+            "filename": "moca_async_redis_cache-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d573ae659ff8a07d1a541791f3acf045",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5592,
+            "upload_time": "2020-02-14T05:09:04",
+            "upload_time_iso_8601": "2020-02-14T05:09:04.556579Z",
+            "url": "https://files.pythonhosted.org/packages/88/11/945e1c6a944ca8e99d257928bda31fba0bcbaff990de477ce22dcc8f8675/moca_async_redis_cache-1.0.0.tar.gz"
+        }
+    ]
+}

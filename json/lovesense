@@ -1,0 +1,124 @@
+{
+    "info": {
+        "author": "qDot",
+        "author_email": "kyle@machul.is",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: System :: Hardware :: Hardware Drivers"
+        ],
+        "description": "lovesense\n=========\n\n.. start-badges\n\n.. list-table::\n    :stub-columns: 1\n\n    * - docs\n      - |docs|\n    * - tests\n      - |travis| |coverage| |health|\n    * - package\n      - |license| |version| |pyversion|\n\n.. |docs| image:: https://readthedocs.org/projects/lovesense-py/badge/?version=latest\n   :target: http://lovesense-py.readthedocs.io/en/latest/?badge=latest\n   :alt: Documentation Status\n\n.. |travis| image:: https://img.shields.io/travis/metafetish/buttplug-py/master.svg?label=build\n   :target: https://travis-ci.org/metafetish/lovesense-py\n   :alt: Travis CI build status\n\n.. |health| image:: https://codeclimate.com/github/metafetish/lovesense-py/badges/gpa.svg\n   :target: https://codeclimate.com/github/metafetish/lovesense-py\n   :alt: Code coverage\n\n.. |coverage| image:: https://codeclimate.com/github/metafetish/lovesense-py/badges/coverage.svg\n   :target: https://codeclimate.com/github/metafetish/lovesense-py/coverage\n   :alt: Code health\n\n.. |license| image:: https://img.shields.io/pypi/l/lovesense.svg\n   :target: https://pypi.python.org/pypi/lovesense/\n   :alt: Latest PyPI version\n\n.. |version| image:: https://img.shields.io/pypi/v/lovesense.svg\n   :target: https://pypi.python.org/pypi/lovesense/\n   :alt: Latest PyPI version\n\n.. |pyversion| image:: https://img.shields.io/pypi/pyversions/lovesense.svg\n   :target: https://pypi.python.org/pypi/lovesense/\n   :alt: Latest PyPI version\n\n\n.. end-badges\n\nlovesense is a library for controlling Lovense sex toys, such as the\nMax, Nora, and Lush. The library allows users to control all aspects of\nthe toy (vibration/rotation/inflation, depending on the toy), as well as\nretrieving information like device type, status, battery level, and\naccelerometer readings.\n\nThe library is currently available in the following languages:\n\n-  `Python <http://github.com/metafetish/lovesense-py>`__\n-  `Max/MSP <http://github.com/metafetish/lovesense-max>`__\n-  `Rust (with C Headers) <http://github.com/metafetish/lovesense-rs>`__\n-  `Javascript/Node.js <http://github.com/metafetish/lovesense-js>`__\n\nIf you need an implementation in a language not currently supported by\nlovesense, please file an issue on the github tracker of the relevant\nproject.\n\nPlease note that this project has no direct relation to the Lovense\ncompany. These drivers have been developed/supported by the open source\ncommunity. Lovense has had no direct participation in this project and\nmost likely will not be able to answer questions or provide support for\nany of the Lovesense drivers.\n\nIf you require commercial support for programming for Lovense products,\nit is recommended you go through the `Official Lovense Developer\nProgram <https://www.lovense.com/sextoys/developer>`__.\n\nRequirements\n------------\n\nTo install the library, use either setup.py or pip. lovesense is a\npypi hosted library, and can be installed by running:\n\n    $ pip install lovesense\n\nThe library is built to abstract the raw toy protocols from the\ncommunication medium, so it can pass packets for each toy over\nwhatever medium you like. For instance, you could create a network\nclass that talks to a daemon that communicates with a serial port, if\nneeded.\n\nDevelopment\n-----------\n\nlovesense-py uses the Tox library for test environment setup, test\nexecution, documentation building, and other automated tasks.\n\nTo run project tests:\n\n.. code:: shell\n\n    $ tox --skip-missing-interpreters\n\nTo create documentation:\n\n.. code:: shell\n\n    $ tox -e docs\n\nProtocol Explanation\n--------------------\n\nLovense toys connect via bluetooth, and then use the Serial Port Profile\n(SPP) to communicate with the host. This means that the toys are exposed\nas either COM Ports (windows) or tty devices (posix/bsd/etc).\n\nProtocol Rules\n~~~~~~~~~~~~~~\n\n-  Commands and replies are strings, using semicolons to mark their end.\n-  All commands start with a command identifier word, then possibly\n   either specifiers or levels, delimited by colons. e.g. \"Vibrate:5;\"\n   would set vibration to 5.\n-  Replies are in the context of the command (i.e. sending \"Battery;\"\n   will just return a number, like \"85;\"), but can still be colon\n   delimited lists.\n\nCommand Table\n~~~~~~~~~~~~~\n\nThe following is the known command table for all toys. Anything send or\nreceived over the serial port is in quotes to denote communication, but\nshould not be sent using quotes if you are implementing your own version\nof this protocol. Commands with \":x\" mean that the x should be replaced\nwith a number, the range of which is mentioned in the description.\n\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| Command           | Description                                                                                                           | Expected Return                                                                                        |\n+===================+=======================================================================================================================+========================================================================================================+\n| \"DeviceType;\"     | Returns toy type (A: Lush, B: Max, C: Nora), Firmware version, and bluetooth MAC address, as a colon delimited list   | String, e.g. \"C:11:0082059AD3BD;\"                                                                      |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"Battery;\"        | Returns battery level of toy                                                                                          | Number, e.g. \"85;\" meaning 85% battery left                                                            |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"PowerOff;\"       | Powers the device off                                                                                                 | \"OK;\"                                                                                                  |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"Status:1;\"       | Shows device status. 2 is \"normal\"                                                                                    | \"2;\"                                                                                                   |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"StartMove:1;\"    | Starts accelerometer data stream.                                                                                     | String, that always starts with 'G', followed by 3 16-bit little-endian numbers e.g. \"GEF008312ED00\"   |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"StopMove:1;\"     | Stops accelerometer data stream                                                                                       | \"OK;\"                                                                                                  |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"RotateChange;\"   | Changes the direction of rotation for the stimulator on the Nora toy.                                                 | \"OK;\"                                                                                                  |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"Vibrate:x;\"      | Sets vibration level for toy. Range seems to be 0-20.                                                                 | \"OK;\"                                                                                                  |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"Rotate:x;\"       | Sets rotation speed for Nora toy. Range seems to be 0-20.                                                             | \"OK;\"                                                                                                  |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"Air:Level:x;\"    | Sets absolute air level for Max toy. Range seems to be 0-5;                                                           | \"OK;\"                                                                                                  |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"Air:In:x;\"       | Sets relative inflation level, i.e. if currently inflation level is 3, and \"Air:In:1\" is sent, will inflate to 4      | \"OK;\"                                                                                                  |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n| \"Air:Out:x;\"      | Sets relative deflation level, i.e. if currently inflation level is 3, and \"Air:Out:1\" is sent, will inflate to 2     | \"OK;\"                                                                                                  |\n+-------------------+-----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+\n\nThanks\n------\n\nThanks to `PenTest Partners <https://www.pentestpartners.com/>`__ for\ndoing most of the heavy lifting and `documenting it in their\nblog <https://www.pentestpartners.com/blog/dicking-around-with-dildos-how-to-drive-a-vibrator-with-realterm/>`__.\nThis library is mostly just an implementation of the information found\nin that post.\n\nLicense\n-------\n\ntl;dr: BSD License\n\nCopyright (c) 2016, Metafetish Project All rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are\nmet: \\* Redistributions of source code must retain the above copyright\nnotice, this list of conditions and the following disclaimer. \\*\nRedistributions in binary form must reproduce the above copyright\nnotice, this list of conditions and the following disclaimer in the\ndocumentation and/or other materials provided with the distribution. \\*\nNeither the name of the authors nor the names of its contributors may be\nused to endorse or promote products derived from this software without\nspecific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY The Authors ''AS IS'' AND ANY EXPRESS OR\nIMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\nWARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\nDISCLAIMED. IN NO EVENT SHALL The Authors BE LIABLE FOR ANY DIRECT,\nINDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\n(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\nSERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)\nHOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,\nSTRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN\nANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\nPOSSIBILITY OF SUCH DAMAGE\n\nVersions\n========\n\n0.1.0 (2016-07-16)\n------------------\n\n- Initial Release as package\n- Basic coverage of known functionality\n\n\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "http://pypi.python.org/packages/source/v/lovesense",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/metafetish/lovesense-py",
+        "keywords": "hardware,driver,sextoy,teledildonics,lovense",
+        "license": "BSD License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "lovesense",
+        "package_url": "https://pypi.org/project/lovesense/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/lovesense/",
+        "project_urls": {
+            "Download": "http://pypi.python.org/packages/source/v/lovesense",
+            "Homepage": "http://github.com/metafetish/lovesense-py"
+        },
+        "release_url": "https://pypi.org/project/lovesense/0.1.0/",
+        "requires_dist": [
+            "pyserial"
+        ],
+        "requires_python": "",
+        "summary": "Python Libraries for accessing and controlling Lovense sex toys (Max, Nora, Lush, Hush, Etc...)",
+        "version": "0.1.0"
+    },
+    "last_serial": 2226489,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18aac78315d587c80f020bd0f7648f50",
+                    "sha256": "b156552e3c31dd9980e06aaa99fcc71204f2ddc9bd062010d1912cfbc6fa3aba"
+                },
+                "downloads": -1,
+                "filename": "lovesense-0.1.0-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "18aac78315d587c80f020bd0f7648f50",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 11137,
+                "upload_time": "2016-07-17T03:54:01",
+                "url": "https://files.pythonhosted.org/packages/a1/dd/78ccbd309f9ceafc79dc69d0afc4a1a7628aaadb8117336f561e6550e0c8/lovesense-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6a5301921cdb945487129f60946915d2",
+                    "sha256": "94490a57c5fe026d3a869d0e9724e1576e0f448aff8b0b315d34e452684b2d06"
+                },
+                "downloads": -1,
+                "filename": "lovesense-0.1.0.tar.gz",
+                "has_sig": true,
+                "md5_digest": "6a5301921cdb945487129f60946915d2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7903,
+                "upload_time": "2016-07-17T03:54:04",
+                "url": "https://files.pythonhosted.org/packages/6b/00/58b1b6a497f7f898d675bf5d350a9fe4fe9dca543338826bec2c23776003/lovesense-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "18aac78315d587c80f020bd0f7648f50",
+                "sha256": "b156552e3c31dd9980e06aaa99fcc71204f2ddc9bd062010d1912cfbc6fa3aba"
+            },
+            "downloads": -1,
+            "filename": "lovesense-0.1.0-py2.py3-none-any.whl",
+            "has_sig": true,
+            "md5_digest": "18aac78315d587c80f020bd0f7648f50",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 11137,
+            "upload_time": "2016-07-17T03:54:01",
+            "url": "https://files.pythonhosted.org/packages/a1/dd/78ccbd309f9ceafc79dc69d0afc4a1a7628aaadb8117336f561e6550e0c8/lovesense-0.1.0-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6a5301921cdb945487129f60946915d2",
+                "sha256": "94490a57c5fe026d3a869d0e9724e1576e0f448aff8b0b315d34e452684b2d06"
+            },
+            "downloads": -1,
+            "filename": "lovesense-0.1.0.tar.gz",
+            "has_sig": true,
+            "md5_digest": "6a5301921cdb945487129f60946915d2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7903,
+            "upload_time": "2016-07-17T03:54:04",
+            "url": "https://files.pythonhosted.org/packages/6b/00/58b1b6a497f7f898d675bf5d350a9fe4fe9dca543338826bec2c23776003/lovesense-0.1.0.tar.gz"
+        }
+    ]
+}

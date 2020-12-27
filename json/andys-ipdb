@@ -1,0 +1,117 @@
+{
+    "info": {
+        "author": "Andy Wilson & Milan Sinadinovic",
+        "author_email": "andy.wilson@ubs.com, milan.sinadinovic@ubs.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Database :: Database Engines/Servers"
+        ],
+        "description": "IPDB\n====\n\nIPDB is a Python wrapper for accessing the UBS Postgres SQL IPDB REST API.\n\nInstall\n-------\nIPDB should work with both Python2 and Python3\n\n\nPython2 Install from pip::\n\n    pip install ipdb\n\nPython3 Install from pip3::\n\n    pip3 install ipdb\n\nOr you can run build this locally::\n\n    git clone https://github.ldn.swissbank.com/NETWORK-AGILE-ENGINEERING/ipdb-client.git\n    python setup.py install\n\n\n\nHow to Use\n----------\n\nThere are several elements to using this client, some of which require Administrator privileges:\n\n### Connector\n\n    from ipdb import *\n    ipdb = IPDB(server='http://localhost:8000/netinet', user='test', password='1234')\n    ipdb.login()\n\n### Disconnect\n\n    client.logout()\n\n### TENANTS - requires admin to add/delete\n\n    # save new tenant to database (requires 'ipdb' object as above)\n    # Note: additional keyword arguments will be automatically saved as attributes\n\n    # The following additonal arguments are reserved arguments that can be set\n    # - description\n\n    tenant = ipdb.add_tenant(name='NETINFRA', a=b, c=d,...,x=y)\n\n    # loading tenants from database can be done in two ways (by name or record id)\n    tenant = ipdb.tenant(name='NETINFRA')\n    tenant = ipdb.tenant(id=123)\n\n    # updating tenants can be done in the following way\n    tenant.data = dict(param1=123, param2='test param2')\n    tenant.save()\n\n    # All listed reserved arguments can be set\n    tenant.description = 'test description'\n\n\n### REGIONS - requires admin to add/delete\n\n    # save new region to database (requires 'ipdb' object as above)\n    # Note: additional keyword arguments will be automatically saved as attributes\n\n    # The following additonal arguments are reserved arguments that can be set\n    # - description\n\n    region = ipdb.add_region(name='EMEA', a=b, c=d,...,x=y)\n\n    # loading regions from database can be done in two ways (by name or record id)\n    region = ipdb.region(name='EMEA')\n    region = ipdb.region(id=123)\n\n    # updating regions can be done in the following way\n    region.data = dict(param1=123, param2='test param2')\n    region.save()\n\n    # All listed reserved arguments can be set\n    region.description = 'test description'\n\n\n### SITES - requires admin to add/delete\n\n    # save new site to database (requires 'ipdb' and 'region' objects as above)\n    # Note: additional keyword arguments will be automatically saved as attributes\n\n    # The following additonal arguments are reserved arguments that can be set\n    # - description\n\n    site = ipdb.add_site(name='SITE1', region=region, a=b, c=d,...,x=y)\n\n    # loading sites from database can be done in two ways (by name or record id)\n    site = ipdb.site(name='SITE1')\n    site = ipdb.site(id=123)\n\n    # updating sites can be done in the following way\n    # Note: only description can be changed directly\n    site.description = 'test description'\n    site.data = dict(param1=123, param2='test param2')\n    site.save()\n\n    # All listed reserved arguments can be set\n    site.description = 'test description'\n\n\n### Data Sources - requires write permissions to add/delete\n\n    # save new source to database (requires 'ipdb' object as above)\n    # Note: additional keyword arguments will be automatically saved as attributes\n\n    # The following additonal arguments are reserved arguments that can be set\n    # - description\n\n    source = ipdb.add_source(name='Tuffin', a=b, c=d,...,x=y)\n\n    # loading sources from database can be done in two ways (by name or record id)\n    source = ipdb.source(name='Tuffin')\n    source = ipdb.source(id=123)\n\n    # updating sources can be done in the following way\n    # Note: only description can be changed directly\n    source.description = 'test description'\n    source.data = dict(param1=123, param2='test param2')\n    source.save()\n\n    # All listed reserved arguments can be set\n    source.description = 'test description'\n\n### NETWORKS\n\n    # save new network to database (requires 'ipdb', 'source' and 'tenant' objects as above)\n    # Note: 'region' and 'site' objects as above are optional)\n\n    # Note: additional keyword arguments will be automatically saved as attributes\n    # The following additonal arguments are reserved arguments that can be set\n    # - description\n\n    network = ipdb.add_network(name='New Network', address='1.2.3.0/24', tenant=tenant, region=region, site=site, source=source, a=b, c=d,...,x=y)\n\n    # loading networks from database can be done in three ways (by name, address or record id)\n    network = ipdb.network(name='New Network')\n    network = ipdb.network(address='1.2.3.0/24')\n    network = ipdb.network(id=123)\n\n    # updating networks can be done in the following way\n    network.data = dict(param1=123, param2='test param2')\n    network.save()\n\n    # All listed reserved arguments can be set\n    network.description = 'test description'\n\n\n### Hosts\n\n    # save new network to database (requires 'ipdb', 'source', 'network' and 'tenant' objects as above)\n    # Note: 'region' and 'site' objects as above are optional)\n    # Note: additional keyword arguments will be automatically saved as attributes\n\n    # The following additonal arguments are reserved arguments that can be set\n    # - description\n    # - dnsname\n    # - dev_type (resrved for future use)\n\n    host = ipdb.add_host(name='New host', address='1.2.3.0/24', network=network, tenant=tenant, source=source, a=b, c=d,...,x=y)\n\n    # loading hosts from database can be done in three ways (by name, address or record id)\n    host = ipdb.host(name='New Host')\n    host = ipdb.host(address='1.2.3.0/24')\n    host = ipdb.host(id=123)\n\n    # updating hosts can be done in the following way\n    host.data = dict(param1=123, param2='test param2')\n    host.save()\n\n    # All listed reserved arguments can be set\n    host.description = 'test description'\n    host.dnsname = 'crtj-site1-2001.fu.netdevices.ubs.net'\n\n\n### NATS\n\n    # save new nat to database (requires 'ipdb', 'source', 'network' and 'host' objects as above)\n    # Note: additional keyword arguments will be automatically saved as attributes\n\n    # Additional arguments are required or optional depending on the type of NAT:\n    # - src_net   - IPDBNetwork class object\n    # - dst_net   - IPDBNetwork class object\n    # - src_host  - IPDBHost class object\n    # - src_host  - IPDBHost class object\n    # - host      - IPDBHost class object (host that nat was found on)\n\n    # Nat direction is handled by an included helper class - IPDBNatDirection\n    # The class has 4 usable variables which reflect the following required strings\n    # No other values are supported at this time\n    #   - inward\n    #   - outward\n    #   - bidir\n    #   - vip\n\n    direction = IPDBNatDirection.IN <- this would result in string 'inward'\n\n    # The following additonal arguments are reserved arguments that can be set\n    # - description\n\n    nat = ipdb.add_host(name='New Nat', direction=direction, source=source, args=(as above))\n\n    # loading hosts from database can be done in three ways (by name, address or record id)\n    nat = ipdb.nat(name='New Host')\n    nat = ipdb.nat(address='1.2.3.0/24')\n    nat = ipdb.nat(id=123)\n\n    # updating hosts can be done in the following way\n    nat.data = dict(param1=123, param2='test param2')\n    nat.save()\n\n    # All listed reserved arguments can be set\n    nat.description = 'test description'\n\n\n### Deleting Records\n\n    # All object classes have a delete method associated with them, which can be used as follows:\n    region.delete()\n    site.delete()\n    network.delete()\n    source.delete()\n    ....\n\n\nTest Script\n-----------\n\n```{r}\n#!/usr/bin/env python\n\nfrom ipdb import *\n\nclient = IPDB(server='http://127.0.0.1:8000/netinet', user='a_user', password='chilab123')\nclient.login()\n\ntenant = IPDBTenant(client, name='tenant1')\ntry:\n    tenant.load()\nexcept IPDBException:\n    tenant.save()\n\nregion = IPDBRegion(client, name='EMEA')\ntry:\n    region.load()\nexcept IPDBException:\n    region.save()\n\nsite = IPDBSite(client, name='LAB1', region=region)\ntry:\n    site.load()\nexcept IPDBException:\n    site.save()\n\nsource = IPDBSource(client, name='Tuffin')\ntry:\n    source.load()\nexcept IPDBException:\n    source.save()\nsource.activate()\n\nkwargs = dict(network_sources=dict(data_source=source.rec_id))\nnetwork = IPDBNetwork(client, tenant=tenant, region=region, site=site, source=source, address='1.2.3.0/24',\n                      name='1.2.3.0/24')\ntry:\n    network.load()\nexcept IPDBException:\n    network.save()\n```\n\nLicense\n-------\n\n    Copyright (c) 2018 The Python Packaging Authority\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.technolabs.org/UBS-Projects/ipdb_client",
+        "keywords": "ipdatabase ip_database",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "andys-ipdb",
+        "package_url": "https://pypi.org/project/andys-ipdb/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/andys-ipdb/",
+        "project_urls": {
+            "Homepage": "https://gitlab.technolabs.org/UBS-Projects/ipdb_client"
+        },
+        "release_url": "https://pypi.org/project/andys-ipdb/0.0.1/",
+        "requires_dist": [
+            "requests",
+            "MarkupSafe"
+        ],
+        "requires_python": "",
+        "summary": "UBS IPDB Client library",
+        "version": "0.0.1"
+    },
+    "last_serial": 4104194,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cd516aef7bf64117d36784110dae0f51",
+                    "sha256": "104dd18fd0cdc68d7a240946da88a529a02c0fe53a99522ee7c7146c6f0479e3"
+                },
+                "downloads": -1,
+                "filename": "andys_ipdb-0.0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "cd516aef7bf64117d36784110dae0f51",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 27525,
+                "upload_time": "2018-07-26T12:05:32",
+                "url": "https://files.pythonhosted.org/packages/01/3e/247ecbd88650df1e567fa4b1588b565063942cd543399c326c41debc51d1/andys_ipdb-0.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e919ecc4412569ec1095268fa60dc6e6",
+                    "sha256": "51c4cb0ed76a0ff691a67dccc7dc81eed79612d3e1addcff436620f47f3b167a"
+                },
+                "downloads": -1,
+                "filename": "andys_ipdb-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e919ecc4412569ec1095268fa60dc6e6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 17035,
+                "upload_time": "2018-07-26T12:05:33",
+                "url": "https://files.pythonhosted.org/packages/c5/33/e0705b61a1032426ca2c7dc31714adb2a8903c99ffcde7dc1988b7fd85a4/andys_ipdb-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "cd516aef7bf64117d36784110dae0f51",
+                "sha256": "104dd18fd0cdc68d7a240946da88a529a02c0fe53a99522ee7c7146c6f0479e3"
+            },
+            "downloads": -1,
+            "filename": "andys_ipdb-0.0.1-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "cd516aef7bf64117d36784110dae0f51",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "size": 27525,
+            "upload_time": "2018-07-26T12:05:32",
+            "url": "https://files.pythonhosted.org/packages/01/3e/247ecbd88650df1e567fa4b1588b565063942cd543399c326c41debc51d1/andys_ipdb-0.0.1-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e919ecc4412569ec1095268fa60dc6e6",
+                "sha256": "51c4cb0ed76a0ff691a67dccc7dc81eed79612d3e1addcff436620f47f3b167a"
+            },
+            "downloads": -1,
+            "filename": "andys_ipdb-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e919ecc4412569ec1095268fa60dc6e6",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 17035,
+            "upload_time": "2018-07-26T12:05:33",
+            "url": "https://files.pythonhosted.org/packages/c5/33/e0705b61a1032426ca2c7dc31714adb2a8903c99ffcde7dc1988b7fd85a4/andys_ipdb-0.0.1.tar.gz"
+        }
+    ]
+}

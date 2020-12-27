@@ -1,0 +1,116 @@
+{
+    "info": {
+        "author": "willy",
+        "author_email": "loh.wilson@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "Python OneMap SG API\n====================\n\n.. image:: https://travis-ci.org/wsloh160220/pw_onemap.svg?branch=master\n    :target: https://travis-ci.org/wsloh160220/pw_onemap\n\n.. image:: https://coveralls.io/repos/github/wsloh160220/pw_onemap/badge.svg?branch=master\n    :target: https://coveralls.io/github/wsloh160220/pw_onemap?branch=master\n\n.. image:: https://badge.fury.io/py/pw_onemap.svg\n    :target: https://badge.fury.io/py/pw_onemap\n\nPython Client for OneMap SG v2.\n\nOnly supports Python 3.6 and up.\n\nThis package can be used in production but is not fully featured yet.\n\n\nGetting Started\n===============\n\n.. code-block:: python\n\n    >> from pw_onemap import OneMap\n    >> onemap = OneMap('your-email', 'your-password')\n    >> search = onemap.search('One Raffles Quay')\n    # You can work directly with the SearchResult object\n    >> search.found\n    1\n    >> search.page_num\n    1\n    >> len(search.results)\n    1\n    >> result = search.results[0]  # One Raffles Quay\n    >> result.address\n    '1 RAFFLES QUAY ONE RAFFLES QUAY SINGAPORE 048583'\n    >> result.blk_no\n    '1'\n    >> result.building\n    'ONE RAFFLES QUAY'\n    >> result.lat_long\n    ('1.28118338714692', '103.851899818913')\n    >> result.postal\n    '048583\n    >> result.road_name\n    'RAFFLES QUAY'\n    >> result.search_value\n    'ONE RAFFLES QUAY'\n    # You can convert the results to a dictionary too\n    >> search_as_dict = search.to_dict()\n    >> from pprint import pprint\n    >> pprint(search_as_dict)\n    {'found': 1,\n     'page_num': 1,\n     'results': [{'address': '1 RAFFLES QUAY ONE RAFFLES QUAY SINGAPORE 048583',\n                 'blk_no': '1',\n                 'building': 'ONE RAFFLES QUAY',\n                 'coordinates': ('30067.9405244123', '29292.2770711072'),\n                 'lat_long': ('1.28118338714692', '103.851899818913'),\n                 'postal': '048583',\n                 'road_name': 'RAFFLES QUAY',\n                 'search_value': 'ONE RAFFLES QUAY'}],\n     'total_num_pages': 1}\n    >> next_search = onemap.search('Paragon')\n    >> pprint(next_search.to_dict())\n    {'found': 7,\n     'page_num': 1,\n     'results': [{'address': '290 ORCHARD ROAD THE PARAGON SINGAPORE 238859',\n                 'blk_no': '290',\n                 'building': 'THE PARAGON',\n                 'coordinates': ('28282.5637398548', '31801.0936260298'),\n                 'lat_long': ('1.30387230879998', '103.835857545469'),\n                 'postal': '238859',\n                 'road_name': 'ORCHARD ROAD',\n                 'search_value': 'THE PARAGON'},\n                 ...\n                 ...\n                 ...\n     'total_num_pages': 1}\n     >> next_result = next_search.results[0]  # Paragon\n     # Find the route between One Raffles Quay and Paragon\n     >> orq_latlong = ','.join(result.lat_long)\n     >> paragon_latlong = ','.join(next_result.lat_long)\n     >> route = onemap.route(orq_latlong, paragon_latlong, 'drive')\n     >> pprint(route.to_dict())\n    {'route_geometry': 'uiyFapzxRt@`@lAr@v@b@wAxCMXkAdCi@xAiArBq@xAoAnC_@t@sB|DQT}@fBWh@iChFYd@}C`Ek@n@[Vm@Vc@Jm@Dc@EqAe@i@ZkAbDgAnA}@UMGu@]uEqBOGMEsAe@aEoB{G}CMGKE_Bo@}@UcAEsEVg@BaCNiA|AI\\\\wAb@qClAWFaBn@u@d@EDKN_@r@g@lBc@hBM~@AZPtBA\\\\yA~LSvAu@~EUbAq@xBuAk@}BaAm@WuB_A_AGk@BqDoAe@S',\n    'route_instructions': [['Head',\n                            'RAFFLES QUAY',\n                            125,\n                            '1.281708,103.851687',\n                            16,\n                            '125m',\n                            'South West',\n                            'North',\n                            'driving',\n                            'Head Southwest On Raffles Quay'],\n                            ['Right',\n                            'CROSS STREET',\n                            641,\n                            '1.280771,103.851082',\n                            73,\n                            '641m',\n                            'North West',\n                            'South West',\n                            'driving',\n                            'Turn Right Onto Cross Street'],\n                            ...\n                            ...\n                            ['Slight Left',\n                            'ORCHARD LINK',\n                            60,\n                            '1.302314,103.835849',\n                            11,\n                            '60m',\n                            'North',\n                            'North East',\n                            'driving',\n                            'Make A Slight Left To Stay On Orchard Link'],\n                            ['Slight Right',\n                            'BIDEFORD ROAD',\n                            134,\n                            '1.302845,103.835865',\n                            15,\n                            '134m',\n                            'North East',\n                            'North',\n                            'driving',\n                            'Continue Slightly Right Onto Bideford Road'],\n                            ['Left',\n                            'BIDEFORD ROAD',\n                            0,\n                            '1.303932,103.836371',\n                            0,\n                            '0m',\n                            'North',\n                            'North East',\n                            'driving',\n                            'You Have Arrived At Your Destination, On The Left']],\n    'route_name': ['UPPER CROSS STREET', 'CLEMENCEAU AVENUE'],\n    'route_summary': {'end_point': 'BIDEFORD ROAD',\n                    'start_point': 'RAFFLES QUAY',\n                    'total_distance': 4163,\n                    'total_time': 489},\n    'status': 0,\n    'status_message': 'Found route between points'}\n    # You can get the decoded polyline lat longs\n    >> pprint(route.lat_longs)\n    [(1.28171, 103.85169),\n    (1.28144, 103.85152),\n    (1.28105, 103.85126),\n    (1.28077, 103.85108),\n    ...\n    (1.30007, 103.83581),\n    (1.30018, 103.83547),\n    (1.30043, 103.83486),\n    (1.30086, 103.83508),\n    (1.30149, 103.83541),\n    (1.30172, 103.83553),\n    (1.30231, 103.83585),\n    (1.30263, 103.83589),\n    (1.30285, 103.83587),\n    (1.30374, 103.83627),\n    (1.30393, 103.83637)]\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pw-onemap35",
+        "package_url": "https://pypi.org/project/pw-onemap35/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pw-onemap35/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/"
+        },
+        "release_url": "https://pypi.org/project/pw-onemap35/0.1.0/",
+        "requires_dist": [
+            "requests (>=2.19.1)",
+            "polyline (>=1.3.2)"
+        ],
+        "requires_python": "",
+        "summary": "OneMap SG Connector",
+        "version": "0.1.0"
+    },
+    "last_serial": 5753561,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "91cab56459aab5c4710762ac6f16e09c",
+                    "sha256": "5ff581235dee563e55e692cdd1c3376e30f9dbcf1c334344f3dc7a014ab5c687"
+                },
+                "downloads": -1,
+                "filename": "pw_onemap35-0.1.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "91cab56459aab5c4710762ac6f16e09c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 25502,
+                "upload_time": "2019-08-29T14:51:02",
+                "url": "https://files.pythonhosted.org/packages/af/5b/c976f3993adec73b1a46e93feb601c90c94d901f4948a3bc665daa62541f/pw_onemap35-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7f60ae917e384b80736e00afa4e3df02",
+                    "sha256": "0d6e5139085c8ef8b938a3d2b0557c471406f740135fdadb9b7e5d8957221d1c"
+                },
+                "downloads": -1,
+                "filename": "pw_onemap35-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7f60ae917e384b80736e00afa4e3df02",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15964,
+                "upload_time": "2019-08-29T14:51:09",
+                "url": "https://files.pythonhosted.org/packages/af/5b/f42ff19f51c3636a32a0bdb45697e5ae3f19c32562fb61a398b5075c91f3/pw_onemap35-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "91cab56459aab5c4710762ac6f16e09c",
+                "sha256": "5ff581235dee563e55e692cdd1c3376e30f9dbcf1c334344f3dc7a014ab5c687"
+            },
+            "downloads": -1,
+            "filename": "pw_onemap35-0.1.0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "91cab56459aab5c4710762ac6f16e09c",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 25502,
+            "upload_time": "2019-08-29T14:51:02",
+            "url": "https://files.pythonhosted.org/packages/af/5b/c976f3993adec73b1a46e93feb601c90c94d901f4948a3bc665daa62541f/pw_onemap35-0.1.0-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7f60ae917e384b80736e00afa4e3df02",
+                "sha256": "0d6e5139085c8ef8b938a3d2b0557c471406f740135fdadb9b7e5d8957221d1c"
+            },
+            "downloads": -1,
+            "filename": "pw_onemap35-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7f60ae917e384b80736e00afa4e3df02",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 15964,
+            "upload_time": "2019-08-29T14:51:09",
+            "url": "https://files.pythonhosted.org/packages/af/5b/f42ff19f51c3636a32a0bdb45697e5ae3f19c32562fb61a398b5075c91f3/pw_onemap35-0.1.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,457 @@
+{
+    "info": {
+        "author": "Jared Mackey",
+        "author_email": "jared@mackey.tech",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# django-asyncio-redis\n[![Build Status](https://travis-ci.org/mackeyja92/django-asyncio-redis.svg?branch=master)](https://travis-ci.org/mackeyja92/django-asyncio-redis)\n\nA `aioredis` backend for Django. I am using it in production but you may not want to: the API is fairly stable but could change in the future. \n\n### Example\n```python\n# views.py\nfrom django.core.cache import caches\nfrom django.http import HttpResponse\n\n\nacache = caches['async']\n\nasync def my_view(request):\n    val = await acache.get('test-key')\n    return HttpResponse(val)\n\nasync def my_view_with_context_manager(request):\n    async with await acache.lock('my-lock-key', timeout=0) as lock:\n        if not lock.was_obtained:\n            return HttpResponse('Could not obtain lock', status=400)\n        data = do_locked_processing() # hold lock until completely done\n    return HttpResponse(data)\n\nasync def my_view_with_context_manager_timed(request):\n    async with await acache.lock('my-lock-key', timeout=10) as lock:\n        if not lock.was_obtained:\n            return HttpResponse('Could not obtain lock', status=400)\n        data = do_locked_processing() # Hold lock for 10 seconds, otherwise it timed out\n        if await lock.is_locked:  # check lock after long processing\n            do_more_processing(data)\n    return HttpResponse(data)\n```\n\n### Usage\n`pip install django-asyncio-redis`\n\nThe following will set your cache backend to the `AsyncRedisCache`. It will be using `HiRedis` and connection pooling. \nHiRedis is the preferred backend as it is very fast.  \n\n\n```python\n# settings.py\nimport os\n\nCACHES = {\n    \"default\": {}, # Leave your default the way it was for non async django access.\n    \"async\": {\n        \"BACKEND\": \"django-asyncio-redis.cache.AsyncRedisCache\",\n        \"LOCATION\": os.environ.get('REDIS_LOCATION', \"redis://127.0.0.1:6379?db=1\"),\n        \"POOLSIZE\": 5,\n        \"TIMEOUT\": 1200,\n    }\n}\n\n```\n\n### All fields:\n* `LOCATION`\n   * Required. \n   * Specified as `redis://host:port` with optional `?db=x` to specify the database.\n* `POOLSIZE`\n  * Optional. Default: 10. If set to None a single connection will be created instead of a pool.\n* `LOOP`\n    * Optional. Default `None`.\n    * The IO loop to run everything on. If the loop is not provided `asycnio.get_event_loop()` will be called when \n    required. The clint is setup lazily so this will not happen until the first time you access the cache.\n* `TIMEOUT`\n  * Optional. Default 300.\n  * Specify the default cache expire time. Used in `set` type operations.\n* `SERIALIZER`\n    * Optional. Default `django_asyncio_redis.serializers.pickle.PickleSerializer`\n    * Determines how the data is encoded to be transmitted to redis.\n* `COMPRESSOR`\n    * Optional. Default `django_asyncio_redis.compressors.identity.IdentityCompressor`\n    * Determines how the data is compressed before transmitted to redis.\n* `OPTIONS`\n    * Optional. Default `{}`\n    * If using the pickle serializer you can specify the `PICKLE_VERSION` to use as an integer.\n\n\n### Notes\n - locking implementation based off https://github.com/joanvila/aioredlock\n - serializers/compressors based off of https://github.com/niwinz/django-redis\n - Have not tested it with multiple redis servers.\n - Contributions welcome\n\n\n# Release Notes\n\n### v0.4\n- General code cleanup and organization\n\n### Serializers/Encoders\n- Pickle encoder added\n- msgpack encoder added\n- Default encoder switched to pickle encoder.\n- JSON Encoder moved from `django_asyncio_redis.encoder.JSONEncoder` to `django_asyncio_redis.serializers.json.JSONSerializer`\n\n### Compression Support\n- Compression support added\n- lzma and zlib compressors added\n- defaulting to no compression",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mackeyja92/django-asyncio-redis",
+        "keywords": "django asyncio redis cache",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django-asyncio-redis",
+        "package_url": "https://pypi.org/project/django-asyncio-redis/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-asyncio-redis/",
+        "project_urls": {
+            "Homepage": "https://github.com/mackeyja92/django-asyncio-redis"
+        },
+        "release_url": "https://pypi.org/project/django-asyncio-redis/0.4/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A asyncio-redis backend for Django!",
+        "version": "0.4"
+    },
+    "last_serial": 3054875,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "49db45bafbb80f364329946090523e7d",
+                    "sha256": "8c1eb9d9d6bb95ee7f0febe35c67cd62c7cf30a3e444402cdec3cd2a3fd397a2"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "49db45bafbb80f364329946090523e7d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3598,
+                "upload_time": "2017-01-21T01:07:55",
+                "upload_time_iso_8601": "2017-01-21T01:07:55.944005Z",
+                "url": "https://files.pythonhosted.org/packages/9f/a6/39d55de641b6b5b3ed99eadb4ba7bd84bc1915f9886af280fb08b92748f6/django_asyncio_redis-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "425562766368f10ca796dfa572d7c161",
+                    "sha256": "74a68dfac37c8c07661118b2142dd872f27b466b1e3ccb45c7f8b70a2134aae4"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "425562766368f10ca796dfa572d7c161",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2127,
+                "upload_time": "2017-01-21T01:07:57",
+                "upload_time_iso_8601": "2017-01-21T01:07:57.727939Z",
+                "url": "https://files.pythonhosted.org/packages/17/ee/1ec46d761b4442586ac4bc4998c44cfeb45671a53c0a58098b02f1ab9aa3/django-asyncio-redis-0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3b5492b5fff80d93d3bfebfb26214040",
+                    "sha256": "ff46dd9b59c75befc06a714cdd4f0e215356367dc383c8dad27e52eb921681dc"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3b5492b5fff80d93d3bfebfb26214040",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5703,
+                "upload_time": "2017-01-21T01:27:15",
+                "upload_time_iso_8601": "2017-01-21T01:27:15.351711Z",
+                "url": "https://files.pythonhosted.org/packages/19/e7/c4d9fc1c338c8f52828bfd8ee03e0b97977c94814d3831e8bed3af043219/django_asyncio_redis-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ea71c821238c22b3e70253a62ec16d53",
+                    "sha256": "38bbfeaaf30b4bcc0ad8932d15c6e93f8ff668da4414cefc7343f4ead6727577"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ea71c821238c22b3e70253a62ec16d53",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3203,
+                "upload_time": "2017-01-21T01:27:17",
+                "upload_time_iso_8601": "2017-01-21T01:27:17.177487Z",
+                "url": "https://files.pythonhosted.org/packages/02/75/8a5db7aafe40a4c1cc4423ea14ea860c5c48da8719a8763dc99fa276204b/django-asyncio-redis-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a97055172a940afa767ad5c84fd3402",
+                    "sha256": "5bf4c6bded89ec697c7c44d19ade651fdbd559273378546825a413822d823673"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8a97055172a940afa767ad5c84fd3402",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6219,
+                "upload_time": "2017-01-21T06:17:46",
+                "upload_time_iso_8601": "2017-01-21T06:17:46.795120Z",
+                "url": "https://files.pythonhosted.org/packages/7b/bb/c201b751e6538f31a053b77da8edbf6f98572670bc17aafdea4ad19f3154/django_asyncio_redis-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f327e5337d091cc6d624d4138bb032fa",
+                    "sha256": "8ef121aa57a94e5bfe439a38cc0e40d0bc89eb6fabeea6972daf9e3b65fc22bd"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f327e5337d091cc6d624d4138bb032fa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3441,
+                "upload_time": "2017-01-21T06:17:48",
+                "upload_time_iso_8601": "2017-01-21T06:17:48.827378Z",
+                "url": "https://files.pythonhosted.org/packages/a4/bb/854c101c56a4c540a08cb46507582d3fffb76381a951f3d0c8f2fb4f1fa3/django-asyncio-redis-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8af266cfe3d9b4c3922e1578d09f6e07",
+                    "sha256": "083999d7ec92913bfbd3fd58ed20871b28d8b6e02da36dfc9812c3a4ed2122b1"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8af266cfe3d9b4c3922e1578d09f6e07",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6215,
+                "upload_time": "2017-02-10T18:27:48",
+                "upload_time_iso_8601": "2017-02-10T18:27:48.039728Z",
+                "url": "https://files.pythonhosted.org/packages/b3/5c/48d15584df4a1e7266efac9761a858015244366466a8f743b2c07fe7116d/django_asyncio_redis-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e9e717eab901bb20e7cfae196c264a3e",
+                    "sha256": "2d6f168b3099e5137f682dfeff59a562b43fd471b7fee512c1f3ebd74cb16378"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e9e717eab901bb20e7cfae196c264a3e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3440,
+                "upload_time": "2017-02-10T18:27:50",
+                "upload_time_iso_8601": "2017-02-10T18:27:50.402658Z",
+                "url": "https://files.pythonhosted.org/packages/7b/66/ec236fb8f2dc2cb02006aa4afd6f241485906d48955aa07ed0d950b58043/django-asyncio-redis-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "830554d87ab80296116e4ff05d62fe98",
+                    "sha256": "aa3f6a5287eeb7f3b7907fa11e450811d5aeaf542782c60ca5ac97deadc8dde1"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "830554d87ab80296116e4ff05d62fe98",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6224,
+                "upload_time": "2017-02-16T23:02:23",
+                "upload_time_iso_8601": "2017-02-16T23:02:23.512564Z",
+                "url": "https://files.pythonhosted.org/packages/78/2d/e12a33fddaca25befce2ec810f31a3902dfc3ace78a8f705eabbfbaef533/django_asyncio_redis-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0fa91f5c045bc8cf2dff4924cb514b38",
+                    "sha256": "0c273756fe0e465bb5cf6f177a7633ccf287ea16053cdf7d477476366a815d77"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0fa91f5c045bc8cf2dff4924cb514b38",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3458,
+                "upload_time": "2017-02-16T23:02:25",
+                "upload_time_iso_8601": "2017-02-16T23:02:25.281822Z",
+                "url": "https://files.pythonhosted.org/packages/94/44/3963f2c2d72e14405c9ccec94ecde3a127dfb847d66bcf4956bb0c179752/django-asyncio-redis-0.1.4.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "173400fbd76967348099277ed8bdc6f0",
+                    "sha256": "bf5f1788be705acf6aa8ca2dda4bb6c2d33fd6e4babdb94272974b239d93a725"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "173400fbd76967348099277ed8bdc6f0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5987,
+                "upload_time": "2017-02-27T19:44:39",
+                "upload_time_iso_8601": "2017-02-27T19:44:39.603848Z",
+                "url": "https://files.pythonhosted.org/packages/37/21/6f33e9eebf1d3edd2f4a16b1286012b20eb3cb51bfc4e9c18a02f1587c77/django_asyncio_redis-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aedc0d62c63b6173646e8f257b99a782",
+                    "sha256": "106ec9761bc96a46ebd25f17cbc6eba74a9d4cd428315e44c58f98423ed1f4ff"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aedc0d62c63b6173646e8f257b99a782",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3329,
+                "upload_time": "2017-02-27T19:44:41",
+                "upload_time_iso_8601": "2017-02-27T19:44:41.423013Z",
+                "url": "https://files.pythonhosted.org/packages/2c/0c/14b86a4fa79c9231538e5b1d7cf43593b1cba509bce4e1da2de076f5c350/django-asyncio-redis-0.2.0.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "365cb07a94184f32e8f643b484b1dd96",
+                    "sha256": "cb63d4ec1c18ac916abf8c3daeae6045f1812410ba1826edba954ece2db16483"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "365cb07a94184f32e8f643b484b1dd96",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6421,
+                "upload_time": "2017-06-06T20:38:09",
+                "upload_time_iso_8601": "2017-06-06T20:38:09.917915Z",
+                "url": "https://files.pythonhosted.org/packages/a1/76/921ad2eb4cd6c589a2d07c96a2155b0823ce0caa70cd4aa2de9024abd8a2/django_asyncio_redis-0.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bef047ad5b0dfa36dcbcf218c2dea280",
+                    "sha256": "394d9e9b7342dd2271766353c086a60c4dcf6668d920fe1e390b9ea748f92f3e"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bef047ad5b0dfa36dcbcf218c2dea280",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3771,
+                "upload_time": "2017-06-06T20:38:11",
+                "upload_time_iso_8601": "2017-06-06T20:38:11.999202Z",
+                "url": "https://files.pythonhosted.org/packages/53/53/f0e043c3f0546d4ddc04f80a66e66928f3b7ad1f6274fb934d64d010b27c/django-asyncio-redis-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "57a31798f1df8c057287279584076ff5",
+                    "sha256": "db5a22f78e7f1d9f28952062031a24bb44e74a2a926129393ecc1292d65205ed"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "57a31798f1df8c057287279584076ff5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6914,
+                "upload_time": "2017-06-06T21:50:43",
+                "upload_time_iso_8601": "2017-06-06T21:50:43.696942Z",
+                "url": "https://files.pythonhosted.org/packages/2d/a1/ab1ef38b415840a8c92ac9fe59da78750a707db441ab3e13aca2dc22e0c5/django_asyncio_redis-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bde573988efc842e0c1220b818b55daa",
+                    "sha256": "81f681444285fa8980c16f20c6e19ef5d85ecbd15986c3d65fa373129b15c7de"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bde573988efc842e0c1220b818b55daa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4001,
+                "upload_time": "2017-06-06T21:50:45",
+                "upload_time_iso_8601": "2017-06-06T21:50:45.609330Z",
+                "url": "https://files.pythonhosted.org/packages/44/65/f54bfed1440d082a7fa2ed70a1bf502aeca68e00592329a0c01cfcfe2843/django-asyncio-redis-0.3.1.tar.gz"
+            }
+        ],
+        "0.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c40907cdc25e33670307c45880c9ca16",
+                    "sha256": "6500595ca8d143c91fa39ae7df967125c7f784a02a41e99d1b1cd40e83e3c149"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.3.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c40907cdc25e33670307c45880c9ca16",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6847,
+                "upload_time": "2017-06-16T21:54:47",
+                "upload_time_iso_8601": "2017-06-16T21:54:47.447410Z",
+                "url": "https://files.pythonhosted.org/packages/c3/93/d3b95dd91271aaf0aa7b9b563da424e7ce4dce6dafa486443b45fa461a4b/django_asyncio_redis-0.3.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "720c625ade45e811f5a50d5d44c97840",
+                    "sha256": "5de006642e870a86a9292ee0f7a9d9569d1e89aa72b8f40f5c2f3947880dac5c"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "720c625ade45e811f5a50d5d44c97840",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4004,
+                "upload_time": "2017-06-16T21:54:49",
+                "upload_time_iso_8601": "2017-06-16T21:54:49.441895Z",
+                "url": "https://files.pythonhosted.org/packages/dc/46/9deadba0894d392e7df0eeb8819c54fb9165a9a2ca58f46395341cc47a24/django-asyncio-redis-0.3.2.tar.gz"
+            }
+        ],
+        "0.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ae21072f072ae1a97cc5f0c5e7e3aa3d",
+                    "sha256": "b522448373769ed1cdb213166fb6fc10aee527381c73e1799650c901e3cc529e"
+                },
+                "downloads": -1,
+                "filename": "django_asyncio_redis-0.3.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ae21072f072ae1a97cc5f0c5e7e3aa3d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6854,
+                "upload_time": "2017-06-19T16:18:40",
+                "upload_time_iso_8601": "2017-06-19T16:18:40.826040Z",
+                "url": "https://files.pythonhosted.org/packages/f4/63/425aaf090ed3fd67cbbf290fe758ac4afb80284a4b7131aa9c69496584e5/django_asyncio_redis-0.3.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8da3fdc2a9755a66366c0b786ab7feff",
+                    "sha256": "3d3c0d634d96b7b94b267665b167eb3ae3ccd473a1848547e9e116a8bb1563cc"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8da3fdc2a9755a66366c0b786ab7feff",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4017,
+                "upload_time": "2017-06-19T16:18:42",
+                "upload_time_iso_8601": "2017-06-19T16:18:42.800223Z",
+                "url": "https://files.pythonhosted.org/packages/8e/a4/fd8c5b2e4b93781e1853e19682b61679366e3f0cad6873e2988b6d0eba87/django-asyncio-redis-0.3.3.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "249533dc5a7b057aa837358c11a48374",
+                    "sha256": "4805e7c07bb9cca634700ddf8402b6751c2d86193760f50104fa1fda02923dad"
+                },
+                "downloads": -1,
+                "filename": "django-asyncio-redis-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "249533dc5a7b057aa837358c11a48374",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5997,
+                "upload_time": "2017-07-28T05:58:53",
+                "upload_time_iso_8601": "2017-07-28T05:58:53.881380Z",
+                "url": "https://files.pythonhosted.org/packages/69/c7/4d785d578fde1a9e098b23969f3d2c80583c3bcb92227cf109717dd6da42/django-asyncio-redis-0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "249533dc5a7b057aa837358c11a48374",
+                "sha256": "4805e7c07bb9cca634700ddf8402b6751c2d86193760f50104fa1fda02923dad"
+            },
+            "downloads": -1,
+            "filename": "django-asyncio-redis-0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "249533dc5a7b057aa837358c11a48374",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5997,
+            "upload_time": "2017-07-28T05:58:53",
+            "upload_time_iso_8601": "2017-07-28T05:58:53.881380Z",
+            "url": "https://files.pythonhosted.org/packages/69/c7/4d785d578fde1a9e098b23969f3d2c80583c3bcb92227cf109717dd6da42/django-asyncio-redis-0.4.tar.gz"
+        }
+    ]
+}

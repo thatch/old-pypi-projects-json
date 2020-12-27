@@ -1,0 +1,105 @@
+{
+    "info": {
+        "author": "Shantanu Tripathi",
+        "author_email": "shantanu.akt@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "## datamast\nA package which handles lot of things for you including detecting useful columns from a mass spectrometry output csv files, process it and converts to GCT.\n\n---\n## Motivation\nPolly is collecting data at a fast pace. But even today, it is very difficult for the end user to run an analysis on Polly. The end user is often restricted to Polly\u2019s hard-written input format rules and a lot of the times is unable to run anything due to inconsistencies or type/format errors in the dataset. The end user even has to input the information which is often redundant and could be easily automated.\n\n---\n\n## Tech/framework used\n\n **Built with**\n- [Numpy]()\n- [Pandas]()\n- [cmapPy]()\n- [elasticsearch]()\n---\n## Features\n* Detects some special kind of columns( **Intensity, Metabolites and Samples**) from mass spectrometry related CSV files\n* Converts the input CSV/XLSX files into a standardised format, i.e., GCT\n---\n## Code Example\n---\n\n## Installation\n\n####Prerequisite  Installation :\nFirst of all in order to use the above package you have to install elasticsearch on your system. After installation, you have to create a elastic cluster index and bulk index metabolites data onto it. For that simply perform the following commands in the order from the bash shell after installing the elastic search. For performing the third command download the file **csv_to_elastic.py** from the link : https://drive.google.com/open?id=1cYDX71rzgAV1M6dCZB2TRpNpv2zewjJX and put it in your current directory.\n\n* **First Command**: ( Configuring the analyzer and tokenizer)\n\ncurl -X PUT \"localhost:9200/compound?pretty\" -H 'Content-Type: application/json' -d'\n{\n    \"settings\": {\n        \"number_of_shards\": 1, \n        \"analysis\" : {\n            \"filter\" : {\n                \"filter_for_search\" : {\n                \"type\" : \"length\",\n                \"max\" : \"20\",\n                \"min\" : \"5\"\n                },\n                \"autocomplete_filter\" : {\n                \"type\" : \"edge_ngram\",\n                \"min_gram\" : \"5\",\n                \"max_gram\" : \"20\"\n                }\n            },\n            \"analyzer\" : {\n                \"analyser_for_search\" : {\n                \"filter\" : [\n                    \"lowercase\",\n                    \"filter_for_search\"\n                ],\n                \"type\" : \"custom\",\n                \"tokenizer\" : \"standard\"\n                },\n                \"autocomplete\" : {\n                \"filter\" : [\n                    \"lowercase\",\n                    \"autocomplete_filter\"\n                ],\n                \"type\" : \"custom\",\n                \"tokenizer\" : \"standard\"\n                }\n            }\n            }\n    }\n}\n'\n\n* **Second Command** (Applying that settings to mapping \"my_type\")\n\ncurl -X PUT \"localhost:9200/compound/_mapping/my_type?pretty\" -H 'Content-Type: application/json' -d'\n{\n    \"my_type\": {\n        \"properties\": {\n            \"name\": {\n                \"type\":     \"text\",\n                \"analyzer\": \"autocomplete\",\n                \"search_analyzer\": \"analyser_for_search\"\n            }\n        }\n    }\n}\n'\n\n* **Third Command** (for indexing data)\n\n$ python csv_to_elastic.py \\\n        --elastic-address 'localhost:9200' \\\n        --csv-file <**path of your metabolites csv file**> \\\n        --elastic-index compound \\\n        --datetime-field=dateField \\\n        --elastic-type my_type \\\n        --delimiter ','\n        --json-struct '{\n            \"name\" : \"%<**name of the metabolite column**>%\",\n        }'\n\n\n---\n\n#### Installing the package\n\nFirst clone the repository and run the command **pip install .** from the terminal in the directory itself\n\n---\n## How to use?\n\nFirst start the elastic search cluster on your system which you previously configured. Following is the code demonstration which can help you get started.\n```Python\nfrom datamast.DataAnalyzer import DataAnalyzer\nfrom datamast.makeGCT import makeGCT\n\n#Creating a DataAnalyzer instance\n'''\nParameters :\n* main_file_path: Path to the main intensity file [Required]\n* cohort_file_path: Path to the Cohort file [Optional] \n* std_sample_path: Path to the Standard Sample Metadata [Optional]\n'''\nda = DataAnalyzer(main_file_path=path,cohort_file_path=path2,std_sample_path=path3)    #DataAnalyzer instance\n\n#Analyzing the files\n'''\nReturns a list of five important values\n* df: The corresponding dataframe to the input main file\n* probable_area_columns: The list of detected area(intensity) columns\n* probable_sample: The list of detected sample columns\n* probable_comp: The list of detected compound columns\n* form: The format of the input main file[ 'wide' or 'long']\n'''\ndf,pa,ps,pc,form = da.analyze()  \n\n#Function to get dataframe corresponding to cohort file\ncohort_df = da.get_cohort_df()\n#Function to get dataframe corresponding to standard metadata sample\nstd_df = da.get_std_df()\n\n#Creating a makeGCT instance from the outputs of DataAnalyzer.analyze()\n'''\nParameters:\n* df: The 'df' output of da.analyze()  [Required]\n* cohort_df: The output of da.get_cohort_df()  [Optional]\n* std_df: The output of da.get_std_df()  [Optional]\n* probable_area: The 'probable_area_columns' output of da.analyze()  [Required]\n* probable_sample: The 'probable_sample' output of da.analyze()  [Required]\n* probable_comp: The 'probable_comp' output of da.analyze  [Required]\n* form: The 'form' output of da.analyze()  [Required]\n'''\nmg = makeGCT(df, cohort_df, std_df, pa, ps, pc, form)  #makeGCT instance \n\n#Converting the files to a single GCT file by toGCT() method of makeGCT class\ngct = mg.toGCT()  #Returns a gctoo object\n```\n---\n## Contribute\n\n\n---\n## Credits\n\n---\n## License\nA short snippet describing the license (MIT, Apache etc)\n\nMIT \u00a9 [Shantanu Tripathi]()\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/elucidatainc/datamast/src/feature/",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "datamast-1",
+        "package_url": "https://pypi.org/project/datamast-1/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/datamast-1/",
+        "release_url": "https://pypi.org/project/datamast-1/0.4/",
+        "requires_dist": [
+            "pandas",
+            "numpy"
+        ],
+        "requires_python": "",
+        "summary": "smartest package related to data fixing",
+        "version": "0.4"
+    },
+    "last_serial": 4010308,
+    "releases": {
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "49d686f05b67266285883db11bd01d81",
+                    "sha256": "a7d4238d436f952889031efef26156d5a508c2ea9be9c65f9b0acf40e2715c21"
+                },
+                "downloads": -1,
+                "filename": "datamast_1-0.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "49d686f05b67266285883db11bd01d81",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 8086,
+                "upload_time": "2018-06-28T08:00:26",
+                "url": "https://files.pythonhosted.org/packages/6a/a8/974dff8f0c0ddc1665d13ccd6d57d4fd38b335996c9a1eff7b48a5c09e4f/datamast_1-0.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e6cc6268f88ea8bea897515ecc235ae2",
+                    "sha256": "472191385f31916c116f3110e4ecb979fdd4944be738107bd7dd3cd294513d68"
+                },
+                "downloads": -1,
+                "filename": "datamast_1-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e6cc6268f88ea8bea897515ecc235ae2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8001,
+                "upload_time": "2018-06-28T08:00:28",
+                "url": "https://files.pythonhosted.org/packages/f7/94/9ed2c12696e02cef841ce324fb613d041d126d1076a4ded957a96ebd6b5d/datamast_1-0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "49d686f05b67266285883db11bd01d81",
+                "sha256": "a7d4238d436f952889031efef26156d5a508c2ea9be9c65f9b0acf40e2715c21"
+            },
+            "downloads": -1,
+            "filename": "datamast_1-0.4-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "49d686f05b67266285883db11bd01d81",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "size": 8086,
+            "upload_time": "2018-06-28T08:00:26",
+            "url": "https://files.pythonhosted.org/packages/6a/a8/974dff8f0c0ddc1665d13ccd6d57d4fd38b335996c9a1eff7b48a5c09e4f/datamast_1-0.4-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e6cc6268f88ea8bea897515ecc235ae2",
+                "sha256": "472191385f31916c116f3110e4ecb979fdd4944be738107bd7dd3cd294513d68"
+            },
+            "downloads": -1,
+            "filename": "datamast_1-0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e6cc6268f88ea8bea897515ecc235ae2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 8001,
+            "upload_time": "2018-06-28T08:00:28",
+            "url": "https://files.pythonhosted.org/packages/f7/94/9ed2c12696e02cef841ce324fb613d041d126d1076a4ded957a96ebd6b5d/datamast_1-0.4.tar.gz"
+        }
+    ]
+}

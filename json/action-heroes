@@ -1,0 +1,304 @@
+{
+    "info": {
+        "author": "Sri Kadimisetty",
+        "author_email": "s@sri.io",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Terminals"
+        ],
+        "description": "[action_heroes_logo]: ./art/logo.svg\n![Action Heroes Logo][action_heroes_logo]\n\n\n[![codecov](https://codecov.io/gh/kadimisetty/action-heroes/branch/master/graph/badge.svg?token=7myLPPQe8k)](https://codecov.io/gh/kadimisetty/action-heroes)\n![PyPI - Python Version](https://img.shields.io/pypi/pyversions/action_heroes)\n![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)\n![PyPI - License](https://img.shields.io/pypi/l/action_heroes)\n[![Build Status](https://travis-ci.org/kadimisetty/action-heroes.svg?branch=master)](https://travis-ci.org/kadimisetty/action-heroes)\n\n\n####\n\n`action_heroes` is a python package that provides  \n__custom argparse _Actions_ to help you manage user arguments in command line interfaces.__\n\n\n## Introduction\n> __Introduction__ \u00b7 [Quick Usage](#quick-usage) \u00b7 [Help & FAQ](#help-and-faq) \u00b7 [Catalog](#catalog) \u00b7 [Development](#development)\n\n##### _Argparse, Parsers, Actions? What now??_ \ud83e\udd37\u200d\u2642\ufe0f\n\n<dl>\n\n<dt>1. argparse</dt>\n<dd><code>argparse</code> is a python standard library module used to build command line interfaces.\n<a href=\"https://docs.python.org/3/library/argparse.html\">\u2693\ufe0e</a>\n</dd>\n\n<dt>2. ArgumentParser</dt>\n<dd><code>argparse.ArgumentParser</code> parses user arguments by inspecting the command line, converting each argument to an appropriate type and finally invoking an appropriate <code>argparse.Action</code>\n<a href=\"https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser\">\u2693\ufe0e</a>\n</dd>\n\n\n<dt>3. Action</dt>\n<dd><code>argparse.Action</code> objects are used by <code>ArgumentParser</code> to represent information needed to parse arguments from the command line.\n<a href=\"https://docs.python.org/3/library/argparse.html#action\">\u2693\ufe0e</a>\n</dd>\n\n\n<dt>4. action_heroes \ud83d\udca5</dt>\n<dd><code>argparse.Action</code> objects are subclassable, to allow custom actions. This library, <code>action_heroes</code>, include many such custom actions that will prove their worth when dealing with accepting user arguments in your command line application.</dd>\n\n<dd>For example, the <strong><code>FileIsWritableAction</code> automatically verifies that all file paths accepted as arguments are indeed writable, informing the user if they aren't.</strong> This saves you the trouble of doing that check yourself. Nice, no? <a href=\"#catalog\">Browse the catalog</a> for more custom actions.</dd>\n\n</dl>\n\nTherefore __`argparse`__ + __`action_heroes`__ = \ud83e\udde8\n\n\n## Quick Usage\n> [Introduction](#introduction) \u00b7 __Quick Usage__ \u00b7 [Help & FAQ](#help-and-faq) \u00b7 [Catalog](#catalog) \u00b7 [Development](#development)\n\n__1. Installation__: Use `pip` for installation\n\n```python \npip install action_heroes\n```\n\n__2. Quick Usage__: Import an action and specify it when adding an argument to your parser.\n\n```python \nfrom action_heroes import FileIsReadableAction\n...\nparser.add_argument(\"--file\", action=FileIsReadableAction)\n...\n```\n\n__3. Full Example__: CLI program that counts number of lines of a file. \n\n```python\n# examples/line_counter.py\nimport argparse\n\nfrom action_heroes import FileIsReadableAction\n\n\nif __name__ == \"__main__\":\n    # Create parser\n    parser = argparse.ArgumentParser()\n\n    # Add user argument \"file\"\n    parser.add_argument(\"--file\", action=FileIsReadableAction)\n\n    # Parse user arguments\n    args = parser.parse_args()\n\n    if args.file:\n        # Count lines in file\n        with open(args.file) as f:\n            # print(f\"{args.file} has {len(f.readlines())} lines\")\n            print(\"{} has {} lines\".format(args.file, len(f.readlines())))\n    else:\n        # Print usage when no arguments were supplied\n        parser.print_usage()\n```\n\nRun `line_counter.py` on the command line\n\n```bash\n$ ls\nline_counter.py mary.md\n\n$ python line_counter.py --file mary.md\nmary.md has 39 lines\n\n$ python line_counter.py\nusage: line_counter.py [-h] [--file FILE]\n\n$ python line_counter.py --file nofile.md\nusage: line_counter.py [-h] [--file FILE]\nline_counter.py: error: argument --file: File is not readable\n```\n\n**Note**: _Supported Python versions 3.6 upwards._\n\n## Help and FAQ\n> [Introduction](#introduction) \u00b7 [Quick Usage](#quick-usage) \u00b7 __Help & FAQ__ \u00b7 [Catalog](#catalog) \u00b7 [Development](#development)\n\n### Accepting `action_values`\nThere are times your action requires an additional value. For instance, when your argument accepts only filenames with `md` or `markdown` extensions. You can use the `FilenameHasExtension` action for this and pass in the extensions to check for via `action_values`, like so \u2014 \n\n```python\nparser.add_argument(\n    \"--file\", \n    action=FilenameHasExtension, \n    action_values=[\"md\", \"markdown\"]\n)\n\n```\n\nUnless otherwise mentioned,  `action_values` should be provided as a non-empty list of strings. e.g.\n`action_values = [\"md\", \"markdown\"]`.\n\n\n### Pipelining multiple actions\n\nThe `PipelineAction` allows you to run multiple actions as a pipeline. Pass in your pipeline of actions as a list to `action_values`. If one of the actions you're passing in has it's own `action_values`, put that one as a tuple, like such: `(FilenameHasExtension, [\"md\", \"markdown\"])`. Here's an example of pipelining actions on arguments of `--file` \n\n1. File has extensions `md` or `markdown`\n2. File exists\n\n```python\nparser.add_argument(\n    \"--file\", \n    action=PipelineAction, \n    action_values=[\n        FileExistsAction, \n        (FilenameHasExtension, [\"md\", \"markdown\"])\n    ]\n)\n```\n\nAnother helpful feature, this action provides is error-reporting. \nif it did not have the desired extensions, the error message would mention that. If the file did not exist, the error message mentions that instead. \n\nThis behaviour can save checking and reporting for quite a few condition as your could pipeline more actions to reflect the desired order of possible errors at each stage. e.g. To check for an existing, writable, non-empty, markdown file, this order would do \u2014\n\n```python\nparser.add_argument(\n    \"--file\", \n    action=PipelineAction, \n    action_values=[\n        FileExistsAction, \n        FileIsWritableAction,\n        FileIsNotEmptyAction,\n        (FilenameHasExtension, [\"md\", \"markdown\"])\n]\n```\n\n### Not capturing user argument exceptions\n`argparse.ArgumentParser` has a slightly unconventional approach to handling `argparse.ArgumentError`s. Upon encountering one, it prints argument usage information, error and exits. I mention this, so you don't setup a `try/except` around `parser.parse_args()` to capture the exception. \n\nIn order to maintain consistency with the rest of your `argparse` code, exceptions in `action_heroes` are also of type `argparse.ArgumentError`. More information can be found in [PEP 389](https://www.python.org/dev/peps/pep-0389/#id46). Since this is the expected behavior, I recommend you allow the exception to display usage information and exit as well.\n\n### On arguments accepting multiple values\nJust like any other `argparse.Action` each `action_hero.Action` handles both singular and plural values with error messages customized for that as well.\n\n### FAQ\n<dl>\n<dt>What do I need to know to use <code>action_heroes</code> in my command line application?</dt>\n<dd>Vanilla <code>argparse</code> knowledge should do it.</dd>\n\n<dt>Where can I find information about <code>argparse</code>?</dt>\n<dd><code>argparse</code> is part of the <a href=\"https://docs.python.org/3.7/library/argparse.html#module-argparse\">Python standard library</a>.</dd>\n\n<dt>What type are the user argument exceptions?</dt>\n<dd><code>argparse.ArgumentError{\"helpful error message\"}</code>, just like any other <code>argparse.Action</code></code></dd>\n\n<dt>Is <code>action_heroes</code> tied to the <code>argparse</code> module?</dt>\n<dd>Yes <em>(but technically no \u2014 any project that can use an <code>argpoarse.Action</code> should work as long as it handles the <code>argparse.ArgumentError</code> exception)</em></dd>\n\n<dt>I don't want to learn another library. I already know <code>argparse</code>!</dt>\n<dd><code>action_heroes</code> can be used just like any other <code>argparse.Action</code>, so feel free to take advantage.</dd>\n\n<dt>There was no mention of humans! Does this work for humans?</dt>\n<dd>Yes, yes it works for humans :)</dd>\n</dl>\n\n\n## Catalog\n> [Introduction](#introduction) \u00b7 [Quick Usage](#quick-usage) \u00b7 [Help & FAQ](#help-and-faq) \u00b7 __Catalog__ \u00b7 [Development](#development)\n\n\n1. __Special__ actions:\n\n| Action | Description | `action_values` |\n| --- | --- | --- |\n| __`PipelineAction`__ | Run multiple actions as a pipeline | Actions to run as a pipeline. e.g. `[FileExistsAction, FileIsWritableAction]`  |\n\n2. __Path, Directory and File__ related actions:\n\n| Action | Description | `action_values` |\n| --- | --- | --- |\n| __`DirectoryDoesNotExistAction`__ | Check if directory does not exist | |\n| __`DirectoryExistsAction`__ | Check if directory exists | |\n| __`DirectoryIsExecutableAction`__ | Check if directory is executable | |\n| __`DirectoryIsNotExecutableAction`__ | Check if directory is not executable | |\n| __`DirectoryIsNotReadableAction`__ | Check if directory is not readable | |\n| __`DirectoryIsNotWritableAction`__ | Check if directory is not writable | |\n| __`DirectoryIsReadableAction`__ | Check if directory is readable | |\n| __`DirectoryIsValidAction`__ | Check directory is valid | |\n| __`DirectoryIsWritableAction`__ | Check if directory is writable | |\n| __`EnsureDirectoryAction`__ | Ensure directory exists and create it if it doesnt | |\n| __`EnsureFileAction`__ | Ensure file exists and create it if it doesnt | |\n| __`FileDoesNotExistAction`__ | Check if file doesnt exist | |\n| __`FileExistsAction`__ | Check if file exists | |\n| __`FileIsEmptyAction`__ | Check if file is empty | |\n| __`FileIsExecutableAction`__ | Check if file is executable | |\n| __`FileIsNotEmptyAction`__ | Check if file is not empty | |\n| __`FileIsNotExecutableAction`__ | Check if file is not executable | |\n| __`FileIsNotReadableAction`__ | Check if file is not readable | |\n| __`FileIsNotWritableAction`__ | Check if file is not writable | |\n| __`FileIsReadableAction`__ | Check if file is readable | |\n| __`FileIsValidAction`__ | Check file is valid | |\n| __`FileIsWritableAction`__ | Check if file is writable | |\n| __`FilenameHasExtension`__ | Check if file has specified extension | Extensions to check against. e.g. `[\"md\", \"markdown\"]` |\n| __`PathDoesNotExistsAction`__ | Check if path does not exist | |\n| __`PathExistsAction`__ | Check if path exists | |\n| __`PathIsExecutableAction`__ | Check if path is executable | |\n| __`PathIsNotExecutableAction`__ | Check if path is not executable | |\n| __`PathIsNotReadableAction`__ | Check if path is not writable | |\n| __`PathIsNotWritableAction`__ | Check if path is not writable | |\n| __`PathIsReadableAction`__ | Check if path is readable | |\n| __`PathIsValidAction`__ | Check if path is valid | |\n| __`PathIsWritableAction`__ | Check if path is writable | |\n| __`ResolvePathAction`__ | Resolves path to canonical path removing symbolic links if present | |\n\n\n3. __Network__ related actions:\n\n| Action | Description | `action_values` |\n| --- | --- | --- |\n| __`IPIsValidIPAddressAction`__ | Check if ip is valid ipv4 or ipv6 address | |\n| __`IPIsValidIPv4AddressAction`__ | Check if ip address is valid ipv4 address | |\n| __`IPIsValidIPv6AddressAction`__ | Check if ip address is valid ipv6 address | |\n| __`URLIsNotReachableAction`__ | Check if URL is not reachable | |\n| __`URLIsReachableAction`__ | Check if URL is reachable | |\n| __`URLWithHTTPResponseStatusCodeAction`__ | Check if upplied URL responds with expected HTTP response status code | [Status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) to check against. e.g. `[\"200\", \"201\", \"202\", \"204\"]`  |\n\n\n4. __Type__ related actions:\n\n| Action | Description | `action_values` |\n| --- | --- | --- |\n| __`IsConvertibleToFloatAction`__ | Check if value is convertible to float | |\n| __`IsConvertibleToIntAction`__ | Check if value is convertible to int | |\n| __`IsConvertibleToUUIDAction`__ | Checks if value is convertible to UUID | |\n| __`IsFalsyAction`__ | Checks if value is falsy | |\n| __`IsTruthyAction`__ | Checks if value is truthy | |\n\n5. __Email__ related actions:\n\n| Action | Description | `action_values` |\n| --- | --- | --- |\n| __`EmailIsValidAction`__ | Checks if email address is valid | |\n\n6. __Range__ related actions:\n\n| Action | Description | `action_values` |\n| --- | --- | --- |\n\n\n## Development\n> [Introduction](#introduction) \u00b7 [Quick Usage](#quick-usage) \u00b7 [Help & FAQ](#help-and-faq) \u00b7 [Catalog](#catalog) \u00b7 __Development__\n\n### Notes\n- __Formatting__-: _PEP8 only. Please format with  black using `black_linelength=79`_\n- __License__: _The MIT License_\n- __Image Attributions__: _Karate by Alex Auda Samora from the Noun Project_\n\n### Roadmap\n1. Configurable exception type. e.g. ValueError/ArgumentError etc.\n2. More Actions.\n3. Reference with Sphinx docs + github pages on a seperate branch.\n4. More examples.\n5. Proper repo things.\n\n> Thank you for using `action_heroes`.  \n> If you like action heroes do give it a quick __star__ \u2b50\ufe0f Will be much appreciated!\n\n\n",
+        "description_content_type": "text/plain",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/kadimisetty/action-heroes",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "action-heroes",
+        "package_url": "https://pypi.org/project/action-heroes/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/action-heroes/",
+        "project_urls": {
+            "Homepage": "https://github.com/kadimisetty/action-heroes"
+        },
+        "release_url": "https://pypi.org/project/action-heroes/0.5.5/",
+        "requires_dist": [
+            "importlib-resources",
+            "requests"
+        ],
+        "requires_python": ">=3.6.0",
+        "summary": "Argparse Actions that pack a punch!",
+        "version": "0.5.5"
+    },
+    "last_serial": 5633281,
+    "releases": {
+        "0.4.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a19ae13a3edb471d52d8a1317532d106",
+                    "sha256": "5cf38fd9688b5afe0293c7c5c7e355db03e53ee1a1b95b61c4751c9a871b15f0"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.4.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a19ae13a3edb471d52d8a1317532d106",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4.0",
+                "size": 15578,
+                "upload_time": "2019-08-02T03:23:24",
+                "url": "https://files.pythonhosted.org/packages/5b/6e/7192c7ff8d6216e02693ea9df753eb7a49d1c33243ab62db45ea0a92af66/action_heroes-0.4.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "edce19a88136e27a925a2ba831f92517",
+                    "sha256": "56d067ff67b4a2d4a503249f0e62e764f2ac5dd9d3132cb62d1ec87f48f734e2"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.4.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "edce19a88136e27a925a2ba831f92517",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.4.0",
+                "size": 30589,
+                "upload_time": "2019-08-02T03:23:27",
+                "url": "https://files.pythonhosted.org/packages/e0/0c/ccdf731c1192221687c536939ae26c8610da3139733c4c2442d7166e1347/action_heroes-0.4.7.tar.gz"
+            }
+        ],
+        "0.4.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dbcff6beef82c89d555c9af75c99912b",
+                    "sha256": "5bde7451e56447f77822eafb11cb624195579610d571a943f46d6184786527f0"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.4.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dbcff6beef82c89d555c9af75c99912b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4.0",
+                "size": 15577,
+                "upload_time": "2019-08-02T03:43:14",
+                "url": "https://files.pythonhosted.org/packages/23/66/0cab1b47429605a353bbc9a03ef6cdcccd580d2066a0269ed909d59d2700/action_heroes-0.4.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "39f7237c22714a0b7a0eded7d66ec355",
+                    "sha256": "0533cb3567573df35618d054ef6fa9ce8814aedc03da41bae8f8cd2e1d12f227"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.4.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "39f7237c22714a0b7a0eded7d66ec355",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.4.0",
+                "size": 30593,
+                "upload_time": "2019-08-02T03:43:16",
+                "url": "https://files.pythonhosted.org/packages/e0/31/dbbe5cd7b37bad2d3cdbd5d0ffd7a5f84f56990cf483139522828c0add13/action_heroes-0.4.8.tar.gz"
+            }
+        ],
+        "0.4.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec9e0a5712c52f84e608c6a043484026",
+                    "sha256": "60825d2f36652998908caafac10fcd0e8d4c8c520df1bc5c0a64e0d84d800f11"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.4.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ec9e0a5712c52f84e608c6a043484026",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 15315,
+                "upload_time": "2019-08-02T06:19:25",
+                "url": "https://files.pythonhosted.org/packages/6f/8a/f632a69e104b242d7e1a77314232ebd3fe396265682b85e45e15b493fbac/action_heroes-0.4.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9dde381005a452ebe01291520fddeac0",
+                    "sha256": "4a2661f92fa9a50461b326e2c0805131ff5e6a4fd51cb7ee18a768a115b32ddc"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.4.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9dde381005a452ebe01291520fddeac0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 30352,
+                "upload_time": "2019-08-02T06:19:28",
+                "url": "https://files.pythonhosted.org/packages/f9/02/d8fa5d156c4385c7b2b2cfc9777719c250f3574e5b6abf9bdb047c793dc0/action_heroes-0.4.9.tar.gz"
+            }
+        ],
+        "0.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f41cf75e6b19f96266763a5cbda0f73f",
+                    "sha256": "ab2cadc0f75d5c357fcfd1e1ba27591912e54b93875dc1a08fa7647bf5423752"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.5.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f41cf75e6b19f96266763a5cbda0f73f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 15980,
+                "upload_time": "2019-08-03T04:52:08",
+                "url": "https://files.pythonhosted.org/packages/54/a6/9fb161574f4ac3bb393bb50b3a538a06b0d889512aec05f7bd57a41e18cf/action_heroes-0.5.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d819b460038504d9d297b25f07fad3b9",
+                    "sha256": "670c6121193a31225ab428f4e477f794392756e5c90f66eb7a018af9c5c563e8"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d819b460038504d9d297b25f07fad3b9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 31743,
+                "upload_time": "2019-08-03T04:52:10",
+                "url": "https://files.pythonhosted.org/packages/a7/02/92ddd86e0f7451d3d8e832a24268022acd9d5f4899a4db991ac833cbb215/action_heroes-0.5.1.tar.gz"
+            }
+        ],
+        "0.5.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "07992f59b02698b538422e527d22add0",
+                    "sha256": "4ef41a8148ebe6614fb8829f0679abb59500fd76799e9d6aaffab716c186fa48"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.5.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "07992f59b02698b538422e527d22add0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 16193,
+                "upload_time": "2019-08-03T08:20:21",
+                "url": "https://files.pythonhosted.org/packages/96/4d/80ce84caf269e95d699bd2011b5cc6ba4e41c7e7c12d6c465793a55a807b/action_heroes-0.5.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c919da9e474e91eea447481c96772be7",
+                    "sha256": "0c2e59efec56308bd39fe3a16467fbce1487fb0fe159a5579ac92a47f25e4c7e"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.5.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c919da9e474e91eea447481c96772be7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 32137,
+                "upload_time": "2019-08-03T08:20:24",
+                "url": "https://files.pythonhosted.org/packages/b1/bc/33419ab66a3a310e89aa5245874511bbe61502ba8d1d29e5fa3f082f43b4/action_heroes-0.5.2.tar.gz"
+            }
+        ],
+        "0.5.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a446367d091cf7ff1af02f38e41926e3",
+                    "sha256": "ccc90958c34cc0cc37f36e47e84fe76acbdd66242343e747ad4cb2c792d7b215"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.5.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a446367d091cf7ff1af02f38e41926e3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 18835,
+                "upload_time": "2019-08-05T09:11:14",
+                "url": "https://files.pythonhosted.org/packages/27/f4/44baf7ae1d4412fac71edd24b6b6a2a597143fba67f68cf0f25314d22fff/action_heroes-0.5.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3ca851ab7583cc473c694a16f17085fb",
+                    "sha256": "61e8faa1ed07ead17a6b7238ef0cefb1d8a01810a6da67d1978a4bc122efc5a4"
+                },
+                "downloads": -1,
+                "filename": "action_heroes-0.5.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3ca851ab7583cc473c694a16f17085fb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 35835,
+                "upload_time": "2019-08-05T09:11:16",
+                "url": "https://files.pythonhosted.org/packages/c2/44/c55b3cebe91d373c54c54f9c2d79cdc23d6a4682c490aa911a8323c79027/action_heroes-0.5.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a446367d091cf7ff1af02f38e41926e3",
+                "sha256": "ccc90958c34cc0cc37f36e47e84fe76acbdd66242343e747ad4cb2c792d7b215"
+            },
+            "downloads": -1,
+            "filename": "action_heroes-0.5.5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a446367d091cf7ff1af02f38e41926e3",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6.0",
+            "size": 18835,
+            "upload_time": "2019-08-05T09:11:14",
+            "url": "https://files.pythonhosted.org/packages/27/f4/44baf7ae1d4412fac71edd24b6b6a2a597143fba67f68cf0f25314d22fff/action_heroes-0.5.5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3ca851ab7583cc473c694a16f17085fb",
+                "sha256": "61e8faa1ed07ead17a6b7238ef0cefb1d8a01810a6da67d1978a4bc122efc5a4"
+            },
+            "downloads": -1,
+            "filename": "action_heroes-0.5.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3ca851ab7583cc473c694a16f17085fb",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6.0",
+            "size": 35835,
+            "upload_time": "2019-08-05T09:11:16",
+            "url": "https://files.pythonhosted.org/packages/c2/44/c55b3cebe91d373c54c54f9c2d79cdc23d6a4682c490aa911a8323c79027/action_heroes-0.5.5.tar.gz"
+        }
+    ]
+}

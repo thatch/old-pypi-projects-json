@@ -1,0 +1,213 @@
+{
+    "info": {
+        "author": "Chris Griffith",
+        "author_email": "chris@cdgriffith.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Topic :: Software Development",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Utilities"
+        ],
+        "description": "|BuildStatus| |CoverageStatus| |License| |PyPi| |DocStatus|\n\n|BoxImage|\n\nPython dictionaries with advanced dot notation access.\n\n.. code:: python\n\n         from box import Box\n\n         movie_data = {\n           \"movies\": {\n             \"Spaceballs\": {\n               \"imdb stars\": 7.1,\n               \"rating\": \"PG\",\n               \"length\": 96,\n               \"director\": \"Mel Brooks\",\n               \"stars\": [{\"name\": \"Mel Brooks\", \"imdb\": \"nm0000316\", \"role\": \"President Skroob\"},\n                         {\"name\": \"John Candy\",\"imdb\": \"nm0001006\", \"role\": \"Barf\"},\n                         {\"name\": \"Rick Moranis\", \"imdb\": \"nm0001548\", \"role\": \"Dark Helmet\"}\n               ]\n             },\n             \"Robin Hood: Men in Tights\": {\n               \"imdb stars\": 6.7,\n               \"rating\": \"PG-13\",\n               \"length\": 104,\n               \"director\": \"Mel Brooks\",\n               \"stars\": [\n                         {\"name\": \"Cary Elwes\", \"imdb\": \"nm0000144\", \"role\": \"Robin Hood\"},\n                         {\"name\": \"Richard Lewis\", \"imdb\": \"nm0507659\", \"role\": \"Prince John\"},\n                         {\"name\": \"Roger Rees\", \"imdb\": \"nm0715953\", \"role\": \"Sheriff of Rottingham\"},\n                         {\"name\": \"Amy Yasbeck\", \"imdb\": \"nm0001865\", \"role\": \"Marian\"}\n               ]\n             }\n           }\n         }\n\n         # Box is a conversion_box by default, pass in `conversion_box=False` to disable that behavior\n         movie_box = Box(movie_data)\n\n\n         movie_box.movies.Robin_Hood_Men_in_Tights.imdb_stars\n         # 6.7\n\n         movie_box.movies.Spaceballs.stars[0].name\n         # 'Mel Brooks'\n\n         # All new dict and lists added to a Box or BoxList object are converted\n         movie_box.movies.Spaceballs.stars.append({\"name\": \"Bill Pullman\", \"imdb\": \"nm0000597\", \"role\": \"Lone Starr\"})\n         movie_box.movies.Spaceballs.stars[-1].role\n         # 'Lone Starr'\n\nInstall\n=======\n\n.. code:: bash\n\n        pip install python-box\n\nBox is tested on python 2.7 and 3.4+.\nIf it does not install with this command, please\nopen a github issue with the error you are experiencing!\n\nIf you want to be able to use the `to_yaml` functionality make sure to\ninstall `PyYAML` or `ruamel.yaml` as well.\n\nOverview\n========\n\n`Box` is designed to be an easy drop in transparently replacements for\ndictionaries, thanks to Python's\nduck typing capabilities, which adds dot notation access. Any sub\ndictionaries or ones set after initiation will be automatically converted to\na `Box` object. You can always run `.to_dict()` on it to return the object\nand all sub objects back into a regular dictionary.\n\n\n.. code:: python\n\n         movie_box.movies.Spaceballs.to_dict()\n         {'director': 'Mel Brooks',\n          'imdb stars': 7.1,\n          'length': 96,\n          'personal thoughts': 'On second thought, it was hilarious!',\n          'rating': 'PG',\n          'stars': [{'imdb': 'nm0000316', 'name': 'Mel Brooks', 'role': 'President Skroob'},\n                    {'imdb': 'nm0001006', 'name': 'John Candy', 'role': 'Barf'},\n                    {'imdb': 'nm0001548', 'name': 'Rick Moranis', 'role': 'Dark Helmet'},\n                    {'imdb': 'nm0000597', 'name': 'Bill Pullman', 'role': 'Lone Starr'}]}\n\nBox version 3 (and greater) now do sub box creation upon lookup, which means\nit is only referencing the original dict objects until they are looked up\nor modified.\n\n.. code:: python\n\n      a = {\"a\": {\"b\": {\"c\": {}}}}\n      a_box = Box(a)\n      a_box\n      # <Box: {'a': {'b': {'c': {}}}}>\n\n      a[\"a\"][\"b\"][\"d\"] = \"2\"\n\n      a_box\n      # <Box: {'a': {'b': {'c': {}, 'd': '2'}}}>\n\nSo if you plan to keep the original dict around, make sure to box_it_up or do a deepcopy first.\n\n.. code:: python\n\n      safe_box = Box(a, box_it_up=True)\n      a[\"a\"][\"b\"][\"d\"] = \"2\"\n\n      safe_box\n      # <Box: {'a': {'b': {'c': {}}}}>\n\nLimitations\n-----------\n\n`Box` is a subclass of `dict` and as such, certain keys cannot be accessed via dot notation.\nThis is because names such as `keys` and `pop` have already been declared as methods, so `Box` cannot\nuse it's special sauce to overwrite them. However it is still possible to have items with those names\nin the `Box` and access them like a normal dictionary, such as `my_box['keys']`.\n\n*This is as designed, and will not be changed.*\n\nThe non-magic methods that exist in a `Box` are: \n`box_it_up, clear, copy, from_json, fromkeys, get, items, keys, pop, popitem, setdefault, to_dict, to_json, update, values`.\nTo view an entire list of what cannot be accessed via dot notation, run the command `dir(Box())`.\n\n\nBox\n---\n\n`Box` can be instantiated the same ways as `dict`.\n\n.. code:: python\n\n        Box({'data': 2, 'count': 5})\n        Box(data=2, count=5)\n        Box({'data': 2, 'count': 1}, count=5)\n        Box([('data', 2), ('count', 5)])\n\n        # All will create\n        # <Box: {'data': 2, 'count': 5}>\n\n`Box` is a subclass of `dict` which overrides some base functionality to make\nsure everything stored in the dict can be accessed as an attribute or key value.\n\n.. code:: python\n\n      small_box = Box({'data': 2, 'count': 5})\n      small_box.data == small_box['data'] == getattr(small_box, 'data')\n\nAll dicts (and lists) added to a `Box` will be converted on lookup to a `Box` (or `BoxList`),\nallowing for recursive dot notation access.\n\n`Box` also includes helper functions to transform it back into a `dict`,\nas well as into `JSON` or `YAML` strings or files.\n\nBox's parameters\n~~~~~~~~~~~~~~~~\n\n.. table::\n   :widths: auto\n\n   ================ ========= ===========\n   Keyword Argument Default   Description\n   ================ ========= ===========\n   conversion_box   True      Automagically make keys with spaces attribute accessible\n   frozen_box       False     Make the box immutable, hashable (if all items are non-mutable)\n   default_box      False     Act like a recursive default dict\n   default_box_attr Box       Can overwrite with a different (non-recursive) default attribute to return\n   camel_killer_box False     CamelCaseKeys become attribute accessible like snake case (camel_case_keys)\n   box_it_up        False     Recursively create all Boxes from the start (like previous versions)\n   box_safe_prefix  \"x\"       Character or prefix to prepend to otherwise invalid attributes\n   box_duplicates   \"ignore\"  When conversion duplicates are spotted, either ignore, warn or error\n   ordered_box      False     Preserve order of keys entered into the box\n   box_intact_types ()        Tuple of objects to preserve and not convert to a Box object\n   ================ ========= ===========\n\nBox's functions\n~~~~~~~~~~~~~~~\n\n.. table::\n\n   ================ ===========\n   Function Name    Description\n   ================ ===========\n   to_dict          Recursively transform all Box (and BoxList) objects back into a dict (and lists)\n   to_json          Save Box object as a JSON string or write to a file with the `filename` parameter\n   to_yaml*         Save Box object as a YAML string or write to a file with the `filename` parameter\n   box_it_up        Recursively create all objects into Box and BoxList objects (to front-load operation)\n   from_json        Classmethod, Create a Box object from a JSON file or string (all Box parameters can be passed)\n   from_yaml*       Classmethod, Create a Box object from a YAML file or string (all Box parameters can be passed)\n   ================ ===========\n\n\\* Only available if `PyYaml` or `ruamel.yaml` is detected.\n\nConversion Box\n~~~~~~~~~~~~~~\n\nBy default, Box is now a `conversion_box`\nthat adds automagic attribute access for keys that could not normally be attributes.\nIt can of course be disabled with the keyword argument `conversion_box=False`.\n\n.. code:: python\n\n         movie_box.movies.Spaceballs[\"personal thoughts\"] = \"It was a good laugh\"\n         movie_box.movies.Spaceballs.personal_thoughts\n         # 'It was a good laugh'\n\n         movie_box.movies.Spaceballs.personal_thoughts = \"On second thought, it was hilarious!\"\n         movie_box.movies.Spaceballs[\"personal thoughts\"]\n         # 'On second thought, it was hilarious!'\n\n         # If a safe attribute matches a key exists, it will not create a new key\n         movie_box.movies.Spaceballs[\"personal_thoughts\"]\n         # KeyError: 'personal_thoughts'\n\nKeys are modified in the following steps to make sure they are attribute safe:\n\n1. Convert to string (Will encode as UTF-8 with errors ignored)\n2. Replaces any spaces with underscores\n3. Remove anything other than ascii letters, numbers or underscores\n4. If the first character is an integer, it will prepend a lowercase 'x' to it\n5. If the string is a built-in that cannot be used, it will prepend a lowercase 'x'\n6. Removes any duplicate underscores\n\nThis does not change the case of any of the keys.\n\n.. code:: python\n\n         bx = Box({\"321 Is a terrible Key!\": \"yes, really\"})\n         bx.x321_Is_a_terrible_Key\n         # 'yes, really'\n\nThese keys are not stored anywhere, and trying to modify them as an\nattribute will actually modify the underlying regular key's value.\n\n**Warning: duplicate attributes possible**\n\nIf you have two keys that evaluate to the same attribute, such as \"a!b\" and \"a?b\" would become `.ab`,\nthere is no way to discern between them,\nonly reference or update them via standard dictionary modification.\n\n\nFrozen Box\n~~~~~~~~~~\n\nWant to show off your box without worrying about others messing it up? Freeze it!\n\n.. code:: python\n\n      frigid = Box(data={'Python': 'Rocks', 'inferior': ['java', 'cobol']}, frozen_box=True)\n\n      frigid.data.Python = \"Stinks\"\n      # box.BoxError: Box is frozen\n\n      frigid.data.Python\n      # 'Rocks'\n\n      hash(frigid)\n      # 4021666719083772260\n\n      frigid.data.inferior\n      # ('java', 'cobol')\n\n\nIt's hashing ability is the same as the humble `tuple`, it will not be hashable\nif it has mutable objects. Speaking of `tuple`, that's what all the lists\nbecomes now.\n\nDefault Box\n~~~~~~~~~~~\n\nIt's boxes all the way down. At least, when you specify `default_box=True` it can be.\n\n.. code:: python\n\n      empty_box = Box(default_box=True)\n\n      empty_box.a.b.c.d.e.f.g\n      # <Box: {}>\n\n      empty_box.a.b.c.d.e.f.g = \"h\"\n      empty_box\n      # <Box: {'a': {'b': {'c': {'d': {'e': {'f': {'g': 'h'}}}}}}}>\n\nUnless you want it to be something else.\n\n.. code:: python\n\n      evil_box = Box(default_box=True, default_box_attr=\"Something Something Something Dark Side\")\n\n      evil_box.not_defined\n      # 'Something Something Something Dark Side'\n\n      # Keep in mind it will no longer be possible to go down multiple levels\n      evil_box.not_defined.something_else\n      # AttributeError: 'str' object has no attribute 'something_else'\n\n`default_box_attr` will first check if it is callable, and will call the object\nif it is, otherwise it will see if has the `copy` attribute and will call that,\nlastly, will just use the provided item as is.\n\nCamel Killer Box\n~~~~~~~~~~~~~~~~\n\nSimilar to how conversion box works, allow CamelCaseKeys to be found as\nsnake_case_attributes.\n\n.. code:: python\n\n      cameled = Box(BadHabit=\"I just can't stop!\", camel_killer_box=True)\n\n      cameled.bad_habit\n      # \"I just can't stop!\"\n\nOrdered Box\n~~~~~~~~~~~\n\nPreserve the order that the keys were entered into the box. The preserved order\nwill be observed while iterating over the box, or calling `.keys()`,\n`.values()` or `.items()`\n\n.. code:: python\n\n      box_of_order = Box(ordered_box=True)\n      box_of_order.c = 1\n      box_of_order.a = 2\n      box_of_order.d = 3\n\n      box_of_order.keys() == ['c', 'a', 'd']\n\nKeep in mind this will not guarantee order of `**kwargs` passed to Box,\nas they are inherently not ordered until Python 3.6.\n\n\n\nBoxList\n-------\n\nTo make sure all items added to lists in the box are also converted, all lists\nare covered into `BoxList`. It's possible to\ninitiate these directly and use them just like a `Box`.\n\n.. code:: python\n\n      from box import BoxList\n\n      my_boxlist = BoxList({'item': x} for x in range(10))\n      #  <BoxList: [<Box: {'item': 0}>, <Box: {'item': 1}>, ...\n\n      my_boxlist[5].item\n      # 5\n\n\n**to_list**\n\nTransform a `BoxList` and all components back into regular `list` and `dict` items.\n\n.. code:: python\n\n      my_boxlist.to_list()\n      # [{'item': 0},\n      #  {'item': 1},\n      #  ...\n\nSBox\n----\n\nShorthand Box, aka SBox for short(hand), has the properties `json`, `yaml` and\n`dict` for faster access than the regular `to_dict()` and so on.\n\n.. code:: python\n\n      from box import SBox\n\n      sb = SBox(test=True)\n      sb.json\n      # '{\"test\": true}'\n\nNote that in this case, `json` has no default indent, unlike `to_json`.\n\nConfigBox\n---------\n\nA Box with additional handling of string manipulation generally found in\nconfig files.\n\ntest_config.ini\n\n.. code:: ini\n\n        [General]\n        example=A regular string\n\n        [Examples]\n        my_bool=yes\n        anint=234\n        exampleList=234,123,234,543\n        floatly=4.4\n\n\nWith the combination of `reusables` and `ConfigBox` you can easily read python\nconfig values into python types. It supports `list`, `bool`, `int` and `float`.\n\n.. code:: python\n\n    import reusables\n    from box import ConfigBox\n\n    config = ConfigBox(reusables.config_dict(\"test_config.ini\"))\n    # <ConfigBox: {'General': {'example': 'A regular string'},\n    # 'Examples': {'my_bool': 'yes', 'anint': '234', 'examplelist': '234,123,234,543', 'floatly': '4.4'}}>\n\n    config.Examples.list('examplelist')\n    # ['234', '123', '234', '543']\n\n    config.Examples.float('floatly')\n    # 4.4\n\nBoxObject\n---------\n\nAn object wrapper with a **Box** for a **__dict__**.\n\n.. code:: python\n\n    import requests\n    from box import BoxObject\n\n    def get_html(session, url, *args, **kwargs):\n        response = session.get(url, *args, **kwargs)\n        text = response.text\n        response_meta = response.__dict__\n        for key in tuple(filter(lambda k: k.startswith('_'), response_meta)):\n            response_meta.pop(key)\n        return BoxObject(text, response_meta, frozen_box=True)\n\n    box_url = 'https://raw.githubusercontent.com/cdgriffith/Box/master/box.py'\n    with requests.Session() as session:\n        box_source = get_html(session, box_url)\n\n    box_source.url\n    # https://raw.githubusercontent.com/cdgriffith/Box/master/box.py\n\n    box_source.status_code\n    # 200\n\n    box_source.raw.reason\n    # OK\n\n**BoxObject** act just like objects but they secretly carry around a **Box** with\nthem to store attributes. **BoxObject** are built off of **wrapt.ObjectProxy** which\ncan wrap almost any python object. They protect their wrapped objects storing them in\nthe **__wrapped__** attribute and keeping the original **__dict__** in\n**__wrapped__.__dict__**.\n\nSee the `Wrapt Documentation`_, specifically\nthe section on **ObjectProxy**, for more information.\n\n\nLicense\n=======\n\nMIT License, Copyright (c) 2017-2018 Chris Griffith. See LICENSE file.\n\n\n.. |BoxImage| image:: https://raw.githubusercontent.com/cdgriffith/Box/master/box_logo.png\n   :target: https://github.com/cdgriffith/Box\n.. |BuildStatus| image:: https://travis-ci.org/cdgriffith/Box.png?branch=master\n   :target: https://travis-ci.org/cdgriffith/Box\n.. |CoverageStatus| image:: https://img.shields.io/coveralls/cdgriffith/Box/master.svg?maxAge=2592000\n   :target: https://coveralls.io/r/cdgriffith/Box?branch=master\n.. |DocStatus| image:: https://readthedocs.org/projects/box/badge/?version=latest\n   :target: http://box.readthedocs.org/en/latest/index.html\n.. |PyPi| image:: https://img.shields.io/pypi/v/python-box.svg?maxAge=2592000\n   :target: https://pypi.python.org/pypi/python-box/\n.. |License| image:: https://img.shields.io/pypi/l/python-box.svg\n   :target: https://pypi.python.org/pypi/python-box/\n.. _`Wrapt Documentation`: https://wrapt.readthedocs.io/en/latest\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/cdgriffith/Box",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "python-box87",
+        "package_url": "https://pypi.org/project/python-box87/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/python-box87/",
+        "project_urls": {
+            "Homepage": "https://github.com/cdgriffith/Box"
+        },
+        "release_url": "https://pypi.org/project/python-box87/3.9.10/",
+        "requires_dist": [
+            "pytest ; extra == 'testing'",
+            "coverage (>=3.6) ; extra == 'testing'",
+            "pytest-cov ; extra == 'testing'"
+        ],
+        "requires_python": "",
+        "summary": "python-box with fix of issue 87",
+        "version": "3.9.10"
+    },
+    "last_serial": 5717626,
+    "releases": {
+        "3.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95387b7456493d3991e7f37b483a876c",
+                    "sha256": "6d615868a4405e6dc2a063644cc5fe189c5140c2d62c13a5210d17ca60400a2c"
+                },
+                "downloads": -1,
+                "filename": "python_box87-3.4.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "95387b7456493d3991e7f37b483a876c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 26722,
+                "upload_time": "2019-06-28T23:57:05",
+                "upload_time_iso_8601": "2019-06-28T23:57:05.134821Z",
+                "url": "https://files.pythonhosted.org/packages/93/22/6b4aff294a3d67dc7814ad01d77f69f09a5889047ae6d08f1d01a418b6e3/python_box87-3.4.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "76879736a09c6d3d75fb5874fbf1e221",
+                    "sha256": "6d1830c36b5c5a8b001ae79df67b22b4a1444e935508d1290bddfb8df800e4fd"
+                },
+                "downloads": -1,
+                "filename": "python-box87-3.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "76879736a09c6d3d75fb5874fbf1e221",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29114,
+                "upload_time": "2019-06-28T23:57:07",
+                "upload_time_iso_8601": "2019-06-28T23:57:07.917108Z",
+                "url": "https://files.pythonhosted.org/packages/1b/56/5fdcadba8c58fe85e882d87328ab52c9601115c7955f18420145e83f01ba/python-box87-3.4.1.tar.gz"
+            }
+        ],
+        "3.9.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "45956f7f383b4c16761f46d1ad36ba9b",
+                    "sha256": "bfe96d425ff0bad4c6811636a63d9368cc8fd4445fadad67ed20188f106e24c8"
+                },
+                "downloads": -1,
+                "filename": "python_box87-3.9.10-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "45956f7f383b4c16761f46d1ad36ba9b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 26659,
+                "upload_time": "2019-08-22T22:07:07",
+                "upload_time_iso_8601": "2019-08-22T22:07:07.275117Z",
+                "url": "https://files.pythonhosted.org/packages/0f/45/4b29d77865312ea5dcd0d505b313f1145996fdfdd241d59ae6cb97321312/python_box87-3.9.10-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fd8a1bb3f200aef5923602d17f9a26cd",
+                    "sha256": "1c0e5cbe5b1e2cddb03fe10bc01f4b4f20dde8db5ac94b50bb88cd198553637e"
+                },
+                "downloads": -1,
+                "filename": "python-box87-3.9.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fd8a1bb3f200aef5923602d17f9a26cd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32023,
+                "upload_time": "2019-08-22T22:07:09",
+                "upload_time_iso_8601": "2019-08-22T22:07:09.246427Z",
+                "url": "https://files.pythonhosted.org/packages/be/7d/9c053c81af56588515ce5fda11217eb6b35c181ef353f65fc7e763bc4b62/python-box87-3.9.10.tar.gz"
+            }
+        ],
+        "3.9.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7aed49ffcd7669d4e78ed6942e024ee6",
+                    "sha256": "98445faf47593eb0ff0ca38a472763eae0c0ef44adf65dadf79b6f4b3a60341f"
+                },
+                "downloads": -1,
+                "filename": "python_box87-3.9.9-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7aed49ffcd7669d4e78ed6942e024ee6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 26688,
+                "upload_time": "2019-07-15T18:30:02",
+                "upload_time_iso_8601": "2019-07-15T18:30:02.133086Z",
+                "url": "https://files.pythonhosted.org/packages/e9/2e/427ed0e983152ede21161d91e5f5fd52f34460588807d00f30a38a7a91d6/python_box87-3.9.9-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a3855308ba003eb39914712e12fef06a",
+                    "sha256": "4e1dab45c67bb499460543367aa95572d42f31a08500ff14956bb552349d8587"
+                },
+                "downloads": -1,
+                "filename": "python-box87-3.9.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a3855308ba003eb39914712e12fef06a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 31766,
+                "upload_time": "2019-07-15T18:30:03",
+                "upload_time_iso_8601": "2019-07-15T18:30:03.992620Z",
+                "url": "https://files.pythonhosted.org/packages/0b/b4/7183a4a98807cddb8d8809a5cb38988e45f1bd8bfc583a2c8ce7366d53db/python-box87-3.9.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "45956f7f383b4c16761f46d1ad36ba9b",
+                "sha256": "bfe96d425ff0bad4c6811636a63d9368cc8fd4445fadad67ed20188f106e24c8"
+            },
+            "downloads": -1,
+            "filename": "python_box87-3.9.10-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "45956f7f383b4c16761f46d1ad36ba9b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 26659,
+            "upload_time": "2019-08-22T22:07:07",
+            "upload_time_iso_8601": "2019-08-22T22:07:07.275117Z",
+            "url": "https://files.pythonhosted.org/packages/0f/45/4b29d77865312ea5dcd0d505b313f1145996fdfdd241d59ae6cb97321312/python_box87-3.9.10-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "fd8a1bb3f200aef5923602d17f9a26cd",
+                "sha256": "1c0e5cbe5b1e2cddb03fe10bc01f4b4f20dde8db5ac94b50bb88cd198553637e"
+            },
+            "downloads": -1,
+            "filename": "python-box87-3.9.10.tar.gz",
+            "has_sig": false,
+            "md5_digest": "fd8a1bb3f200aef5923602d17f9a26cd",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 32023,
+            "upload_time": "2019-08-22T22:07:09",
+            "upload_time_iso_8601": "2019-08-22T22:07:09.246427Z",
+            "url": "https://files.pythonhosted.org/packages/be/7d/9c053c81af56588515ce5fda11217eb6b35c181ef353f65fc7e763bc4b62/python-box87-3.9.10.tar.gz"
+        }
+    ]
+}

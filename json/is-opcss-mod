@@ -1,0 +1,122 @@
+{
+    "info": {
+        "author": "Wagner Cotta",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "OpenCensus - A stats collection and distributed tracing framework\n=================================================================\n\n|gitter|\n|circleci|\n|pypi|\n|compat_check_pypi|\n|compat_check_github|\n\n.. |circleci| image:: https://circleci.com/gh/census-instrumentation/opencensus-python.svg?style=shield\n   :target: https://circleci.com/gh/census-instrumentation/opencensus-python\n.. |gitter| image:: https://badges.gitter.im/census-instrumentation/lobby.svg\n   :target: https://gitter.im/census-instrumentation/lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge\n.. |pypi| image:: https://badge.fury.io/py/opencensus.svg\n   :target: https://pypi.org/project/opencensus/\n.. |compat_check_pypi| image:: https://python-compatibility-tools.appspot.com/one_badge_image?package=opencensus\n   :target: https://python-compatibility-tools.appspot.com/one_badge_target?package=opencensus\n.. |compat_check_github| image:: https://python-compatibility-tools.appspot.com/one_badge_image?package=git%2Bgit%3A//github.com/census-instrumentation/opencensus-python.git\n   :target: https://python-compatibility-tools.appspot.com/one_badge_target?package=git%2Bgit%3A//github.com/census-instrumentation/opencensus-python.git\n\n`OpenCensus`_ for Python. OpenCensus provides a framework to measure a\nserver's resource usage and collect performance stats. This repository\ncontains Python related utilities and supporting software needed by\nOpenCensus.\n\n.. _OpenCensus: https://github.com/census-instrumentation\n\n-  `API Documentation`_\n\n.. _API Documentation: https://opencensus.io/api/python/trace/usage.html\n\n--------\n Tracing\n--------\n\nInstallation & basic usage\n--------------------------\n\n1. Install the opencensus package using `pip`_ or `pipenv`_:\n\n    ::\n\n        pip install opencensus\n        pipenv install opencensus\n\n2. Initialize a tracer for your application:\n\n    .. code:: python\n\n        from opencensus.trace.tracer import Tracer\n        from opencensus.trace.samplers import AlwaysOnSampler\n\n        tracer = Tracer(sampler=AlwaysOnSampler())\n\n    .. _pip: https://pip.pypa.io\n    .. _pipenv: https://docs.pipenv.org/\n\n3. Initialize a view_manager and a stats_recorder for your application:\n\n    .. code:: python\n\n        from opencensus.stats import stats as stats_module\n\n        stats = stats_module.stats\n        view_manager = stats.view_manager\n        stats_recorder = stats.stats_recorder\n\n\nUsage\n-----\n\nYou can collect traces using the ``Tracer`` `context manager`_:\n\n.. code:: python\n\n    from opencensus.trace.tracer import Tracer\n    from opencensus.trace.samplers import AlwaysOnSampler\n\n    # Initialize a tracer, by default using the `PrintExporter`\n    tracer = Tracer(sampler=AlwaysOnSampler())\n\n    # Example for creating nested spans\n    with tracer.span(name='span1'):\n        do_something_to_trace()\n        with tracer.span(name='span1_child1'):\n            do_something_to_trace()\n        with tracer.span(name='span1_child2'):\n            do_something_to_trace()\n    with tracer.span(name='span2'):\n        do_something_to_trace()\n\nOpenCensus will collect everything within the ``with`` statement as a single span.\n\nAlternatively, you can explicitly start and end a span:\n\n.. code:: python\n\n    from opencensus.trace.tracer import Tracer\n    from opencensus.trace.samplers import AlwaysOnSampler\n\n    # Initialize a tracer, by default using the `PrintExporter`\n    tracer = Tracer(sampler=AlwaysOnSampler())\n\n    tracer.start_span(name='span1')\n    do_something_to_trace()\n    tracer.end_span()\n\n\n.. _context manager: https://docs.python.org/3/reference/datamodel.html#context-managers\n\n\nCustomization\n-------------\n\nThere are several things you can customize in OpenCensus:\n\n* **Blacklist**, which excludes certain hosts and paths from being tracked.\n  By default, the health check path for the App Engine flexible environment is\n  not tracked, you can turn it on by excluding it from the blacklist setting.\n\n* **Exporter**, which sends the traces.\n  By default, the traces are printed to stdout in JSON format. You can choose\n  different exporters to send the traces to. There are three built-in exporters,\n  which are ``PrintExporter``, ``FileExporter`` and ``LoggingExporter``, the\n  other exporters are provided as `extensions <#trace-exporter>`__.\n\n* **Sampler**, which determines how traces are sampled.\n  The default sampler is the ``ProbabilitySampler``, which samples (i.e.\n  enables tracing for) a percentage of all requests. Sampling is deterministic\n  according to the trace ID. To force sampling for all requests, or to prevent\n  any request from being sampled, see ``AlwaysOnSampler`` and\n  ``AlwaysOffSampler``.\n\n* **Propagator**, which serializes and deserializes the\n  ``SpanContext`` and its headers. The default propagator is\n  ``TraceContextPropagator``, other propagators include\n  ``BinaryFormatPropagator``, ``GoogleCloudFormatPropagator`` and\n  ``TextFormatPropagator``.\n\n\nYou can customize while initializing a tracer.\n\n.. code:: python\n\n    import requests\n\n    from opencensus.trace import config_integration\n    from opencensus.trace import file_exporter\n    from opencensus.trace import tracer as tracer_module\n    from opencensus.trace.propagation import google_cloud_format\n    from opencensus.trace.samplers import ProbabilitySampler\n\n    config_integration.trace_integrations(['httplib'])\n\n    tracer = tracer_module.Tracer(\n        exporter=file_exporter.FileExporter(file_name='traces'),\n        propagator=google_cloud_format.GoogleCloudFormatPropagator(),\n        sampler=ProbabilitySampler(rate=0.5),\n    )\n\n    with tracer.span(name='parent'):\n        with tracer.span(name='child'):\n            response = requests.get('http://localhost:5000')\n\nYou can use a configuration file for Flask/Django/Pyramid. For more\ninformation, please read the\n`individual integration documentation <#integration>`_.\n\n.. code:: python\n\n    'OPENCENSUS': {\n        'TRACE': {\n            'BLACKLIST_HOSTNAMES': ['localhost', '127.0.0.1'],\n            'BLACKLIST_PATHS': ['_ah/health'],\n            'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',\n            'EXPORTER': '''opencensus.ext.ocagent.trace_exporter.TraceExporter(\n                service_name='foobar',\n            )''',\n            'PROPAGATOR': 'opencensus.trace.propagation.google_cloud_format.GoogleCloudFormatPropagator()',\n        }\n    }\n\n------------\n Extensions\n------------\n\nIntegration\n-----------\n\nOpenCensus supports integration with popular web frameworks, client libraries and built-in libraries.\n\n-  `Django`_\n-  `Flask`_\n-  `gevent`_\n-  `Google Cloud Client Libraries`_\n-  `gRPC`_\n-  `httplib`_\n-  `logging`_\n-  `MySQL`_\n-  `PostgreSQL`_\n-  `pymongo`_\n-  `PyMySQL`_\n-  `Pyramid`_\n-  `requests`_\n-  `SQLAlchemy`_\n-  `threading`_\n\nLog Exporter\n------------\n\n-  `Azure`_\n\nMetrics Exporter\n----------------\n\n-  `Azure`_\n\nStats Exporter\n--------------\n\n-  `OCAgent`_\n-  `Prometheus`_\n-  `Stackdriver`_\n\nTrace Exporter\n--------------\n\n-  `Azure`_\n-  `Jaeger`_\n-  `OCAgent`_\n-  `Stackdriver`_\n-  `Zipkin`_\n\n.. _Azure: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-azure\n.. _Django: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-django\n.. _Flask: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-flask\n.. _gevent: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-gevent\n.. _Google Cloud Client Libraries: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-google-cloud-clientlibs\n.. _gRPC: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-grpc\n.. _httplib: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-httplib\n.. _Jaeger: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-jaeger\n.. _logging: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-logging\n.. _MySQL: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-mysql\n.. _OCAgent: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-ocagent\n.. _PostgreSQL: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-postgresql\n.. _Prometheus: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-prometheus\n.. _pymongo: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-pymongo\n.. _PyMySQL: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-pymysql\n.. _Pyramid: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-pyramid\n.. _requests: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-requests\n.. _SQLAlchemy: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-sqlalchemy\n.. _Stackdriver: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-stackdriver\n.. _threading: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-threading\n.. _Zipkin: https://github.com/census-instrumentation/opencensus-python/tree/master/contrib/opencensus-ext-zipkin\n\n------------\n Versioning\n------------\n\nThis library follows `Semantic Versioning`_.\n\n**GA**: Libraries defined at a GA quality level are stable, and will not introduce\nbackwards-incompatible changes in any minor or patch releases. We will address issues and requests\nwith the highest priority. If we were to make a backwards-incompatible changes on an API, we will\nfirst mark the existing API as deprecated and keep it for 18 months before removing it.\n\n**Beta**: Libraries defined at a Beta quality level are expected to be mostly stable and we're\nworking towards their release candidate. We will address issues and requests with a higher priority.\nThere may be backwards incompatible changes in a minor version release, though not in a patch\nrelease. If an element is part of an API that is only meant to be used by exporters or other\nopencensus libraries, then there is no deprecation period. Otherwise, we will deprecate it for 18\nmonths before removing it, if possible.\n\n.. _Semantic Versioning: https://semver.org/\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "Apache-2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "is-opcss-mod",
+        "package_url": "https://pypi.org/project/is-opcss-mod/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/is-opcss-mod/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/is-opcss-mod/0.0.1/",
+        "requires_dist": [
+            "opencensus-context (==0.1.0)",
+            "google-api-core (<2.0.0,>=1.0.0)"
+        ],
+        "requires_python": "",
+        "summary": "A stats collection and distributed tracing framework and modified to comply IS communication needs",
+        "version": "0.0.1"
+    },
+    "last_serial": 5602460,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2cf830f7e38faa4b94983c933e4a84f",
+                    "sha256": "f7827c66f42b8aaf16d30ee8a28f1dd8430ce4281bac2c5cc4e324a068bbc270"
+                },
+                "downloads": -1,
+                "filename": "is_opcss_mod-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f2cf830f7e38faa4b94983c933e4a84f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 130141,
+                "upload_time": "2019-07-29T23:19:30",
+                "url": "https://files.pythonhosted.org/packages/d4/8d/163d41801cb425a5750cf13ff2fec4b6ac3afbeb28cfaf744d477dd69c7c/is_opcss_mod-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18d88c999a8565329a2d67b88979e8fd",
+                    "sha256": "45ef8d6d3a1192810859c11422a4a2205695684d0a9407895ebbf3824bbd1cd9"
+                },
+                "downloads": -1,
+                "filename": "is-opcss-mod-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18d88c999a8565329a2d67b88979e8fd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 62588,
+                "upload_time": "2019-07-29T23:19:33",
+                "url": "https://files.pythonhosted.org/packages/5b/6c/af3e5a8cd942fabbbb4fbdfe0384b6c2967174e3665dcf88fd59cdddcc49/is-opcss-mod-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f2cf830f7e38faa4b94983c933e4a84f",
+                "sha256": "f7827c66f42b8aaf16d30ee8a28f1dd8430ce4281bac2c5cc4e324a068bbc270"
+            },
+            "downloads": -1,
+            "filename": "is_opcss_mod-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "f2cf830f7e38faa4b94983c933e4a84f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 130141,
+            "upload_time": "2019-07-29T23:19:30",
+            "url": "https://files.pythonhosted.org/packages/d4/8d/163d41801cb425a5750cf13ff2fec4b6ac3afbeb28cfaf744d477dd69c7c/is_opcss_mod-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "18d88c999a8565329a2d67b88979e8fd",
+                "sha256": "45ef8d6d3a1192810859c11422a4a2205695684d0a9407895ebbf3824bbd1cd9"
+            },
+            "downloads": -1,
+            "filename": "is-opcss-mod-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "18d88c999a8565329a2d67b88979e8fd",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 62588,
+            "upload_time": "2019-07-29T23:19:33",
+            "url": "https://files.pythonhosted.org/packages/5b/6c/af3e5a8cd942fabbbb4fbdfe0384b6c2967174e3665dcf88fd59cdddcc49/is-opcss-mod-0.0.1.tar.gz"
+        }
+    ]
+}

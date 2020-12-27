@@ -1,0 +1,74 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 0,
+        "author": "Uptick",
+        "author_email": "dev@uptickhq.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Web Environment",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "# django-model-import\n\nDjango Model Import is a light weight CSV importer built for speed.\n\nIt uses a standard Django `ModelForm` to parse each row, giving you a familiar API to work with\nfor data validation and model instantiation. In most cases, if you already have a `ModelForm`\nfor the `ContentType` you are importing you do not need to create an import specific form.\n\nTo present feedback to the end-user running the import you can easily generate a preview\nof the imported data by toggling the `commit` parameter.\n\nIt also provides some import optimized fields for ForeignKey's, allowing preloading all\npossible values, or caching each lookup as it occurs, or looking up a model where multiple\nfields are needed to uniquely identify a resource.\n\n\n## Installation\n\nStandard pip install:\n\n```bash\npip install django-model-import\n```\n\n\n## Quickstart\n\n```python\nimport djangomodelimport\n\nclass BookImporter(ImporterModelForm):\n    name = forms.CharField()\n    author = CachedChoiceField(queryset=Author.objects.all(), to_field='name')\n\n    class Meta:\n        model = Book\n\nwith default_storage.open('books.csv', 'rb') as fh:\n    data = fh.read().decode(\"utf-8\")\n\nimporter = djangomodelimport.ModelImporter(BookImporter)\npreview = importer.process(data, commit=False)\nerrors = preview.get_errors()\n\nif errors:\n    print(errors)\n\nresults = importer.process(data, commit=True)\nfor result in results:\n    print(result.instance)\n\n```\n\n\n## Composite key lookups\n\nOften a relationship cannot be referenced via a single unique string. For this we can use\na `CachedChoiceField` with a `CompositeLookupWidget`. The widget looks for the values\nunder the `type` and `variant` columns in the source CSV, and does a unique lookup\nwith the field names specified in `to_field`, e.g. `queryset.get(type__name=type, name=variant)`.\n\nThe results of each `get` are cached internally for the remainder of the import minimising\nany database access.\n\n```python\nclass AssetImporter(ImporterModelForm):\n    site = djangomodelimport.CachedChoiceField(queryset=Site.objects.active(), to_field='ref')\n    type = djangomodelimport.CachedChoiceField(queryset=AssetType.objects.filter(is_active=True), to_field='name')\n    type_variant = djangomodelimport.CachedChoiceField(\n        queryset=InspectionItemTypeVariant.objects.filter(is_active=True),\n        required=False,\n        widget=djangomodelimport.CompositeLookupWidget(source=('type', 'variant')),\n        to_field=('type__name', 'name'),\n    )\n    contractor = djangomodelimport.CachedChoiceField(queryset=Contractor.objects.active(), to_field='name')\n```\n\n\n## Flat related fields\n\nOften you'll have a OneToOneField or just a ForeignKey to another model, but you want to be able to\ncreate/update that other model via this one. You can flatten all of the related model's fields onto\nthis importer using `FlatRelatedField`.\n\n```python\nclass ClientImporter(ImporterModelForm):\n    primary_contact = FlatRelatedField(\n        queryset=ContactDetails.objects.all(),\n        fields={\n            'contact_name': {'to_field': 'name', 'required': True},\n            'email': {'to_field': 'email'},\n            'email_cc': {'to_field': 'email_cc'},\n            'mobile': {'to_field': 'mobile'},\n            'phone_bh': {'to_field': 'phone_bh'},\n            'phone_ah': {'to_field': 'phone_ah'},\n            'fax': {'to_field': 'fax'},\n        },\n    )\n\n    class Meta:\n        model = Client\n        fields = (\n            'name',\n            'ref',\n            'is_active',\n            'account',\n\n            'primary_contact',\n        )\n```\n",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/ABASystems/django-model-import",
+        "keywords": "csv",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "djangomodelimport",
+        "package_url": "http://pypi.python.org/pypi/djangomodelimport",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/djangomodelimport/0.1",
+        "requires_python": "",
+        "summary": "Fast CSV imports using django model forms.",
+        "version": "0.1"
+    },
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "djangomodelimport-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0b2e9307465f9adf1b8bd4bb0bda70e9",
+                "packagetype": "sdist",
+                "path": "d9/c6/5c035254aa204bc16dfeb30eeecabaedcff2cb6d6453fa41da58b81abd59/djangomodelimport-0.1.tar.gz",
+                "python_version": "source",
+                "size": 8229,
+                "upload_time": "2017-09-18T02:32:23",
+                "url": "https://pypi.python.org/packages/d9/c6/5c035254aa204bc16dfeb30eeecabaedcff2cb6d6453fa41da58b81abd59/djangomodelimport-0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 0,
+            "filename": "djangomodelimport-0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "0b2e9307465f9adf1b8bd4bb0bda70e9",
+            "packagetype": "sdist",
+            "path": "d9/c6/5c035254aa204bc16dfeb30eeecabaedcff2cb6d6453fa41da58b81abd59/djangomodelimport-0.1.tar.gz",
+            "python_version": "source",
+            "size": 8229,
+            "upload_time": "2017-09-18T02:32:23",
+            "url": "https://pypi.python.org/packages/d9/c6/5c035254aa204bc16dfeb30eeecabaedcff2cb6d6453fa41da58b81abd59/djangomodelimport-0.1.tar.gz"
+        }
+    ]
+}

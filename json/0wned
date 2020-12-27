@@ -1,0 +1,139 @@
+{
+    "info": {
+        "author": "",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Console",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Security"
+        ],
+        "description": "# 0wned\n\n[![Build Status](https://travis-ci.org/mschwager/0wned.svg?branch=master)](https://travis-ci.org/mschwager/0wned)\n[![Build Status](https://ci.appveyor.com/api/projects/status/github/mschwager/0wned?branch=master&svg=true)](https://ci.appveyor.com/project/mschwager/0wned/branch/master)\n\nPython packages allow for [arbitrary code execution](https://en.wikipedia.org/wiki/Arbitrary_code_execution)\nat **run time** as well as **install time**. Code execution at **run time** makes\nsense because, well, that's what code does. But executing code at **install time**\nis a lesser known feature within the Python packaging ecosystem, and a\npotentially much more dangerous one.\n\nTo test it out let's download this repository:\n\n```\n$ git clone https://github.com/mschwager/0wned.git\n```\n\n*Don't worry, there's nothing malicious going on, you can [take a look at what's happening yourself](https://github.com/mschwager/0wned/blob/master/setup.py).*\n\nNow let's install the package:\n\n```\n$ sudo python -m pip install 0wned/\n$ cat /0wned\nCreated '/0wned' with user 'root' at 1536011622\n```\n\n**During `pip` installation `0wned` was able to successfully write to the root\ndirectory! This means that `0wned` can do anything as the root or administrative\nuser.**\n\nWe can reduce the impact of this issue by installing packages with the `--user` flag:\n\n```\n$ python -m pip install --user 0wned/\n$ cat ~/0wned\nCreated '/home/tempuser/0wned' with user 'tempuser' at 1536011624\n```\n\n# Prevention\n\nYou should always be weary of Python packages you're installing on your system,\nespecially when using root/administrative privileges. There are a few ways to help\nmitigate these types of attacks:\n\n* Install only [binary distribution Python wheels](https://pythonwheels.com/) using the `--only-binary :all:` flag. This avoids arbitrary code execution on installation (avoids `setup.py`).\n* As mentioned above, install packages [with the local user](https://packaging.python.org/tutorials/installing-packages/#installing-to-the-user-site) using the `--user` flag.\n* Install packages in [hash-checking mode](https://pip.pypa.io/en/stable/reference/pip_install/#hash-checking-mode) using the `--require-hashes` flag. This will protect against remote tampering and ensure you're getting the package you intend to.\n* Double check that you've spelled the package name correctly. There may be malicious packages [typosquatting](https://en.wikipedia.org/wiki/Typosquatting) under a similar name.\n\n# Details of the Attack\n\nYou can hook almost any `pip` command by extending the correct `setuptools` module.\n\nFor example, `0wned` takes advantage of the `install` class to do its thing:\n\n```python\nfrom setuptools import setup\nfrom setuptools.command.install import install\n\nclass PostInstallCommand(install):\n    def run(self):\n        # Insert code here\n        install.run(self)\n\nsetup(\n    ...\n    cmdclass={\n        'install': PostInstallCommand,\n    },\n    ...\n)\n```\n\nAnd when `pip install` is run our custom `PostInstallCommand` class will be invoked.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mschwager/0wned",
+        "keywords": "",
+        "license": "GPLv3",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "0wned",
+        "package_url": "https://pypi.org/project/0wned/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/0wned/",
+        "project_urls": {
+            "Homepage": "https://github.com/mschwager/0wned"
+        },
+        "release_url": "https://pypi.org/project/0wned/0.6.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Code execution via Python package installation.",
+        "version": "0.6.0"
+    },
+    "last_serial": 4248678,
+    "releases": {
+        "0.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "256737cf2b2caee8b398d925929dbe1d",
+                    "sha256": "45c51681c16a0134b7b30ed7284da9f1fb5e495fd3431bcc1095aae34dc44b50"
+                },
+                "downloads": -1,
+                "filename": "0wned-0.5.0-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "256737cf2b2caee8b398d925929dbe1d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 2446,
+                "upload_time": "2018-09-04T15:03:39",
+                "url": "https://files.pythonhosted.org/packages/bd/4b/33ae14d1ee083ea673ac4fe505dde528de2e9f3c0bb286f33f99484873d2/0wned-0.5.0-py2.py3-none-any.whl"
+            }
+        ],
+        "0.6.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0c821a6595312e481350ba10b0210695",
+                    "sha256": "91598fcda3929651d202a23b86c7ccece7682c4584e9d9f4cc510680ab7a6d0f"
+                },
+                "downloads": -1,
+                "filename": "0wned-0.6.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0c821a6595312e481350ba10b0210695",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 2519,
+                "upload_time": "2018-09-07T14:35:57",
+                "url": "https://files.pythonhosted.org/packages/85/fb/af45132a70fa67b7a40383066e284182ae649ce5c2a7839c06da51641a43/0wned-0.6.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fb7fb36a3843f6067caac21c0bb25a15",
+                    "sha256": "bb31a66431b20ea302489b968b1a046d6985051ddcdd3011c7603a6a75065b35"
+                },
+                "downloads": -1,
+                "filename": "0wned-0.6.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fb7fb36a3843f6067caac21c0bb25a15",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3133,
+                "upload_time": "2018-09-07T14:35:59",
+                "url": "https://files.pythonhosted.org/packages/5b/c6/59e6aecd9263b2d086576368ba4f6cf8be9cdd4b872e4d0b91c28a15ed46/0wned-0.6.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0c821a6595312e481350ba10b0210695",
+                "sha256": "91598fcda3929651d202a23b86c7ccece7682c4584e9d9f4cc510680ab7a6d0f"
+            },
+            "downloads": -1,
+            "filename": "0wned-0.6.0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "0c821a6595312e481350ba10b0210695",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 2519,
+            "upload_time": "2018-09-07T14:35:57",
+            "url": "https://files.pythonhosted.org/packages/85/fb/af45132a70fa67b7a40383066e284182ae649ce5c2a7839c06da51641a43/0wned-0.6.0-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "fb7fb36a3843f6067caac21c0bb25a15",
+                "sha256": "bb31a66431b20ea302489b968b1a046d6985051ddcdd3011c7603a6a75065b35"
+            },
+            "downloads": -1,
+            "filename": "0wned-0.6.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "fb7fb36a3843f6067caac21c0bb25a15",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 3133,
+            "upload_time": "2018-09-07T14:35:59",
+            "url": "https://files.pythonhosted.org/packages/5b/c6/59e6aecd9263b2d086576368ba4f6cf8be9cdd4b872e4d0b91c28a15ed46/0wned-0.6.0.tar.gz"
+        }
+    ]
+}

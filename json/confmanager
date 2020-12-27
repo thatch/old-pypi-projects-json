@@ -1,0 +1,71 @@
+{
+    "info": {
+        "author": "Chris Norman",
+        "author_email": "chris.norman2@googlemail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "ConfManager\r\n===========\r\n\r\nConfmanager is a library which uses `wx <http://wxpython.org>`__ to\r\nprovide a GUI frontend for a\r\n`ConfigParser <https://docs.python.org/2/library/configparser.html>`__-like\r\nconfiguration object.\r\n\r\n--------------\r\n\r\nBasic Usage\r\n-----------\r\n\r\nIt all starts with a ConfManager object:\r\n\r\n::\r\n\r\n    >>> from confmanager import ConfManager\r\n    >>> config = ConfManager('Test')\r\n\r\nYou can use the resulting object to ``get`` and ``set`` ``options`` from\r\nany of the added ``secions``.\r\n\r\n--------------\r\n\r\nAdding Sections\r\n---------------\r\n\r\nTo add a section, as with\r\n`ConfigParser <https://docs.python.org/2/library/configparser.html>`__,\r\nuse the ``add_section`` method:\r\n\r\n::\r\n\r\n    >>> config.add_section('login')\r\n\r\nNow this will show up with the ``sections`` method:\r\n\r\n::\r\n\r\n    >>> config.sections()\r\n    ['login']\r\n\r\nTo see which options are in a given section, use the ``get`` method,\r\nlike so:\r\n\r\n::\r\n\r\n    >>> config.options('login')\r\n    []\r\n\r\nThe GUI uses a wx.Notebook object to represent the different sections of\r\nthe config object. The first page of this particular configuration\r\nobject will be labeled \"&Login\".\r\n\r\nBy default, ConfManager will first prepend the section name with an\r\namposand (&) to give it a shortcut key in accordance with\r\n`wx <http://wxpython.org>`__, then apply\r\n`Python <http://python.org/>`__'s\r\n`String <https://docs.python.org/2/library/stdtypes.html>`__ ``title()``\r\nmethod to capitalise it properly. If this is undesireable you can change\r\nit with the friendly\\_name keyword argument:\r\n\r\n::\r\n\r\n    >>> config.add_section('login', '&Login Options')\r\n\r\n--------------\r\n\r\nSetting Options\r\n---------------\r\n\r\nYou can set values using the ``set`` method, like so:\r\n\r\n::\r\n\r\n    >>> config.set('login', 'username', 'john')\r\n\r\nThe main three arguments are:\r\n\r\n1. section - The section the option should belong to.\r\n2. option - The name of the option which should be set.\r\n3. value - The option value.\r\n\r\nIf you used ``config.get_gui()`` to get a wx.Frame object which could be\r\nused to set the options from a GUI, the resulting text field would have\r\n\"&Username\" as it's label. If you are not happy with this, ConfManager\r\nwill let you specify a custom title:\r\n\r\n::\r\n\r\n    >>> config.set('login', 'username', 'john', title = 'Your &Username')\r\n\r\n--------------\r\n\r\nChanging Controls\r\n-----------------\r\n\r\nThis is great for strings, but what about other types?\r\n\r\nNot a problem: ConfManager internally uses an\r\n`OrderedDict <https://docs.python.org/2/library/collections.html#collections.OrderedDict>`__\r\nobject to store all data, so you can use whatever type you want. The\r\nonly restriction being that `wx <http://wxpython.org>`__ can render that\r\ntype in a control.\r\n\r\nNatively-Supported Types\r\n~~~~~~~~~~~~~~~~~~~~~~~~\r\n\r\n+--------------+-------------------------------------------------------------------------------------+\r\n| base class   | Default Control                                                                     |\r\n+==============+=====================================================================================+\r\n| basestring   | `TextCtrl <http://www.wxpython.org/docs/api/wx.TextCtrl-class.html>`__              |\r\n+--------------+-------------------------------------------------------------------------------------+\r\n| int          | `IntCtrl <http://www.wxpython.org/docs/api/wx.lib.intctrl.IntCtrl-class.html>`__    |\r\n+--------------+-------------------------------------------------------------------------------------+\r\n| float        | `FloatSpin <http://www.wxpython.org/docs/api/wx.lib.agw.floatspin-module.html>`__   |\r\n+--------------+-------------------------------------------------------------------------------------+\r\n\r\nOf course, you can use any control you like by providing it in the\r\ncontrol argument to the ``set`` method:\r\n\r\n::\r\n\r\n    >>> from wx.lib.filebrowsebutton import FileBrowseButton as FBB\r\n    >>> config.set('login', 'commands', '', title = '&Initial commands to send to the server', control = FBB)\r\n\r\nNow when you load the GUI you'll have the standard browse button for\r\nyour opperating system.\r\n\r\nPro Tip\r\n~~~~~~~\r\n\r\nA note on providing custom controls: Ensure your control has both\r\n``GetValue`` and ``SetValue`` methods. Without these, confmanager will\r\nfail. This is easily gotten around by subclassing:\r\n\r\n::\r\n\r\n    >>> class MyChoice(wx.Choice):\r\n    ...  def GetValue():\r\n    ...   return self.GetStrinSelection()\r\n    ...  def SetValue(self, value):\r\n    ...   return self.SetStringSelection(value)\r\n    ...\r\n    >>> config.set('login', 'type', 'http', title = 'Login &Type', control = MyChoice, kwargs = dict(choices = ['HTTP', 'HTTPS']))\r\n\r\n--------------\r\n\r\nCustomise the control\r\n---------------------\r\n\r\nIf you wanted to pass extra arguments to the control, you can do that\r\neasily with the args and kwargs arguments:\r\n\r\n::\r\n\r\n    config.set('login', 'timeout', 30.0, title = '&Time before the connection is dropped', args = [12345], kwargs = dict(digits = 2))\r\n\r\nNow when the GUI is instantiated, the control for timeout will be\r\ncreated as:\r\n\r\n::\r\n\r\n    >>> wx.lib.agw.floatspin.FloatSpin(page, 12345, digits = 3)\r\n\r\nPage is the page of the gui which the control should be assigned too,\r\nand what our args parameter above has done is provide a custom ID to the\r\ncontrol. We could have achieved the same affect with:\r\n\r\n::\r\n\r\n    config.set('login', 'timeout', 30.0, title = '&Time before the connection is dropped', kwargs = dict(id = 12345, digits = 2))\r\n\r\n--------------\r\n\r\nValidating Input\r\n----------------\r\n\r\nIf you want to constrain the values a user can provide, use the validate\r\nargument, providing a lambda, like so:\r\n\r\n::\r\n\r\n    config.set('login', 'name', '', title = '&Friendly Name', validate = lambda value: None if value.istitle() else 'Friendly names must be provided in title case.')\r\n\r\nIf a validation function returns None or False, it is assumed that no\r\nerrors were encountered. If a value is returned, or the function causes\r\na traceback, it is assumed there is a problem, and an error box\r\ncontaining either the ``str()``'d version of the result or the exception\r\nis returned, and the GUI will not close unless the cancel button is\r\npressed.\r\n\r\n--------------\r\n\r\nHelp Message\r\n------------\r\n\r\nIf you provide a help keyword argument to the ``set`` method, that\r\nargument will be put on the control using the ``SetHelpText`` method.\r\n\r\n--------------\r\n\r\nExcluding options from the GUI\r\n------------------------------\r\n\r\nIf you provide ``include = False`` to the ``set`` method then that\r\noption will be omitted from the GUI.\r\n\r\nPro Tip:\r\n~~~~~~~~\r\n\r\nPlease note that if a section contains nothing but excluded options then\r\nan empty page will be created on the resulting GUI.\r\n\r\n--------------\r\n\r\nRetrieving Option Values\r\n------------------------\r\n\r\nTo get the value for a given option, use the ``get`` method.\r\n\r\n::\r\n\r\n    >>> config.get('login', 'username')\r\n    'john'\r\n\r\nIf you're not sure whether a given option exists, you can provide a\r\ndefault value as in the ``get`` method of\r\n`python <http://python.org/>`__'s\r\n`dict <https://docs.python.org/2/library/stdtypes.html#dict>`__ class.\r\n\r\n::\r\n\r\n    >>> config.get('login', 'fake')\r\n    Traceback (most recent call last):\r\n      File \"<stdin>\", line 1, in <module>\r\n      File \"confmanager\\__init__.py\", line 148, in get\r\n        raise NoOptionError(option)\r\n    confmanager.errors.NoOptionError: There is no option named fake.\r\n    >>> config.get('login', 'fake', False)\r\n    False\r\n\r\n--------------\r\n\r\nGetting A GUI\r\n-------------\r\n\r\nTo get a wx.Frame which you can show or hide, use the ``get_gui``\r\nmethod:\r\n\r\n::\r\n\r\n    >>> config.get_gui()\r\n    <confmanager.confframe.ConfFrame; proxy of <Swig Object of type 'wxFrame *' at 0x3769d68> >\r\n\r\n            Pro Tip:\r\n\r\nIf you do this without a wx.App object created it will raise\r\n``wx._core.PyNoAppError``.\r\n\r\n--------------\r\n\r\nExtra functions\r\n---------------\r\n\r\nConfmanager objects have a number of useful properties. These are listed\r\nbelow:\r\n\r\n-  updateFunc This is a function which should be prepared to take three\r\n   arguments: section, option, and value. You can use this to update\r\n   things in real time as configuration options change.\r\n\r\nThis function will be called whenever the ``set`` method is used.\r\n\r\n### Pro Tip:\r\n\r\nThe ``set`` method is called whenever the Apply or OK buttons are\r\nclicked in the config frame, not when a value is set in that frame.\r\n\r\n-  config This property is the raw configuration data as an\r\n   `OrderedDict <https://docs.python.org/2/library/collections.html#collections.OrderedDict>`__.\r\n\r\n-  control\\_types This is an\r\n   `OrderedDict <https://docs.python.org/2/library/collections.html#collections.OrderedDict>`__\r\n   of control types stored as baseclass:control pairs.\r\n\r\n-  toggle Toggles a boolean value.\r\n\r\n               config.toggle(section, option)\r\n\r\n-  remove\\_section Completely removes a section from the object.\r\n\r\n-  remove\\_option Removes an option from the provided section.\r\n\r\n-  get\\_spec Used internally to get the full specification for a given\r\n   option in the provided section.\r\n\r\n-  section\\_names A list of real:friendly section names.\r\n\r\n-  title The title of the config GUI.\r\n\r\n-  helpFunc A function which is bound to the help button of the config\r\n   GUI.\r\n\r\n-  get\\_dump This method returns the sections, options and their values\r\n   as a raw Python dictionary which can safely be dumped with json or\r\n   some other storage method.\r\n\r\n--------------\r\n\r\nconfmanager.parser\r\n==================\r\n\r\nThis module allows you to import saves data into confmanager objects.\r\n\r\nThe most useful method is the ``parse_json`` method.\r\n\r\nTo use it, pass it a dictionary and a pre-configured confmanager object\r\nand it will import only thos values from the dictionary that are already\r\npresent.\r\n\r\nIf you want it to import all the values it finds you can alter it's\r\nbehaviour with the create\\_sections and the create\\_options arguments\r\nwhich (if True) will create previously unknown sections anv values\r\nrespectively.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/chrisnorman7/confmanager.git",
+        "keywords": "configuration,config,saving",
+        "license": "MPL",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "confmanager",
+        "package_url": "https://pypi.org/project/confmanager/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/confmanager/",
+        "release_url": "https://pypi.org/project/confmanager/2.9/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A configuration manager using wx as it's front ent.",
+        "version": "2.9"
+    },
+    "last_serial": 1815405,
+    "releases": {
+        "2.8": [],
+        "2.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3102eee111f38b849cbbe0e0604b7d18",
+                    "sha256": "be1bb73a70284c2f0d46e5314bc35ebf744b8f9cee0758957faf8f93f485f39a"
+                },
+                "downloads": -1,
+                "filename": "confmanager-2.9-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3102eee111f38b849cbbe0e0604b7d18",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "size": 14396,
+                "upload_time": "2015-11-13T20:13:07",
+                "url": "https://files.pythonhosted.org/packages/73/4c/d41099813bae2015a5f9ba966c8e23b64253712eb598dd260519d94fec31/confmanager-2.9-py2-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3102eee111f38b849cbbe0e0604b7d18",
+                "sha256": "be1bb73a70284c2f0d46e5314bc35ebf744b8f9cee0758957faf8f93f485f39a"
+            },
+            "downloads": -1,
+            "filename": "confmanager-2.9-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "3102eee111f38b849cbbe0e0604b7d18",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "size": 14396,
+            "upload_time": "2015-11-13T20:13:07",
+            "url": "https://files.pythonhosted.org/packages/73/4c/d41099813bae2015a5f9ba966c8e23b64253712eb598dd260519d94fec31/confmanager-2.9-py2-none-any.whl"
+        }
+    ]
+}

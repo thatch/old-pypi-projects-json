@@ -1,0 +1,170 @@
+{
+    "info": {
+        "author": "Ioannis Christodoulakis",
+        "author_email": "ioannis.christodoulakis@siemens.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Operating System :: Microsoft :: Windows :: Windows 7",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "The **ssh-helper 5.1.6** allows the user to copy a file from the target to\nhost PC or the other way round. The ssh-helper can also execute a command on\nthe target.\n\n## 1. Download the ssh-helper repository\n\nOn Siemens GitLab, navigate to the main page of the ssh-helper repository.\n\nFrom the repository, click **Clone** in the global sidebar and select\n**Clone with SSH** or **Clone with HTTPS**.\n\nCopy the clone command (either the SSH format or the HTTPS).\n\nChange the current working directory to the location where you want the cloned\ndirectory to be made.\n\nType `git clone`, and then paste the URL you copied:\n\n```None\n$ git clone git@code.siemens.com:ioannis.christodoulakis/ssh-helper.git\n```\n\n## 2. Python 3 Installation & Setup Guide\n\n### 2.1 Download the Python 3 Installer (Windows)\n\n- Open a browser window and navigate to the [**Download page for Windows**](https://www.python.org/downloads/windows/) at [**python.org**](https://www.python.org/).\n- Underneath the heading at the top that says **Python Releases for Windows**, click on the link for the **Latest Python 3 Release - Python 3.x.x**. (As of this writing, the latest is Python 3.7.2.)\n- Scroll to the bottom and select either **Windows x86-64 executable installer** for 64-bit or **Windows x86 executable installer** for 32-bit.\n\n### 2.2 Run the Installer (Windows)\n\nOnce you have chosen and downloaded an installer, simply run it by double-clicking on the downloaded file. A dialog should appear that looks something like this:\n\n**Important**: You want to be sure to check the box that says **Add Python 3.x to PATH** as shown to ensure that the interpreter will be placed in your execution path.\n\nThen just click Install Now. That should be all there is to it. A few minutes later you should have a working Python 3 installation on your system.\n\n### 2.3 Installing Python 3 on Linux\n\nTo see which version of **Python 3** you have installed, open a command prompt and run:\n\n```None\n$ python3 --version\n```\n\nIf you are using **Ubuntu 16.10** or newer, then you can easily install **Python 3.6** with the following commands:\n\n```None\n$ sudo apt-get update\n$ sudo apt-get install python3.6\n```\n\n## 3. Create a python3 virtual environment\n\nOpen your terminal and make sure python is installed on your machine. To check the version type the following in your terminal:\n\n```None\n$ python -V\n```\n\nIf installed the version of python will be displayed in the terminal.\n\nNow that we have python lets get to it. The following command creates a\n**virtualenv** in the specified `folder/path`:\n\n```None\n$ python -m venv <path/to/myenv>\n```\n\nIn my case, I have something like this:\n\n```None\n$ python -m venv C:/Users/z003nmsa/venv/python37\n```\n\nWhen I `cd` into the `venv/python37` folder, these are the folders that the above\ncommand creates `Include/ Lib/ pyvenv.cfg Scripts/`.\n\nWe finally activate the environment, so that python invokes the python\ninterpreter within the virtual environment. This is done by first entering\ninto the Scripts folder:\n\n```None\n$ cd Scripts\n```\n\nOnce a virtual environment has been created, it can be activated using a\nscript in the virtual environments binary directory. The invocation of the\nscript is **platform-specific**:\n\n|Platform|Shell|Command to activate virtual environment|\n|-|-|-|\n|Posix|bash/zsh|$ source <venv>/bin/activate|\n|Posix|fish|$ . <venv>/bin/activate.fish|\n|Posix|csh/tcsh|$ source <venv>/bin/activate.csh|\n|Windows|cmd.exe|C:\\> <venv>\\Scripts\\activate.bat|\n|Windows|PowerShell|PS C:\\> <venv>\\Scripts\\Activate.ps1|\n\n```None\n$ activate.bat\n```\n\nto know that it has worked, your terminal prompt should be similar to this,\nshowing the environment in brackets.\n\n```None\n$ (python37) C:/Users/z003nmsa/venv/python37/Scripts>\n```\n\nYou can **deactivate** a virtual environment by typing deactivate in your shell.\nThe exact mechanism is **platform-specific**: for example, the Bash activation\nscript defines a deactivate function, whereas on Windows there are separate\nscripts called `deactivate.bat` and `Deactivate.ps1` which are installed when the\nvirtual environment is created.\n\n```None\n$ deactivate.bat\n```\n\n## 4. Installation of ssh-helper\n\n### 4.1 Windows repository configuration\n\nTo use **pip** package manager within Siemens network you need to configure pip\naccordingly: Create a file at the location `%APPDATA%\\pip\\pip.ini` with the\ncontnent:\n\n```None\n[global]\nindex-url = https://devops.bt.siemens.com/artifactory/api/pypi/pypi-all/simple/\n```\n\nTo install the latest version of **ssh-helper**:\n\n```None\n$ pip install ssh-helper\n$ pip install cryptography==2.4.2\n```\n\n**OR**\n\nInstall the `setup.py` with:\n\n```None\n$ python setup.py install\n```\n\nWith `pip list` you can see a list installed packages, including editables:\n\n```None\n$ pip list\n```\n\nYou need to have the following packages:\n\n- cryptography 2.4.2\n- paramiko\n- pathlib\n- pillow\n- scp\n- tkcolorpicker\n\n## 5. ssh-helper/cli\n\nChange to **ssh-helper/ssh_key** directory and add your **private target key**. Then change to **ssh-helper/cli** directory and if you run the script `python cli.py -h` or `python cli.py --help` you get the following usage message:\n\n```None\nusage: cli.py [-h] [--ip IP] [--host HOST] [--target TARGET]\n              [--mode MODE [MODE ...]]\n\noptional arguments:\n  -h, --help               show this help message and exit\n  --ip IP                  ip address/es or path to ip addresses\n  --host HOST              hostpath e.g. /usr/bin/...\n  --target TARGET          targetpath e.g. /home/projects/...\n  --mode MODE [MODE ...]   mode e.g. from/to/cmd\n```\n\n### 5.1 Executing SSH command\n\nIf you want to **execute a command** on the target type:\n\n```None\n$ python cli.py --ip 192.168.251.1 --mode cmd \"ls -alt\"\n```\n\nIn the directory **ssh-helper/saves** will you find a directory called the same name as the IP address. In this directory you will find the executed command.\n\n### 5.2 Sending files from local PC to target\n\nIf you want to send a file to target type:\n\n```None\n$ python cli.py --ip 192.168.251.1 --mode to --host \"path/to/hostfile\"\n --target \"path/to/targetfile\"\n ```\n\n - **\"path/to/hostfile\"**: The path for the file from your local PC.\n - **\"path/to/target\"**: The path to send the file.\n\n### 5.3 Sending files from target to local PC\n\nIf you want to send a file to your local PC type:\n\n```None\n$ python cli.py --ip 192.168.251.1 --mode from --host \"path/to/hostfile\" --target \"path/to/targetfile\"\n```\n\n- **\"path/to/hostfile\"**: The path for the file on target.\n- **\"path/to/target\"**: The path to send the file on your local PC.\n\nChange to your targetpath and you will find a directory called the same name as the todays date. Change to this directory and you will find a folder that has exactly the same name as the IP address of target.\n\n### 5.4 Executing a command over list of ip addresses\n\nIf you want to execute a command over list of ip addresses type:\n\n```None\n$ python cli.py --ip \"path/to/ip_file\" --mode cmd \"ls -alt\"\n```\n\n- **\"path/to/ip_file\"**: Path for list of ip addresses.\n\n### 5.5 Sending a file over list of ip addresses\n\nIf you want to send a file from your local PC to target over list of ip addresses type:\n\n```None\n$ python cli.py --ip \"path/to/ip_file\" --mode to --host \"path/to/hostfile\"\n --target \"path/to/targetfile\"\n ```\n\n- **\"path/to/ip_file\"**: Path for list of ip addresses.\n- **\"path/to/hostfile\"**: The path for the file from your local PC.\n- **\"path/to/target\"**: The path to send the file.\n\nIf you want to send a file from target to your local PC over list of ip addresses type:\n\n```None\n$ python cli.py --ip \"path/to/ip_file\" --mode from --host \"path/to/hostfile\" --target \"path/to/targetfile\"\n```\n\n- **\"path/to/ip_file\"**: Path for list of ip addresses.\n- **\"path/to/hostfile\"**: The path for the file on target.\n- **\"path/to/target\"**: The path to send the file on your local PC.\n\nChange to your targetpath and you will find a directory called the same name as the todays date. Change to this directory and you will find a list of folders that have exactly the same name as the IP addresses of the target.\n\n## 6. ssh-helper/gui\n\nChange to **ssh-helper/gui** directory and run it with:\n\n```None\n$ python gui.py\n```",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://code.siemens.com/ioannis.christodoulakis/ssh_helper",
+        "keywords": "",
+        "license": "The Siemens Inner Source License",
+        "maintainer": "Ioannis Christodoulakis",
+        "maintainer_email": "ioannis.christodoulakis@siemens.com",
+        "name": "ssh-helper",
+        "package_url": "https://pypi.org/project/ssh-helper/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ssh-helper/",
+        "project_urls": {
+            "Homepage": "https://code.siemens.com/ioannis.christodoulakis/ssh_helper"
+        },
+        "release_url": "https://pypi.org/project/ssh-helper/5.1.6/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "About ssh_helper",
+        "version": "5.1.6"
+    },
+    "last_serial": 4869889,
+    "releases": {
+        "5.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "17852a5e371af3f1e161c2b3da4e154f",
+                    "sha256": "8c65926fa2b5014ea2238c2bb7882249504e9ff1ce981e4501a95519414e6072"
+                },
+                "downloads": -1,
+                "filename": "ssh-helper-5.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "17852a5e371af3f1e161c2b3da4e154f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12707,
+                "upload_time": "2019-01-22T15:37:34",
+                "url": "https://files.pythonhosted.org/packages/e8/16/b81b6845f093c437d442d394814eca092cf115b8cf4ccea0ab78bb5de707/ssh-helper-5.1.0.tar.gz"
+            }
+        ],
+        "5.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cfacba3c2f9594201b11e6a7f24fc975",
+                    "sha256": "37b6ca1acae9aaf64d3a9bd651b4aeca23d76ab655617ffb7d9599a494c48123"
+                },
+                "downloads": -1,
+                "filename": "ssh-helper-5.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cfacba3c2f9594201b11e6a7f24fc975",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12709,
+                "upload_time": "2019-01-23T15:00:02",
+                "url": "https://files.pythonhosted.org/packages/b1/6e/a0b54077b21af237a944ed21c0185ca26e70f4d3d0c944fff69ab8783e05/ssh-helper-5.1.4.tar.gz"
+            }
+        ],
+        "5.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1bb415d88b4f4f0ea25c71b561e15b34",
+                    "sha256": "ae6094b67e7f71ad69687bdcdbf82cfe6f18ba2b5325eb09b71c493236c51f02"
+                },
+                "downloads": -1,
+                "filename": "ssh-helper-5.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1bb415d88b4f4f0ea25c71b561e15b34",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12679,
+                "upload_time": "2019-01-28T10:30:50",
+                "url": "https://files.pythonhosted.org/packages/c9/e0/6618875b24bb214a947ac79be933292bb1c6feed8eb40285d9275df89b6e/ssh-helper-5.1.5.tar.gz"
+            }
+        ],
+        "5.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f08cd1b5c989e9675ff688e2b6347599",
+                    "sha256": "4de21781b3bed572289a949ec9c3fd1efabb5c14ed214d9d6832caed8d18a214"
+                },
+                "downloads": -1,
+                "filename": "ssh_helper-5.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f08cd1b5c989e9675ff688e2b6347599",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13013,
+                "upload_time": "2019-02-26T14:31:17",
+                "url": "https://files.pythonhosted.org/packages/32/92/422fac7ce3a74ee608a5e75ea26284ec4e6d8cf8464c76d05acdb62378f2/ssh_helper-5.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1e80a738e8c49b503e3d6fe1eefab228",
+                    "sha256": "c2951ba453c67f7e7dd86c0b4ffe337b1ae3542e064589d521a6a393b24764bf"
+                },
+                "downloads": -1,
+                "filename": "ssh-helper-5.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1e80a738e8c49b503e3d6fe1eefab228",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13360,
+                "upload_time": "2019-01-28T15:59:07",
+                "url": "https://files.pythonhosted.org/packages/e7/7d/e5788c39bad9ddba077b31abba6948371815c58c5afdfe5b4a41ffd7895d/ssh-helper-5.1.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f08cd1b5c989e9675ff688e2b6347599",
+                "sha256": "4de21781b3bed572289a949ec9c3fd1efabb5c14ed214d9d6832caed8d18a214"
+            },
+            "downloads": -1,
+            "filename": "ssh_helper-5.1.6-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "f08cd1b5c989e9675ff688e2b6347599",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 13013,
+            "upload_time": "2019-02-26T14:31:17",
+            "url": "https://files.pythonhosted.org/packages/32/92/422fac7ce3a74ee608a5e75ea26284ec4e6d8cf8464c76d05acdb62378f2/ssh_helper-5.1.6-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1e80a738e8c49b503e3d6fe1eefab228",
+                "sha256": "c2951ba453c67f7e7dd86c0b4ffe337b1ae3542e064589d521a6a393b24764bf"
+            },
+            "downloads": -1,
+            "filename": "ssh-helper-5.1.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1e80a738e8c49b503e3d6fe1eefab228",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 13360,
+            "upload_time": "2019-01-28T15:59:07",
+            "url": "https://files.pythonhosted.org/packages/e7/7d/e5788c39bad9ddba077b31abba6948371815c58c5afdfe5b4a41ffd7895d/ssh-helper-5.1.6.tar.gz"
+        }
+    ]
+}

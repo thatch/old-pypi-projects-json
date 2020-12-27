@@ -1,0 +1,204 @@
+{
+    "info": {
+        "author": "Erkan Demiralay",
+        "author_email": "erkan@erkan.io",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Financial and Insurance Industry",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Topic :: Office/Business :: Financial",
+            "Topic :: Office/Business :: Financial :: Spreadsheet"
+        ],
+        "description": "\n[![Build Status](https://travis-ci.com/erkandem/calc_ivol.svg?token=EM8YQfR9wuLvQFQzBZ5o&branch=master)](https://travis-ci.com/erkandem/calcBSImpVol)\n![](https://img.shields.io/badge/License-MIT-blue.svg)\n![](https://img.shields.io/badge/Python-3.4%20%7C%203.5%20%7C%203.6%20%7C%203.7%20%7C%20PyPy3-blue.svg)\n[![](https://img.shields.io/badge/PyPi-v1.13.1-blue.svg)](https://pypi.org/project/calc-ivol/)\n[![](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/erkandem)\n\n# calc_ivol\n\n*Calculate Black-Scholes Implied Volatility - Vectorwise*\n\n----------------------\n\n* `:)` native python code\n* `:)` lightweight footprint\n* `:)` sample data included\n* `:(` not suited for single / low number of options\n* `:(` code reads un-pythonic\n* `:(` not yet thoroughly tested\n\n## Getting started\n\n### Requirements\n\n* Python 3.x (currently) or PyPy3\n* NumPy\n* SciPy\n* (MatPlotLib to visualize results in some examples)\n\n###  Installation\n\nWhile the code consists of single digit functions,\nI recommend using the `pip install` way to get the code.\nThat way you would take advantage of bug fixes, updates,\nand possible extensions.\n\n```bash\n$ pip install calc_ivol\n```\n\n### Example\n\nPass your `args` bundled in a `dict`.\n\n```python\nfrom calc_ivol import calc_ivol\nimport numpy as np\n\nS = np.asarray(100)\nK_value = np.arange(40, 160, 25)\nK = np.ones((np.size(K_value), 1))\nK[:, 0] = K_value\ntau_value = np.arange(0.25, 1.01, 0.25)\ntau = np.ones((np.size(tau_value), 1))\ntau[:, 0] = tau_value\nr = np.asarray(0.01)\nq = np.asarray(0.03)\ncp = np.asarray(1)\nP = [[59.35, 34.41, 10.34, 0.50, 0.01],\n[58.71, 33.85, 10.99, 1.36, 0.14],\n[58.07, 33.35, 11.50, 2.12, 0.40],\n[57.44, 32.91, 11.90, 2.77, 0.70]]\n\nP = np.asarray(P)\n[K, tau] = np.meshgrid(K, tau)\n\nsigma = calc_ivol(dict(cp=cp, P=P, S=S, K=K, tau=tau, r=r, q=q))\nprint(sigma)\n\n# [[      nan,       nan,  0.20709362, 0.21820954, 0.24188675],\n# [       nan, 0.22279836, 0.20240934, 0.21386148, 0.23738982],\n# [       nan, 0.22442837, 0.1987048 , 0.21063506, 0.23450013],\n# [       nan, 0.22188111, 0.19564657, 0.20798285, 0.23045406]]\n\n```\n\nMore usage examples are available in [example3.py](https://github.com/erkandem/calc_ivol/examples/example3.py ) \n(additional sample data required which is  available at [GitHub Repo](https://github.com/erkandem/calc_ivol/data)\n\n## Performance\n```\nDesign a test. \nGet the results you want.\n```\n\n* `k_max = 10` (default) \n* `tolerance = 10E-12` (default)\n* linear regression steps are commented out (default)\n\n```bash\n# assuming you did install it already\ngit clone https://github.com/erkandem/calc_ivol.git\ncd calc_ivol\npython examples/example3.py --steps 100 --mode reference\n```\n\n\n* 15 \u00b5s per option\n* 41 ms per surface\n\ntested with 3.6, 3.7 and PyPy3\n```bash\nmatlab -nodisplay -nosplash -nodesktop -r \"run('mlb_reference_example.m');\"\n```\n\n* 12 \u00b5s per option\n* 34 ms per surface \n\n\nObviously, these values are per core (i5 4210U 1.7 GHz).\n\n\n## Notes\nGood Python code reads like a novel. Right? So should math.\nI preferred short math-like variable names in this case.\nThat makes the code less readable compared to other Python code \nbut the docstrings should make up for the lack of readability.\n\nOriginally, I left the camelCase function name and spelling in place but eventually got annoyed. **Name suggestions are welcome**\n\n\n## Code Origin\n\n* first thought of by Li (2006) (see References)\n* implemented and published by Mark Whirdy as MATLAB .m-code (see References)\n* numpyified from `.m` to `.py` by me\n\n\n## Contact\n* email: [erkan@erkan.io](mailto:me@erkan.io)\n* documentation: [erkandem.github.io/calc_ivol/](https://erkandem.github.io/calc_ivol/)\n* source: [github.com/erkandem/calc_ivol](https://github.com/erkandem/calc_ivol)\n* issues: [github.com/erkandem/calc_ivol/issues](https://github.com/erkandem/calc_ivol/issues)\n* author website: [erkan.io](https://erkan.io) (under construction)\n\n## ToDos\n* make the code compatible with `Python 2`\n* translate to whatever language\n* make it `PyPy`,  `PyPy3` compatible\n* reduce dependency from `SciPy` by replacing `erf`  (`PyPy3` doesn't support `SciPy` yet) \n\n\n\n## References\n1)  Li, 2006, \"You Don't Have to Bother Newton for Implied Volatility\"\n\n    [http://papers.ssrn.com/sol3/papers.cfm?abstract_id=952727](http://papers.ssrn.com/sol3/papers.cfm?abstract_id=952727)\n\n2)  MATLAB source code available at:\n\n    [https://www.mathworks.com/matlabcentral/fileexchange/41473-calcbsimpvol-cp-p-s-k-t-r-q](https://www.mathworks.com/matlabcentral/fileexchange/41473-calcbsimpvol-cp-p-s-k-t-r-q)\n\n## License\nThe included Python code is licensed under `MIT` [License](https://github.com/calc_ivol/calcbsimpvol/LICENCE)\n\nThe Code by Mark Whirdy is licensed under `MIT` [License](https://github.com/erkandem/calc_ivol/calcBSImpVol_mlab/LICENSE)\n\nThe translation is not related or endorsed by the original author.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://erkandem.github.io/calc_ivol/",
+        "keywords": "options implied volatility option iv ivol options-on-futures ivsurface black-scholes",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "calc-ivol",
+        "package_url": "https://pypi.org/project/calc-ivol/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/calc-ivol/",
+        "project_urls": {
+            "Bug Reports": "https://github.com/erkandem/calc_ivol/issues",
+            "Documentation": "https://erkandem.github.io/calc_ivol/",
+            "Homepage": "https://erkandem.github.io/calc_ivol/",
+            "Source": "https://github.com/erkandem/calc_ivol"
+        },
+        "release_url": "https://pypi.org/project/calc-ivol/1.13.1/",
+        "requires_dist": [
+            "numpy",
+            "scipy",
+            "matplotlib"
+        ],
+        "requires_python": "",
+        "summary": "Calculate Black Scholes Implied Volatility - Vectorwise",
+        "version": "1.13.1"
+    },
+    "last_serial": 4639070,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5b3fbdfbe98227ca29769b11b7048914",
+                    "sha256": "0535eea554cb8b15ba4f88fdc1f7c10a302314eded559702762693deb956a3ab"
+                },
+                "downloads": -1,
+                "filename": "calc_ivol-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5b3fbdfbe98227ca29769b11b7048914",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 1506,
+                "upload_time": "2018-12-22T03:16:20",
+                "url": "https://files.pythonhosted.org/packages/e1/7f/bb23b57111c73598b66c62ac15550788b39d06992ded49427d510afc9ab0/calc_ivol-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2db1e26a149c77b370ae0f9417c1116a",
+                    "sha256": "8bbcbb6b7a0a2df8504bea678fbc7470f62d07abb804cbc6c8bfa6c791deb59e"
+                },
+                "downloads": -1,
+                "filename": "calc_ivol-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2db1e26a149c77b370ae0f9417c1116a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1588,
+                "upload_time": "2018-12-22T03:16:22",
+                "url": "https://files.pythonhosted.org/packages/e4/7b/60c0bab705e9f256bb6631ec5de1ceae61dbf9cb391a8c56be3741d43b75/calc_ivol-0.1.0.tar.gz"
+            }
+        ],
+        "1.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "28f355e997c638574ca700819ff85d7e",
+                    "sha256": "5d8d31b0362890ef5ba25fb20be05de86761a595611489b7caa1d17881a3bf7c"
+                },
+                "downloads": -1,
+                "filename": "calc_ivol-1.13-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "28f355e997c638574ca700819ff85d7e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 441698,
+                "upload_time": "2018-12-26T20:17:59",
+                "url": "https://files.pythonhosted.org/packages/52/7c/3976fc13f8beb86d60e8f9b86c8c6df82b8efa44a361fc26567aedbedca1/calc_ivol-1.13-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "650301e77351aef6f59609a8161587e0",
+                    "sha256": "9272759e499d461ac16db4124e7b92b6c8afa31af6614883000a587da8a88b63"
+                },
+                "downloads": -1,
+                "filename": "calc_ivol-1.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "650301e77351aef6f59609a8161587e0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 442638,
+                "upload_time": "2018-12-26T20:18:07",
+                "url": "https://files.pythonhosted.org/packages/d2/9a/295fe82ef687376253af34daf5235c4b65957d96976a96d91901ab239030/calc_ivol-1.13.tar.gz"
+            }
+        ],
+        "1.13.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "32f7da947cb94940e2e3fa2fcd50340e",
+                    "sha256": "bf286f9d3d79a3d0bfc30ae18cb92a55697f2fcaec6e6d854c2646dd10d0820b"
+                },
+                "downloads": -1,
+                "filename": "calc_ivol-1.13.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "32f7da947cb94940e2e3fa2fcd50340e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 441766,
+                "upload_time": "2018-12-27T21:35:40",
+                "url": "https://files.pythonhosted.org/packages/8b/8c/587e7e5cfef9e65cc74649f239830414aa0aec5ab644cc82cc8d43107621/calc_ivol-1.13.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7dcc2672e2fb05ea58df1df5a32dcb85",
+                    "sha256": "dbd938ae8553a8b2687f8c76e01b5ac2aa098cafa38fbc290fc00bc3209f9fa5"
+                },
+                "downloads": -1,
+                "filename": "calc_ivol-1.13.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7dcc2672e2fb05ea58df1df5a32dcb85",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 442719,
+                "upload_time": "2018-12-27T21:35:48",
+                "url": "https://files.pythonhosted.org/packages/1a/cb/7db015a0a40cea6e18d396610ec39f0787662e0dacd55c823f7d3d348b8e/calc_ivol-1.13.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "32f7da947cb94940e2e3fa2fcd50340e",
+                "sha256": "bf286f9d3d79a3d0bfc30ae18cb92a55697f2fcaec6e6d854c2646dd10d0820b"
+            },
+            "downloads": -1,
+            "filename": "calc_ivol-1.13.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "32f7da947cb94940e2e3fa2fcd50340e",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 441766,
+            "upload_time": "2018-12-27T21:35:40",
+            "url": "https://files.pythonhosted.org/packages/8b/8c/587e7e5cfef9e65cc74649f239830414aa0aec5ab644cc82cc8d43107621/calc_ivol-1.13.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7dcc2672e2fb05ea58df1df5a32dcb85",
+                "sha256": "dbd938ae8553a8b2687f8c76e01b5ac2aa098cafa38fbc290fc00bc3209f9fa5"
+            },
+            "downloads": -1,
+            "filename": "calc_ivol-1.13.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7dcc2672e2fb05ea58df1df5a32dcb85",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 442719,
+            "upload_time": "2018-12-27T21:35:48",
+            "url": "https://files.pythonhosted.org/packages/1a/cb/7db015a0a40cea6e18d396610ec39f0787662e0dacd55c823f7d3d348b8e/calc_ivol-1.13.1.tar.gz"
+        }
+    ]
+}

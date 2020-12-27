@@ -1,0 +1,294 @@
+{
+    "info": {
+        "author": "William Hart",
+        "author_email": "wehart@sandia.gov",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: End Users/Desktop",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: Unix",
+            "Programming Language :: Python",
+            "Programming Language :: Unix Shell",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Scientific/Engineering :: Mathematics",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "========================\npyutilib.autotest README\n========================\n\n.. _YAML: http://yaml.org/\n\n--------\nOverview\n--------\n\nThe ``pyutilib.autotest`` package provides a facility for automatically\nconfiguring tests that are executed with Python's unittest package.  This\ncapability is tailored for tests where one or more *solvers* are \napplied to one or more *problems*.  This testing structure is particularly\nuseful for evaluating the execution of external executables on datasets.\n\nThere are three main steps for configuring and applying pyutilib.autotest:\n\n1. Create a configuration file\n2. Create a test driver plugin\n3. Setup the Python module that will be used to apply the tests\n\nThese steps are described in the following subsections.\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nCreating a Configuration File\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nCurrently, ``pyutilib.autotest`` only supports a YAML_ configuration file.  The\ntop-level collection in this configuration is a mapping with the following\nkeys:\n\npython\n  This section contains a list of Python expressions that are executed while\n  setting up the test suites.\n\ndriver\n  This section specifies the name of the test driver that is used to \n  execute tests.\n\nsolvers\n  This section contains a mapping of solver names to solver options.\n\nproblems\n  This section contains a mapping of problem names to problem options.\n\nsuites\n  This section contains a mapping of test suite names to suite configurations.\n\nThe following example illustrates the structure of a YAML configuration file.\n(This example is the file ``pyutilib.autotest/examples/autotest/example1.yml`` in\nthe ``pyutilib.autotest`` distribution.)\n\n::\n\n    driver: example\n\n    python:\n        - import example\n\n    solvers:\n        cat:\n        cat2:\n            name: cat\n            cat_options: -n\n        echo:\n\n    problems:\n        p1:\n            file: README.txt\n        p2:\n            file: example.py\n        p3:\n            file: LoremIpsum1.txt\n\n    suites:\n\n        suite1:\n            categories:\n                - smoke\n                - suite1\n            solvers:\n                cat:\n                cat2:\n                echo:\n            problems:\n                p1:\n\n        suite2:\n            categories:\n                - nightly\n                - suite2\n            solvers:\n                cat:\n                cat2:\n                echo:\n            problems:\n                p1:\n                p2:\n                p3:\n            tests:\n                - solver: cat\n                  problem: p1\n                - solver: cat2\n                  problem: p2\n                - solver: echo\n                  problem: p3\n\n        suite3:\n            categories:\n                - suite3\n            solvers:\n                cat:\n                catx:\n                    solver: cat\n                    cat_options: -n\n            problems:\n                p1:\n\nThe test driver ``example`` is defined in the ``example.py`` file, which is\nimported with the directives in the ``python`` section.\n\nWithin the ``solvers`` and ``problems`` sections, each solver and problem can\nspecify additional options that are passed into the test.  Note that these\noptions are not distinguished for the test;  option name conflicts will\nresults in unpredictable behavior.\n\nThree solvers are defined in this example, which apply the unix ``cat`` and\n``echo`` commands.  By default, the name of the solver is assumed to be the\nname of the key for the solver map.  Solver ``cat2`` illustrates how a solver\nname can be specified separately from the solver key.\n\nThe ``suites`` section defines one or more test suites.  Each test suite\nconsists of a mapping with the following sections:\n\ncategories\n  This optional section contains a list of strings that are solver categories.\n  These categories can be used to select characteristics of the test suites\n  that are executed.\n\nsolvers\n  This section contains a mapping of solvers.  Note that additional options can\n  be provided here to further customize the solver behavior.  By default, the\n  solver name is assumed to be the key value, but the ``solver`` key can be\n  used to explicitly define the solver that is associated with a customized\n  solver mapping.\n\nproblems\n  This section contains a list of problems.  Note that additional options can\n  be provided here to further customize the test behavior. By default, the\n  problem name is assumed to be the key value, but the ``problem`` key can be\n  used to explicitly define the problem that is associated with a customized\n  problem mapping.\n\ntests\n  This optional section contains a list of ``solver``-``problem`` pairs, which\n  defines the actual tests that are defined.  Note that the ``solver`` and \n  ``problem`` values map to the keys defined in the ``solvers`` and\n  ``problems`` sections of a test suite;  thus, this section can use the names of customized\n  solvers and problems that are not defined in the top-level ``solvers`` and\n  ``problems`` sections.  Finally, if this section is omitted, then\n  all combinations of solvers and problems are used to create tests.\n  \nIn this example, three suites are defined to illustrate different features of\nthe test driver:\n\nsuite1\n  A simple test suite in which all solvers are applied to a single problem.\n\nsuite2\n  The ``tests`` section is specified to select a subset of all combinations of\n  solvers and problems to test.\n\nsuite3\n  The ``catx`` solver is customized from ``cat`` to operate like the ``cat2`` solver. \n\n\n~~~~~~~~~~~~~~~~~~~~~~\nCreating a Test Driver\n~~~~~~~~~~~~~~~~~~~~~~\n\nThe test configuration used by ``pyutilib.autotest`` is quite generic.  It\nspecifies what combinations of solvers and problems are to be tested, along\nwith their corresponding options.  However, it does not specify how the test\nis performed.  This is done by a test driver class.\n\nIn general, test driver classes are required to be plugins that can be\ndynamically created by ``pyutilib.autotest`` to execute tests.  The easiest\nway to define a test driver plugin is to inherit from the ``TestDriverBase``\nclass.  For example, the following test driver is used in by the earlier \ntest configuration;  this plugin is defined in\n``pyutilib.autotest/examples/autotest/example.py``.\n\n::\n\n    import pyutilib.autotest\n    from pyutilib.component.core import *\n    import pyutilib.subprocess\n\n\n    class ExampleTestDriver(pyutilib.autotest.TestDriverBase):\n        \"\"\"\n        This test driver executes a unix command and compares its output\n        with a baseline value.\n        \"\"\"\n\n        alias('example')\n\n        def run_test(self, testcase, name, options):\n            \"\"\"Execute a single test in the suite\"\"\"\n            name = options.suite+'_'+name\n            cmd = options.solver+' '\n            if not options.cat_options is None:\n                cmd += options.cat_options+' '\n            cmd += options.file\n            print \"Running test suite '%s'  test '%s'  command '%s'\" % \\\n                    (options.suite, name, cmd)\n            pyutilib.subprocess.run(cmd, outfile=options.currdir+'test_'+name+\".out\")\n            testcase.failUnlessFileEqualsBaseline(\n                    options.currdir+'test_'+name+\".out\", \n                    options.currdir+'test_'+name+\".txt\")\n\nThe ``alias`` function is used to specify the name of this plugin;  this is\nthe name of the test driver used in the test configuration file.\n\nThe ``run_test`` method executes a single test in the test suite.  Note that\nthis method is passed in ``testcase``, which is the test suite class.  Thus,\nthis method can directly apply the ``unittest`` methods that are defined in\nthis class (e.g. ``assertEquals``).\n\nIn this example, a unix command-line is create from the solver name, the\nsolver options, and the problem filename.  This is executed with the\n``pyutilib.subprocess.run`` function, which redirects output to a log file.\nThis log file is then compared with a baseline file using the\n``failUnlessFileEqualsBaseline``, which is defined in the ``unittest``\nextensions in ``pyutilib.th``.\n\nNote that a variety of other standard unit test methods can also be defined by\nthis test driver.  This driver is a ``ITestDriver`` plugin, and the API for\nthis plugin is:\n\n::\n\n    class ITestDriver(Interface):\n\n        def setUpClass(self, cls, options):\n            \"\"\"Set-up the class that defines the suite of tests\"\"\"\n\n        def tearDownClass(self, cls, options):\n            \"\"\"Tear-down the class that defines the suite of tests\"\"\"\n\n        def setUp(self, testcase, options):\n            \"\"\"Set-up a single test in the suite\"\"\"\n\n        def tearDown(self, testcase, options):\n            \"\"\"Tear-down a single test in the suite\"\"\"\n\n        def run_test(self, testcase, name, options):\n            \"\"\"Execute a single test in the suite\"\"\"\n\n\n~~~~~~~~~~~~~~~~~~~~~~\nCreating a Test Module\n~~~~~~~~~~~~~~~~~~~~~~\n\nVirtually all of the work needed to create test suites is automated by\n``pyutilib.autotest``.  The following test module is used in this example;\n(see ``pyutilib.autotest/examples/autotest/autotest.py``):\n\n::\n\n    import os\n    import sys\n    from os.path import abspath, dirname\n    currdir = dirname(abspath(__file__))+os.sep\n\n    import pyutilib.th as unittest\n    import pyutilib.autotest\n\n    if __name__ == \"__main__\":\n        pyutilib.autotest.create_test_suites(filename=currdir+'example1.yml', _globals=globals())\n        unittest.main()\n\nThe first four lines are needed to identify the current directory, where\nthe test configuration file resides.\n\nNote that ``pyutilib.th`` is imported as ``unittest``, which reminds the user\nthat this is a ``unittest`` extension package.  (Specifically, this package\ncontains hooks needed to dynamically add functions as test methods in test\nsuites.)\n\nThe ``pyutilib.autotest`` packages is imported so the ``create_test_suites``\nfunction can be executed.  The arguments to this function are the test\nconfiguration file, and the global dictionary.\n\nFinally, ``unittest.main()`` is executed, as in any ``unittest`` module.\nTests can be executed using standard unittest command-line options.  One\nextension to this behavior is the use of the PYUTILIB_AUTOTEST_CATEGORIES\nor PYUTILIB_UNITTEST_CATEGORIES environmental variables;  if one of these\nis specified, then ``pyutilib.autotest`` assumes that this data contains\na comma-separated list of categories that are used to select the test\nsuites that are constructed.  Specifically, if a test suite contains \none of the specified test categories, then it will be executed.\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nThe ``pyutilib_test_driver`` Command\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nThe ``pyutilib_test_driver`` command can be used to execute tests defined in a\nconfiguration file without creating a test module.  In practice, test modules\nare typically needed to support test discovery with tools like `nose`.\nHowever, this command provides several features that are useful when\ndiagnosing tests.\n\nThe command-line behavior of ``pyutilib_test_driver`` extends the API of\n``unittest.main()``.  The following additional options are provided to allow\nthe user to interrogate the tests that are defined by the test configuration\nfile:\n\n--help-suites\n    Print the test suites that can be executed\n--help-tests=HELP_TESTS\n    Print the tests in the specified test suite\n--help-categories\n    Print the test suite categories that can be specified\n\n\n\n-------\nLicense\n-------\n\nBSD.  See the LICENSE.txt file.\n\n\n------------\nOrganization\n------------\n\n+ Directories\n\n  * pyutilib - The root directory for PyUtilib source code\n\n+ Documentation and Bug Tracking\n\n  * Trac wiki: https://software.sandia.gov/trac/pyutilib\n\n+ Authors\n\n  * See the AUTHORS.txt file.\n\n+ Project Managers\n\n  * William Hart, wehart@sandia.gov\n\n+ Mailing List\n\n  * pyutilib-forum@googlegroups.com\n    - The main list for help and announcements\n  * pyutilib-developers@googlegroups.com\n    - Where developers of PyUtilib discuss new features\n\n--------------------\nThird Party Software\n--------------------\n\nNone.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://software.sandia.gov/svn/public/pyutilib/pyutilib.autotest",
+        "keywords": "utility",
+        "license": "BSD",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "pyutilib.autotest",
+        "package_url": "https://pypi.org/project/pyutilib.autotest/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/pyutilib.autotest/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://software.sandia.gov/svn/public/pyutilib/pyutilib.autotest"
+        },
+        "release_url": "https://pypi.org/project/pyutilib.autotest/2.0.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "A framework for generating test suites from external configuration files.",
+        "version": "2.0.1"
+    },
+    "last_serial": 1103964,
+    "releases": {
+        "1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2c5830b1bb30b3af06226e0262278c95",
+                    "sha256": "34063d5ba46a4a2f24952f8ec536a577976bf73e628dea132b716abf62bacbac"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2c5830b1bb30b3af06226e0262278c95",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20090,
+                "upload_time": "2010-06-28T07:15:14",
+                "url": "https://files.pythonhosted.org/packages/72/7c/75386fc5fcb8850a6e7aa6c2049d6bac3ea79062880d1f14d799b1896675/pyutilib.autotest-1.3.tar.gz"
+            }
+        ],
+        "1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "828a7e0abae26cbf0ee1393fd4e06c2b",
+                    "sha256": "94e52d625df9994b4e2d7df87530792d03d69cb02e828c8e46a52fda9c12a67b"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "828a7e0abae26cbf0ee1393fd4e06c2b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19499,
+                "upload_time": "2010-08-15T04:44:41",
+                "url": "https://files.pythonhosted.org/packages/2a/7d/9fee60f0ba46eb88f065613ef53fd01c2171f48ca8e186e9d2ff08f945dd/pyutilib.autotest-1.4.tar.gz"
+            }
+        ],
+        "1.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5f712a83959070643f6ac11461d82b89",
+                    "sha256": "efe9f1d25a3f431a5a4fe7b09bd6c092d4264a660dca5ee81ebdff734294ca3a"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-1.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5f712a83959070643f6ac11461d82b89",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19672,
+                "upload_time": "2010-10-18T01:16:10",
+                "url": "https://files.pythonhosted.org/packages/cd/d2/e04bdac0494565eaaac29791cad08650fa5dfedaf57db0bf62efce9edc4e/pyutilib.autotest-1.4.1.tar.gz"
+            }
+        ],
+        "1.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ad13dbf2bc71eca83c52ee4e9f3d8126",
+                    "sha256": "8c0b8007388c3d01c9fee8df908b11fd424c2f9439b4e8863af670e051f9d3a1"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-1.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ad13dbf2bc71eca83c52ee4e9f3d8126",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19729,
+                "upload_time": "2010-12-04T01:37:15",
+                "url": "https://files.pythonhosted.org/packages/53/0b/b41092640f3f7321f8a42dc0f466ee3b361bcc43d0871880581e0f959211/pyutilib.autotest-1.4.2.tar.gz"
+            }
+        ],
+        "1.4.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "06e2f98e11e5cc01be0d0e72cb8620c6",
+                    "sha256": "77135f94cab8ce671582ba8594c79b8734fc0e0e6df4a7f923d8d09dffbe3321"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-1.4.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "06e2f98e11e5cc01be0d0e72cb8620c6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19773,
+                "upload_time": "2011-03-12T07:27:16",
+                "url": "https://files.pythonhosted.org/packages/48/17/d6d95c9d12fbeb0bec71b74ca776d4b49fc935e53cad9559b6a181c302c4/pyutilib.autotest-1.4.4.tar.gz"
+            }
+        ],
+        "1.4.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9bb30232257d93dc5989f9f411734b16",
+                    "sha256": "761f7dd14374258e16182a5d7a28699b5d87d53688953425c2feb26f4015d285"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-1.4.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9bb30232257d93dc5989f9f411734b16",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12259,
+                "upload_time": "2011-06-20T01:46:50",
+                "url": "https://files.pythonhosted.org/packages/e6/fc/61073e331438e1dcdef864d9896db4a885ee613cddca39195552f624acbf/pyutilib.autotest-1.4.6.tar.gz"
+            }
+        ],
+        "1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e0bda51d83ac79bb7279cd89f854611",
+                    "sha256": "9fdade0c702401d7bd84a11713bb675af0db3844a6b90ef3e6867695d31c1e3b"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2e0bda51d83ac79bb7279cd89f854611",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12480,
+                "upload_time": "2011-11-10T15:02:38",
+                "url": "https://files.pythonhosted.org/packages/aa/a6/7ce2e8c8a63896563319a1e545983663e81e56c84fe6ac904318cef0800d/pyutilib.autotest-1.5.tar.gz"
+            }
+        ],
+        "1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94c62855da27304482c37981d3f0024f",
+                    "sha256": "6aa73d9cd3e9749ab812592ec6896b2d4fb6a5c9bf8090b0720eb56513358081"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "94c62855da27304482c37981d3f0024f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18930,
+                "upload_time": "2012-01-29T20:19:50",
+                "url": "https://files.pythonhosted.org/packages/65/09/d477a7f534596e154a0b2c56f3a31a5ee3105a85458e022e2c39eb277d01/pyutilib.autotest-1.6.tar.gz"
+            }
+        ],
+        "2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "15480cf420a528ab8067bd4cc4af451b",
+                    "sha256": "5589f5d730bed2ce1b5b946604df55df096ec749d1a2076ffb079832a9380112"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "15480cf420a528ab8067bd4cc4af451b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18923,
+                "upload_time": "2012-04-23T08:53:18",
+                "url": "https://files.pythonhosted.org/packages/37/c0/562b486f4e13610957ced1bf0bc5ad48abeab749b3946674f87d27a52ccf/pyutilib.autotest-2.0.tar.gz"
+            }
+        ],
+        "2.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "082b711ec76c6dc394918379b5c0c43e",
+                    "sha256": "9005fa6bea6a71ea3d9e576fa26eb509e9b1c3e15396f97220d40638219d21bd"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-2.0.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "082b711ec76c6dc394918379b5c0c43e",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 19761,
+                "upload_time": "2014-05-26T00:57:27",
+                "url": "https://files.pythonhosted.org/packages/5f/6f/9ea7180cc04e509bb0680d1648ff81cbbbade3fa67ff9f6784f51bcaf9dd/pyutilib.autotest-2.0.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3c82148d3e1a8f9de11c033ee9e57add",
+                    "sha256": "2f4e3671411f8e0dbf66ab14ca5352547225565e3862d6ced374f47f1000dd2e"
+                },
+                "downloads": -1,
+                "filename": "pyutilib.autotest-2.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3c82148d3e1a8f9de11c033ee9e57add",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19397,
+                "upload_time": "2013-02-25T04:46:11",
+                "url": "https://files.pythonhosted.org/packages/10/63/e3c77a3c73ef9f7a97a1e8582259675843fa25b01036411e33bb97cc69c5/pyutilib.autotest-2.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "082b711ec76c6dc394918379b5c0c43e",
+                "sha256": "9005fa6bea6a71ea3d9e576fa26eb509e9b1c3e15396f97220d40638219d21bd"
+            },
+            "downloads": -1,
+            "filename": "pyutilib.autotest-2.0.1-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "082b711ec76c6dc394918379b5c0c43e",
+            "packagetype": "bdist_wheel",
+            "python_version": "2.7",
+            "requires_python": null,
+            "size": 19761,
+            "upload_time": "2014-05-26T00:57:27",
+            "url": "https://files.pythonhosted.org/packages/5f/6f/9ea7180cc04e509bb0680d1648ff81cbbbade3fa67ff9f6784f51bcaf9dd/pyutilib.autotest-2.0.1-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3c82148d3e1a8f9de11c033ee9e57add",
+                "sha256": "2f4e3671411f8e0dbf66ab14ca5352547225565e3862d6ced374f47f1000dd2e"
+            },
+            "downloads": -1,
+            "filename": "pyutilib.autotest-2.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3c82148d3e1a8f9de11c033ee9e57add",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 19397,
+            "upload_time": "2013-02-25T04:46:11",
+            "url": "https://files.pythonhosted.org/packages/10/63/e3c77a3c73ef9f7a97a1e8582259675843fa25b01036411e33bb97cc69c5/pyutilib.autotest-2.0.1.tar.gz"
+        }
+    ]
+}

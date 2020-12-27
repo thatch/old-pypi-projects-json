@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "romask",
+        "author_email": "safeone17@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "SQLite simple ORM\n=========\n\nIt is a simple and small ORM for SQLite database.\n\n* python 3+ (developed with 3.7)\n* supports SQLite only\n\nExample\n--------\n```python\n\nfrom sqlite_orm.database import Database\nfrom sqlite_orm.field import IntegerField, BooleanField, TextField\nfrom sqlite_orm.table import BaseTable\n\nclass User(BaseTable):\n    __table_name__ = 'users'\n\n    id = IntegerField(primary_key=True, auto_increment=True) #\u0430\u0432\u0442\u043e\u0438\u043d\u043a\u0440\u0435\u043c\u0435\u043d\u0442 \u043d\u0430 int \u043f\u043e\u043b\u0435\n    name = TextField(not_null=True)\n    active = BooleanField(not_null=True, default_value=1)\n\n\nclass Post(BaseTable):\n    __table_name__ = 'posts'\n\n    id = IntegerField(primary_key=True)\n    name = TextField(not_null=True)\n    id_user = IntegerField(foreign_key=User.id)\n\n\nif __name__ == '__main__':\n    with Database(\"test.db\") as db:\n        # \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u0435 \u0442\u0430\u0431\u043b\u0438\u0446;\n        db.query(Post, User).create().execute()\n\n        # insert\n        user1 = User(id=1, name='User1')\n        user2 = User(id=2, name='User2')\n        user3 = User(id=3, name='User3')\n\n        post1 = Post(id=1, name='Post1', id_user=user1.id)\n        post2 = Post(id=2, name='Post2', id_user=user2.id)\n        post3 = Post(id=3, name='Post3', id_user=user3.id)\n\n        #\u0432\u0441\u0442\u0430\u0432\u043a\u0430 \u0434\u0430\u043d\u043d\u044b\u0445\n        db.query().insert(user1, user2, user3, post1, post2, post3).execute()\n\n        # select \u0441 \u0443\u043a\u0430\u0437\u0430\u043d\u0438\u0435\u043c \u043d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0445 \u0441\u0442\u043e\u043b\u0431\u0446\u043e\u0432 + \u0430\u0432\u0442\u043e\u0434\u0436\u043e\u0438\u043d \u0442\u0430\u0431\u043b\u0438\u0446, \u043d\u0430 \u043a\u043e\u0442\u043e\u0440\u044b\u0435 \u0435\u0441\u0442\u044c fk;\n        print('\\n=======SELECT + Auto Join=======')\n        for row in db.query(User, Post.name).select().join(Post).execute():\n            print(row)\n\n        # update\n        db.query(User).update(name='User3_UPDATED').filter(User.name == 'User3').execute()\n\n        print('\\n=======SELECT after update=======')\n        for row in db.query(User, Post.name).select().join(Post).execute():\n            print(row)\n\n        db.query(User).delete().filter(User.name == 'User3_UPDATED').execute()\n\n        print('\\n=======SELECT after delete=======')\n        for row in db.query(User, Post.name).select().join(Post).execute():\n            print(row)\n\n        # \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0442\u0430\u0431\u043b\u0438\u0446;\n        db.query(User, Post).drop().execute()\n\n        # + \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0431\u0430\u0437\u043e\u0432\u044b\u0445 \u043e\u0448\u0438\u0431\u043e\u043a (\u043d\u0435\u0442 \u0442\u0430\u0431\u043b\u0438\u0446\u044b, \u043d\u0435\u0442 \u0441\u0442\u043e\u043b\u0431\u0446\u0430, \u043d\u0435 \u0443\u043a\u0430\u0437\u0430\u043d\u043e \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0443 \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u043e\u0433\u043e \u0441\u0442\u043e\u043b\u0431\u0446\u0430);\n\n```\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/romask17/SQLite-ORM",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sqlite-simple-orm",
+        "package_url": "https://pypi.org/project/sqlite-simple-orm/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/sqlite-simple-orm/",
+        "project_urls": {
+            "Homepage": "https://github.com/romask17/SQLite-ORM"
+        },
+        "release_url": "https://pypi.org/project/sqlite-simple-orm/0.0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A Python object relational mapper for SQLite.",
+        "version": "0.0.1"
+    },
+    "last_serial": 4416598,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab74ec3ed00edf9f92f4be8964c207c1",
+                    "sha256": "c6ee39d3782b2b14e525ac6abd6456472d509b2da11e77c6a514e4d0a3510f35"
+                },
+                "downloads": -1,
+                "filename": "sqlite_simple_orm-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ab74ec3ed00edf9f92f4be8964c207c1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9958,
+                "upload_time": "2018-10-25T20:11:41",
+                "url": "https://files.pythonhosted.org/packages/47/8a/978eda35da4c4ae865fca9222df66c1065ce72caa03f03f903d6570dcb8e/sqlite_simple_orm-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "378fe67bd6f27c3040b55be54460626b",
+                    "sha256": "eb7dbe34cab9f8b90718362e08d1fcb21a55843828837ee8a1959de5ce1f6b04"
+                },
+                "downloads": -1,
+                "filename": "sqlite-simple-orm-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "378fe67bd6f27c3040b55be54460626b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6729,
+                "upload_time": "2018-10-25T20:11:42",
+                "url": "https://files.pythonhosted.org/packages/15/b8/e9494f848029284c73ad7d66c248ef5187f5eabcc8486bef11998718ec4d/sqlite-simple-orm-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ab74ec3ed00edf9f92f4be8964c207c1",
+                "sha256": "c6ee39d3782b2b14e525ac6abd6456472d509b2da11e77c6a514e4d0a3510f35"
+            },
+            "downloads": -1,
+            "filename": "sqlite_simple_orm-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ab74ec3ed00edf9f92f4be8964c207c1",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 9958,
+            "upload_time": "2018-10-25T20:11:41",
+            "url": "https://files.pythonhosted.org/packages/47/8a/978eda35da4c4ae865fca9222df66c1065ce72caa03f03f903d6570dcb8e/sqlite_simple_orm-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "378fe67bd6f27c3040b55be54460626b",
+                "sha256": "eb7dbe34cab9f8b90718362e08d1fcb21a55843828837ee8a1959de5ce1f6b04"
+            },
+            "downloads": -1,
+            "filename": "sqlite-simple-orm-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "378fe67bd6f27c3040b55be54460626b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 6729,
+            "upload_time": "2018-10-25T20:11:42",
+            "url": "https://files.pythonhosted.org/packages/15/b8/e9494f848029284c73ad7d66c248ef5187f5eabcc8486bef11998718ec4d/sqlite-simple-orm-0.0.1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,208 @@
+{
+    "info": {
+        "author": "andrea capitanelli",
+        "author_email": "andrea.capitanelli@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Topic :: Scientific/Engineering :: Information Analysis"
+        ],
+        "description": "# fingerfood #\n\nA python module for **fingerprinting** and **detecting duplicates** in text documents.\n\nText fingerprinting is the process of extracting from text a collection of representive hashes which identify the original data. By using fingerprints, it is possible to quickly search for duplicate strings between documents.\n\nWith fingerfood you can:\n\n* **generate** fingerprints from any text string\n* **store** fingerprinted data into a sqlite database\n* **compare** with strings or with stored data\n\nThe fingerprinting algorithm is an implementation of [Winnowing: Local Algorithms for Document Fingerprinting](http://theory.stanford.edu/~aiken/publications/papers/sigmod03.pdf), so please refer to it for algorithm details.\n\n## Quick Start  ##\n\nTo start using fingerfood, let first import the module.\n\n```\nimport fingerfood as fd\n```\n\n### Generating a fingerprint ###\n\nThen we can generate our first fingerprint:\n```\ntext = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'\n\nfp = fd.Fingerprint(text,text_name='lorem',kgram_len=10,detection_thr=30)\n```\n\nThe following two parameters are very important as they define the behaviour of fingerprinting comparison:\n\n1. If there is a substring match at least as long as the *detection threshold* `detection_thr`, then the match is detected, and\n2. no match shorter than the *noise threshold* `kgram_len` is detected.\n\nIf not specified, default values are used: `kgram_len=15` and `detection_thr=40`.\n\nOptionally, we can specify a name for data using `text_name` parameter, otherwise an excerpt from text is used instead.\n\n### Storing a fingerprint ###\n\nTo save fingerprint into DB, just use the method provided by *Fingerprint* class:\n\n```\nfp.to_sql('my.db',if_exists='append')\n```\n\nIf not found, a new DB is created in the given filepath. However, when saving a new fingerprint to a DB we can specify how to manage the case in which DB tables already exist:\n\n* `if_exists=fail`: if tables exist, do nothing.\n* `if_exists=replace`: if tables exist, drop it, recreate it and insert data.\n* `if_exists=append`: if tables exist, insert data. Create if does not exist. This is the default value.\n\n### Finding matches ###\n\nNow, let perform a simple comparison between two text strings:\n\n```\n# input texts\ntext_01 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis finibus metus quam, eget pulvinar ligula viverra vitae. Mauris vitae faucibus orci. Duis egestas vitae diam ac sodales.'\ntext_02 = 'Aenean consectetur turpis et gravida pharetra. Mauris vitae faucibus orci. Curabitur lobortis arcu id iaculis scelerisque. Morbi magna nunc, blandit quis congue eu, ullamcorper ac odio.'\n\n# generate fingerprints\nfp_01 = fd.Fingerprint(text_01)\nfp_02 = fd.Fingerprint(text_02)\n\n# search for matches\nmatches = fp_01.compare_with(fp_02)\nif matches:\n    print('found some matches!')\n```\n\nWe can also compare a fingerprint object with a text string, which will be automatically fingerprinted to the scope:\n\n```\nmatches = fp_01.compare_with(text_02)\nif matches:\n    print('found some matches!')\n```\n\nLet perform a one-to-all matching with texts stored in a DB:\n\n```\nfp_01.to_sql('my.db',if_exists='append')\nfp_02.to_sql('my.db',if_exists='append')\n\ntext_03 = 'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Aenean vel convallis arcu. Sed non feugiat mi. Fusce vulputate dui vel metus tincidunt blandit. Sed finibus faucibus mi, quis dictum nulla tempus non. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut ultricies sagittis laoreet. Curabitur in nibh ante.'\n\nfp_03 = fd.Fingerprint(text_03,text_name='03')\n\nmatches = fp_03.search_in_db('my.db')\nif matches:\n    print('found some matches!')\n```\n\n### Match insight ###\n\nMethods `compare_with()` and `search_in_db()` return `None` if no matches are found, or the list of matches otherwise.\n\nEach match found is returned as a *dict* with three keys:\n\n* `substr`: the match maximum-length substring (>=`detection_thr`)\n* `found_in`: in which text the match is found\n* `pos`: position of match inside text of the fingerprint performing the search  \n\nSo, with the previous matching we would have:\n\n```\nmatches = fp_03.search_in_db('my.db')\nif matches:\n    print('found some matches!')\n    for m in matches:\n        print(m)\n```\n> \\>>> found some matches!  \n> \\>>> {'substr': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ', 'pos': 258, 'found_in': '01'}  \n> \\>>> {'substr': '. Lorem ipsum dolor sit amet, consectetur adipiscing elit. ', 'pos': 258, 'found_in': '02'}  \n\nNote that in this case position is the same because refers to the same string in `fp_03` text.\n\n## Installation  ##\n\nTo install fingerfood, simply run pip command in your terminal of choice:\n\n```\npip install fingerfood\n```\n\n\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/vegaviz/fingerfood",
+        "keywords": "fingerprinting copy-detection",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "fingerfood",
+        "package_url": "https://pypi.org/project/fingerfood/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/fingerfood/",
+        "project_urls": {
+            "Homepage": "https://github.com/vegaviz/fingerfood"
+        },
+        "release_url": "https://pypi.org/project/fingerfood/1.0.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Document fingerprinting for duplicate detection",
+        "version": "1.0.3"
+    },
+    "last_serial": 4657743,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6032b0f0954c95ad7831866db6dcf7b9",
+                    "sha256": "b5be92c09d0de115487794f0149784544ca036bb5d5dec52c485725d9d87fa27"
+                },
+                "downloads": -1,
+                "filename": "fingerfood-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6032b0f0954c95ad7831866db6dcf7b9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4245,
+                "upload_time": "2017-07-24T14:52:58",
+                "url": "https://files.pythonhosted.org/packages/72/1f/45574eb0aa1cd4a2368b98419273f56314ab662917366cda5e9c84c9383e/fingerfood-1.0.tar.gz"
+            }
+        ],
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d0625759efa60c191f8f6815bf3a150e",
+                    "sha256": "23eecd20f1293fea8355d57f2a0cdeb763b0b53d4e0d476e3c91622c248b6b75"
+                },
+                "downloads": -1,
+                "filename": "fingerfood-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d0625759efa60c191f8f6815bf3a150e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6349,
+                "upload_time": "2017-07-24T15:17:19",
+                "url": "https://files.pythonhosted.org/packages/41/24/2d321876ae8841c86d2d28cce1273bbfe668b55d9ae0d2c743f7c8e261c8/fingerfood-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3ee3e0cb7d91f9c6d974fa6a208ebe2e",
+                    "sha256": "cae619341367a2b4fd4a0e6f841f257aae4869e0733890799a3a0128bdd8d3fe"
+                },
+                "downloads": -1,
+                "filename": "fingerfood-1.0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3ee3e0cb7d91f9c6d974fa6a208ebe2e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 10587,
+                "upload_time": "2017-07-27T16:25:39",
+                "url": "https://files.pythonhosted.org/packages/43/69/1e31510a1389dedbe8adbee5b591bc0a1b5feb0e593bb05c556c48671626/fingerfood-1.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c9b519507dc6158d56f1d6597d04d07",
+                    "sha256": "c75992aa624c78309d44fd7741285f780c46b26f2f2868344111a11afebbf46f"
+                },
+                "downloads": -1,
+                "filename": "fingerfood-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5c9b519507dc6158d56f1d6597d04d07",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7284,
+                "upload_time": "2017-07-24T15:34:55",
+                "url": "https://files.pythonhosted.org/packages/6c/45/7b8fb2813025ea29089608a5e7ce3871f75d65e38d27206f10d514ed63be/fingerfood-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "65cd1c875ebf21f3021637033e9f1209",
+                    "sha256": "7c67b12b26b3b2713b7cfb58e9450dfd373ca7136b0f189dc9d5d50ee25bfa14"
+                },
+                "downloads": -1,
+                "filename": "fingerfood-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "65cd1c875ebf21f3021637033e9f1209",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7638,
+                "upload_time": "2017-07-27T16:25:40",
+                "url": "https://files.pythonhosted.org/packages/74/08/92f070934950c0f60b8dd7ab1fd364f90bfb37d03b281e472063c2e8533e/fingerfood-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "997a3dc0c7c7c39448defddab69cd5ec",
+                    "sha256": "b2a1de6bf9c5be296a3041b112eb70f8e6431af4e90b8c6025fe541b41c492f1"
+                },
+                "downloads": -1,
+                "filename": "fingerfood-1.0.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "997a3dc0c7c7c39448defddab69cd5ec",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 10588,
+                "upload_time": "2017-07-27T16:29:52",
+                "url": "https://files.pythonhosted.org/packages/ab/03/2e6c31f17a82846fae327e049fef8c72516607a6cfbc324abdbe945e664d/fingerfood-1.0.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5f74b29f9b37c47db20614ba553e2f5a",
+                    "sha256": "e0537feddc1489e86604e3af7dbd406c31cc1bea62c4ccfc2ac55739833cba68"
+                },
+                "downloads": -1,
+                "filename": "fingerfood-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5f74b29f9b37c47db20614ba553e2f5a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7638,
+                "upload_time": "2017-07-27T16:29:56",
+                "url": "https://files.pythonhosted.org/packages/ec/0a/dc49f2b1e3122739b96a5b8b25a37f843f9917c1ed359a147f8fd41330fd/fingerfood-1.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "997a3dc0c7c7c39448defddab69cd5ec",
+                "sha256": "b2a1de6bf9c5be296a3041b112eb70f8e6431af4e90b8c6025fe541b41c492f1"
+            },
+            "downloads": -1,
+            "filename": "fingerfood-1.0.3-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "997a3dc0c7c7c39448defddab69cd5ec",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 10588,
+            "upload_time": "2017-07-27T16:29:52",
+            "url": "https://files.pythonhosted.org/packages/ab/03/2e6c31f17a82846fae327e049fef8c72516607a6cfbc324abdbe945e664d/fingerfood-1.0.3-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5f74b29f9b37c47db20614ba553e2f5a",
+                "sha256": "e0537feddc1489e86604e3af7dbd406c31cc1bea62c4ccfc2ac55739833cba68"
+            },
+            "downloads": -1,
+            "filename": "fingerfood-1.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "5f74b29f9b37c47db20614ba553e2f5a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7638,
+            "upload_time": "2017-07-27T16:29:56",
+            "url": "https://files.pythonhosted.org/packages/ec/0a/dc49f2b1e3122739b96a5b8b25a37f843f9917c1ed359a147f8fd41330fd/fingerfood-1.0.3.tar.gz"
+        }
+    ]
+}

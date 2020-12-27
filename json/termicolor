@@ -1,0 +1,154 @@
+{
+    "info": {
+        "author": "S\u00e9bastien MB",
+        "author_email": "seb@essembeh.org",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Terminals",
+            "Topic :: Utilities"
+        ],
+        "description": "\n![Github](https://img.shields.io/github/tag/essembeh/termicolor.svg)\n![PyPi](https://img.shields.io/pypi/v/termicolor.svg)\n![Python](https://img.shields.io/pypi/pyversions/termicolor.svg)\n\n\n\n# Termicolor\nSimple Python3 library to use terminal colors and styles to format messages.\n\n> TL;DR: You can format your message with `{message:bold,underline,fg_purple}`\n\n![termicolor](example.png)\n\n# Install\n\nInstall via `pip`:\n\n```sh\n$ pip install termicolor\n```\n\nOr you can clone the project and install it via `setup.py`:\n\n```sh\n# Install python3\n$ sudo apt-get install python3 python3-setuptools\n# Clone repository\n$ git clone https://github.com/essembeh/termicolor\n$ cd termicolor\n# To install it in you virtual env\n$ python3 setup.py install\n# or use --user if you want to install it in userland\n$ python3 setup.py install --user\n```\n\n# Usage\n\n## Using a *ColorFormatter*\nYou can use the `ColorFormatter` class to decorate variables with *styles*.\n\n```python\nfrom termicolor import ColorFormatter, tc_format\n\ncf = ColorFormatter()\ntext = cf.format(\"{hello:bg_yellow} {world:fg_cyan}!\", hello=\"Hello\", world=\"World\")\n\n# You can combine multiple styles and common str.format spec\ntext = cf.format(\"{hello:.4,bg_yellow,underline} {world:fg_cyan}!\", hello=\"Hello\", world=\"World\")\n\n# Or simply use tc_format function\ntext = tc_format(\"{hello:.4,bg_yellow,underline} {world:fg_cyan}!\", hello=\"Hello\", world=\"World\")\n```\n\nHere is the list of available styles\n\n| Formatter keyword | Python enum        | tput command   |\n| ----------------- | ------------------ | -------------- |\n| *bold*            | Style.BOLD         | `tput bold`    |\n| *half_bright*     | Style.HALF_BRIGHT  | `tput dim`     |\n| *underline*       | Style.UNDERLINE    | `tput smul`    |\n| *no_underline*    | Style.NO_UNDERLINE | `tput rmul`    |\n| *standout*        | Style.STANDOUT     | `tput smso`    |\n| *no_standout*     | Style.NO_STANDOUT  | `tput rmso`    |\n| *reverse*         | Style.REVERSE      | `tput rev`     |\n| *reset*           | Style.RESET        | `tput sgr0`    |\n| *bg_black*        | Style.BG_BLACK     | `tput setab 0` |\n| *bg_red*          | Style.BG_RED       | `tput setab 1` |\n| *bg_green*        | Style.BG_GREEN     | `tput setab 2` |\n| *bg_yellow*       | Style.BG_YELLOW    | `tput setab 3` |\n| *bg_blue*         | Style.BG_BLUE      | `tput setab 4` |\n| *bg_purple*       | Style.BG_PURPLE    | `tput setab 5` |\n| *bg_cyan*         | Style.BG_CYAN      | `tput setab 6` |\n| *bg_white*        | Style.BG_WHITE     | `tput setab 7` |\n| *fg_black*        | Style.FG_BLACK     | `tput setaf 0` |\n| *fg_red*          | Style.FG_RED       | `tput setaf 1` |\n| *fg_green*        | Style.FG_GREEN     | `tput setaf 2` |\n| *fg_yellow*       | Style.FG_YELLOW    | `tput setaf 3` |\n| *fg_blue*         | Style.FG_BLUE      | `tput setaf 4` |\n| *fg_purple*       | Style.FG_PURPLE    | `tput setaf 5` |\n| *fg_cyan*         | Style.FG_CYAN      | `tput setaf 6` |\n| *fg_white*        | Style.FG_WHITE     | `tput setaf 7` |\n\n\n> Styles can be combined with `','` like `{message:underline,bold,fg_yellow}`\n\n> You can also reuse `string.Formatter` format specification like `{myint:0<5,underline,bold,fg_yellow}`\n\n## Using *format-like* and *print-like* functions\n\nSome utility functions can be used to simply print lines with *styles*\n\n```python\nfrom termicolor import print_red, print_green, print_style, Style, tc_format, tc_print\n\n# These functions work like *print* builtin function\nprint_red(\"Hello World!\")\nprint_green(\"Hello\", \"World\", \"!\", sep='    ')\n# This function works like *print* with a new named attribute to set a single *style*\nprint_style(\"Hello\", \"World\", \"!\", style=Style.FG_YELLOW)\n# To use multiple styles, use the *styles* named attribute to pass a list of Style\nprint_style(\"Hello\", \"World\", \"!\", styles=[Style.FG_YELLOW, Style.UNDERLINE])\n\n# Simply format a message usinf a ColorFormatter\ntext = tc_format(\"{hello:bg_yellow} {world:fg_cyan}!\", hello=\"Hello\", world=\"World\")\nprint(text)\n# Or simply use tc_print to replace the two lines above\ntc_print(\"{hello:bg_yellow} {world:fg_cyan}!\", hello=\"Hello\", world=\"World\")\n\n```\n\n## Using a *ColorContext*\n\nIf you want to decorate eveything written too `sys.stdout`, you can use a `with` statement and a `ColorContext` object:\n\n```python\nfrom termicolor import ColorContext, Style\n\nwith ColorContext(Style.BOLD, Style.FG_YELLOW):\n    print(\"Hello World!\")\n    print(\"Another line with style\")\nprint(\"This message won't have any style\")\n```\n\n## Disabling *termicolor*\n\nBy default, `termicolor` is disabled if `sys.stdout.isatty()` is `False`, so you won't write the color characters if you pipe the output or redirect in a file\n\n```sh\n# You get colors by default\n$ python3 -m termicolor\n# Colors will be disabled\n$ python3 -m termicolor | cat \n# File won't contain style sequances\n$ python3 -m termicolor > file\n```\n\nYou can force *styles* and *colors* even if `sys.stdout` is not a TTY using `ColorFormatter` or `ColorContext`:\n```python\nfrom termicolor import ColorFormatter, ColorContext, Style\n\ncf = ColorFormatter(check_tty=False)\nwith open(\"file.txt\", \"w\") as f:\n    f.write(cf.format(\"{0:bg_red}\\n\", \"Colored line\"))\n\nwith ColorContex(Style.FG_RED, check_tty=False):\n    print(\"Colored line\")\n```\n\nYou can totally disable `termicolor` by setting `TERMICOLOR_DISABLE` variable in environment.\n```sh\n# Colors will be disabled\n$ TERMICOLOR_DISABLE=1 python3 -m termicolor\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/essembeh/termicolor",
+        "keywords": "terminal color tput format",
+        "license": "Apache License 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "termicolor",
+        "package_url": "https://pypi.org/project/termicolor/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/termicolor/",
+        "project_urls": {
+            "Homepage": "https://github.com/essembeh/termicolor"
+        },
+        "release_url": "https://pypi.org/project/termicolor/1.0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Simple Python3 library to use terminal colors and styles using tput to format messages",
+        "version": "1.0.1"
+    },
+    "last_serial": 5386488,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "daf7cf45d0a476cb3dba43761a0a0de7",
+                    "sha256": "70e49c94658001cb1b40f67fdb2a660f3cce812df4877ab91e26331b1fb31d84"
+                },
+                "downloads": -1,
+                "filename": "termicolor-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "daf7cf45d0a476cb3dba43761a0a0de7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7069,
+                "upload_time": "2019-06-06T14:40:58",
+                "url": "https://files.pythonhosted.org/packages/34/2a/f7b689099ff0b86b5a10cd6b13f48fd329f14f78fe9db01804b4f7675163/termicolor-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f45db39fdabb622e2c80c517508cc32a",
+                    "sha256": "789fd0fac12539c73e51ea0cd5ad0f2c5ccd4d8337fa44e0ab9d74482c7c5559"
+                },
+                "downloads": -1,
+                "filename": "termicolor-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f45db39fdabb622e2c80c517508cc32a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10215,
+                "upload_time": "2019-06-06T14:41:01",
+                "url": "https://files.pythonhosted.org/packages/7b/67/fb980e45fb271f5d17d02be09804a8d37487780bfc8061ccde58d947b62f/termicolor-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d910bd9834ab0c7ce25a35b9a34d12ee",
+                    "sha256": "df25ad6a75d30eec4f874034ae4eb644cafe32bab7c4e0b0effb8821194a038a"
+                },
+                "downloads": -1,
+                "filename": "termicolor-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d910bd9834ab0c7ce25a35b9a34d12ee",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7196,
+                "upload_time": "2019-06-11T13:08:09",
+                "url": "https://files.pythonhosted.org/packages/21/60/1fdcc783851ac06d371a5fef73bfb8f7c6e83fe66801e6bf82e879d6077d/termicolor-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "725de9fb955738dce83a4dbd56173bb4",
+                    "sha256": "4a9df78f93d11c857337e5150968f0baafb20e5af3ad324e51fed706922cd754"
+                },
+                "downloads": -1,
+                "filename": "termicolor-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "725de9fb955738dce83a4dbd56173bb4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36462,
+                "upload_time": "2019-06-11T13:08:11",
+                "url": "https://files.pythonhosted.org/packages/96/36/2c922fb726d4e25f880e4ed46c11c20842a100be390291484b67e05bff6b/termicolor-1.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d910bd9834ab0c7ce25a35b9a34d12ee",
+                "sha256": "df25ad6a75d30eec4f874034ae4eb644cafe32bab7c4e0b0effb8821194a038a"
+            },
+            "downloads": -1,
+            "filename": "termicolor-1.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d910bd9834ab0c7ce25a35b9a34d12ee",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 7196,
+            "upload_time": "2019-06-11T13:08:09",
+            "url": "https://files.pythonhosted.org/packages/21/60/1fdcc783851ac06d371a5fef73bfb8f7c6e83fe66801e6bf82e879d6077d/termicolor-1.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "725de9fb955738dce83a4dbd56173bb4",
+                "sha256": "4a9df78f93d11c857337e5150968f0baafb20e5af3ad324e51fed706922cd754"
+            },
+            "downloads": -1,
+            "filename": "termicolor-1.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "725de9fb955738dce83a4dbd56173bb4",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 36462,
+            "upload_time": "2019-06-11T13:08:11",
+            "url": "https://files.pythonhosted.org/packages/96/36/2c922fb726d4e25f880e4ed46c11c20842a100be390291484b67e05bff6b/termicolor-1.0.1.tar.gz"
+        }
+    ]
+}

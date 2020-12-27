@@ -1,0 +1,102 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 2,
+        "author": "Mark B. Schultz, Anders Gon\u00e7alves da Silva, Jason Kwong, Torsten Seemann",
+        "author_email": "dr.mark.schultz@gmail.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Scientific/Engineering :: Bio-Informatics",
+            "Topic :: Scientific/Engineering :: Medical Science Apps."
+        ],
+        "description": "PRufus\n============\n\nTo get help::\n\n    prufus -h\n\n![PRufus](http://bioinformatics.mdu.unimelb.edu.au/~schultzm/PRufus/pipeline.png)\n\nAuthors\n-------\n\nMark B Schultz, Anders Gon\u00e7alves da Silva, Jason Kwong, Torsten Seemann\n\nIntroduction\n------------\n\n**PRufus** is a command-line tool for for exploring and characterising bacterial whole genome DNA sequence data.  It is a computational pipeline written in python and is scalable via implementation using the ruffus pipeline library.  **Ruffus** handles task-scheduling and task-parallelisation during the run.  PRufus is particularly useful for pathogenic species as it performs AMR and MLST profiling but in theory could be used for any bacterial species against any sequence database.  It was originally written to characterise and QC assemblies and reads of bacterial isolates at the Microbiological Diagnostic Unit Public Health Laboratory, Victoria, Australia.  Input is a tab-delimited text file that points the software to the assembly and paired-end read files for each isolate.  Specifically, the file has no header, one line per isolate, and four columns per line in the following column order::  \n\n    +-------------+------------------------------------------------+----------------------------+---------------------------+\n    |isolate_name | full_path_to_assembly (i.e., a 'contigs' file) | full_path_to_paired_reads1 | full_path_to_paired_reads2|\n    +-------------+------------------------------------------------+----------------------------+---------------------------+\n\nAn example **isolates.tab** file looks like this::  \n\n    isolate-1\t/path/to/isolate-1/contigs.fa\t/path/to/isolate-1/reads-1.fq.gz\t/path/to/isolate-1/reads-2.fq.gz\n    isolate-2\t/path/to/isolate-2/contigs.fa\t/path/to/isolate-2/reads-1.fq.gz\t/path/to/isolate-2/reads-2.fq.gz\n    isolate-3\t/path/to/isolate-3/contigs.fa\t/path/to/isolate-3/reads-1.fq.gz\t/path/to/isolate-3/reads-2.fq.gz\n    isolate-4\t/path/to/isolate-4/contigs.fa\t/path/to/isolate-4/reads-1.fq.gz\t/path/to/isolate-4/reads-2.fq.gz\n    isolate-5\t/path/to/isolate-5/contigs.fa\t/path/to/isolate-5/reads-1.fq.gz\t/path/to/isolate-5/reads-2.fq.gz\n\n\nInstalling dependencies\n-----------------------\n\nThe following packages need to be installed before pip3 installing PRufus.  To install dependencies, do::  \n\n    cpan -i Moo\n    cpan -i List::MoreUtils\n    cpan -i Bio::Perl\n    brew tap homebrew/science\n    brew tap tseemann/homebrew-bioinformatics-linux\n    brew update\n    brew install mlst --HEAD\n    brew install abricate --HEAD\n    brew install quicktree\n    brew install seqtk\n    brew install andi\n    brew install mummer\n    brew install bowtie2\n    brew install cd-hit\n    brew install ariba\n    brew install kraken\n\nYou will then need to install a kraken database::  \n    \n    wget https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz\n\nChoose a folder (say $HOME) to put it in, you need ~4 GB free::  \n\n    tar -C $HOME minikraken.tgz\n\nThen add the following to your $HOME/.bashrc::  \n\n    export KRAKEN_DB_PATH=$HOME/minikraken_20141208\n\nInstalling PRufus\n-----------------------\n\nTo perform any of these install steps **for all users, remove '--user'**.  The final symlink step is not required if installing for all users.  prufus is written for **python3** and installation requires **pip3** and **setuptools**.  To install the latest 'stable' version of prufus for the current user only, do::  \n\n    pip3 install --user --no-binary :all: PRufus\n\nTo upgrade::  \n\n    pip3 install --user --upgrade PRufus\n\nTo install the latest, potentially unstable, bleeding-edge version::  \n\n    pip3 install --user https://github.com/schultzm/PRufus/zipball/master\n\n**If installing via the '--user' option**\nCheck where the executable is::  \n\n    which prufus  # ~/.local/bin/prufus\n\nCheck where the site-packages are::  \n\n    python3 -m site --user-site  # ~/.local/lib/python3.6/site-packages\n\nNow, symlink the packaged databases in site-packages above to the folder containing the executable shown above::  \n\n    ln -s ~/.local/lib/python3.6/site-packages/PRufus/CARD/ ~/.local/bin\n    ln -s ~/.local/lib/python3.6/site-packages/PRufus/VFDB/ ~/.local/bin\n    ln -s ~/.local/lib/python3.6/site-packages/PRufus/VFDB_core/ ~/.local/bin\n    ln -s ~/.local/lib/python3.6/site-packages/PRufus/plasmidfinder/ ~/.local/bin\n\n\n**To uninstall**, do::  \n\n    pip3 uninstall PRufus\n    # Remove the symlinks\n    rm -r ~/.local/bin/CARD\n    rm -r ~/.local/bin/VFDB*\n    rm -r ~/.local/bin/plasmidfinder\n\nNow, check that the dependencies are in the path using::\n\n    prufus check\n\nQuickstart tutorial\n-------------------\n\n**For large jobs, run in screen mode**, otherwise skip this step::  \n\n    screen -SL screenname \n\nAll screen-output within the screen started above, will be saved to::  \n\n    screenlog.%n #  Where %n is the number of the screen.\n\nAfter exiting the screen, the screenlog.0 can be viewed as the run progresses using standard command line actions::  \n\n    tail screenlog.0\n    less screenlog.0\n    watch \"tail screenlog.0\"\n\n**To get help for prufus**, just do::  \n\n    prufus -h\n\nOutput looks like::  \n\n    usage: prufus <command> <options>\n    \n    Run summary analyses.\n    \n    optional arguments:\n      -h, --help     show this help message and exit\n      -v, --version  Print version and quit.\n    \n    Available commands::\n\n        check        Check non-pip3-installable dependencies\n        input        Generate input table\n        run          Run the prufus pipeline\n        merge        Runs the module to read in the metadata table and merge it\n                     with PRufus output.csv files.\n\nNotice, above, three modules: one each for **input**, **run** and **merge**.  Each can be run independently. \n\n**input module**\n\nThis module is used to generate the isolates.tab file.  Final output from this command is sent to **standard out (stdout)**.  To capture the information from stdout, redirect it to a file using '> isolates.tab'::  \n\n    prufus input -h\n    prufus input -i isolates.txt > isolates.tab\n\n**run module**\n\nThis module is used to run the analysis pipeline.  In the example below, output will be a folder called **results** and we have selected to use the **tree option with -t** using a **JC** model of evolution (default for the -t option, but user can also choose from **Raw** or **Kimura**)::  \n\n    prufus run -h\n    prufus run -i isolates.tab -o results -t\n\nIn the results folder there is a sub-folder for each isolate containing the results for each isolate.  Also within the results folder there are three files::  \n\n    results/isolates_metadataAll.csv\n    results/isolates_metadataAll_simplified.csv\n    results/isolates_andi_JCdist_nj.tre\n\n**merge module**\n\nThis module is used to join existing metadata tables (e.g., LIMS table) with one of the output tables from the run module.  In this example, an excel file (AMR\\_ongoing\\_20170307.xlsx, with a header on line 5 and first column containing isolate names that were expanded with a wildcard search during the **prufus input** step above) is joined with the results/isolates\\_metadataAll\\_simplified.csv table.  Again, final output is sent to stdout, which in this example is redirected to file using '> results/AMR\\_ongoing\\_20170307\\_join\\_isolates\\_metadataAll\\_simplified.csv'::  \n\n    prufus merge -h\n    prufus merge -l AMR_ongoing_20170307.xlsx -r results/isolates_metadataAll_simplified.csv > results/AMR_ongoing_20170307_join_isolates_metadataAll_simplified.csv\n\nWhy use PRufus?\n---------------------\n\nPRufus provides a single table of metadata and a tree that the metadata can be plotted next to using **phandango**  \n\nhttps://jameshadfield.github.io/phandango/\n\n![alt tag](http://bioinformatics.mdu.unimelb.edu.au/~schultzm/PRufus/phandango.png)\n\nThe single NJ tree for the whole isolate set is inferred using the program **quicktree** from a distance matrix computed by **andi** using any of the evolutionary models JC, Raw or Kimura.  Andi infers the distance matrix from the assemblies (typically contigs.fa files).  The tree will not include isolates for which the assembly file is missing.\n\nThe summary table (csv) for all isolates combines the results from:\n\n1. inferred species from running kraken on the reads  \n2. inferred species call from running kraken on the contigs (assemblies)  \n3. Inferred consensus species call from a consensus of the best hit from kraken on the reads and kraken on the contigs  \n4. Based on the species call, runs mlst using the appropriate scheme (if available) or autodetects scheme  \n5. Gene content profiles using unlimited number of user databases of resistance genes, plasmid rep genes, virulence genes, etc., using abricate (contigs, BLAST contigs against database, assembly based) and ariba (reads, MiniMapping to database, mapping based)  \n6. QC metrics using seqtk for reads and contigs  \n7. Reports software versions and paths to databases used in the analysis (for repeatability)  \n8. The pipeline is modular in that the user can choose not to perform the tree inference step with andi plus quicktree and/or the can choose not to perform the read mapping step using ariba  \n9. A flowchart is produced for the run (however, if the total path length of the results folders combined exceeds 16384 characters then the flowchart cannot be drawn)  \n10. The user can supply reads and/or contigs for each file.  The final tree will only include taxa for which contigs have been supplied  \n\n\nAssumptions\n-----------\n\nFirst you need to download assemblies or perform the assemblies yourself from readsets (using e.g., unicycler https://github.com/rrwick/Unicycler, which uses SPAdes (http://bioinf.spbau.ru/spades) or MegaHit (https://github.com/voutcn/megahit)).  It doesn't necessarily make sense to supply reads for an isolate but contigs that have been assembled using a readset other than the one supplied.  If you don't have reads, leave the columns blank for that isolate (for example, if you just want to characterise assemblies downloaded from NCBI GenBank). If you don't have contigs and only have reads, leave the column blank for contigs (but without contigs there will be no tree).  \n\nLicence\n-------\n\nPRufus is:\n\n| Copyright (C) 2017 Mark B Schultz  \n| https://github.com/schultzm/  \n| email: dr.mark.schultz@gmail.com  \n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU Affero General Public License as published\nby the Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU Affero General Public License for more details.\nYou should have received a copy of the GNU Affero General Public License\nalong with this program.  If not, see <http://www.gnu.org/licenses/>.\n",
+        "docs_url": null,
+        "download_url": "https://github.com/schultzm/prufus/zipball/master",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "",
+        "keywords": "pipeline",
+        "license": "AGPL-3.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "PRufus",
+        "package_url": "http://pypi.python.org/pypi/PRufus",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/PRufus/0.1.70",
+        "requires_python": "",
+        "summary": "PRufus is a bioinformatics tool for for exploring and characterising bacterial genome data.  Input is paired-end reads and assemblies.  Output is an NJ tree inferred from the assemblies (using Andi and Quicktree) and a table of results (species ID, mlst, antimicrobial resistance genes, plasmid replicon types, Virulence genes, read and assembly QC metrics).  Github repo and issue tracker: https://github.com/schultzm/prufus/. Pypi repository: https://pypi.python.org/pypi/prufus",
+        "version": "0.1.70"
+    },
+    "releases": {
+        "0.1.68": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "PRufus-0.1.68.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b047168c72bb912441130392ed791dfb",
+                "packagetype": "sdist",
+                "path": "91/28/8d72e78043341bb87ec1a3bfafbded6662694096fbce17fab255b426603a/PRufus-0.1.68.tar.gz",
+                "python_version": "source",
+                "size": 7477941,
+                "upload_time": "2017-05-03T07:38:33",
+                "url": "https://pypi.python.org/packages/91/28/8d72e78043341bb87ec1a3bfafbded6662694096fbce17fab255b426603a/PRufus-0.1.68.tar.gz"
+            }
+        ],
+        "0.1.69": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "PRufus-0.1.69.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9541bba0192a61f576be8911a000aead",
+                "packagetype": "sdist",
+                "path": "ef/11/d6fd290c26368eb7245da98a63889b79e0e5d8cbc7744346bfb910d45dc5/PRufus-0.1.69.tar.gz",
+                "python_version": "source",
+                "size": 9037643,
+                "upload_time": "2017-05-03T08:33:53",
+                "url": "https://pypi.python.org/packages/ef/11/d6fd290c26368eb7245da98a63889b79e0e5d8cbc7744346bfb910d45dc5/PRufus-0.1.69.tar.gz"
+            }
+        ],
+        "0.1.70": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "PRufus-0.1.70.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f5ba836c7cdc6a2fbb0fad6d669a40fa",
+                "packagetype": "sdist",
+                "path": "83/82/89d08595fcfb67ebbd62c6e89f6b848f7c8845a037a1c9c442636169e10b/PRufus-0.1.70.tar.gz",
+                "python_version": "source",
+                "size": 3426047,
+                "upload_time": "2017-05-04T06:42:12",
+                "url": "https://pypi.python.org/packages/83/82/89d08595fcfb67ebbd62c6e89f6b848f7c8845a037a1c9c442636169e10b/PRufus-0.1.70.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 0,
+            "filename": "PRufus-0.1.70.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f5ba836c7cdc6a2fbb0fad6d669a40fa",
+            "packagetype": "sdist",
+            "path": "83/82/89d08595fcfb67ebbd62c6e89f6b848f7c8845a037a1c9c442636169e10b/PRufus-0.1.70.tar.gz",
+            "python_version": "source",
+            "size": 3426047,
+            "upload_time": "2017-05-04T06:42:12",
+            "url": "https://pypi.python.org/packages/83/82/89d08595fcfb67ebbd62c6e89f6b848f7c8845a037a1c9c442636169e10b/PRufus-0.1.70.tar.gz"
+        }
+    ]
+}

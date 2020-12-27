@@ -1,0 +1,77 @@
+{
+    "info": {
+        "author": "Rudolph Pienaar",
+        "author_email": "rudolph.pienaar@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "###################\npfstorage  v1.1.0.2\n###################\n\n.. image:: https://badge.fury.io/py/pfstorage.svg\n    :target: https://badge.fury.io/py/pfstorage\n\n.. image:: https://travis-ci.org/FNNDSC/pfstorage.svg?branch=master\n    :target: https://travis-ci.org/FNNDSC/pfstorage\n\n.. image:: https://img.shields.io/badge/python-3.5%2B-blue.svg\n    :target: https://badge.fury.io/py/pfcon\n\n.. contents:: Table of Contents\n\n********\nOverview\n********\n\nThis repository provides ``pfstorage`` -- a library / module that speaks to an object storage backend (such as *swift*) and also provides logic for handling input/output data locations for the ChRIS system.\n\npfstorage\n=========\n\nMost simply, ``pfstorage`` is a module that offers a regularized interface to some other backend object storage. While currently supporting ``swift``, the long term idea is to support a multitude of backends. By providing its own interface to several storage backends, this module removes the need for client code to change when a different object storage backend is used.\n\nWhile at its core a module/library, ``pfstorage`` also provides two modes of stand-alone access: (1) a command line script interface mode to the library, and (2) a persistent http server mode. In the command line mode, the main module functions are exposed to appropriate CLI. In the http server mode, a client can use curl-type http calls to call the underlying library functions.\n\n************\nInstallation\n************\n\nInstallation is relatively straightforward, and we recommend using either python virtual environments or docker.\n\nPython Virtual Environment\n==========================\n\nOn Ubuntu, install the Python virtual environment creator\n\n.. code-block:: bash\n\n  sudo apt install virtualenv\n\nThen, create a directory for your virtual environments e.g.:\n\n.. code-block:: bash\n\n  mkdir ~/python-envs\n\nYou might want to add to your .bashrc file these two lines:\n\n.. code-block:: bash\n\n    export WORKON_HOME=~/python-envs\n    source /usr/local/bin/virtualenvwrapper.sh\n\nNote that depending on distro, the virtualenvwrapper.sh path might be\n\n.. code-block:: bash\n\n    /usr/share/virtualenvwrapper/virtualenvwrapper.sh\n\nSubsequently, you can source your ``.bashrc`` and create a new Python3 virtual environment:\n\n.. code-block:: bash\n\n    source .bashrc\n    mkvirtualenv --python=python3 python_env\n\nTo activate or \"enter\" the virtual env:\n\n.. code-block:: bash\n\n    workon python_env\n\nTo deactivate virtual env:\n\n.. code-block:: bash\n\n    deactivate\n\nUsing the ``fnndsc/pfstorage`` docker container\n================================================\n\nThe easiest option however, is to just use the ``fnndsc/pfstorage`` dock.\n\n.. code-block:: bash\n\n    docker pull fnndsc/pfstorage\n    \nand then run (for example in http server mode access to the library):\n\n.. code-block:: bash\n\n    docker run --name pfstorage -v /home:/Users --rm -ti \\\n           fnndsc/pfstorage \\\n           --ipSwift localhost \\\n           --portSwift 8080 \\\n           --forever \\\n           --httpResponse \\\n           --server\n\nor in CLI mode:\n\n.. code-block:: bash\n\n    docker run --name pfstorage -v /home:/Users --rm -ti \\\n           fnndsc/pfstorage \\\n           --ipSwift localhost \\\n           --portSwift 8080 \\\n           --msg '\n            { \"action\": \"ls\",\n              \"meta\": {\n                            \"path\":         \"\",       \n                            \"retSpec\":      [\"name\", \"bytes\"]\n                      }                                   \n            }'\n        \n\n*****\nUsage\n*****\n\nFor usage of  ``pfstorage``, consult the relevant wiki pages  <https://github.com/FNNDSC/pfstorage/wiki/pfcon-overview>`.\n\nCommand line arguments\n======================\n\n.. code-block:: html\n\n        --msg '<JSON_formatted>'\n        The action to perform. This can be one of:\n\n            * objPull -- pull data from storage to file system\n            * objPush -- push data from file system to storage\n            * ls      -- listing of data within storage\n\n        with a JSON formatted string similar to:\n\n            * ls:\n            { \"action\": \"ls\",\n              \"meta\": {\n                            \"path\":         \"\",       \n                            \"retSpec\":      [\"name\", \"bytes\"]\n                      }                                   \n            }\n\n            * objPut:\n            {  \"action\": \"objPut\",\n                \"meta\": {\n                            \"putSpec\":              \"./data\",\n                            \"inLocation\":           \"storage\",\n                            \"mapLocationOver\":      \"./data\"\n                        }\n            } \n\n            * objPull:\n            {  \"action\": \"objPull\",\n                \"meta\": {\n                            \"path\":                 \"chris\",\n                            \"substr\":               \"/018\",\n                            \"fromLocation\":         \"chris/uploads/DICOM\",\n                            \"mapLocationOver\":      \"./data\"\n                        }\n            }                     \n\n        [--type <storageBackendType>]\n        The type of object storage. Currently this is 'swift'.\n\n        [--ipSwift <swiftIP>]                            \n        The IP interface of the object storage service. Default %s.\n\n        [--portSwift <swiftPort>]\n        The port of the object storage service. Defaults to '8080'.\n\n        [--ipSelf <selfIP>]                            \n        The IP interface of the pfstorage service for server mode. Default %s.\n\n        [--portSelf <selfPort>]\n        The port of the pfstorage service for server mode. Defaults to '4055'.\n\n        [--httpResponse]\n        In servier mode, send return strings as HTTP formatted replies \n        with content-type html.\n\n        [--configFileLoad <file>]\n        Load configuration information from the JSON formatted <file>.\n\n        [--configFileSave <file>]\n        Save configuration information to the JSON formatted <file>.\n\n        [-x|--desc]                                     \n        Provide an overview help page.\n\n        [-y|--synopsis]\n        Provide a synopsis help summary.\n\n        [--version]\n        Print internal version number and exit.\n\n        [--debugToDir <dir>]\n        A directory to contain various debugging output -- these are typically\n        JSON object strings capturing internal state. If empty string (default)\n        then no debugging outputs are captured/generated. If specified, then\n        ``pfcon`` will check for dir existence and attempt to create if\n        needed.\n\n        [-v|--verbosity <level>]\n        Set the verbosity level. \"0\" typically means no/minimal output. Allows for\n        more fine tuned output control as opposed to '--quiet' that effectively\n        silences everything.\n\n\n********\nEXAMPLES\n********\n\nscript mode\n===========\n\n.. code-block:: bash\n\n    pfstorage                                               \\\n        --ipSwift localhost                                 \\\n        --portSwift 8080                                    \\\n        --verbosity 1                                       \\\n        --debugToDir /tmp                                   \\\n        --type swift                                        \\\n        --msg ' \n        {\n            \"action\":   \"ls\",\n            \"meta\": {\n                \"path\":         \"\",       \n                \"retSpec\":      [\"name\", \"bytes\"]\n            }\n        }\n        '\n\nserver mode\n===========\n\n*start server*:\n\n.. code-block:: bash\n\n    pfstorage                                               \\\n        --ipSwift localhost                                 \\\n        --portSwift 8080                                    \\\n        --ipSelf localhost                                  \\\n        --portSelf 4055                                     \\\n        --httpResponse                                      \\\n        --verbosity 1                                       \\\n        --debugToDir /tmp                                   \\\n        --type swift                                        \\\n        --server                                            \\\n        --forever \n\n*query server*:\n\n.. code-block:: bash\n\n    pfurl --verb POST --raw                                 \\\n          --http localhost:4055/api/v1/cmd                  \\\n          --httpResponseBodyParse                           \\\n          --jsonwrapper 'payload'                           \\\n          --msg '\n                {\n                    \"action\":   \"ls\",\n                    \"meta\": {\n                        \"path\":         \"\",\n                        \"retSpec\":      [\"name\", \"bytes\"]\n                    }\n                }\n        '",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/FNNDSC/pfstorage",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pfstorage1",
+        "package_url": "https://pypi.org/project/pfstorage1/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pfstorage1/",
+        "project_urls": {
+            "Homepage": "https://github.com/FNNDSC/pfstorage"
+        },
+        "release_url": "https://pypi.org/project/pfstorage1/1.1.0.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "object storage interface",
+        "version": "1.1.0.2"
+    },
+    "last_serial": 5745723,
+    "releases": {
+        "1.1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a846fe0f99ec4602242aa1b4465a73c2",
+                    "sha256": "d001b00d99f0c997d22d54adabbaf06e0263ee6a356d036f18f38336cf807a3f"
+                },
+                "downloads": -1,
+                "filename": "pfstorage1-1.1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a846fe0f99ec4602242aa1b4465a73c2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17977,
+                "upload_time": "2019-08-28T21:04:47",
+                "upload_time_iso_8601": "2019-08-28T21:04:47.715427Z",
+                "url": "https://files.pythonhosted.org/packages/44/18/544cf122034877c235ca7aeb088a5e5c237c132c9b6e432bf120181717e9/pfstorage1-1.1.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a846fe0f99ec4602242aa1b4465a73c2",
+                "sha256": "d001b00d99f0c997d22d54adabbaf06e0263ee6a356d036f18f38336cf807a3f"
+            },
+            "downloads": -1,
+            "filename": "pfstorage1-1.1.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a846fe0f99ec4602242aa1b4465a73c2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 17977,
+            "upload_time": "2019-08-28T21:04:47",
+            "upload_time_iso_8601": "2019-08-28T21:04:47.715427Z",
+            "url": "https://files.pythonhosted.org/packages/44/18/544cf122034877c235ca7aeb088a5e5c237c132c9b6e432bf120181717e9/pfstorage1-1.1.0.2.tar.gz"
+        }
+    ]
+}

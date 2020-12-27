@@ -1,0 +1,94 @@
+{
+    "info": {
+        "author": "Leonard Mivinci",
+        "author_email": "1366723936@qq.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# TSORM\n\n\u4e3a python-Flask \u9879\u76ee\u63d0\u4f9b\u7b80\u5355\u7684\u5bf9\u8c61\u5173\u7cfb\u6620\u5c04APIs\n\n## 'TS' stands for Simple, Swift and Stupid.\n\n\n\n![huaji](images/huaji.GIF)\n\n\n\n\n\n### \u5b89\u88c5\n\n```bash\npip3 install tsorm\n```\n\n\n<br><br>\n\n### \u6570\u636e\u5e93\u914d\u7f6e\u6587\u4ef6\n\n##### \u901a\u8fc7\u5185\u7f6e\u811a\u672c\u952e\u5165\u53c2\u6570\u6765\u914d\u7f6e(\u8be5\u9879\u5df2\u5e9f\u9664)\n\n```bash\ncd your project\ngit clone git@github.com:Mivinci/tsorm.git\ncd tsorm\n\n# \u82e5\u672c\u5730\u6570\u636e\u5e93\npython3 start.py user password database\n\n# \u82e5\u4e91\npython3 start.py user password database server_url\n```\n\n##### \u4fee\u6539\u5168\u5c40\u6570\u636e\u5e93\u914d\u7f6e\u6587\u4ef6\n\n```python\n(venv) python3\n>>> from tsorm.conf.edit import add_db_config\n>>> add_db_config('your username', 'your paswword', 'your database', 'your host_url')\n\n```\n\n\u5176\u4e2d\u7b2c4\u4e2a\u53c2\u6570\u82e5\u4e0d\u586b\uff0c\u9ed8\u8ba4\u4e3a '127.0.0.1'\n\n\u82e5\u6210\u529f\u4f1a\u770b\u5230 `You got me!` \u5b57\u6837\n\n\u6216\u66f4\u7b80\u5355\u7c97\u66b4\uff0c\u76f4\u63a5\u6539\u5185\u7f6e\u7684\u914d\u7f6e\u6587\u4ef6 (\u81ea\u5df1\u627e8\uff5e)\n\n\n\n##### \u81ea\u5b9a\u4e49\u6570\u636e\u5e93\u914d\u7f6e\u6587\u4ef6\uff08\u63a8\u8350\uff09\n\n\u793a\u4f8b\uff1a\n\n```python\n# settings.py\n\nDB_CONFIG = {\n    'user': 'root',\n    'password': 'xxxxxx',\n    'host': '127.0.0.1',\n    'port': '3306',\n    'database': 'wx',\n    'charset': 'utf8'\n}\n```\n\n- key \u5fc5\u987b\u548c\u793a\u4f8b\u4e2d\u4e00\u6837\uff01\n- key \u5fc5\u987b\u548c\u793a\u4f8b\u4e2d\u4e00\u6837\uff01\n- key \u5fc5\u987b\u548c\u793a\u4f8b\u4e2d\u4e00\u6837\uff01\n\n\n\n> \u6709\u66f4\u597d\u7684\u65b9\u6cd5\u6b22\u8fce issue\n\n<br><br>\n\n### \u521b\u5efa\u6a21\u578b\n\n\u5982\u9700\u521b\u5efa\u8868\u540d\u4e3a `user`\uff0c\u82e5\u6709\u5b57\u6bb5 `id`, `name`, `age`, `first_time`\n\n```python\nfrom tsorm.dev.orm import Model, StrField, IntField, TimeField\n\nclass User(Model):            # \u7ee7\u627f\u8be5\u5e93\u7684 Model \u7c7b\n    name = StrField()         # \u9ed8\u8ba4\u503c\u4e3aNULL\uff0c\u9ed8\u8ba4\u6700\u5927\u957f\u5ea6255\n    age = IntField()          # \u9ed8\u8ba4\u503c\u4e3aNULL\uff0c\u9ed8\u8ba4\u6700\u5927\u957f\u5ea611\n    first_time = TimeField()  #\u9ed8\u8ba4\u503c\u4e3a\u7b2c\u4e00\u6b21\u63d2\u5165\u6570\u636e\u7684\u65f6\u95f4\uff0c\u9ed8\u8ba4\u81ea\u52a8\u66f4\u65b0\u4e3aFalse\n```\n\n- \u4f1a\u81ea\u52a8\u751f\u6210\u81ea\u589e\u7684\u4e3b\u952e `id`\n- \u4f1a\u81ea\u52a8\u4ee5\u7c7b\u540d\u7684\u5c0f\u5199\u6765\u751f\u6210\u8868\u540d\n\n\u4e5f\u53ef\u4ee5\u81ea\u5b9a\u4e49\u521d\u59cb\u503c\n\n```python\nfrom settings import DB_CONFIG  # \u4f60\u7684\u8def\u5f84\n\nclass User(Model):\n    __db__ = DB_CONFIG        # \u6ca1\u8fd9\u884c \u9ed8\u8ba4\u4e3a\u5168\u5c40\u6570\u636e\u5e93\u914d\u7f6e(\u89c1\u4e0a)\n    __table__ = 'user_info'   # \u6ca1\u8fd9\u884c \u9ed8\u8ba4\u7684\u8868\u540d\u4e3a 'user'\n    name = StrField(default='xxx', maxlen=25)\n    age = IntField(default='xxx', maxlen=11)\n    first_time = TimeField(default='2018-10-24 23:59:59', auto_update=True)\n```\n\n- \u76ee\u524d\u4ec5\u652f\u6301\u4ee5\u4e0a\u6709\u7684\u81ea\u5b9a\u4e49\u521d\u59cb\u503c\n- \u82e5\u9700\u8bbedefault=0\uff0c\u9700\u8981\u5199\u6210default='0'\n\n<br><br>\n\n### \u521b\u5efa\u8868\n\n```python\nUser.migrate().create()\n```\n\n\u8fd4\u56de 0\n\n\u82e5\u8868\u5df2\u5b58\u5728\uff0c\u5c31\u4e0d\u9700\u8981\u8c03\u7528\u8fd9\u4e00\u4e2aAPI\u5566\n\n<br><br>\n\n### \u5220\u9664\u8868\n\n```python\nUser.migrate().drop()\n```\n\n\u8fd4\u56de 0\n\n<br><br>\n\n### \u589e\u52a0\u4e00\u6761\u6570\u636e\n\n\u82e5\u8981\u589e\u52a0\u7684\u7eaa\u5f55\u4e3a\uff1aTom 23\n\n```python\nUser.new(name='Tom', age=23).insert()\n```\n\n\u8fd4\u56de\u589e\u52a0\u7684\u8bb0\u5f55\u7684\u4e2a\u6570\n\n<br><br>\n\n### \u5220\u9664\u4e00\u6761\u6570\u636e\n\n\u82e5\u8981\u5220\u9664name\u4e3aTom\uff0cage\u4e3a 23 \u7684\u8bb0\u5f55\n\n```python\nUser.where(name='Tom', age=23).delete()\n```\n\n\u8fd4\u56de\u5220\u9664\u7684\u8bb0\u5f55\u7684\u4e2a\u6570\n\n<br><br>\n\n### \u66f4\u65b0\u4e00\u6761\u8bb0\u5f55\n\n\u82e5\u8981\u5c06 Tom 23 \u66f4\u65b0\u4e3a Jerry 23\n\n```python\nUser.where(name='Tom', age=23).update(name='Jerry')\n```\n\n\u8fd4\u56de\u66f4\u65b0\u7684\u8bb0\u5f55\u7684\u4e2a\u6570\n\n<br><br>\n\n### \u67e5\u8be2\u8bb0\u5f55\n\n\u82e5\u8981\u67e5\u8be2 name\u4e3aTom\uff0c age\u4e3a23\u7684\u6574\u6761\u8bb0\u5f55\n\n```python\nUser.where(name='Tom', age=23).select()\n```\n\n- \u8fd4\u56de\u7684\u662f\u5b57\u5178\u5217\u8868  `[{}, {} ...]`  \uff08\u4f60\u61c2\u6211\u7684\u610f\u601d\u5427\uff1f\uff09\n\n\u82e5\u53ea\u9700\u8981\u67e5\u8be2\u67d0\u4e00\u5b57\u6bb5\u503c\uff0c\u5982 `age`\n\n```python\nUser.where(name='Tom', age=23).need('age').select()\n```\n\n- \u4e0b\u9762\u4e24\u884c\u7684\u6548\u679c\u76f8\u540c\uff0c\u90fd\u8868\u793a\u67e5\u8be2\u6ee1\u8db3\u6761\u4ef6\u7684\u6574\u6761\u8bb0\u5f55\n\n  ```python\n  User.where(name='Tom', age=23).select()\n  \n  User.where(name='Tom', age=23).need('*').select()\n  ```\n\n- \u8be5\u65b9\u6cd5\u4e5f\u652f\u6301 `\u6a21\u7cca\u67e5\u8be2` \n\n  ```python\n  User.where(name='To').select(fuzzy=True)\n  ```\n\n\n<br><br>\n\n### \u603b\u4e4b\n\n\u63d0\u4f9b\u7684\u4f7f\u7528\u63a5\u53e3\u6709\n\n```python\nObject.migrate().create()                    # \u5efa\u8868\n                .drop()                      # \u5220\u8868\n                .count('\u5b57\u6bb5\u540d')              # \u67e5\u8be2\u8be5\u5b57\u6bb5\u8bb0\u5f55\u503c\u6570\u91cf\n\nObject.new(**kwargs).insert() \t\t\t     # \u63d2\u5165\u8bb0\u5f55\n\nObject.where(**kwargs).delete()              # \u5220\u9664\u8bb0\u5f55\n                      .update(**kwargs)      # \u66f4\u65b0\u8bb0\u5f55\n                      .select()              # \u67e5\u8be2\u8bb0\u5f55\n                      .select(fuzzy=True)    # \u6a21\u7cca\u67e5\u8be2\n                      .need(*args).select()  # \u67e5\u8be2\u8bb0\u5f55\n                      \n```\n\n\u4f60\u61c2\u6211\u7684\u610f\u601d8\uff5e\n\n<br><br>\n\n### \u5176\u4ed6\n\n\u8be5\u8f6e\u5b50\u8fd8\u63d0\u4f9b\u4e00\u4e9b\u9759\u6001\u65b9\u6cd5\n\n`tuple_to_list() `  \u5c06\u5b58\u653e\u5b57\u6bb5\u540d\u7684\u5143\u7ec4\u4e0e pymysql \u8fd4\u56de\u7684\u67e5\u8be2\u8bb0\u5f55\u7684\u5143\u7ec4\u7ec4\u88c5\u6210\u5b57\u5178\u5217\u8868\uff0c\u5982\n\n```python\nfrom tsorm.dev.orm import tuple2list\n\nkeys = ('name', 'age')\ndata = (('Tom', 23), ('Jerry', 21))\n\nres = tuple2list(keys, data)\n\nprint(res)\n```\n\n\u7ed3\u679c\u5982\u4e0b\uff1a\n\n```python\n[\n    {\n        'name', 'Tom',\n        'age': 23\n    },\n    {\n        'name': 'Jerry',\n        'age': 21\n    }\n]\n```\n\n\u4f60\u61c2\u6211\u7684\u610f\u601d8 ~\n\n\n\n<br><br><br><br>\n\n\n\n\n\n<hr/>\n\n#### \u4e0b\u4e2a\u7248\u672c\u9884\u8ba1\u6dfb\u52a0:\n\n- \u5916\u952e `ForeignKey()`\n\n  ```python\n  # Something like:\n  class Teacher(Model):\n      ...\n  \n  class Student(Model):\n      teacher = ForeignKey(related='id')\n      ...\n      \n  Student.new(teacher=Teacher, ...).insert()\n  ```\n\n\n\n   \n\n- \u8bfb\u53d6\u5e76\u6267\u884c\u81ea\u5b9a\u4e49\u7684sql\u8bed\u53e5\n\n  ```python\n  # Something like:\n  Object.migrate().read('path/xxx.sql').do()   # \u8fd4\u56de\u5f71\u54cd\u7684\u884c\u6570\n  ```\n\n\n\n\n## Go get me some issues\n\n![errors](images/errors.png)",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Mivinci/tsorm",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "TSORM",
+        "package_url": "https://pypi.org/project/TSORM/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/TSORM/",
+        "project_urls": {
+            "Homepage": "https://github.com/Mivinci/tsorm"
+        },
+        "release_url": "https://pypi.org/project/TSORM/0.2.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Provide simple ORM APIs for Python project",
+        "version": "0.2.3"
+    },
+    "last_serial": 4470005,
+    "releases": {
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4dfa1ace793503086a031f64c0709e4b",
+                    "sha256": "4cca97bf24592c4cb90a481f066a028ff8a95da73a2f0bed6d8cdf9304370f33"
+                },
+                "downloads": -1,
+                "filename": "tsorm-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4dfa1ace793503086a031f64c0709e4b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7208,
+                "upload_time": "2018-11-09T15:55:29",
+                "url": "https://files.pythonhosted.org/packages/1e/3f/be20999dd482e8160fba9f3cdd6a509d7694c806f0ccd2a961ccd4badc32/tsorm-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2a6eaca06f0ab9556f95099ed0143d2d",
+                    "sha256": "0fc869f4a600ac6adec532652ca2e96e35933c250649635e7b373ba7589e8b07"
+                },
+                "downloads": -1,
+                "filename": "tsorm-0.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2a6eaca06f0ab9556f95099ed0143d2d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7209,
+                "upload_time": "2018-11-09T16:17:28",
+                "url": "https://files.pythonhosted.org/packages/7e/c3/6d8281fc5a096561b561348e612aa7db2daa641d3195752878b6bc8e9be4/tsorm-0.2.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2a6eaca06f0ab9556f95099ed0143d2d",
+                "sha256": "0fc869f4a600ac6adec532652ca2e96e35933c250649635e7b373ba7589e8b07"
+            },
+            "downloads": -1,
+            "filename": "tsorm-0.2.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "2a6eaca06f0ab9556f95099ed0143d2d",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7209,
+            "upload_time": "2018-11-09T16:17:28",
+            "url": "https://files.pythonhosted.org/packages/7e/c3/6d8281fc5a096561b561348e612aa7db2daa641d3195752878b6bc8e9be4/tsorm-0.2.3.tar.gz"
+        }
+    ]
+}

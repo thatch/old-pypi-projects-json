@@ -1,0 +1,112 @@
+{
+    "info": {
+        "author": "",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "\n[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)\n\n<p align=\"center\">\n  <img src=\"https://github.com/andresmao/test/blob/master/pandas_glue_logo_2.png\" width=\"450\" title=\"Pandas Glue\">\n</p>\n\n# AWSdata\n\n***A Python library for creating lite ETLs with the widely used Python libraries and the power of AWS Services.***\n\n\nWith **AWSdata** you will be able to write/read to/from an AWS Data Lake with one single line of code. With its minimalist nature **AWSdata** has an interface with only 2 functions:\n\n\n|   function   \t|       From       \t|        To        \t|\n|:------------:\t|:----------------:\t|:----------------:\t|\n| write_glue() \t| Pandas DataFrame \t|  AWS Glue Table  \t|\n|  read_glue() \t|   AWS GlueTable  \t| Pandas DataFrame \t|\n\n\n\nOnce your data is mapped to [AWS Glue Catalog](https://aws.amazon.com/glue/) it will be accessible to many other tools like [AWS Redshift Spectrum](https://aws.amazon.com/redshift/), [AWS Athena](https://aws.amazon.com/athena/), [AWS Glue Jobs](https://aws.amazon.com/glue/), [AWS EMR](https://aws.amazon.com/emr/) ([Spark](https://spark.apache.org/), [Hive](https://hive.apache.org/), [PrestoDB](https://prestodb.github.io)), etc.\n\n[Amazon Glue](https://aws.amazon.com/glue/) is an [AWS](https://aws.amazon.com/) simple, flexible, and cost-effective ETL service and [Pandas](https://pandas.pydata.org/) is a Python library which provides high-performance, easy-to-use data structures and data analysis tools.\n\nThe goal of this package is help data engineers in the usage of cost efficient serverless compute services ([Lambda](https://aws.amazon.com/glue/), [Glue](https://aws.amazon.com/lambda/), [Athena](https://aws.amazon.com/athena/)) in order to provide an easy way to integrate Pandas with  AWS Glue,  allowing load (*appending, overwriting or only overwriting the partitions with data*) the content of a DataFrame (**Write function**) directly in a table (parquet/csv format) in the [Glue Data Catalog](https://docs.aws.amazon.com/glue/latest/dg/populate-data-catalog.html) and also execute Athena queries (**Read function**) returning the result directly in a Pandas DataFrame.\n\n## Use cases\n\nThis package is recommended for ETL purposes which loads and transforms small to medium size datasets without requiring to create Spark jobs, helping reduce infrastructure costs.\n\nIt could be used within [Lambda functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-introduction-function.html), [Glue scripts](https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-python.html), [EC2](https://aws.amazon.com/ec2/) instances or any other infrastucture resources.\n\n<p align=\"center\">\n  <img src=\"https://github.com/andresmao/test/blob/master/Pandas_glue_workflow2.png\" width=\"700\"  title=\"ETL Workflow\">\n</p>\n\n### Prerequisites\n\n* [Python 2.7, 3.6, 3.7](https://www.python.org/downloads/) \n\n```\npip install pandas\npip install boto3\npip install pyarrow \n```\n\n### Installing the package...\n\n```\npip install awsdata\n```\n\nOr you can download direct the artifacts for [AWS Lambda Layer](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) / [AWS Glue Job](https://docs.aws.amazon.com/glue/latest/dg/add-job-python.html) from our [release page](https://github.com/igorborgest/aws-data-sdk/releases). Then you only will need to upload it in your AWS account.\n\n## Usage \n\n**Read method:**\n\n***read_glue()***\n\nTo retrieve the result of an Athena Query in a Pandas DataFrame.\n\nQuick example:\n\n```python\nimport pandas as pd\nimport awsdata\n\n#Parameters\nsql_query = \"SELECT * FROM table_name LIMIT 20\" \ndb_name = \"DB_NAME\"\ns3_output_bucket = \"s3://bucket-url/\"\n\ndf = awsdata.read_glue(sql_query,db_name,s3_output_bucket)\n\nprint(df)\n\n```\n***Parameters list:***\n\n* ***query:*** the SQL statement on Athena\n* ***db:*** database name.\n* ***s3_output:*** path of the S3 output folder (optional)\n* ***region:*** id of the AWS region, e.g: us-west-1 (optional)\n* ***key:*** AWS Access key (optional)\n* ***secret:*** AWS secret key (optional)\n* ***profile_name:*** AWS IAM profile (optional)\n\n<p>\n  <hr>\n</p>\n\n\n**Write method:**\n\n***write_glue()***\n\nConvert a given Pandas Dataframe to a Glue Parquet table.\n\nQuick example:\n\n```python\nimport pandas as pd\nimport awsdata\n\n#Parameters\ndatabase = \"DB_NAME\"\ntable_name = \"TB_NAME\"\ns3_path = \"s3://bucket-url/\"\n\n#Sample DF\nsource_data = {'name': ['Sarah', 'Renata', 'Erika', 'Fernanda', 'Diana'], \n        'city': ['Seattle', 'Sao Paulo', 'Seattle', 'Santiago', 'Lima'],\n         'test_score': [82, 52, 56, 234, 254]}\n\ndf = pd.DataFrame(source_data, columns = ['name', 'city', 'test_score'])\n\n\nawsdata.write_glue(df, database, table_name, s3_path, partition_cols=['city'])\n```\n\n\n***Parameters list:***\n\n* ***df:*** variable containing the Pandas DataFrame\n* ***database:*** database name.\n* ***path:*** Path of the target S3 bucket\n* ***table:*** table name (optional)\n* ***partition_cols:*** list of columns to partition (optional)\n* ***preserve_index:*** boolean, if you want to preserve the index on the table (optional)\n* ***file_format:*** parquet|csv(optional)\n* ***mode:*** append|overwrite|overwrite_partitions(optional)\n* ***region:*** ID of the AWS region (optional)\n* ***key:*** AWS Access key (optional)\n* ***secret:*** AWS secret key (optional)\n* ***profile_name:*** AWS IAM profile (optional)\n\n\n## Built With\n\n* [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) - (AWS) SDK for Python, which allows Python developers to write software that makes use of Amazon services like S3 and EC2.\n* [PyArrow](https://pypi.org/project/pyarrow/) - Python package to interoperate Arrow with Python allowing to convert text files format to parquet files among other functions.\n\n\n## Contributing\n\nPlease read [CONTRIBUTING.md](https://gist.github.com/) for details on our code of conduct, and the process for submitting pull requests to us.\n\n## Authors\n\n* *Igor Tavares* - [Profile link](https://github.com/igorborgest)\n* *Ricardo Serafim* - [Profile link](https://github.com/rcserafim)\n* *Andres Palacios* - [Profile link](https://github.com/andresmao)\n\nSee also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.\n\n## License\n\nThis project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details\n\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "Apache License 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "awsdata",
+        "package_url": "https://pypi.org/project/awsdata/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/awsdata/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/awsdata/0.0.0/",
+        "requires_dist": [
+            "pyarrow (==0.12.0)",
+            "pandas (==0.24.1)",
+            "boto3",
+            "s3fs (==0.2.0)"
+        ],
+        "requires_python": ">=2.7",
+        "summary": "The missing Link between AWS services and the most popular Python data libraries",
+        "version": "0.0.0"
+    },
+    "last_serial": 4826459,
+    "releases": {
+        "0.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "63f4dff473ea66ea808e2f874b1f75b4",
+                    "sha256": "468d39f13060cd674089434b949aa8e3db4df5f77f037b7f3909487729c28649"
+                },
+                "downloads": -1,
+                "filename": "awsdata-0.0.0-py27,py36,py37-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "63f4dff473ea66ea808e2f874b1f75b4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py27,py36,py37",
+                "requires_python": ">=2.7",
+                "size": 16785,
+                "upload_time": "2019-02-15T18:19:07",
+                "url": "https://files.pythonhosted.org/packages/05/ef/c29f20a990c32858e3739c8a0f5f79972ef24dea5403f1b85f143ec8ce4d/awsdata-0.0.0-py27,py36,py37-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e7f0cd4cbed4790a68219b490e11eb5e",
+                    "sha256": "9489370b4e6943c0f4e74a5ed1396bc2f14287f35f00b828a45ea566e0d34102"
+                },
+                "downloads": -1,
+                "filename": "awsdata-0.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e7f0cd4cbed4790a68219b490e11eb5e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 15676,
+                "upload_time": "2019-02-15T18:19:10",
+                "url": "https://files.pythonhosted.org/packages/73/a3/8bc5a7b3b3e011243ebbb86c975368ad151902d5ffcbdf95e02e0e86a7a3/awsdata-0.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "63f4dff473ea66ea808e2f874b1f75b4",
+                "sha256": "468d39f13060cd674089434b949aa8e3db4df5f77f037b7f3909487729c28649"
+            },
+            "downloads": -1,
+            "filename": "awsdata-0.0.0-py27,py36,py37-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "63f4dff473ea66ea808e2f874b1f75b4",
+            "packagetype": "bdist_wheel",
+            "python_version": "py27,py36,py37",
+            "requires_python": ">=2.7",
+            "size": 16785,
+            "upload_time": "2019-02-15T18:19:07",
+            "url": "https://files.pythonhosted.org/packages/05/ef/c29f20a990c32858e3739c8a0f5f79972ef24dea5403f1b85f143ec8ce4d/awsdata-0.0.0-py27,py36,py37-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e7f0cd4cbed4790a68219b490e11eb5e",
+                "sha256": "9489370b4e6943c0f4e74a5ed1396bc2f14287f35f00b828a45ea566e0d34102"
+            },
+            "downloads": -1,
+            "filename": "awsdata-0.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e7f0cd4cbed4790a68219b490e11eb5e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=2.7",
+            "size": 15676,
+            "upload_time": "2019-02-15T18:19:10",
+            "url": "https://files.pythonhosted.org/packages/73/a3/8bc5a7b3b3e011243ebbb86c975368ad151902d5ffcbdf95e02e0e86a7a3/awsdata-0.0.0.tar.gz"
+        }
+    ]
+}

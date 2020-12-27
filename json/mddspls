@@ -1,0 +1,987 @@
+{
+    "info": {
+        "author": "Hadrien Lorenzo",
+        "author_email": "hadrien.lorenzo.2015@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "=======\nmddspls\n=======\n\nThat package permits to perform Multi (& Mono) Data-Driven Sparse PLS.\n\nAbstract\n--------\n\nIn the high dimensional settings (large number of variables), one objective is to select the relevant variables and thus to reduce the dimension. That subspace selection is often managed with supervised tools. However, some data can be missing, compromising the validity of the sub-space selection. We propose a PLS, Partial Least Square, based method, called ``dd-sPLS'' for data-driven-sparse PLS, and its multi-block version ``mdd-sPLS'' for multi-block-data-driven-sparse PLS, allowing jointly variable selection and subspace estimation while training and testing missing data imputation through a new algorithm called Koh-Lanta.\n\nHere is an example on simulated data:\n\n    - *n=1000* is the number of individuals\n    - *K=3* is the number ofblocks\n    - **Y** is a *numpy.ndarray* object calling for **regression supervized modeling**\n    - **Xs** is a dictionnary of *K* *numpy.ndarray* objects\n    - **Y_classif** is a *numpy.ndarray* object calling for **classification supervized modeling**\n\n    >>> import mddspls\n    >>> import numpy as np\n    >>> n = 1000\n    >>> mean = (0,0,0,0,0,0,0,0,0)\n    >>> cov = [[1, 0.8,0.8,0.8,0.1,0.1,0.1,0.1,0.1], \n    >>> [0.8,1, 0.8,0.8,0.1,0.1,0.1,0.1,0.1],\n    >>> [0.8,0.8,1, 0.8,0.1,0.1,0.1,0.1,0.1],\n    >>> [0.8,0.8,0.8,1, 0.1,0.1,0.1,0.1,0.1],\n    >>> [0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1],\n    >>> [0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1],\n    >>> [0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1],\n    >>> [0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1],\n    >>> [0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1]]\n    >>> df = np.random.multivariate_normal(mean, cov, n)\n    >>> Y = df[:,[0]]\n    >>> k_groups = 2\n    >>> lolo = np.linspace(min(Y),max(Y),k_groups+1)\n    >>> Y_bin = np.zeros(n)\n    >>> for ii in range(n):\n    >>> \tfor k_i in range(k_groups):\n    >>> \t\tif (Y[ii]>=lolo[k_i])&(Y[ii]<lolo[k_i+1]):\n    >>> \t\t\tY_bin[ii] = k_i\n    >>> \t\tif Y[ii]==lolo[k_groups]:\n    >>> \t\t\tY_bin[ii] = k_groups-1\n    >>> \n    >>> Y = df[:,[0,2]]\n    >>> X0 = df[:,[1,4,5]]\n    >>> X0[0,:] = None\n    >>> X1 = df[:,[6,8]]\n    >>> X1[:,1] = 1\n    >>> X2 = df[:,[3,7]]\n    >>> Xs = {0:X0,1:X1,2:X2}\n    >>> pos_0 = np.where(Y_bin==0)[0]\n    >>> pos_1 = np.where(Y_bin==1)[0]\n    >>> Y_classif = np.repeat(\"Class 2\",n)\n    >>> Y_classif[pos_1] = \"Class 1\"\n\ndd-sPLS regularization parmater is fixed to 0.6\n-----------------------------------------------\n    >>> lambd=0.6\n\nA train/test dataset is defined\n-------------------------------\n    >>> id_train = range(300,1000)\n    >>> id_test = range(300)\n    >>> Xtrain = {0:X0[id_train,:],1:X1[id_train,:],2:X2[id_train,:]}\n    >>> Ytrain = Y[id_train,:]\n    >>> Xtest = {0:X0[id_test,:],1:X1[id_test,:],2:X2[id_test,:]}\n\nHere is performed **regression analysis**\n-----------------------------------------\n    >>> R=2\n    >>> mod_0=mddspls.model.mddspls(Xtrain,Ytrain,lambd=lambd,R=R,mode=\"reg\",verbose=True)\n    >>> Y_est_reg = mod_0.predict(Xtest)\t\t\n    >>> perf_model_reg = perf_mddspls(Xs,Y,R=1,kfolds=3,n_lambd=3,NCORES=3,mode=\"reg\")\n\nHere is performed **classification analysis**\n---------------------------------------------\n    >>> R=1\n    >>> mod_0_classif=mddspls.model.mddspls(Xs,Y_bin,lambd=lambd,R=R,mode=\"clas\",verbose=True)\n    >>> Y_est = mod_0_classif.predict(Xtest)\n    >>> perf_model_class = mddspls.model.perf_mddspls(Xs,Y_classif,R=1,kfolds=3,n_lambd=3,NCORES=3,mode=\"classif\")\n\n:Authors:\n    Hadrien Lorenzo\n\n:Version: >0.37 >2018/08\n:Dedication: To the old gods of data analysis and to Koh-Lanta ",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/hlorenzo/mddspls",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "mddspls",
+        "package_url": "https://pypi.org/project/mddspls/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/mddspls/",
+        "project_urls": {
+            "Homepage": "http://github.com/hlorenzo/mddspls"
+        },
+        "release_url": "https://pypi.org/project/mddspls/0.393192/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "The multi data driven sparse pls package",
+        "version": "0.393192"
+    },
+    "last_serial": 4264823,
+    "releases": {
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "633891bf78fc4c78f60360b90da641c0",
+                    "sha256": "e07087b83c6e787e4df71239c904ae45bb5a8a997df91c95605fbd86a4964c05"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "633891bf78fc4c78f60360b90da641c0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6593,
+                "upload_time": "2018-08-09T13:16:50",
+                "url": "https://files.pythonhosted.org/packages/75/4e/aa9a4f9b90015d7629ba7cf2c71a4badcf25110b7088ba26af1b7be148cf/mddspls-0.2.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fe421708dce1268cfea2fc2414de5258",
+                    "sha256": "2bd90bd7a1d40c848f4ca7a70dd2ede6d10a2ebb399be9ed61600fcdbd981296"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fe421708dce1268cfea2fc2414de5258",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6590,
+                "upload_time": "2018-08-09T13:17:12",
+                "url": "https://files.pythonhosted.org/packages/33/72/b73eaf20491485bd6498aa84feecc84fcd38d4cfa141b3c9c4ff602adc7e/mddspls-0.3.tar.gz"
+            }
+        ],
+        "0.31": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "41a634b2433de9fc8afc49ab6acd7271",
+                    "sha256": "0648d577ef2c61fed8b3d583a60cc884394f98bb3cd19df1eadb1197864eefbb"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.31.tar.gz",
+                "has_sig": false,
+                "md5_digest": "41a634b2433de9fc8afc49ab6acd7271",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6604,
+                "upload_time": "2018-08-09T13:19:14",
+                "url": "https://files.pythonhosted.org/packages/a5/14/3ad8c59bacc33d8c6bf2f1c434aa87326bf4033b55e6656f544f976a3dbb/mddspls-0.31.tar.gz"
+            }
+        ],
+        "0.32": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3a15c17af727e14b88fcdef39585d7d3",
+                    "sha256": "43e67f60a03904f8b5118e2e9083015d1c2d3e0389d94b1dc156628df5555044"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.32.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3a15c17af727e14b88fcdef39585d7d3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7184,
+                "upload_time": "2018-08-09T13:29:36",
+                "url": "https://files.pythonhosted.org/packages/35/b3/575be511bb7a54dc7ce448284bdc2f54a90ba66524777d6d642ce139d42c/mddspls-0.32.tar.gz"
+            }
+        ],
+        "0.33": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b701ecb5f4216e9ceb0624800ad7a8bc",
+                    "sha256": "655b76ae9e41b010d5d382edef60e4750b87caafc41f1004b3a3d15ea15027a3"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.33.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b701ecb5f4216e9ceb0624800ad7a8bc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7588,
+                "upload_time": "2018-08-09T13:33:57",
+                "url": "https://files.pythonhosted.org/packages/cd/90/53fbcc36db76cbddeb11c02c121bc0d9a127378223ca779516b64f2395ed/mddspls-0.33.tar.gz"
+            }
+        ],
+        "0.34": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e0eaf289bd0667bcb42a97444309351",
+                    "sha256": "d5b005a1dd1ad670d87305538a251f6cb2233cd17b4b72b692d805860c265f0f"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.34.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4e0eaf289bd0667bcb42a97444309351",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7768,
+                "upload_time": "2018-08-09T13:35:15",
+                "url": "https://files.pythonhosted.org/packages/f4/17/5da7b8c31bce90e5b366a848d4e31642bfad6bfa100dceb6b1f8c3168293/mddspls-0.34.tar.gz"
+            }
+        ],
+        "0.35": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "189b6eaaede958c707f44dbfac4c27c6",
+                    "sha256": "0131880d1d24dd4cedfa8ced7d4627d1b94575c55b854c6e4464b91959913e3f"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.35.tar.gz",
+                "has_sig": false,
+                "md5_digest": "189b6eaaede958c707f44dbfac4c27c6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7718,
+                "upload_time": "2018-08-09T13:35:38",
+                "url": "https://files.pythonhosted.org/packages/2f/af/9f2e8cd59b0442656c950d49710ea8044f9fd66081ac253b8c0b11cea2db/mddspls-0.35.tar.gz"
+            }
+        ],
+        "0.36": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9edf39b630e3f687cd19155491d39949",
+                    "sha256": "cf9fb87c9633e2a94c47714874b1957bde82e122e877402ed6d9ad3edeca5c3a"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.36.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9edf39b630e3f687cd19155491d39949",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7740,
+                "upload_time": "2018-08-09T13:37:11",
+                "url": "https://files.pythonhosted.org/packages/f1/4e/ec746fca638ac9de4e2da45d16a17047b4d8a574a54edf7167952e5cb06c/mddspls-0.36.tar.gz"
+            }
+        ],
+        "0.37": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a9d52256960226ec143f440afe3ac2c0",
+                    "sha256": "6abff8b002e180f7d1bd40a3c058993236f22b846cce3fabebb5223ad72bfa4f"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.37.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a9d52256960226ec143f440afe3ac2c0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7874,
+                "upload_time": "2018-08-09T14:23:49",
+                "url": "https://files.pythonhosted.org/packages/3e/1b/b788cde3e14a33615422f900e79081587d561a38cf2a09d4d85e7e84c77a/mddspls-0.37.tar.gz"
+            }
+        ],
+        "0.371": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "383d9ef2694abd277cd446d6739a14a6",
+                    "sha256": "8cc746f3218949cea305ec31218b9991339eaf3cda75763c3c038e60afa809e1"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.371.tar.gz",
+                "has_sig": false,
+                "md5_digest": "383d9ef2694abd277cd446d6739a14a6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8164,
+                "upload_time": "2018-08-09T14:24:17",
+                "url": "https://files.pythonhosted.org/packages/d8/4b/3a9fd1a700864c5d58105076886de57e152ff8c8c3ecfd700fd907bc5bad/mddspls-0.371.tar.gz"
+            }
+        ],
+        "0.372": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3ee7a5f0b4c44be4271841f8e25be372",
+                    "sha256": "9cbccaafa2a6609c709ea628a63a7ac534023ec30e915c4c71b21a83002ee556"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.372.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3ee7a5f0b4c44be4271841f8e25be372",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8179,
+                "upload_time": "2018-08-09T14:25:16",
+                "url": "https://files.pythonhosted.org/packages/ca/2e/6e05b220220a18f6fec1e4f7d25cd165f91996cfb31c2019683a3077ea2b/mddspls-0.372.tar.gz"
+            }
+        ],
+        "0.373": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "405e66f1540d9da2c8c3517eefb3057a",
+                    "sha256": "99dc269011bf59a7197af58263e7c7309d026dbaaf958212495c817cc32e547e"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.373.tar.gz",
+                "has_sig": false,
+                "md5_digest": "405e66f1540d9da2c8c3517eefb3057a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8167,
+                "upload_time": "2018-08-09T14:31:44",
+                "url": "https://files.pythonhosted.org/packages/21/a3/3446f9783993015545bc59a6533fba19f53089c2f0e9eff882674a488983/mddspls-0.373.tar.gz"
+            }
+        ],
+        "0.374": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "62e215297fffaa5dcf2110c3cd5dc1c7",
+                    "sha256": "b3e6fe4f51ec1a063f34b42f9e0a78963bdcab906aeb43052ef86e57c1071d8a"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.374.tar.gz",
+                "has_sig": false,
+                "md5_digest": "62e215297fffaa5dcf2110c3cd5dc1c7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8187,
+                "upload_time": "2018-08-09T14:34:55",
+                "url": "https://files.pythonhosted.org/packages/b3/02/47118e7c140b980360444cd4f924d8c78b82ec3ae8662a6b26924c261455/mddspls-0.374.tar.gz"
+            }
+        ],
+        "0.375": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f1eaed594a0e051da5bcf6ac8665d095",
+                    "sha256": "96e7bc9850f4a40af6137a9ec6f6b68c277169c574d01555f0b240e675bf6906"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.375.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f1eaed594a0e051da5bcf6ac8665d095",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8186,
+                "upload_time": "2018-08-09T14:45:59",
+                "url": "https://files.pythonhosted.org/packages/17/ec/3c45eda38998dd2c51d9f8fa61bd1d3d72b29f3a6471b009637dac863daf/mddspls-0.375.tar.gz"
+            }
+        ],
+        "0.376": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f0d8354d3c2b81ca2d637748d88ecef3",
+                    "sha256": "8859c90161f22c6834d94599dacee65e7467e730ac10f4b7ed6a106d748d0620"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.376.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f0d8354d3c2b81ca2d637748d88ecef3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8191,
+                "upload_time": "2018-08-09T15:18:02",
+                "url": "https://files.pythonhosted.org/packages/57/4d/5bcd2e118aa8a78d9260fbd6d7d810b17590fa15712add7be2db12acbd5f/mddspls-0.376.tar.gz"
+            }
+        ],
+        "0.378": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "05643bb518a061f417c3ad1dedbb3445",
+                    "sha256": "f406af3c5a8472fe4a3bd1beadea8a24189c48f68e2051a6f06b3c97b22ea71b"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.378.tar.gz",
+                "has_sig": false,
+                "md5_digest": "05643bb518a061f417c3ad1dedbb3445",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8160,
+                "upload_time": "2018-08-09T15:30:31",
+                "url": "https://files.pythonhosted.org/packages/df/5c/a57db70240483eace91dd443b925a9f06aec0529b90fbf27869f26c5ae04/mddspls-0.378.tar.gz"
+            }
+        ],
+        "0.3781": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0451d81a7220c13037ebf376e03995d6",
+                    "sha256": "5d7a1c12f2a5a91ce55328087e4792d29d7a88085620564b0bb31e585d127607"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3781.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0451d81a7220c13037ebf376e03995d6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8162,
+                "upload_time": "2018-08-09T15:31:12",
+                "url": "https://files.pythonhosted.org/packages/ac/25/2077c0324b18fb806ecfb43c0d76e674b3f2c323d426e38e074226267874/mddspls-0.3781.tar.gz"
+            }
+        ],
+        "0.3782": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bb47ec45111274b9cfc245a7de22f0fb",
+                    "sha256": "ad0609d14a5c4c04004eb2e5794eb264defcd8571353701a40d9c35787c4c8ac"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3782.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bb47ec45111274b9cfc245a7de22f0fb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8171,
+                "upload_time": "2018-08-09T15:41:19",
+                "url": "https://files.pythonhosted.org/packages/f9/ab/073bba20e392819168319d59d86fc27ce2f016569e81892399775aec263a/mddspls-0.3782.tar.gz"
+            }
+        ],
+        "0.3783": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a63e328067126f53069a9f4e80068407",
+                    "sha256": "1bf0bd46f3e52e4350cd11652304bbd7f5742d91a119c065dce5a15acad2d355"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3783.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a63e328067126f53069a9f4e80068407",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8169,
+                "upload_time": "2018-08-09T15:45:05",
+                "url": "https://files.pythonhosted.org/packages/38/dd/4dd083215bc84033335352958a067ca828a49d3ffde94fb91b950f2d4bd8/mddspls-0.3783.tar.gz"
+            }
+        ],
+        "0.3784": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ce81c9b128eb0c2ea713af1c27997e33",
+                    "sha256": "139b789479add559b785d123d180b932bd9b41a4d3b0f0effb4a862ac646c50e"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3784.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ce81c9b128eb0c2ea713af1c27997e33",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8179,
+                "upload_time": "2018-08-09T15:47:31",
+                "url": "https://files.pythonhosted.org/packages/ed/1e/20349cc5d1b7edcf13e4fc058f2597a87228991c4b56edd196ca4d68f4b9/mddspls-0.3784.tar.gz"
+            }
+        ],
+        "0.3785": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e0996537dcd620e9e2359c14f541243a",
+                    "sha256": "d2a8e5f09ce4db7047f8232826e8ac3b50dd47e32fe6c6a28e76d5483b086349"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3785.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e0996537dcd620e9e2359c14f541243a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8166,
+                "upload_time": "2018-08-09T15:49:29",
+                "url": "https://files.pythonhosted.org/packages/54/26/6294bbfdcb53255508ec3db6e35c3a485b267b3e6cb9cfe07a6ebcf592a1/mddspls-0.3785.tar.gz"
+            }
+        ],
+        "0.3786": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6f3ac74994f86f949f55cadd59a98466",
+                    "sha256": "bffcbf8e4d7eec7f99a6013dfaf71a54b97ad12aacfd67482c9f5e388d5ddc08"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3786.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6f3ac74994f86f949f55cadd59a98466",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8169,
+                "upload_time": "2018-08-09T16:04:09",
+                "url": "https://files.pythonhosted.org/packages/3e/b3/720a13203625520ccc51a15d78e2817f9b0f728cde7696dc55657e57cede/mddspls-0.3786.tar.gz"
+            }
+        ],
+        "0.3787": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5ecd2f4da689f1ed4c5c778a716c8dd4",
+                    "sha256": "5a7d36bb1f535f807a1eec37eaca20b30949d2ae97442d1739c1c56d44bbc478"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3787.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5ecd2f4da689f1ed4c5c778a716c8dd4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8165,
+                "upload_time": "2018-08-09T16:06:09",
+                "url": "https://files.pythonhosted.org/packages/6b/f7/e9f27a578989d42568bbf5524a1d9c6280af9a6289945cd0635126237cd4/mddspls-0.3787.tar.gz"
+            }
+        ],
+        "0.3788": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c382b76d41eeb028f6547e8b948c79af",
+                    "sha256": "94596d782d859ba22aa8d314d42e0850107b8ab973b959754759153929e92c67"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3788.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c382b76d41eeb028f6547e8b948c79af",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8177,
+                "upload_time": "2018-08-09T16:07:25",
+                "url": "https://files.pythonhosted.org/packages/96/81/31c649e466466d046862970794e3880ed748863ec815913e4b80bf2bc035/mddspls-0.3788.tar.gz"
+            }
+        ],
+        "0.3789": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48b1c7adfc98541ccd9d75ecb3c77537",
+                    "sha256": "728ceae21c04a62738bffdd6e48fa7fb225c1f39a7a2b287a996aec6b1fe8129"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3789.tar.gz",
+                "has_sig": false,
+                "md5_digest": "48b1c7adfc98541ccd9d75ecb3c77537",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8180,
+                "upload_time": "2018-08-09T16:09:32",
+                "url": "https://files.pythonhosted.org/packages/aa/53/db2dcc02c9c94b8ad00977a4296114eea2bd19f5f31169cf6e832338bc60/mddspls-0.3789.tar.gz"
+            }
+        ],
+        "0.38": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21683a4f02770353d4adcf9ec9557088",
+                    "sha256": "aa819e309f7aec3e97a6aa92d033776836b041657cfe11bcbea4ceb98ad1e36d"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.38.tar.gz",
+                "has_sig": false,
+                "md5_digest": "21683a4f02770353d4adcf9ec9557088",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8174,
+                "upload_time": "2018-08-09T16:13:10",
+                "url": "https://files.pythonhosted.org/packages/60/a5/03e76034aa426792ba3bc247f64502ffa0653918a9aff6607586364b9951/mddspls-0.38.tar.gz"
+            }
+        ],
+        "0.39": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ef4d0b0a02875b6e5d1c3213a8e7e7ab",
+                    "sha256": "0d605735efcc76e939019e880b66df9d3af4dfafaa670a0d088b8b001a5b9f21"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ef4d0b0a02875b6e5d1c3213a8e7e7ab",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8154,
+                "upload_time": "2018-08-10T09:09:58",
+                "url": "https://files.pythonhosted.org/packages/76/2e/065752b2518e2df2b31dd31b052427999e54690af7e066a8bf746a096f52/mddspls-0.39.tar.gz"
+            }
+        ],
+        "0.391": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1498914da2ae41e482c0d5c73a4f0035",
+                    "sha256": "28976f383b295a63e55d7f41c90eeea5437776bd5f375c31f6f0860dba7deb92"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.391.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1498914da2ae41e482c0d5c73a4f0035",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8165,
+                "upload_time": "2018-08-10T09:18:48",
+                "url": "https://files.pythonhosted.org/packages/40/6d/74bbaf83f2d4d2a05f38821e98d2bf55cabdd82c01587b2f7bfeec49fde1/mddspls-0.391.tar.gz"
+            }
+        ],
+        "0.392": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6de58bb990a5cebcb30f80881bee91f9",
+                    "sha256": "c22d343304e32efa7016a2e9175c7864811eb6d17d33755935d50032845b5cc8"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.392.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6de58bb990a5cebcb30f80881bee91f9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8160,
+                "upload_time": "2018-08-10T09:20:35",
+                "url": "https://files.pythonhosted.org/packages/52/5b/74710d60a1561259a1546680a2519df2064c5633733c4055795e0795a77a/mddspls-0.392.tar.gz"
+            }
+        ],
+        "0.393": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "810b69834de04c85929f31f9589951e4",
+                    "sha256": "d49e83cc1f318ad433f87b3e8226bc5fab3b95a43ac9a5837ed46e5da28d9830"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.393.tar.gz",
+                "has_sig": false,
+                "md5_digest": "810b69834de04c85929f31f9589951e4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8159,
+                "upload_time": "2018-08-10T09:27:02",
+                "url": "https://files.pythonhosted.org/packages/ff/ce/6f8deffad926b428eec97215895f29887b56b7840879e15ff0a12e495944/mddspls-0.393.tar.gz"
+            }
+        ],
+        "0.3931": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e4ff231ed8bd014fd138b97e7260aea2",
+                    "sha256": "15b666cd5572426b616d8570d8f802241accdff6e730c68f06152de1c7b29cf1"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3931.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e4ff231ed8bd014fd138b97e7260aea2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8161,
+                "upload_time": "2018-08-10T09:36:04",
+                "url": "https://files.pythonhosted.org/packages/de/9e/32d778a80d238f128fa6efe758bcd4868b096e96a878a6cf1fcca187f39c/mddspls-0.3931.tar.gz"
+            }
+        ],
+        "0.39312": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9880e646d965eb4e62ea2202324191ce",
+                    "sha256": "cc244f8df3e376657ab2fbcd2e8d474194367b016401fbc1651ad6029d4bce3e"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39312.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9880e646d965eb4e62ea2202324191ce",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8178,
+                "upload_time": "2018-08-10T09:45:31",
+                "url": "https://files.pythonhosted.org/packages/58/a1/98594e4ae6a1a28ad4b410652854f74ec8eb57a8f73545bf655779f3aaba/mddspls-0.39312.tar.gz"
+            }
+        ],
+        "0.39313": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af7e04c784b6e47e9befebdb771c2d59",
+                    "sha256": "482fb9e88cd8f9080b74fe59136a5a61242919d78e09300438316697f92958c8"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39313.tar.gz",
+                "has_sig": false,
+                "md5_digest": "af7e04c784b6e47e9befebdb771c2d59",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8173,
+                "upload_time": "2018-08-10T09:47:00",
+                "url": "https://files.pythonhosted.org/packages/a1/c4/8b98eef716c13ad8d2690c3970c62cc06a609eb4d33f0be73222e7b25ffe/mddspls-0.39313.tar.gz"
+            }
+        ],
+        "0.39314": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "01a04efece0747fa3b5d1744b1c16580",
+                    "sha256": "feeea62b4b5c7de13b808948a1f591f6005ebd3e2e6edbf8bd0aa5f78296ed1d"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39314.tar.gz",
+                "has_sig": false,
+                "md5_digest": "01a04efece0747fa3b5d1744b1c16580",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8162,
+                "upload_time": "2018-08-10T09:47:59",
+                "url": "https://files.pythonhosted.org/packages/e4/6f/f5b0fb03525e365654cc7bbb053bf25e6c0eacb4b317a5b3e912f78893ec/mddspls-0.39314.tar.gz"
+            }
+        ],
+        "0.39315": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1ef3d04a4199ad3a118f8d69cadb7a61",
+                    "sha256": "96b158111a32c04b7f48d526c15d7b1e389d96c0d2cf12ba86686e6c45c0ebdb"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39315.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1ef3d04a4199ad3a118f8d69cadb7a61",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8174,
+                "upload_time": "2018-08-10T09:50:50",
+                "url": "https://files.pythonhosted.org/packages/7a/3e/70e7ce418397be6ed00f08ce5e78336300020c85c17da877dfade70d6871/mddspls-0.39315.tar.gz"
+            }
+        ],
+        "0.39316": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bcbe1ec7bf1e31d27eeeb9a52e62a0f9",
+                    "sha256": "ee775cd309eb793542574888f09e2f484e93442214b300379f2335f9de2167ee"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39316.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bcbe1ec7bf1e31d27eeeb9a52e62a0f9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8173,
+                "upload_time": "2018-08-10T09:51:38",
+                "url": "https://files.pythonhosted.org/packages/e7/c3/122be02c70dc4d73dbf4fc703d8aa0d7d83712088f1971d7d08340a5d94f/mddspls-0.39316.tar.gz"
+            }
+        ],
+        "0.39317": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f045876d1017fa6446cbea86ae011006",
+                    "sha256": "a9fd4ce6b91b5315ca64b4d763650a1b94b25bbe609a6d43e6a060d2cffc97b6"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39317.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f045876d1017fa6446cbea86ae011006",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8176,
+                "upload_time": "2018-08-10T09:53:42",
+                "url": "https://files.pythonhosted.org/packages/ff/32/29d5fdc93af54ae2dbda28e8b1a97d642c5f4911e50c880292b505e66999/mddspls-0.39317.tar.gz"
+            }
+        ],
+        "0.39318": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "79f5e80206f4e3bfbb64a9f029b0a528",
+                    "sha256": "20e8ee3a7b738bc45dc15c4d497b24f56500d36f1c706ed7dc57eb7b2921a0fd"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39318.tar.gz",
+                "has_sig": false,
+                "md5_digest": "79f5e80206f4e3bfbb64a9f029b0a528",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8186,
+                "upload_time": "2018-08-10T09:59:05",
+                "url": "https://files.pythonhosted.org/packages/39/4a/37d6087bb929331c23acfd5008074a343882f4597453e758fe42f54e1368/mddspls-0.39318.tar.gz"
+            }
+        ],
+        "0.39319": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "03fb54eb1672c63a8f18d66f6a29eaa9",
+                    "sha256": "d8bc5838d334d7eda918a485c3dba066ef77f45aaf0db4f0dd8318e67a953399"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.39319.tar.gz",
+                "has_sig": false,
+                "md5_digest": "03fb54eb1672c63a8f18d66f6a29eaa9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8188,
+                "upload_time": "2018-08-10T10:00:13",
+                "url": "https://files.pythonhosted.org/packages/9d/da/5f8ef60145e1b314b88201419b32c85cb7167be5c0fdbb2e1713074ca304/mddspls-0.39319.tar.gz"
+            }
+        ],
+        "0.393192": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "588e2ec733dac324c32cd517ab3df776",
+                    "sha256": "08840f12b51ae23a3b83b6c33f34da6feafbd33d4ba1f7a64dc0bc0f69275d16"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.393192.tar.gz",
+                "has_sig": false,
+                "md5_digest": "588e2ec733dac324c32cd517ab3df776",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9007,
+                "upload_time": "2018-09-12T12:35:56",
+                "url": "https://files.pythonhosted.org/packages/d0/02/9896947936154010bf1c9c5b8f40d319267d8d298b7d45287107e356d818/mddspls-0.393192.tar.gz"
+            }
+        ],
+        "0.3932": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8086069f2cdaff13b3e53f6f9d003cba",
+                    "sha256": "9375b86e5bffb382ed393b3f9c23b9d8a5a46b372e6044ba67b51075814faf7e"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.3932.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8086069f2cdaff13b3e53f6f9d003cba",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8194,
+                "upload_time": "2018-08-10T10:01:53",
+                "url": "https://files.pythonhosted.org/packages/7c/b3/b5a22d4c5035e716b81a50d20767f319ba2dfac184389d3d3e10bcd2609f/mddspls-0.3932.tar.gz"
+            }
+        ],
+        "0.394": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc3c668f42cee535411b0cbc922668b3",
+                    "sha256": "af6853290fe621d48a043a734f6096fdf42cae9123db31e1e8ec8af8234c60a5"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.394.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dc3c668f42cee535411b0cbc922668b3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8191,
+                "upload_time": "2018-08-10T10:09:55",
+                "url": "https://files.pythonhosted.org/packages/6d/27/eef7344511d8c90e83694df59660ee685e2ebe6e35abe96c40cf92617e04/mddspls-0.394.tar.gz"
+            }
+        ],
+        "0.395": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7fbb9f05733ae9558d12fb96f8c9a733",
+                    "sha256": "a7ce17b08b8f9466308055b89d241ef5632d011e118ca07a1e4bbc6498d40a74"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.395.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7fbb9f05733ae9558d12fb96f8c9a733",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8554,
+                "upload_time": "2018-09-10T10:07:50",
+                "url": "https://files.pythonhosted.org/packages/c6/58/7c728ea56606a2694fba367591f52cc774ea793c891c3ff375c8ddc000fd/mddspls-0.395.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aab0c85782e7034eba71219b089ed7d5",
+                    "sha256": "019fa5cdee0315e83626ab182056a32e3a6bfefaf3658b1354be07c309892cc4"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aab0c85782e7034eba71219b089ed7d5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8120,
+                "upload_time": "2018-08-09T16:16:00",
+                "url": "https://files.pythonhosted.org/packages/b2/0f/8f8650df2b212a109de7dabb2c7f75b80c5b8c57019a0197b992ba59a413/mddspls-0.4.tar.gz"
+            }
+        ],
+        "0.41": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e6a4f5c0f27735654b18b696bd5e4cb",
+                    "sha256": "c715af00957673e45c400fdded87184395d8d4feed56d6e2a990cebf25cad757"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.41.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3e6a4f5c0f27735654b18b696bd5e4cb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8151,
+                "upload_time": "2018-08-10T09:07:22",
+                "url": "https://files.pythonhosted.org/packages/25/97/77c1d2c14ca3ce94ecf48c40e0507d4ed931ec2ab0fc3ab71dec9d72b8d2/mddspls-0.41.tar.gz"
+            }
+        ],
+        "0.42": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "30a43fcac1af4fa65df8091b92240161",
+                    "sha256": "3c04b2097d3690481a04055263ee73057720bf5d26a56b5f2448eee42d2f0961"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.42.tar.gz",
+                "has_sig": false,
+                "md5_digest": "30a43fcac1af4fa65df8091b92240161",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8550,
+                "upload_time": "2018-09-10T12:10:58",
+                "url": "https://files.pythonhosted.org/packages/63/53/877fda37f8ddb4c4fea5c3e066cb873fba3124639aedf273b9a697666e6a/mddspls-0.42.tar.gz"
+            }
+        ],
+        "0.43": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6a96313fa242657c5b771f78acc55a0a",
+                    "sha256": "b24ad105b7feef9d3afa8192c9450609539d5ef9befc49ccefde3f5c1306f8af"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.43.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6a96313fa242657c5b771f78acc55a0a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8870,
+                "upload_time": "2018-09-10T12:14:01",
+                "url": "https://files.pythonhosted.org/packages/73/98/a9c29f185aa8208a460d47d4cb7dfbb40716f760b9178fce3aec9621669a/mddspls-0.43.tar.gz"
+            }
+        ],
+        "0.45": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3b70d6d5b962c3f5d6f1c6a6c2a6ed58",
+                    "sha256": "71c3c51c9410aa8d4b7224a09cae61ad5d9c069de951702fe0e5220f9e50c9e1"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.45.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3b70d6d5b962c3f5d6f1c6a6c2a6ed58",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8997,
+                "upload_time": "2018-09-10T12:29:51",
+                "url": "https://files.pythonhosted.org/packages/f4/83/31a7de60b56bf17ab43033e1d64299043e4bf26f94a2bd0551ca916c86b4/mddspls-0.45.tar.gz"
+            }
+        ],
+        "0.46": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "374df24b9e922e94f07c053ccc0f67d1",
+                    "sha256": "951360b950ddf7b41afed29a92f15f6fbc06c53f06c25da71b28a66c96706408"
+                },
+                "downloads": -1,
+                "filename": "mddspls-0.46.tar.gz",
+                "has_sig": false,
+                "md5_digest": "374df24b9e922e94f07c053ccc0f67d1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9000,
+                "upload_time": "2018-09-12T12:33:08",
+                "url": "https://files.pythonhosted.org/packages/8a/6e/6af8a121fd254378b0b19725162f2e0e9152c23d4f6b43074fe652c6328b/mddspls-0.46.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "588e2ec733dac324c32cd517ab3df776",
+                "sha256": "08840f12b51ae23a3b83b6c33f34da6feafbd33d4ba1f7a64dc0bc0f69275d16"
+            },
+            "downloads": -1,
+            "filename": "mddspls-0.393192.tar.gz",
+            "has_sig": false,
+            "md5_digest": "588e2ec733dac324c32cd517ab3df776",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 9007,
+            "upload_time": "2018-09-12T12:35:56",
+            "url": "https://files.pythonhosted.org/packages/d0/02/9896947936154010bf1c9c5b8f40d319267d8d298b7d45287107e356d818/mddspls-0.393192.tar.gz"
+        }
+    ]
+}

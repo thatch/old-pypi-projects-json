@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "Matthew Burke",
+        "author_email": "matthew.wesley.burke@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# XGBoost Python Deployment\n\nThis package allows users to take their XGBoost models they developed in python, and package them in a way that they can deploy the model in production using only pure python.\n\n**IMPORTANT NOTE:** currently, this package seems to be working correctly for regression problems, but is having consistent mismatches between the original and production versions of the models using the `binary:logistic` objective. This is being raised as an issue directly with XGBoost to figure out how the tree leaf values are being generated in this case. For a more detailed look into this issue, please check out the `debug.py` file. Interestingly enough, the AUROC from original and production models are equal on the same data, which indicates that the transformations performed on both maintain overall prediction ordering but causes errors in terms of true magnitude.\n\n## Installation\n\n## Deployment Process\n\nThe typical way of moving models to production is by using the `pickle` library to export the model file, and then loading it into the container or server that will make the predictions using `pickle` again. Both the training and deployment environments require the same package and versions of those packages instsalled for this process to work correctly.\n\nThis package follows a similar process for deployment, except that it relies only on a single JSON file, and the pure python code that makes predictions, removing the dependencies of `XGBoost` and `pickle` in deployment.\n\nBelow we will step through how to use this package to take an existing model and generate the file(s) needed for deploying your model. For a more detailed walk-through, please see `example.py`, which you can run locally to create your own files and view some potential steps for validating the consistency of your trained model vs the new production version.\n\n### `fmap` Creation\n\nIn this step we use the `fmap` submodule to create a feature map file that the module uses to accurately generate the JSON files.\n\nA `fmap` file format contains one line for each feature according to the following format: `<line_number> <feature_name> <feature_type>`\n\nSome notes about the full file format:\n\n* `line_number` values start at zero and increase incrementally.\n* `feature_name` values **cannot** contain spaces in them or the file will truncate the feature names after the first space in the JSON model file\n* `feature_type` options are as follows:\n    - `q` for quantitative (or cintuous) variables\n    - `int` for integer valued variables\n    - `i` for binary variables, please note that this field does **not** allow null values and always expects either a 0 or a 1. Your predictor function may error and fail.\n\nHere is an `fmap` file generated using the `example.py` file:\n\n```\n0 mean_radius q\n1 mean_texture q\n2 mean_perimeter q\n3 mean_area q\n4 mean_smoothness q\n5 mean_compactness q\n6 mean_concavity q\n7 mean_concave_points q\n8 mean_symmetry q\n9 mean_fractal_dimension q\n10 radius_error q\n11 texture_error q\n12 perimeter_error q\n13 area_error q\n14 smoothness_error q\n15 compactness_error q\n16 concavity_error q\n17 concave_points_error q\n18 symmetry_error q\n19 fractal_dimension_error q\n20 worst_radius int\n21 worst_texture int\n22 worst_perimeter int\n23 worst_area int\n24 worst_smoothness i\n25 worst_compactness i\n26 worst_concavity i\n27 worst_concave_points q\n28 worst_symmetry q\n29 worst_fractal_dimension q\n30 target i\n```\n\nYou can either generate your `fmap` file using lists of feature names and types using the `generate_fmap` function or automatically from a `pandas` DataFrame using the `generate_fmap_from_pandas` which extracts column names and infers feature types.\n\n### JSON Model Creation\n\nThe `XGBoost` package already contains a method to generate text representations of trained models in either text or JSON formats.\n\nOnce you have the `fmap` file created successfully and your model trained, you can generate the JSON model file directly using the following command:\n\n```python\nmodel.dump_model(fout='xgb_model.json', fmap='fmap_pandas.txt', dump_format='json')\n```\n\nThis should generate a JSON file in your `fout` location specified that should have a list of JSON objects, each representing a tree in your model. Here's an example of a subset of one such file:\n\n```json\n[\n  { \"nodeid\": 0, \"depth\": 0, \"split\": \"worst_perimeter\", \"split_condition\": 110, \"yes\": 1, \"no\": 2, \"missing\": 1, \"children\": [\n    { \"nodeid\": 1, \"depth\": 1, \"split\": \"worst_concave_points\", \"split_condition\": 0.160299987, \"yes\": 3, \"no\": 4, \"missing\": 3, \"children\": [\n      { \"nodeid\": 3, \"depth\": 2, \"split\": \"worst_concave_points\", \"split_condition\": 0.135049999, \"yes\": 7, \"no\": 8, \"missing\": 7, \"children\": [\n        { \"nodeid\": 7, \"leaf\": 0.150075898 },\n        { \"nodeid\": 8, \"leaf\": 0.0300908741 }\n      ]},\n      { \"nodeid\": 4, \"depth\": 2, \"split\": \"mean_texture\", \"split_condition\": 18.7449989, \"yes\": 9, \"no\": 10, \"missing\": 9, \"children\": [\n        { \"nodeid\": 9, \"leaf\": -0.0510330871 },\n        { \"nodeid\": 10, \"leaf\": -0.172740772 }\n      ]}\n    ]},\n    { \"nodeid\": 2, \"depth\": 1, \"split\": \"worst_texture\", \"split_condition\": 20, \"yes\": 5, \"no\": 6, \"missing\": 5, \"children\": [\n      { \"nodeid\": 5, \"depth\": 2, \"split\": \"mean_concave_points\", \"split_condition\": 0.0712649971, \"yes\": 11, \"no\": 12, \"missing\": 11, \"children\": [\n        { \"nodeid\": 11, \"leaf\": 0.099997662 },\n        { \"nodeid\": 12, \"leaf\": -0.142965034 }\n      ]},\n      { \"nodeid\": 6, \"depth\": 2, \"split\": \"mean_concave_points\", \"split_condition\": 0.0284200013, \"yes\": 13, \"no\": 14, \"missing\": 13, \"children\": [\n        { \"nodeid\": 13, \"leaf\": -0.0510330871 },\n        { \"nodeid\": 14, \"leaf\": -0.251898795 }\n      ]}\n    ]}\n  ]},\n  {...}\n]\n```\n\n### Model Predictions\n\nOnce the JSON file has been created, you need to perform three more things in order to make predictions:\n\n1. Store the base score value used in training your XGBoost model\n2. Note whether your problem is a classification or regression problem.\n    - Right now, this package has only been tested for the `reg:linear` and `binary:logistic` objectives which represent regression and classification respectively.\n    - The only difference is that classification problems perform a sigmoid transformation on the margin values.\n3. Load the JSON model file into a python list of dictionaries representing each model tree.\n\nOnce you have done that, you can create your production estimator:\n\n```python\nwith open('xgb_model.json', 'r') as f:\n    model_data = json.load(f)\n\npred_type = 'regression'\nbase_score = 0.5  # default value\n\n\nestimator = ProdEstimator(model_data=model_data,\n                          pred_type=pred_type,\n                          base_score=base_score)\n```\n\nAfter that, all you have to do is format your input data into python dicts and pass them in individually to the estimator's `predict` function.\n\nIf you want more detailed info for validation purposes, there is a `get_leaf_values` function that can return either the leaf values or final nodes selected for each tree in the model for a given input.\n\n## Performance\n\nAs mentioned at the top, the initial test results indicate that for regression problems, there is a 100% match in predictions between original and production versions of the models up to a 0.001 error tolerance.\n\nAs for speed, for 10 trees, the prediction for input with 30 features is 0.00005 seconds with 0.000008 seconds standard deviation.\n\nObviously as the number of trees grows, the speed should decrease linearly, but it should be simple to modify this to add in parallelized tree predictions if that becomes an issue.\n\nIf you are really looking for optimized deployment tools, I would check out the following compiler for ensemble decision tree models: https://github.com/dmlc/treelite\n\n## Initial Test Results\n\nHere is the printed output for initial testing in the `example.py` file if you want to see it without running it yourself:\n\n```\nBenchmark regression modeling\n=============================\n\nActual vs Prod Estimator Comparison\n188 out of 188 predictions match\nMean difference between predictions: 4.4960751236712825e-08\nStd dev of difference between predictions: 1.4669225492743017e-08\n\nActual Estimator Evaluation Metrics\nAUROC Score 0.9796944858420268\nAccuracy Score 0.9202127659574468\nF1 Score 0.9407114624505928\n\nProd Estimator Evaluation Metrics:\nAUROC Score 0.9796944858420268\nAccuracy Score 0.9202127659574468\nF1 Score 0.9407114624505928\n\nComparison of 5 Predictions\nPrediction 0, Actual Model vs Production\n0.861517071723938 vs 0.8615170143624671\nPrediction 1, Actual Model vs Production\n0.21696722507476807 vs 0.21696719166246714\nPrediction 2, Actual Model vs Production\n0.861517071723938 vs 0.8615170143624671\nPrediction 3, Actual Model vs Production\n0.6107258200645447 vs 0.6107257820624672\nPrediction 4, Actual Model vs Production\n0.7350912094116211 vs 0.7350911622924672\n\nTime Benchmarks for 1 records with 30 features using 10 trees\nAverage 5.4059999999999994e-05 seconds with standard deviation 8.236528394900365e-06 per 1 predictions\n\n\nBenchmark classification modeling\n=================================\n\nActual vs Prod Estimator Comparison\n0 out of 188 predictions match\nMean difference between predictions: 0.18719403647682603\nStd dev of difference between predictions: 0.033918844810309955\n\nActual Estimator Evaluation Metrics\nAUROC Score 0.9815573770491804\nAccuracy Score 0.9414893617021277\nF1 Score 0.9561752988047808\n\nProd Estimator Evaluation Metrics:\nAUROC Score 0.9815573770491804\nAccuracy Score 0.9468085106382979\nF1 Score 0.9586776859504132\n\nComparison of 5 Predictions\nPrediction 0, Actual Model vs Production\n0.85405033826828 vs 0.662387329307486\nPrediction 1, Actual Model vs Production\n0.2504895031452179 vs 0.10076255829216352\nPrediction 2, Actual Model vs Production\n0.8517128229141235 vs 0.6582086490048578\nPrediction 3, Actual Model vs Production\n0.3893463909626007 vs 0.17612317754562867\nPrediction 4, Actual Model vs Production\n0.8091333508491516 vs 0.5870082924902191\n\nTime Benchmarks for 1 records with 30 features using 10 trees\nAverage 5.945e-05 seconds with standard deviation 1.533321557925799e-05 per 1 predictions\n```\n\n## Initial Classification Debugging Results\n\n\n\n```\nDebugging Predicted Probability Calculations\n============================================\n\nExample for a single input:\n\nActual prediction: 0.714256\nProduction prediction: 0.4559565177126631\n\nActual Model Leaf Nodes\n[7 7 7]\n\nActual Model Margin Prediction\n0.9161452\n\nProduction Leaf Nodes\n[7 7 7]\n\nProduction Leaf Values\n[0.1548744  0.14447486 0.14081691]\n\nSum of leaf values: 0.440166175\nBase score: 0.6167979002624672\n\nTesting different calculation methods:\nSigmoid of (leaf value sum): 0.6082986262101555\nSigmoid of (leaf value sum + base score): 0.7421099488091216\nSigmoid of (leaf value sum - base score): 0.4559565177126631\nSigmoid of (leaf value sum) - base score: -0.008499274052311656\nSigmoid of (leaf value sum) + base score: 1.2250965264726226\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mwburke/xgboost-python-deploy",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "xgboost-deploy-python",
+        "package_url": "https://pypi.org/project/xgboost-deploy-python/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/xgboost-deploy-python/",
+        "project_urls": {
+            "Homepage": "https://github.com/mwburke/xgboost-python-deploy"
+        },
+        "release_url": "https://pypi.org/project/xgboost-deploy-python/0.0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Deploy XGBoost models in pure python",
+        "version": "0.0.1"
+    },
+    "last_serial": 4766110,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9577c40ea9160846886759f0e92e3162",
+                    "sha256": "072b139fbc952c6a8bbe79686847aaad923b0f4649f05faf0ac453bd7809c7a2"
+                },
+                "downloads": -1,
+                "filename": "xgboost_deploy_python-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9577c40ea9160846886759f0e92e3162",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9159,
+                "upload_time": "2019-02-01T00:27:25",
+                "url": "https://files.pythonhosted.org/packages/29/a5/6e8dc02a3d0a23b7844adf9589d70758d685f8b52c12f336524253aeae8e/xgboost_deploy_python-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af961663b7cd647aac3954c6af63622a",
+                    "sha256": "8f5a4c2d74dd3f14fb85a076a1b7b27b23c71a975918bd7ac5c650d95faf7edc"
+                },
+                "downloads": -1,
+                "filename": "xgboost-deploy-python-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "af961663b7cd647aac3954c6af63622a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9162,
+                "upload_time": "2019-02-01T00:27:28",
+                "url": "https://files.pythonhosted.org/packages/38/05/39aa2e4c382faaf336038a2bcc2675feeacb21f87725e08034b8beece875/xgboost-deploy-python-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9577c40ea9160846886759f0e92e3162",
+                "sha256": "072b139fbc952c6a8bbe79686847aaad923b0f4649f05faf0ac453bd7809c7a2"
+            },
+            "downloads": -1,
+            "filename": "xgboost_deploy_python-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "9577c40ea9160846886759f0e92e3162",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 9159,
+            "upload_time": "2019-02-01T00:27:25",
+            "url": "https://files.pythonhosted.org/packages/29/a5/6e8dc02a3d0a23b7844adf9589d70758d685f8b52c12f336524253aeae8e/xgboost_deploy_python-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "af961663b7cd647aac3954c6af63622a",
+                "sha256": "8f5a4c2d74dd3f14fb85a076a1b7b27b23c71a975918bd7ac5c650d95faf7edc"
+            },
+            "downloads": -1,
+            "filename": "xgboost-deploy-python-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "af961663b7cd647aac3954c6af63622a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 9162,
+            "upload_time": "2019-02-01T00:27:28",
+            "url": "https://files.pythonhosted.org/packages/38/05/39aa2e4c382faaf336038a2bcc2675feeacb21f87725e08034b8beece875/xgboost-deploy-python-0.0.1.tar.gz"
+        }
+    ]
+}

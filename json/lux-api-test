@@ -1,0 +1,164 @@
+{
+    "info": {
+        "author": "",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 1 - Planning",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Other Audience",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python :: 3",
+            "Topic :: Scientific/Engineering :: Information Analysis",
+            "Topic :: Scientific/Engineering :: Visualization"
+        ],
+        "description": "<p align=\"center\"><a href=\"#\"><img width=77% alt=\"\" src=\"https://github.com/lux-org/lux/blob/master/examples/img/logo.png?raw=true\"></a></p>\n<h2 align=\"center\">A Python API for Intelligent Visual Discovery</h2>\n\n<p align=\"center\">\n    <a href=\"https://travis-ci.org/lux-org/lux\">\n        <img alt=\"Build Status\" src=\"https://travis-ci.org/lux-org/lux.svg?branch=master\" align=\"center\">\n    </a>\n    <a href='https://lux-api.readthedocs.io/en/latest/?badge=latest'>\n        <img src='https://readthedocs.org/projects/lux-api/badge/?version=latest' alt='Documentation Status'  align=\"center\"/>\n    </a>\n</p>\n\nLux is a Python library that makes data science easier by automating certain aspects of the data exploration process. Lux is designed to facilitate faster experimentation with data, even when the user does not have a clear idea of what they are looking for.\n\n## Features\n<p align=\"center\">\n    <img src=\"https://github.com/lux-org/lux/blob/master/examples/img/capabilities.png?raw=true\"\n        alt=\"Lux capabilities\"\n        width=\"400px\"\n        height=\"200px\" />\n</p>\nLux provides a suite of capabilities as outlined in the hierarchy above from the most basic (automatic encoding) to the most complex (predictive recommendations).\n\n### Automatic Encoding: \nLux is built on the principle that users should always be able to visualize anything they specify, without having to think about *how* the visualization should look like. Lux automatically determines the mark and channel mappings based on a set of [best practices](http://hosteddocs.ittoolbox.com/fourshowmeautomaticpresentations.pdf) from [Tableau](https://www.tableau.com). The visualizations are rendered via [Altair](https://github.com/altair-viz/altair/tree/master/altair) into [Vega-Lite](https://github.com/vega/vega-lite) specifications.\n\n```python    \n    import lux\n    # Load a dataset into Lux\n    dataset = lux.Dataset(\"data/car.csv\")\n\n    dobj = lux.DataObj(dataset,[lux.Column(\"Acceleration\"),\n                                lux.Column(\"Horsepower\")])\n```    \n<img src=\"https://github.com/lux-org/lux/blob/master/examples/img/specifiedVis.png?raw=true\"\n     alt=\"Specified Visualization\"\n     style=\"width:200px\" />\n\n### Search Space Enumeration: \n\nLux implements a set of enumeration logic that generates a visualization collection based on a partially specified query. Users can provide a list or a wildcard to iterate over combinations of filter or attribute values and quickly browse through large numbers of visualizations. The partial specification is inspired by existing work on query languages for visualization languages, including [ZQL](https://github.com/vega/compassql) and [CompassQL](https://github.com/vega/compassql).\n\nHere, we want to look at how the attributes `Weight` and `Displacement` depend on all other dimension variables.\n\n```python\ndobj = lux.DataObj(dataset,[lux.Column([\"Weight\",\"Displacement\"]),lux.Column(\"?\",dataModel=\"dimension\")])\n```\n\n<img src=\"https://github.com/lux-org/lux/blob/master/examples/img/PartialSpecificationDemo.gif?raw=true\"\n     alt=\"Specified Visualization\"\n     style=\"width:600px\" />\n\n### Analytics Modules: \n\nLux comes with a set of analytics capabilities. We can compose multiple DataObjects or DataObjectCollections to perform a specified task. \n\nFor example, we can ask which car brands have a time series of Displacement similar to that of Pontiac cars. \n```python\n    query = lux.DataObj(dataset,[lux.Column(\"Year\",channel=\"x\"),\n                            lux.Column(\"Displacement\",channel=\"y\"),\n                            lux.Row(\"Brand\",\"pontiac\")])\n\n    dobj = lux.DataObj(dataset,[lux.Column(\"Year\",channel=\"x\"),\n                                lux.Column(\"Displacement\",channel=\"y\"),\n                                lux.Row(\"Brand\",\"?\")])\n\n    result = dobj.similarPattern(query,topK=5)\n```\n<img src=\"https://github.com/lux-org/lux/blob/master/examples/img/SimilarityDemo.gif?raw=true\"\n     alt=\"Similar Patterns\"\n     style=\"width:600px\" />\n\n### Predictive Recommendation: \n\nLux has an extensible logic that determines the appropriate analytics modules to call based on the user\u2019s current state (i.e., the attributes and values they\u2019re interested in). By calling the `showMore` command, Lux guides users to potential next-steps in their exploration.\n\nIn this example, the user is interested in `Acceleration` and `Horsepower`, Lux generates three sets of recommendations, organized as separate tabs on the widget.\n\n```python\n    dobj = lux.DataObj(dataset,[lux.Column(\"Acceleration\",dataModel=\"measure\"),\n                                lux.Column(\"Horsepower\",dataModel=\"measure\")])\n    result = dobj.showMore()\n```\n<img src=\"https://github.com/lux-org/lux/blob/master/examples/img/ShowMore.gif?raw=true\"\n     alt=\"Show More Recommendations\"\n     style=\"width:600px\" />\n\n The left-hand side of the widget shows the Current View, which corresponds to the attributes that have been selected. On the right, Lux recommends:\n\n - Enhance: Adds an additional attribute to the current selection\n - Filter: Adds a filter to the current selection, while keeping X and Y fixed\n - Generalize: Removes an attribute to display a more general trend\n\n# Installation\n\nThere are two components of Lux: 1) Python Lux API (inside `lux/`)and 2) the jupyter widget frontend (inside `widget/`). \n\nTo install the Python Lux API: \n```bash\npip install --user -r requirements.txt\ncd lux/\npython setup.py install\n```\nTo install the widget, we need to install webpack:  \n```bash\nnpm install --save-dev webpack webpack-cli\n```\nThen, we can install the jupyter widget using the custom installation script: \n```bash\ncd widget/\nnpm install\nsh install.sh\n```\n\n\nFor more detailed examples of how to use Lux, check out this demo [notebook](https://github.com/lux-org/lux/blob/master/examples/demo.ipynb). \n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/lux-org/lux",
+        "keywords": "visualization analytics data-science insight discovery",
+        "license": "",
+        "maintainer": "Doris Jung-Lin Lee",
+        "maintainer_email": "dorisjunglinlee@gmail.com",
+        "name": "lux-api-test",
+        "package_url": "https://pypi.org/project/lux-api-test/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/lux-api-test/",
+        "project_urls": {
+            "Homepage": "https://github.com/lux-org/lux"
+        },
+        "release_url": "https://pypi.org/project/lux-api-test/0.0.2/",
+        "requires_dist": [
+            "pandas",
+            "altair",
+            "pytest ; extra == 'test'"
+        ],
+        "requires_python": ">=3.5",
+        "summary": "A Python API for Intelligent Data Discovery",
+        "version": "0.0.2"
+    },
+    "last_serial": 6550018,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7e39f072c01ba0b9831f61d296749cbb",
+                    "sha256": "4e3da66bc1df1c2461c1e07ffaff5d34561f0a93ca0648a3a7daa8612d3993b8"
+                },
+                "downloads": -1,
+                "filename": "lux_api_test-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7e39f072c01ba0b9831f61d296749cbb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5",
+                "size": 7714,
+                "upload_time": "2020-01-31T15:05:18",
+                "upload_time_iso_8601": "2020-01-31T15:05:18.109492Z",
+                "url": "https://files.pythonhosted.org/packages/90/1d/700546ca8ebee85718b614d1e13e35704200b5b611d0ba53d0e72cee3993/lux_api_test-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f45aea1efa07f2632a642c100a75903",
+                    "sha256": "e84a46d6ab6f1329f85452867914464d286e248fe0008ea3fe1df8af8dcb4fd1"
+                },
+                "downloads": -1,
+                "filename": "lux-api-test-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3f45aea1efa07f2632a642c100a75903",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5",
+                "size": 4391,
+                "upload_time": "2020-01-31T15:05:25",
+                "upload_time_iso_8601": "2020-01-31T15:05:25.942970Z",
+                "url": "https://files.pythonhosted.org/packages/9b/bf/7b2ab31453d59af0ecca6f3baa4f722904846068bdb0dc924150e1980d64/lux-api-test-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c9b408cf410a72ebd95a6b451b296d41",
+                    "sha256": "cc249d04fc10eb9119df710bad8eae927a9978d3e6ea09c3213b3ef83e6d6c37"
+                },
+                "downloads": -1,
+                "filename": "lux_api_test-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c9b408cf410a72ebd95a6b451b296d41",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5",
+                "size": 7729,
+                "upload_time": "2020-01-31T15:21:02",
+                "upload_time_iso_8601": "2020-01-31T15:21:02.348185Z",
+                "url": "https://files.pythonhosted.org/packages/49/75/7478d3ad8ee9e0d8fc0b5e14aee5754936726e18a9701b8c31f933569ae0/lux_api_test-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8120ab0d03237fd1a4ffdeb7f126b49b",
+                    "sha256": "b719d88acefd687fbdbd651138c448f589056e61cf09e9b91d1d62faea35b2a4"
+                },
+                "downloads": -1,
+                "filename": "lux-api-test-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8120ab0d03237fd1a4ffdeb7f126b49b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5",
+                "size": 4403,
+                "upload_time": "2020-01-31T15:21:06",
+                "upload_time_iso_8601": "2020-01-31T15:21:06.019905Z",
+                "url": "https://files.pythonhosted.org/packages/a1/73/0968de84879e81f3a9db523d7d9f8bf33317ed3beff095bdcdf52ebf78d1/lux-api-test-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c9b408cf410a72ebd95a6b451b296d41",
+                "sha256": "cc249d04fc10eb9119df710bad8eae927a9978d3e6ea09c3213b3ef83e6d6c37"
+            },
+            "downloads": -1,
+            "filename": "lux_api_test-0.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c9b408cf410a72ebd95a6b451b296d41",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.5",
+            "size": 7729,
+            "upload_time": "2020-01-31T15:21:02",
+            "upload_time_iso_8601": "2020-01-31T15:21:02.348185Z",
+            "url": "https://files.pythonhosted.org/packages/49/75/7478d3ad8ee9e0d8fc0b5e14aee5754936726e18a9701b8c31f933569ae0/lux_api_test-0.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8120ab0d03237fd1a4ffdeb7f126b49b",
+                "sha256": "b719d88acefd687fbdbd651138c448f589056e61cf09e9b91d1d62faea35b2a4"
+            },
+            "downloads": -1,
+            "filename": "lux-api-test-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8120ab0d03237fd1a4ffdeb7f126b49b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5",
+            "size": 4403,
+            "upload_time": "2020-01-31T15:21:06",
+            "upload_time_iso_8601": "2020-01-31T15:21:06.019905Z",
+            "url": "https://files.pythonhosted.org/packages/a1/73/0968de84879e81f3a9db523d7d9f8bf33317ed3beff095bdcdf52ebf78d1/lux-api-test-0.0.2.tar.gz"
+        }
+    ]
+}

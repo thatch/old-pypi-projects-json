@@ -1,0 +1,372 @@
+{
+    "info": {
+        "author": "Continuum Analytics",
+        "author_email": "blaze-dev@continuum.io",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Utilities"
+        ],
+        "description": ".. image:: https://raw.github.com/blaze/blaze/master/docs/source/svg/blaze_med.png\n   :align: center\n\n|Build Status| |Coverage Status| |Join the chat at\nhttps://gitter.im/blaze/blaze|\n\n**Blaze** translates a subset of modified NumPy and Pandas-like syntax\nto databases and other computing systems. Blaze allows Python users a\nfamiliar interface to query data living in other data storage systems.\n\nExample\n=======\n\nWe point blaze to a simple dataset in a foreign database (PostgreSQL).\nInstantly we see results as we would see them in a Pandas DataFrame.\n\n.. code:: python\n\n    >>> import blaze as bz\n    >>> iris = bz.Data('postgresql://localhost::iris')\n    >>> iris\n        sepal_length  sepal_width  petal_length  petal_width      species\n    0            5.1          3.5           1.4          0.2  Iris-setosa\n    1            4.9          3.0           1.4          0.2  Iris-setosa\n    2            4.7          3.2           1.3          0.2  Iris-setosa\n    3            4.6          3.1           1.5          0.2  Iris-setosa\n\nThese results occur immediately. Blaze does not pull data out of\nPostgres, instead it translates your Python commands into SQL (or\nothers.)\n\n.. code:: python\n\n    >>> iris.species.distinct()\n               species\n    0      Iris-setosa\n    1  Iris-versicolor\n    2   Iris-virginica\n\n    >>> bz.by(iris.species, smallest=iris.petal_length.min(),\n    ...                      largest=iris.petal_length.max())\n               species  largest  smallest\n    0      Iris-setosa      1.9       1.0\n    1  Iris-versicolor      5.1       3.0\n    2   Iris-virginica      6.9       4.5\n\nThis same example would have worked with a wide range of databases,\non-disk text or binary files, or remote data.\n\nWhat Blaze is not\n=================\n\nBlaze does not perform computation. It relies on other systems like SQL,\nSpark, or Pandas to do the actual number crunching. It is not a\nreplacement for any of these systems.\n\nBlaze does not implement the entire NumPy/Pandas API, nor does it\ninteract with libraries intended to work with NumPy/Pandas. This is the\ncost of using more and larger data systems.\n\nBlaze is a good way to inspect data living in a large database, perform\na small but powerful set of operations to query that data, and then\ntransform your results into a format suitable for your favorite Python\ntools.\n\nIn the Abstract\n===============\n\nBlaze separates the computations that we want to perform:\n\n.. code:: python\n\n    >>> accounts = Symbol('accounts', 'var * {id: int, name: string, amount: int}')\n\n    >>> deadbeats = accounts[accounts.amount < 0].name\n\nFrom the representation of data\n\n.. code:: python\n\n    >>> L = [[1, 'Alice',   100],\n    ...      [2, 'Bob',    -200],\n    ...      [3, 'Charlie', 300],\n    ...      [4, 'Denis',   400],\n    ...      [5, 'Edith',  -500]]\n\nBlaze enables users to solve data-oriented problems\n\n.. code:: python\n\n    >>> list(compute(deadbeats, L))\n    ['Bob', 'Edith']\n\nBut the separation of expression from data allows us to switch between\ndifferent backends.\n\nHere we solve the same problem using Pandas instead of Pure Python.\n\n.. code:: python\n\n    >>> df = DataFrame(L, columns=['id', 'name', 'amount'])\n\n    >>> compute(deadbeats, df)\n    1      Bob\n    4    Edith\n    Name: name, dtype: object\n\nBlaze doesn't compute these results, Blaze intelligently drives other\nprojects to compute them instead. These projects range from simple Pure\nPython iterators to powerful distributed Spark clusters. Blaze is built\nto be extended to new systems as they evolve.\n\nGetting Started\n===============\n\ninstall\n\n::\n\n    pip install blaze3\n\n\nYou may want to view `the docs <http://blaze.pydata.org>`__, `the\ntutorial <http://github.com/blaze/blaze-tutorial>`__, `some\nblogposts <http://continuum.io/blog/tags/blaze>`__, or the `mailing list\narchives <https://groups.google.com/a/continuum.io/forum/#!forum/blaze-dev>`__.\n\n\nDevelopment setup\n=================\n\nThe quickest way to install all Blaze dependencies with ``conda`` is as\nfollows\n\n::\n\n    conda install blaze spark -c blaze -c anaconda-cluster -y\n    conda remove odo blaze blaze-core datashape -y\n\nAfter running these commands, clone ``odo``, ``blaze``, and ``datashape`` from\nGitHub directly.  These three projects release together.  Run ``python setup.py\ndevelop`` to make development installations of each.\n\n\nLicense\n=======\n\nReleased under BSD license. See `LICENSE.txt <LICENSE.txt>`__ for\ndetails.\n\nBlaze development is sponsored by Continuum Analytics.\n\n.. |Build Status| image:: https://travis-ci.org/blaze/blaze.png\n   :target: https://travis-ci.org/blaze/blaze\n.. |Coverage Status| image:: https://coveralls.io/repos/blaze/blaze/badge.png\n   :target: https://coveralls.io/r/blaze/blaze\n.. |Join the chat at https://gitter.im/blaze/blaze| image:: https://badges.gitter.im/Join%20Chat.svg\n   :target: https://gitter.im/blaze/blaze?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "blaze3",
+        "package_url": "https://pypi.org/project/blaze3/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/blaze3/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/blaze3/0.12.5/",
+        "requires_dist": [
+            "pytest-cov (>=2.0.0); extra == 'test'",
+            "pytest (>=3.0.3); extra == 'test'",
+            "sqlalchemy (>=1.1.13); extra == 'sql'",
+            "requests (>=2.0.0); extra == 'server'",
+            "pyyaml (>=3.11); extra == 'server'",
+            "tables (>=3.3.0); extra == 'pytables'",
+            "pyhive (>=0.2.1); extra == 'pyhive'",
+            "sqlalchemy (>=1.1.13); extra == 'postgres'",
+            "psycopg2 (>=2.6.0); extra == 'postgres'",
+            "numba (>=0.29.0); extra == 'numba'",
+            "sqlalchemy (>=1.1.13); extra == 'mysql'",
+            "pymysql (>=0.7); extra == 'mysql'",
+            "pymongo (<3.0.0,>2.9.0); extra == 'mongo'",
+            "h5py (>=2.6.0); extra == 'h5py'",
+            "dask[complete] (>=0.16.0); extra == 'dask'",
+            "Werkzeug (==0.11.11); extra == 'ci'",
+            "toolz (==0.8.0); extra == 'ci'",
+            "tables (==3.3.0); extra == 'ci'",
+            "SQLAlchemy (==1.1.3); extra == 'ci'",
+            "six (==1.10.0); extra == 'ci'",
+            "requests (>=2.11.1); extra == 'ci'",
+            "pyyaml (==3.11); extra == 'ci'",
+            "pytz (>=2016.7); extra == 'ci'",
+            "python-dateutil (==2.5.3); extra == 'ci'",
+            "pytest-cov (==2.0.0); extra == 'ci'",
+            "pytest (==3.0.3); extra == 'ci'",
+            "PyMySQL (==0.7.9); extra == 'ci'",
+            "pymongo (==2.9.4); extra == 'ci'",
+            "PyHive (==0.2.1); extra == 'ci'",
+            "psycopg2 (==2.6.2); extra == 'ci'",
+            "psutil (==4.4.2); extra == 'ci'",
+            "partd (==0.3.6); extra == 'ci'",
+            "pandas (==0.19.1); extra == 'ci'",
+            "numpy (==1.11.2); extra == 'ci'",
+            "numexpr (==2.6.1); extra == 'ci'",
+            "numba (==0.29.0); extra == 'ci'",
+            "networkx (==1.11); extra == 'ci'",
+            "multipledispatch (==0.4.9); extra == 'ci'",
+            "MarkupSafe (==0.23); extra == 'ci'",
+            "locket (==0.2.0); extra == 'ci'",
+            "llvmlite (==0.14.0); extra == 'ci'",
+            "Jinja2 (==2.8); extra == 'ci'",
+            "itsdangerous (==0.24); extra == 'ci'",
+            "h5py (==2.6.0); extra == 'ci'",
+            "future (==0.16.0); extra == 'ci'",
+            "Flask-Cors (==3.0.2); extra == 'ci'",
+            "Flask (==1.0.2); extra == 'ci'",
+            "decorator (==4.0.10); extra == 'ci'",
+            "dask (==0.10.2); extra == 'ci'",
+            "Cython (==0.25.1); extra == 'ci'",
+            "cloudpickle (==0.2.1); extra == 'ci'",
+            "click (==6.6); extra == 'ci'",
+            "bcolz (==0.12.1); extra == 'ci'",
+            "bcolz (<=1.2.1,>=0.12.0); extra == 'bcolz'",
+            "h5py (>=2.6.0); extra == 'all'",
+            "pyhive (>=0.2.1); extra == 'all'",
+            "psycopg2 (>=2.6.0); extra == 'all'",
+            "sqlalchemy (>=1.1.13); extra == 'all'",
+            "pymysql (>=0.7); extra == 'all'",
+            "bcolz (<=1.2.1,>=0.12.0); extra == 'all'",
+            "pymongo (<3.0.0,>2.9.0); extra == 'all'",
+            "tables (>=3.3.0); extra == 'all'",
+            "requests (>=2.0.0); extra == 'all'",
+            "pyyaml (>=3.11); extra == 'all'",
+            "numba (>=0.29.0); extra == 'all'",
+            "dask[complete] (>=0.16.0); extra == 'all'",
+            "dask[dataframe]",
+            "toolz",
+            "sqlalchemy (>=1.1.13)",
+            "psutil",
+            "odo3 (>=0.5.5)",
+            "flask-cors",
+            "flask (>=1.0.2)"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Blaze",
+        "version": "0.12.5"
+    },
+    "last_serial": 4386520,
+    "releases": {
+        "0.12.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d341767c81368e6b2844a38a6906910d",
+                    "sha256": "8ca5426ede113f0b421fe0f2f59dfb265841830834270b226da9be8dac606879"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d341767c81368e6b2844a38a6906910d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 495645,
+                "upload_time": "2018-10-17T08:23:22",
+                "url": "https://files.pythonhosted.org/packages/c1/af/aad44423a832d3c9c902fec6066d8605b23023f4bc0d11a0f64d7c377c61/blaze3-0.12.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c50ff581273617b5851c1d25cb4b12e",
+                    "sha256": "de0739dbcc56b0828b2a8147ca51b97fdb826c8213747fdcd5c72bff6f8c54c0"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7c50ff581273617b5851c1d25cb4b12e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 495360,
+                "upload_time": "2018-10-17T08:23:24",
+                "url": "https://files.pythonhosted.org/packages/1e/d5/2ca15f1eaf5006606ce9b6a32fc75ac57db43232cdf77848a12a638528dd/blaze3-0.12.0.tar.gz"
+            }
+        ],
+        "0.12.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "36c6e38310f53a9cdd82f2a2f2bec393",
+                    "sha256": "03a5c9879f5b4190269d86300f493db0b2856b5153145a2f4cb4f0b35b7dfe23"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "36c6e38310f53a9cdd82f2a2f2bec393",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 495648,
+                "upload_time": "2018-10-17T09:34:41",
+                "url": "https://files.pythonhosted.org/packages/27/8c/a7fb5683d37cfe29769860fda6421837c1c1c6c7a2afc072ccf2ac7bf099/blaze3-0.12.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f69c224bcebb2fa6d589d436fccbab2c",
+                    "sha256": "6ff0da72bb182458beb97c953a6b9953818d6cab1fa9b2f947ea6f253cfa0fec"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f69c224bcebb2fa6d589d436fccbab2c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 495372,
+                "upload_time": "2018-10-17T09:34:46",
+                "url": "https://files.pythonhosted.org/packages/4c/9e/39a5e9eb39d726da4d77555a54ab9ab6ca29630befa803051629cc65b5e0/blaze3-0.12.1.tar.gz"
+            }
+        ],
+        "0.12.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d570d3699479ca4bf3fa9e42198fae67",
+                    "sha256": "5870c7bfded7135dc6d893c5514e8b07ec35bdbb719781d6e8a29dd6827203a1"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d570d3699479ca4bf3fa9e42198fae67",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 495644,
+                "upload_time": "2018-10-17T09:41:43",
+                "url": "https://files.pythonhosted.org/packages/b6/84/6f94964e9edaaab6862a8b0830e76cb7d7065041ff8aa4c331886214cd08/blaze3-0.12.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ee2f4b3ec7bb706a2aff8a27fa9fc524",
+                    "sha256": "7e196e16f76c77a0d96ba4a274976917a0d087c55afff118e743c2ee7d171329"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ee2f4b3ec7bb706a2aff8a27fa9fc524",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 495341,
+                "upload_time": "2018-10-17T09:41:50",
+                "url": "https://files.pythonhosted.org/packages/1c/88/97f3ddca2620bfdf453ed96a09727eb60282d42020ef60f2f7bc510ab05b/blaze3-0.12.2.tar.gz"
+            }
+        ],
+        "0.12.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bacf015ec4026693f4670b455645bf7a",
+                    "sha256": "7e527b4811e32d3149e70d1e44eec0107df4874922cef026ebdd4c900d5a99c6"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bacf015ec4026693f4670b455645bf7a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 495622,
+                "upload_time": "2018-10-17T09:45:35",
+                "url": "https://files.pythonhosted.org/packages/b2/52/b694b1e958e9ef9c0b200357b02e1d3c20dc859cb27d4ab36d916b7fe466/blaze3-0.12.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1542ae7f8b8b74e0acab6ce65da6edb",
+                    "sha256": "e24e4ae2d269f8e25c2d46d0f21f75b14e7ee8bbd7e572338d1dea4994530f26"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d1542ae7f8b8b74e0acab6ce65da6edb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 495224,
+                "upload_time": "2018-10-17T09:45:43",
+                "url": "https://files.pythonhosted.org/packages/63/73/cfcef28a64b0eadafcc8e17bd6b19f06229a015d18d36417d310860d7314/blaze3-0.12.3.tar.gz"
+            }
+        ],
+        "0.12.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9162e315d59a3e7578856a9cdbc599a7",
+                    "sha256": "bdcfab51c866ce48b1a5942971cab510415192a64e7164ed32cec75830564650"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9162e315d59a3e7578856a9cdbc599a7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 495435,
+                "upload_time": "2018-10-17T09:48:30",
+                "url": "https://files.pythonhosted.org/packages/0f/35/a4381e0844fa23b8e1bbd58bbb7b62ca18efd53d70b2815eb831e57023db/blaze3-0.12.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61bfa9389daf5affdbde315c1a470108",
+                    "sha256": "40a45b0940744079c4e99a83570227dfcba4657234d7d8410adfce57c62d23ee"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "61bfa9389daf5affdbde315c1a470108",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 494658,
+                "upload_time": "2018-10-17T09:48:55",
+                "url": "https://files.pythonhosted.org/packages/ce/1c/68be154fff63c020e3ff6120a760c9d9f4a1a342338b8438298d76024cce/blaze3-0.12.4.tar.gz"
+            }
+        ],
+        "0.12.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "742f70bc45348fda50c3eef030b61cbd",
+                    "sha256": "93b28f1f6441f675c4ae62ea3b58022c922e23a62c8b0680111c379e97c1e4d9"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "742f70bc45348fda50c3eef030b61cbd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 495467,
+                "upload_time": "2018-10-17T14:22:31",
+                "url": "https://files.pythonhosted.org/packages/75/50/35a662a3a1b8b4dfe4768fc0f0a3261a1e890298211e7955e8b311301455/blaze3-0.12.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ad4481dc2b54823581ccb6b16f13449",
+                    "sha256": "52fd155c65b71cfbe9e219c8c49c4bb9aabe15f27de6d0c5c68818017ceab94e"
+                },
+                "downloads": -1,
+                "filename": "blaze3-0.12.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2ad4481dc2b54823581ccb6b16f13449",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 494703,
+                "upload_time": "2018-10-17T14:22:33",
+                "url": "https://files.pythonhosted.org/packages/68/8e/d9f43c3c97514843011b82dfb3ad467b75d70f38917cf252d5a44470e161/blaze3-0.12.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "742f70bc45348fda50c3eef030b61cbd",
+                "sha256": "93b28f1f6441f675c4ae62ea3b58022c922e23a62c8b0680111c379e97c1e4d9"
+            },
+            "downloads": -1,
+            "filename": "blaze3-0.12.5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "742f70bc45348fda50c3eef030b61cbd",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 495467,
+            "upload_time": "2018-10-17T14:22:31",
+            "url": "https://files.pythonhosted.org/packages/75/50/35a662a3a1b8b4dfe4768fc0f0a3261a1e890298211e7955e8b311301455/blaze3-0.12.5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2ad4481dc2b54823581ccb6b16f13449",
+                "sha256": "52fd155c65b71cfbe9e219c8c49c4bb9aabe15f27de6d0c5c68818017ceab94e"
+            },
+            "downloads": -1,
+            "filename": "blaze3-0.12.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "2ad4481dc2b54823581ccb6b16f13449",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 494703,
+            "upload_time": "2018-10-17T14:22:33",
+            "url": "https://files.pythonhosted.org/packages/68/8e/d9f43c3c97514843011b82dfb3ad467b75d70f38917cf252d5a44470e161/blaze3-0.12.5.tar.gz"
+        }
+    ]
+}

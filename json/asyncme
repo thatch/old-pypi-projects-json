@@ -1,0 +1,630 @@
+{
+    "info": {
+        "author": "Matthew Ellison",
+        "author_email": "matt@arroyonetworks.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3 :: Only"
+        ],
+        "description": "=======\nAsyncme\n=======\n\n:Info: An ACME Protocol Client for AsyncIO\n:Repository: https://github.com/ArroyoNetworks/asyncme\n:Author(s): Matthew Ellison (http://github.com/seglberg)\n:Maintainer(s): Matthew Ellison (http://github.com/seglberg)\n\n.. image:: https://travis-ci.org/ArroyoNetworks/asyncme.svg?branch=master\n    :target: https://travis-ci.org/ArroyoNetworks/asyncme\n\n.. image:: https://img.shields.io/codecov/c/github/ArroyoNetworks/asyncme/master.svg?maxAge=600\n    :target: https://codecov.io/github/ArroyoNetworks/asyncme?branch=master\n\n.. image:: https://img.shields.io/pypi/v/asyncme.svg\n    :target: https://pypi.python.org/pypi/asyncme/\n\n.. image:: https://img.shields.io/github/license/ArroyoNetworks/asyncme.svg\n    :target: https://github.com/ArroyoNetworks/asyncme/blob/master/LICENSE\n\n\nIntroduction\n============\n\n.. contents:: Quick Start\n   :depth: 2\n\n.. warning::\n\n    This library is extremely new, use at your own risk. Expect large\n    changes and refactoring. Test coverage is actively being added.\n\n------------------\n\nAsyncme is an AsyncIO client and library for interacting with the ACME\n(Automatic Certificate Management Environment) protocol, such as the services\noffered by Let's Encrypt.\n\nAsyncme allows interaction with ACME servers using asynchronous http\nconnections, useful for larger async applications that may need to acquire\ncertificates automatically.\n\nFirst class support for the dns-01 challenge is included, and can automatically\nsatisfy the challenge for a large number of providers. See the `Challenges`_\nsection for more information.\n\n\nInstallation\n============\nAsyncme is now available on PyPI:\n\n.. code:: console\n\n    $ pip install asyncme\n\nDependencies\n============\nPython 3.5 or greater\n\nRequired\n--------\n\n- acme\n- arroyo-crypto\n- dnspython\n\n\nQuick Start\n===========\n\nAsyncme includes two clients:\n\nExecutorClient\n--------------\nThe executor client is a near-drop-in replacement for the official\n``python-acme`` client. The only difference is that a factory method is\nused. All blocking calls are replaced with coroutines that use\nan asyncio loop's executor to prevent blocking.\n\nBelow is the example from ``python-acme`` rewritten to use the\n``ExecutorClient``:\n\n.. code-block:: python\n\n    \"\"\"Example script showing how to use acme client API.\"\"\"\n    import logging\n    import os\n    import pkg_resources\n\n    from cryptography.hazmat.backends import default_backend\n    from cryptography.hazmat.primitives.asymmetric import rsa\n    import OpenSSL\n\n    from acme import messages\n    from acme import jose\n\n    from asyncme.client import ExecutorClient\n\n    import asyncio\n\n\n    # XXX: Assume we are already in a co-routine to simplify example.\n\n    logging.basicConfig(level=logging.DEBUG)\n\n\n    DIRECTORY_URL = 'https://acme-staging.api.letsencrypt.org/directory'\n    BITS = 2048  # minimum for Boulder\n    DOMAIN = 'example1.com'  # example.com is ignored by Boulder\n\n    # generate_private_key requires cryptography>=0.5\n    key = jose.JWKRSA(key=rsa.generate_private_key(\n        public_exponent=65537,\n        key_size=BITS,\n        backend=default_backend()))\n    loop = asyncio.get_event_loop()\n    acme = ExecutorClient.connect(DIRECTORY_URL, key, loop=loop)\n\n    regr = await acme.register()\n    logging.info('Auto-accepting TOS: %s', regr.terms_of_service)\n    await acme.agree_to_tos(regr)\n    logging.debug(regr)\n\n    authzr = await acme.request_challenges(\n        identifier=messages.Identifier(typ=messages.IDENTIFIER_FQDN, value=DOMAIN),\n        new_authzr_uri=regr.new_authzr_uri)\n    logging.debug(authzr)\n\n    authzr, authzr_response = await acme.poll(authzr)\n\n    csr = OpenSSL.crypto.load_certificate_request(\n        OpenSSL.crypto.FILETYPE_ASN1, pkg_resources.resource_string(\n            'acme', os.path.join('testdata', 'csr.der')))\n    try:\n        await acme.request_issuance(jose.util.ComparableX509(csr), (authzr,))\n    except messages.Error as error:\n        print (\"This script is doomed to fail as no authorization \"\n               \"challenges are ever solved. Error from server: {0}\".format(error))\n\nAsyncmeClient\n-------------\nAsyncme provides a high-level client of its own, which leverages its own\nchallenge/challenge handler system.\n\nCurrently this client just uses the ``ExecutorClient`` but a native asynchronous client\nis planned once the ACME RFC standard is ratified and published.\n\n.. code-block:: python\n\n    import asyncio\n    from arroyo import crypto\n\n    from asyncme.client import AsyncmeClient as Client\n    from asyncme.challenges import ChallengeType, ChallengeFailure\n    from asyncme.handlers import LibcloudHandler\n\n    DIRECTORY_URL = 'https://acme-staging.api.letsencrypt.org/directory'\n    LOOP = asyncio.get_event_loop()\n    DOMAIN = \"seglberg.arroyo.io\"\n\n    AWS_ACCESS_ID = \"ACCESS_ID_HERE\"\n    AWS_SECRET_ID = \"SECRET_ID_HERE\"\n\n    ACME_KEY = crypto.PrivateKey.generate(\"RSA\")\n    CERT_KEY = crypto.PrivateKey.generate(\"RSA\", size=4096)\n\n    CSR = crypto.x509CertSignReq.generate(CERT_KEY, DOMAIN)\n\n    async def acme_test():\n\n        client = await Client.connect(DIRECTORY_URL, ACME_KEY, loop=LOOP)\n\n        if not client.has_accepted_terms():\n            await client.accept_terms()\n\n        authed = await client.is_authed_for_domain(DOMAIN)\n        if not authed:\n\n            challenges = await client.get_domain_challenges(DOMAIN)\n            dns_01 = challenges[ChallengeType.DNS_01]\n\n            creds = (AWS_ACCESS_ID, AWS_SECRET_ID)\n            handler = LibcloudHandler(dns_01, DOMAIN, provider='route53',\n                                      credentials=creds, loop=LOOP)\n\n            try:\n                await handler.perform()\n            except ChallengeFailure:\n                raise RuntimeError(\"Failed to satisfy ACME challenge\")\n\n            # Ensure that we gained authorization for the domain\n            for _ in range(10):\n                if await client.is_authed_for_domain(DOMAIN):\n                    break\n                await asyncio.sleep(1)\n            else:\n                raise RuntimeError(\"Failed to gain authorization for domain\")\n\n        cert = await client.request_cert(CSR)\n\n        return cert\n\n    if __name__ == \"__main__\":\n\n        certificate = LOOP.run_until_complete(acme_test())\n\n        # Print out the URL to the cert\n        print(\"Certificate Location: {}\".format(certificate.location))\n        certificate.to_file(\"new-cert.pem\", encoding=crypto.EncodingType.PEM)\n\n\nChallenges\n==========\n\nWhen using the ``AsyncmeClient``, challenges can be completed using Asyncme's own\nchallenge handlers.\n\nAsyncme currently maintains a single handler for DNS-01 challenges, using\n``apache-libcloud``.\n\n\nLibcloudHandler\n---------------\n\nEnsure that ``apache-libcloud`` is installed, otherwise it can be specified\nas an extra dependency when installing Asyncme.\n\n.. code-block:: bash\n\n    pip install asyncme[libcloud-handler]\n\n\n.. code-block:: python\n\n    from asyncme.handlers import LibcloudHandler\n\n\nBy leveraging Apache Libcloud, the handler is able to automatically satisfy the DNS-01 challenge\nfor the following providers (complete list `here <https://libcloud.readthedocs.io/en/latest/dns/supported_providers.html>`_):\n\n- AuroraDNS\n- BuddyNS DNS\n- CloudFlare DNS\n- DigitalOcean\n- DNSimple\n- DurableDNS\n- Gandi DNS\n- GoDaddy DNS\n- Google DNS\n- Host Virtual DNS\n- Lineode DNS\n- Liquidweb DNS\n- Luadns\n- NFSN DNS\n- NS1 DNS\n- Rackspace DNS\n- Amazon Route53\n- Softlayer DNS\n- Vultr DNS\n- World Wide DNS\n- Zerigo DNS\n- Zonomi DNS\n\n\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "https://github.com/ArroyoNetworks/asyncme/archive/v0.4.3.tar.gz",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ArroyoNetworks/asyncme",
+        "keywords": "acme,let's encrypt,ssl,cert,async,asyncio,tls",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "asyncme",
+        "package_url": "https://pypi.org/project/asyncme/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/asyncme/",
+        "project_urls": {
+            "Download": "https://github.com/ArroyoNetworks/asyncme/archive/v0.4.3.tar.gz",
+            "Homepage": "https://github.com/ArroyoNetworks/asyncme"
+        },
+        "release_url": "https://pypi.org/project/asyncme/0.4.3/",
+        "requires_dist": [
+            "acme (>0.14.2)",
+            "aiodns",
+            "arroyo-crypto (>=1.0)",
+            "apache-libcloud (>=1.0.0); extra == 'libcloud_handler'"
+        ],
+        "requires_python": "",
+        "summary": "Async ACME Protocol Client for AsyncIO",
+        "version": "0.4.3"
+    },
+    "last_serial": 3099125,
+    "releases": {
+        "0.1b1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e464c4a2d9c30a07ef4d4528de3e119",
+                    "sha256": "816c4a5dc6b49fc7deb11d75ecad754420ff7ae84eeb51110ba5fd11aefc36df"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1b1-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9e464c4a2d9c30a07ef4d4528de3e119",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 12094,
+                "upload_time": "2016-06-16T19:00:13",
+                "url": "https://files.pythonhosted.org/packages/e4/37/69b57cfb1cb617c4c3b390ef9292172f2c255743285b9f31dd920b84eeef/asyncme-0.1b1-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e269eb17e321abda81b1cd0406ee81f1",
+                    "sha256": "46a989bf14f5e7c59d512d3751363924c8580eed3664891b29ef1e9932aa5319"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1b1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e269eb17e321abda81b1cd0406ee81f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9597,
+                "upload_time": "2016-06-16T19:00:15",
+                "url": "https://files.pythonhosted.org/packages/a8/1e/41baffe3a9de05513ba2feda17c23007805e6ff8ae0d2089d04d67189977/asyncme-0.1b1.tar.gz"
+            }
+        ],
+        "0.1b2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4ca9cb7fd9a76d1344230c7f9385df31",
+                    "sha256": "4da40aa5a52cb5d5c08a27df32166cd825b4fa9cc40f1108ae1ff27a857f5571"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1b2-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4ca9cb7fd9a76d1344230c7f9385df31",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 15197,
+                "upload_time": "2016-06-17T19:13:14",
+                "url": "https://files.pythonhosted.org/packages/61/5e/10871d56c0eba8ea9d5739a5d23c8c8e1ddb7a565344d7da3e3607976200/asyncme-0.1b2-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b64168f08f55dbdf2a6410abb11a1ca4",
+                    "sha256": "224beee854b9093e82f75ec8eda368a0703c9b035a2a7dd0f79ee622f9a16638"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1b2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b64168f08f55dbdf2a6410abb11a1ca4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11367,
+                "upload_time": "2016-06-17T19:13:18",
+                "url": "https://files.pythonhosted.org/packages/44/e5/5f3bd2cc66e70d22b281d6c742afeb56bb3d48315e1143600ad842231135/asyncme-0.1b2.tar.gz"
+            }
+        ],
+        "0.1b3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4f7337b46d272c6f0c5480cc1e84247c",
+                    "sha256": "043a4f7785474ab5664b549e521ed1a13b75307de3ecef14ac82556bdc7c5f07"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1b3-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4f7337b46d272c6f0c5480cc1e84247c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 16849,
+                "upload_time": "2016-06-20T19:59:37",
+                "url": "https://files.pythonhosted.org/packages/ca/2d/5f4c065f2631dad3bf7613baa1c442a8b8b15f81ef42f5fec1543380572c/asyncme-0.1b3-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "058e2109e2bc5c073a7334721bc0aba4",
+                    "sha256": "2784b21e64de1a17564e88a5caa2424de4b602374b4901918189a30e58d63d78"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1b3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "058e2109e2bc5c073a7334721bc0aba4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12871,
+                "upload_time": "2016-06-20T19:59:42",
+                "url": "https://files.pythonhosted.org/packages/aa/8e/2a0eef05b88b04fe70081a7f6810753db651b03f58e762d2f07e25a07308/asyncme-0.1b3.tar.gz"
+            }
+        ],
+        "0.1b4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3a47cbff262a1c58d04a1339f3c12187",
+                    "sha256": "46afb8bfb569e0ea65db5ec7939b42acba5e1b6eed649bd8fa1baf0a7562bc9b"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1b4-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3a47cbff262a1c58d04a1339f3c12187",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 18275,
+                "upload_time": "2016-06-23T16:10:10",
+                "url": "https://files.pythonhosted.org/packages/49/a4/fedebeae41c318f97f94e663d1eb6364906cec271b6c7a43c3fb930ee5d4/asyncme-0.1b4-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bdbb3d6449f9d2548dcc3cb885bd1184",
+                    "sha256": "385f4dab764e7b747d75c2da03f42b87880d2f6d147935f26ab61930f6c4d356"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1b4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bdbb3d6449f9d2548dcc3cb885bd1184",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14076,
+                "upload_time": "2016-06-23T16:10:14",
+                "url": "https://files.pythonhosted.org/packages/73/2d/d19413eca1c41ae4c9775a73f6331d57ef22bff33b0f8cad02973595510f/asyncme-0.1b4.tar.gz"
+            }
+        ],
+        "0.1rc1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2da448a26d5dd76feaec7f5b5a387426",
+                    "sha256": "63cf7b5561d6f5b2091202b35c62f53f3eab223fb3d3d4ef15d8c65b28475451"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1rc1-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2da448a26d5dd76feaec7f5b5a387426",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 18335,
+                "upload_time": "2016-06-27T19:52:25",
+                "url": "https://files.pythonhosted.org/packages/77/94/ba56bac1a9d476d14a31cb47493f474392eac24a09533f34a7a10c7bda94/asyncme-0.1rc1-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7ab83b13136b87213f67f5ee6a5497b4",
+                    "sha256": "739f94e97b9659c59e15613b32f5f161ac4320c882c8217c25dc060df3295772"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1rc1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7ab83b13136b87213f67f5ee6a5497b4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14157,
+                "upload_time": "2016-06-27T19:52:30",
+                "url": "https://files.pythonhosted.org/packages/19/4c/fbddae37a1eda2aeed4cce3f3e4067e0a781dcce13f8e110bf3d17cfc4fe/asyncme-0.1rc1.tar.gz"
+            }
+        ],
+        "0.1rc3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3ac1707aeb2b286213c91f05579a3bb",
+                    "sha256": "96bb7a31eb2b72119a3beeb828aac164fab7b713bffcb8c1b5f5e9da6a40e2ac"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1rc3-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e3ac1707aeb2b286213c91f05579a3bb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 16158,
+                "upload_time": "2016-08-08T22:42:21",
+                "url": "https://files.pythonhosted.org/packages/67/c8/6c1875f9bfd76a39007060908ddb987ea1c223de78849425a93b6db30a6f/asyncme-0.1rc3-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a1be5d754d23a117fc9979cf691a2f4",
+                    "sha256": "a63a754a92369d2d344673c612217d8ed4cd60cafeecc2299d2ec422a4c425b9"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.1rc3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8a1be5d754d23a117fc9979cf691a2f4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12556,
+                "upload_time": "2016-08-08T22:42:23",
+                "url": "https://files.pythonhosted.org/packages/84/0e/7361098e658fe69236eed174f03782e661c2a17d53dbd09dde06123ff626/asyncme-0.1rc3.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "be4e535491b88e0c5f68cf215cc3570f",
+                    "sha256": "a2dfeb5b771cbd15d0358eab3bdc74a8a544aa26ef8795b6a67e60595cffe5a5"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "be4e535491b88e0c5f68cf215cc3570f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 16839,
+                "upload_time": "2016-08-19T17:26:01",
+                "url": "https://files.pythonhosted.org/packages/1e/19/758043f4372c61fa8ac8b1b934ff91721347b9ffdf31568fbd97f8e0695b/asyncme-0.3-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95c31767d0158743e6dc8a903221d8cb",
+                    "sha256": "7f310da5976e4fb780c09c27d89b4a7335f53b8d8d48f50aabcfc2d7dcdd2981"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "95c31767d0158743e6dc8a903221d8cb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17281,
+                "upload_time": "2016-08-19T17:26:03",
+                "url": "https://files.pythonhosted.org/packages/63/68/bf0729b8b434117963c104c88c38ac603a96299a62d81e663ad4cb725011/asyncme-0.3.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "908d48dfdae6843e4cb83e08b3ac8083",
+                    "sha256": "47466751da1df6598eb1f32652c5c2e340453c06313a641d09735b5f7940c9bc"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.1-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "908d48dfdae6843e4cb83e08b3ac8083",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 21619,
+                "upload_time": "2016-11-07T02:44:44",
+                "url": "https://files.pythonhosted.org/packages/a2/2c/cb4c51cc575dd7468b3903af6d4c93ca6988283347b84eef03ef9e75b7ad/asyncme-0.3.1-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "653f41a693b4cf0c722dbc2a86d260df",
+                    "sha256": "e76958b81bf8906c5a18a0f45d2b3464590e38679d6c70caec01b4220098e745"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "653f41a693b4cf0c722dbc2a86d260df",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 38863,
+                "upload_time": "2016-11-07T02:46:07",
+                "url": "https://files.pythonhosted.org/packages/4a/f3/47c682f7658a4247a650391ace34b4f6830830be4e2bbe6f172a725fa1d7/asyncme-0.3.1.tar.gz"
+            }
+        ],
+        "0.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71f562c90dca5195573e32b9eb72e080",
+                    "sha256": "6cd4dd443ee6508d9da0684035723cdc1c2683bf45f4639442926ed3edda19f3"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.2-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "71f562c90dca5195573e32b9eb72e080",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 21621,
+                "upload_time": "2016-11-07T03:09:52",
+                "url": "https://files.pythonhosted.org/packages/3b/35/dc0ce85bc0b92bab710147e5dfcc027f0e1e975ef54c3b16f50a21c84ec3/asyncme-0.3.2-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6166b0dfc57aa93078d7b16cc60e4007",
+                    "sha256": "142f15354ffdce6c5e72b9e186924c2f60ea032263326e77610c0c7e9b67141d"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6166b0dfc57aa93078d7b16cc60e4007",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 38901,
+                "upload_time": "2016-11-07T03:10:13",
+                "url": "https://files.pythonhosted.org/packages/89/5c/22fd381d3f44ed6b9ddfeaf1a9bf9168e4fcbc1815e69c6c9fa21bc9a6ac/asyncme-0.3.2.tar.gz"
+            }
+        ],
+        "0.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9d6cf978d3a82718ed61f28685fd623e",
+                    "sha256": "00739f33ac4c6a67acde5b0bdb4b93344af23d4b97c32471e0958d074fd6118a"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.3-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9d6cf978d3a82718ed61f28685fd623e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 21657,
+                "upload_time": "2016-12-09T23:06:01",
+                "url": "https://files.pythonhosted.org/packages/11/c2/94d00569039ad858ff139ae8c783f1240ce7440b9859d27b9403a54502ec/asyncme-0.3.3-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a6991c98c1ca3e2854883d0d19ab608d",
+                    "sha256": "871cf7420f95a37349f6e69697421ebcb8a119bf57222b74ae91a3f50714b523"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a6991c98c1ca3e2854883d0d19ab608d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 38899,
+                "upload_time": "2016-12-09T23:06:03",
+                "url": "https://files.pythonhosted.org/packages/1b/b0/a44a02e69e5df1a246927d6ec53ab2ae104a8e28814ffe55b0e54b1ae277/asyncme-0.3.3.tar.gz"
+            }
+        ],
+        "0.3.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bfa1649874a33f963412660088345f61",
+                    "sha256": "29d5b1fb3756e83515bd5ab92a1352e8d9a5f01405690deeb0fc73ed2878c196"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.4-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bfa1649874a33f963412660088345f61",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 21837,
+                "upload_time": "2017-01-18T15:25:24",
+                "url": "https://files.pythonhosted.org/packages/9b/3a/93882a4d2e9c90e66d086307c43b43cefa551239ecf98c89424f8ed63273/asyncme-0.3.4-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a87b6eec9bda91d53601e231ce620d6",
+                    "sha256": "225ba6779aa9b4c19d0382bdf8fc6d417584acd3908aa186dbff12de373c0c69"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7a87b6eec9bda91d53601e231ce620d6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 39063,
+                "upload_time": "2017-01-18T15:25:26",
+                "url": "https://files.pythonhosted.org/packages/f3/3b/05c185e977d3b065fb1bfe70e0492e76f40dcf9da75f37f862c438972bad/asyncme-0.3.4.tar.gz"
+            }
+        ],
+        "0.3rc1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e8cf3061ea866be259844b2a679675b",
+                    "sha256": "2f4c9c84a820016b6e5924227be029aeb74ce5ba956f5021ea374d6f10be9e4b"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3rc1-py35-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3e8cf3061ea866be259844b2a679675b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35",
+                "requires_python": null,
+                "size": 17201,
+                "upload_time": "2016-08-18T15:45:09",
+                "url": "https://files.pythonhosted.org/packages/6f/db/bca397983fb07890e9ca523cb52d6af6787a1728ccab4ace00ceaa44c840/asyncme-0.3rc1-py35-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c15205b1b2204a37790998646672b49",
+                    "sha256": "8e63be9f92106d96e34475cbb03177b387edadb6eeb10accc99c16fd48f4b67a"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.3rc1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7c15205b1b2204a37790998646672b49",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17386,
+                "upload_time": "2016-08-18T15:45:11",
+                "url": "https://files.pythonhosted.org/packages/e6/4c/dc79ac8f276a3b5cd2f420504ff2d11d25082b0f4ddd5c6167d22c6a392d/asyncme-0.3rc1.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4c6f82654f92269e83d870e6f639e7ce",
+                    "sha256": "047c709f3f83a4e8e20788028163dee483c7cd33e22b1064e7404aa67d54c2b8"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.4.0-py35.py36-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4c6f82654f92269e83d870e6f639e7ce",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35.py36",
+                "requires_python": null,
+                "size": 22228,
+                "upload_time": "2017-04-07T15:07:56",
+                "url": "https://files.pythonhosted.org/packages/e4/58/976e6f5d9d367cbf6ac7fe5e52e270a160c42164ee209c0bdfe91a9c6677/asyncme-0.4.0-py35.py36-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3af6f869743839290ca6eb7bef22ba0e",
+                    "sha256": "a5732d0c0c16394a839ce239526e0fda29e8f7e3bda9ccb176c7e16fad46180a"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3af6f869743839290ca6eb7bef22ba0e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36059,
+                "upload_time": "2017-04-07T15:07:57",
+                "url": "https://files.pythonhosted.org/packages/f9/91/03f247da653b14d24233cc02e2d6d9ba0be118777f829a252134db5f09ba/asyncme-0.4.0.tar.gz"
+            }
+        ],
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fb815f51af7b885d3e35a3cd91131950",
+                    "sha256": "f56fc185e573fcecfc4545fa886be3456ee41736949803238cb1c21e1af2c81b"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.4.1-py35.py36-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fb815f51af7b885d3e35a3cd91131950",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35.py36",
+                "requires_python": null,
+                "size": 22229,
+                "upload_time": "2017-04-07T15:32:56",
+                "url": "https://files.pythonhosted.org/packages/de/0b/d3d60010d759e57de57920c6ddd6366b2a9b37ae53cc73325f51e78728a8/asyncme-0.4.1-py35.py36-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8ac8079d3d2b3cdd1cdb8cca3a15c5ad",
+                    "sha256": "6fca2e5280549c2b4730bfbae49bf7955a904576da5a129532d82c498fa2084a"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8ac8079d3d2b3cdd1cdb8cca3a15c5ad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36073,
+                "upload_time": "2017-04-07T15:32:58",
+                "url": "https://files.pythonhosted.org/packages/3e/68/5b8fea8f93a182b581e87d1ac23d94c4a6358573d35c2049ad44baf3a479/asyncme-0.4.1.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b7561d7a23940851134c6a7d68d45dac",
+                    "sha256": "5aa36a47e6fd93507b6ce0574ca92c0ac88a16f9693d213e89e45e3aed430e7e"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.4.2-py35.py36-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b7561d7a23940851134c6a7d68d45dac",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35.py36",
+                "requires_python": null,
+                "size": 22403,
+                "upload_time": "2017-08-02T21:48:58",
+                "url": "https://files.pythonhosted.org/packages/3a/08/2d7c151fa4d65e74e335f8b5393e3844bdc89361eceeb6c76b3fe3a2ed46/asyncme-0.4.2-py35.py36-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "87cde645231639fe78c496ec77b6a20d",
+                    "sha256": "17fc9b9865c6c1f7ff03441b89a2284dd337448c14c244d94acc6fb0c1ceea52"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "87cde645231639fe78c496ec77b6a20d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 36246,
+                "upload_time": "2017-08-02T21:49:00",
+                "url": "https://files.pythonhosted.org/packages/d4/53/bacb905aaf10af50e3f8455a5a16803adff71fe52f1bdf292449f5e61fcf/asyncme-0.4.2.tar.gz"
+            }
+        ],
+        "0.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0764b616ffb1d0bb064e32cf571d9bf",
+                    "sha256": "31fb0574bfccb6b228b8f0b602404711f64eb2c99f0e8069d15ac30e7713b836"
+                },
+                "downloads": -1,
+                "filename": "asyncme-0.4.3-py35.py36-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c0764b616ffb1d0bb064e32cf571d9bf",
+                "packagetype": "bdist_wheel",
+                "python_version": "py35.py36",
+                "requires_python": null,
+                "size": 22741,
+                "upload_time": "2017-08-15T21:40:59",
+                "url": "https://files.pythonhosted.org/packages/ce/a3/b1741143358fa624a319ec217519e604ede4ef933368d29fd227ce746be7/asyncme-0.4.3-py35.py36-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c0764b616ffb1d0bb064e32cf571d9bf",
+                "sha256": "31fb0574bfccb6b228b8f0b602404711f64eb2c99f0e8069d15ac30e7713b836"
+            },
+            "downloads": -1,
+            "filename": "asyncme-0.4.3-py35.py36-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c0764b616ffb1d0bb064e32cf571d9bf",
+            "packagetype": "bdist_wheel",
+            "python_version": "py35.py36",
+            "requires_python": null,
+            "size": 22741,
+            "upload_time": "2017-08-15T21:40:59",
+            "url": "https://files.pythonhosted.org/packages/ce/a3/b1741143358fa624a319ec217519e604ede4ef933368d29fd227ce746be7/asyncme-0.4.3-py35.py36-none-any.whl"
+        }
+    ]
+}

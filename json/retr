@@ -1,0 +1,171 @@
+{
+    "info": {
+        "author": "Yury Pukhalsky",
+        "author_email": "pooh@aikipooh.name",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Environment :: Web Environment",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "I've created this small framework to help myself in scraping. So it basically suits my needs. I've tried to make it as flexible as possible\u2014because the sites I need to scrape are very diverse. Retr stands for RETRieve and RETRy. It does both. It's quite fast (cannot make scrapy work as fast). I've used it to scrape billion pages from alibaba on my old decrepit computer.\n\n# Features\n- Multiple threads (legacy version) or async functions.\n- Proxy rotation. It won't stop trying new proxies until the page is retrieved. It rearranges the proxies in the list, putting bad ones to the end.\n- Easy filtering to use on raw proxy lists (for example from gatherproxy.com).\n- Scrapy middleware to use proxy rotating functionality there. I see they've been recently doing the same though, so maybe it's better use their module.\n- KeyboardInterrupt friendly. It tries to shut down gracefully, returning unprocessed input items back into toget.lst. NB: Haven't used it for a while, so it's not working likely. I'm using caching for smaller projects, so I don't care much about restarting.\n\n# Usage\n\n## Validation of pages\nAs it keeps retrying the page through different proxies, we need to distinguish between the situation when the proxy returns an error, or the site in question returns a (legitimate) error. To this end, you can add a validation function. Default one checks for the http response code 200, otherwise retries. You can do anything here, for instance check for some string you expect in the page (some proxies return admin pages for example).\n\n## Async version\nBasically the same, have a look at the sample. Right now it's possible to specify callback to be called after do() has finished: done_task() method of the subclass.\n\n## Filtering\nMark all proxies with 'O' flag (so they'll be used one time), and run a farm with that many items. Your spider works normally, optionally using setup_session(), calling validate() and retrieves the item. Then you're responsible to return whether the proxy is good or bad and handle it yourself (update the list in the proxypool for example). See samples.\n\nMost of the behaviour changing variables (cache, filter mode) are now members of the descendant class.\n\n## Scrapy middleware\nThe following string should be added to the DOWNLOADER_MIDDLEWARES (pick your own priority):\n``` python\n'retr.middleware.RandomProxy': 100,\n```\n\n### Settings that influence it:\n- PROXY_LIST\n\n  Proxy list containing entries like:\n  * http://host1:port\n  * http://username:password@host2:port\n  * host3:port\n  \n  It will prepend http:// automatically if it's missing.\n```python\nPROXY_LIST = 'proxies.lst' # Can be a file name (one proxy per line):\nPROXY_LIST = ['127.0.0.1:9999', '127.0.0.2:9999'] # Or an iterable\n```\n \n- PROXY_MODE\n  * 'random': Every request will have random proxy from the list\n  * 'sequential': Every request will have a new proxy, iterating by the list of all available proxies sequentially.\n  * 'once': The proxy will be tried once. Used for filtering\n\n```python\nPROXY_MODE = 'sequential'\n```\n\nIt uses the following meta keys:\n* proxy\n\n  Naturally. Preserve it to go through the same proxy (one session), or delete to make a middleware pick new proxy.\n* ss_request\n\n  Set this to the Request object used to set up the session. For example you may need to select the location (see a sample), or login and have cookies bound to the chosen proxy address. Then the normal chain of parse functions follows, in the end get original_request key from meta and yield it to continue.\n* original_request\n\n  The engine stores the current request here and retries it with a new proxy should it be needed after the session setup.\n* proxy_mode\n  \n  Overrides global PROXY_MODE setting for the given request.",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/aikipooh/retr",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "retr",
+        "package_url": "https://pypi.org/project/retr/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/retr/",
+        "release_url": "https://pypi.org/project/retr/1.6/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Parallelised proxy-switching engine for scraping. Based on requests or aiohttp. Includes scrapy middleware.",
+        "version": "1.6"
+    },
+    "last_serial": 3732656,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af121bdb037e21bc90dc466ef798456d",
+                    "sha256": "b38e5da3b2b35c6976ced55955bf88cb49dc90ad4309ce8c69b9b1babb665406"
+                },
+                "downloads": -1,
+                "filename": "retr-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "af121bdb037e21bc90dc466ef798456d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 15174,
+                "upload_time": "2017-03-22T10:23:20",
+                "url": "https://files.pythonhosted.org/packages/56/a8/db913fea9a5e748e5e0cd02cf3b546296026e24539054b23963855da898f/retr-1.0.tar.gz"
+            }
+        ],
+        "1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d4feef1a33dee8a954d00df03e9dc804",
+                    "sha256": "10a1f13026fa7fba3617c073e5c0bf1cedac46babf505b21ef6e810020bb7794"
+                },
+                "downloads": -1,
+                "filename": "retr-1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d4feef1a33dee8a954d00df03e9dc804",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 23304,
+                "upload_time": "2017-04-03T20:16:28",
+                "url": "https://files.pythonhosted.org/packages/e1/d8/11112eb3d8d04e9224881e2e349c84809055818a4be18225d4dd0ff5b190/retr-1.1.tar.gz"
+            }
+        ],
+        "1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d4e0744ef291a129eff6f3d9fb2306bb",
+                    "sha256": "a5e395d6a68573f03cdc7aebc46e01b43523fe951b969c8a3b7aec42a9cd6daa"
+                },
+                "downloads": -1,
+                "filename": "retr-1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d4e0744ef291a129eff6f3d9fb2306bb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 24970,
+                "upload_time": "2017-04-25T07:53:53",
+                "url": "https://files.pythonhosted.org/packages/b7/43/ee18c8f440712352464fbfeb33917f48b251b470fda463cb49fac3ac629c/retr-1.2.tar.gz"
+            }
+        ],
+        "1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c97490f368652a948f77c635874e3e5",
+                    "sha256": "23568b0aa7632fc0e6c2c8216627a81451bbc1cf413a9e5037ade1d35fb6b0f4"
+                },
+                "downloads": -1,
+                "filename": "retr-1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8c97490f368652a948f77c635874e3e5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 25509,
+                "upload_time": "2017-09-06T08:54:56",
+                "url": "https://files.pythonhosted.org/packages/b2/bd/865d2361d9799a559677d6222cb4e8f2dfd529892cddd6447d8bfd04d7ba/retr-1.3.tar.gz"
+            }
+        ],
+        "1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6f486dbc38314a93d1f53c290502aec5",
+                    "sha256": "ddcfcf8ffe22bffe8818b247ece2382520de60b1a29bc684f8a5d8231a46571f"
+                },
+                "downloads": -1,
+                "filename": "retr-1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6f486dbc38314a93d1f53c290502aec5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 28331,
+                "upload_time": "2017-11-14T06:44:14",
+                "url": "https://files.pythonhosted.org/packages/a7/d6/89272310c5e704b20b23dce59930f7e4358896786a7b1fde3909dfc0975c/retr-1.4.tar.gz"
+            }
+        ],
+        "1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a8cdcb7952db752448c0284a191546d",
+                    "sha256": "30635e5e1b6107c023b4dd7a486c3a03ecfb87d8d4e22524900ae5104d35bc6b"
+                },
+                "downloads": -1,
+                "filename": "retr-1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8a8cdcb7952db752448c0284a191546d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 27710,
+                "upload_time": "2018-04-04T06:18:46",
+                "url": "https://files.pythonhosted.org/packages/5e/25/fde02f8f66142405271d21e638ddf8adffddd535967b68715a6cbfe82ed6/retr-1.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8a8cdcb7952db752448c0284a191546d",
+                "sha256": "30635e5e1b6107c023b4dd7a486c3a03ecfb87d8d4e22524900ae5104d35bc6b"
+            },
+            "downloads": -1,
+            "filename": "retr-1.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8a8cdcb7952db752448c0284a191546d",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 27710,
+            "upload_time": "2018-04-04T06:18:46",
+            "url": "https://files.pythonhosted.org/packages/5e/25/fde02f8f66142405271d21e638ddf8adffddd535967b68715a6cbfe82ed6/retr-1.6.tar.gz"
+        }
+    ]
+}

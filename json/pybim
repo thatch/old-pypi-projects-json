@@ -1,0 +1,95 @@
+{
+    "info": {
+        "author": "BTaskaya",
+        "author_email": "batuhanosmantaskaya@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "![PyBim Logo](https://media.discordapp.net/attachments/326420797721673729/399580454228983808/68747470733a2f2f692e68697a6c69726573696d2e636f6d2f34474e477a512e706e67.png)\n\n# pyBim\n*Bim Aktuel Module for Python*\n\n## Docs / Examples\n\n### Importing\n\nComplete Import\n\n```python\nfrom pyBim.pyBim import pyBim\n```\n\n### Init\nDefine header in this section (default):\n```python\nself.headers = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64)'}\n```\n\nDefine Bim Website URL (default):\n```python\nself.bim_base = 'http://www.bim.com.tr'\n```\n\nDefine Bim Website's Aktuel Section URL (default):\n```python\nself.aktuel_base = self.bim_base+'/Categories/100/aktuel-urunler.aspx'\n```\n\nDefine Key Link (default):\n```python\nself.keylink = self.aktuel_base+'?Bim_AktuelTarihKey='\n```\n\nDefine A Aktuel Product's specific page URL(default):\n```python\nself.aktuel_urun = self.bim_base+'/aktuel-urunler/'\n```\n\nDefine Empty String as Nothing (default):\n```python\nself.nothing = ''\n```\n\n### Slugify\n\nIn search section we need slugify the keyword so we define a function for slugifying text.\n\nUsage:\n```python\nbim = pyBim()\nbim.slugify('Toptan fiyat\u0131na per\u00e2kende sat\u0131\u015f')\n```\n\nResult:\n```shell\ntoptan-fiyatina-perakende-satis\n```\n### Date\n\nIn aktuelUrunler_date function we set date\n\n#### Set Aktuel Date as Last Week\nUsage:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('last_week')\n```\n\nResult:\n```shell\nlast_week\n```\n\n#### Set Aktuel Date as This Week\nUsage 1 (Leave Empty):\n```python\nbim = pyBim()\nbim.aktuelUrunler_date()\n```\n\nor\n\nUsage 2:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date()\n```\n\nResult:\n```shell\nthis_week\n```\n\n#### Set Aktuel Date as Next Week\nUsage:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('next_week')\n```\n\nResult:\n```shell\nnext_week\n```\n#### Exception: Set Aktuel Date as Something other than these\nUsage:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('somethinglolololololo')\n```\n\nResult:\n\n```python\nTraceback (most recent call last):\n  File \"pyBim.py\", line 125, in <module>\n    bim.aktuelUrunler_date('somethinglolololololo')\n  File \"pyBim.py\", line 28, in aktuelUrunler_date\n    raise Exception('Bimodule.aktuel()\\'s date can take only 3 diffrent params. \\n Param 1: this_week (or leave empty) \\n Param 2: next_week \\n Param 3: last_week')\nException: Bimodule.aktuel()'s date can take only 3 diffrent params. \n Param 1: this_week (or leave empty) \n Param 2: next_week \n Param 3: last_week\n```\n\n### Get Aktuel Products Page\n\nIn date function we define the Aktuel's date, now we get Aktuel's Page of spesific date\n\nUsage:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('this_week')\nbim.aktuelUrunler_get()\n```\n\nResult:\n```shell\nhttp://www.bim.com.tr/Categories/100/aktuel-urunler.aspx?Bim_AktuelTarihKey=292\n```\n\n### Get Aktuel Products Detail\n\nIn last function we generate aktuel page link for parsing products, now we can parse products in Aktuel Catalog\n\nDefaults:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('this_week')\nbim.aktuelUrunler_get()\n```\n\n#### Array's Object 0 - Total Product Amount\nUsage:\n```python\nprint(bim.aktuelUrunler_parse()[0])\n```\n\nResult:\n```shell\n12\n```\n\n#### Array's Object 1 - Slugified Product Names\nUsage:\n```python\nprint(bim.aktuelUrunler_parse()[1])\n```\n\nResult:\n```shell\n['toblerone-360-g', 'sutlu-findikli-cikolata-nestle-70-g', 'bademli-beyaz-cikolata-nestle-70-g', 'karisik-kurabiye-cesitleri-lambertz-235-g', 'tam-tahilli-kahvaltilik-biskuvi-hellema-253-g', 'oreo-228-g', 'hindistan-cevizli-sutlu-cikolata-kaplamali-biskuvi-hellema-175-g', 'sutlu-kakao-kremali-gofret-wafer-master-500-g', 'mini-kekler-kuchenmeister', 'elma-dolgulu-kurabiye-new-yorkers-200-g', 'findik-aromali-kakaolu-dolgulu-waffle-136-g', 'dolgulu-sert-seker-olips-3-lu-paket']\n```\n\n#### Array's Object 2 - Full Product URL's\nUsage:\n```python\nprint(bim.aktuelUrunler_parse()[2])\n```\n\nResult:\n```shell\n['http://www.bim.com.tr/aktuel-urunler/toblerone-360-g/kral.aspx', 'http://www.bim.com.tr/aktuel-urunler/sutlu-findikli-cikolata-nestle-70-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/bademli-beyaz-cikolata-nestle-70-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/karisik-kurabiye-cesitleri-lambertz-235-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/tam-tahilli-kahvaltilik-biskuvi-hellema-253-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/oreo-228-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/hindistan-cevizli-sutlu-cikolata-kaplamali-biskuvi-hellema-175-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/sutlu-kakao-kremali-gofret-wafer-master-500-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/mini-kekler-kuchenmeister/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/elma-dolgulu-kurabiye-new-yorkers-200-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/findik-aromali-kakaolu-dolgulu-waffle-136-g/aktuel.aspx', 'http://www.bim.com.tr/aktuel-urunler/dolgulu-sert-seker-olips-3-lu-paket/aktuel.aspx']\n```\n\n### Parsing Specific Product with All Info  from URL\nIn aktuelUrun_parse function we must send a url for parsing product data \n\nUsage:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('this_week')\nbim.aktuelUrunler_get()\nbim.aktuelUrun_parse(bim.aktuelUrunler_parse()[2][1]) #Send Full URL of product\n```\n\nResult:\n```shell\n{'price': '3,50', 'name': 'S\u00fctl\u00fc F\u0131nd\u0131kl\u0131  \u00c7ikolata  Nestle 70 g', 'img': 'http://www.bim.com.tr/Uploads/aktuel-urunler/292_buyuk_330x280_NESTLE FINDIK.png', 'desc': '\\xa0%25 f\u0131nd\u0131kl\u0131\\n'}\n```\n\n### Random Bim Product from Aktuel\n**Note: Random function doesnt give same product twice!**\n#### Usage 1 (Leave Empty):\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('this_week')\nbim.aktuelUrunler_get()\nbim.aktuelUrunler_parse(),\nbim.aktuelUrun_random()\n```\n\nResult:\n```shell\n{'price': '4,95', 'img': 'http://www.bim.com.tr/Uploads/aktuel-urunler/292_buyuk_330x280_OREO.png', 'desc': '', 'name': 'Oreo 228 g'}\n```\n\n#### Usage 2 (Give Amount):\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('this_week')\nbim.aktuelUrunler_get()\nbim.aktuelUrunler_parse(),\nbim.aktuelUrun_random(5)\n```\n\nResult:\n```shell\n[{'price': '3,50', 'desc': '\\xa0%25 f\u0131nd\u0131kl\u0131\\n', 'img': 'http://www.bim.com.tr/Uploads/aktuel-urunler/292_buyuk_330x280_NESTLE FINDIK.png', 'name': 'S\u00fctl\u00fc F\u0131nd\u0131kl\u0131  \u00c7ikolata  Nestle 70 g'}, {'price': '5,45', 'desc': 'F\u0131nd\u0131k aromal\u0131 krema dolgulu\\nYo\u011furt krema dolgulu\\n', 'img': 'http://www.bim.com.tr/Uploads/aktuel-urunler/292_buyuk_330x280_SUN BEST.png', 'name': 'Tam Tah\u0131ll\u0131 Kahvalt\u0131l\u0131k Bisk\u00fcvi  Hellema 253 g'}, {'price': '4,95', 'desc': '', 'img': 'http://www.bim.com.tr/Uploads/aktuel-urunler/292_buyuk_330x280_OREO.png', 'name': 'Oreo 228 g'}, {'price': '7,95', 'desc': 'Bitter \u00e7ikolata par\u00e7ac\u0131kl\u0131 225 g\\nBitter \u00e7ikolatal\u0131 ve kakao 225 g\\nMozaik 255 g\\n', 'img': 'http://www.bim.com.tr/Uploads/aktuel-urunler/292_buyuk_330x280_MUFFIN.png', 'name': 'Mini Kekler\\xa0 Kuchenmeister'}, {'price': '3,95', 'desc': '\\xa0%23 bademli\\n', 'img': 'http://www.bim.com.tr/Uploads/aktuel-urunler/292_buyuk_330x280_NESTLE BADEM.png', 'name': 'Bademli  Beyaz  \u00c7ikolata  Nestle  70 g'}]\n```\n\n#### Exception: Give Amount bigger than total products\n**Note: You can get total amount of products with (self.total_item)**\n\nException Usage:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('this_week')\nbim.aktuelUrunler_get()\nbim.aktuelUrunler_parse()\nbim.aktuelUrun_random(15)\n```\n\nResult:\n```python\nTraceback (most recent call last):\n  File \"pyBim.py\", line 128, in <module>\n    bim.aktuelUrun_random(15)\n  File \"pyBim.py\", line 106, in aktuelUrun_random\n    raise Exception('Amount can not bigger than total amount of aktuel items.')\nException: Amount can not bigger than total amount of aktuel items.\n```\n\n### Search in Aktuel\nUsage:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('this_week')\nbim.aktuelUrunler_get()\nbim.aktuelUrunler_parse()\nprint(bim.aktuelUrun_search('Toblerone 360'))\n```\n\nResult:\n```shell\n['toblerone-360-g']\n```\n\n### Download Specific Product Image\n\nUsage:\n```python\nbim = pyBim()\nbim.aktuelUrunler_date('this_week')\nbim.aktuelUrunler_get()\nbim.aktuelUrunler_parse()\nbim.aktuelUrun_dl(bim.aktuelUrun_random(),'../img/')\n```\n\nResult:\n```shell\n../img/S\u00fctl\u00fc F\u0131nd\u0131kl\u0131  \u00c7ikolata  Nestle 70 g.png\n```\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "https://github.com/BTaskaya/pyBim/archive/v1.0.1.tar.gz",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/btaskaya/pyBim",
+        "keywords": "bim",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pyBim",
+        "package_url": "https://pypi.org/project/pyBim/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pyBim/",
+        "project_urls": {
+            "Download": "https://github.com/BTaskaya/pyBim/archive/v1.0.1.tar.gz",
+            "Homepage": "https://github.com/btaskaya/pyBim"
+        },
+        "release_url": "https://pypi.org/project/pyBim/1.0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Bim Aktuel Module for Python",
+        "version": "1.0.1"
+    },
+    "last_serial": 3666340,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6888bfc25425cb95ae3d8eff58b19084",
+                    "sha256": "b1895508919773c6fa4870404ba45acf8f55cb419450d407de22a6c6b10f05fc"
+                },
+                "downloads": -1,
+                "filename": "pyBim-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6888bfc25425cb95ae3d8eff58b19084",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5126,
+                "upload_time": "2018-03-13T18:01:37",
+                "url": "https://files.pythonhosted.org/packages/1b/b0/51988361938e1d0e45fc0793b88a77e526982aede41c4b6b26d2017941a4/pyBim-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a81fabe45c726ce80bf516f70de7bac8",
+                    "sha256": "e6f378357f3f3e4d8bdaedcd8f9587d4881627bf97062b5e95320f6378a25af7"
+                },
+                "downloads": -1,
+                "filename": "pyBim-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a81fabe45c726ce80bf516f70de7bac8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5138,
+                "upload_time": "2018-03-13T18:20:55",
+                "url": "https://files.pythonhosted.org/packages/1c/c6/52f1e0dda6595ec560d1b0eb92dafca0eeb467e84fb70cf3bd6b8e5f2d84/pyBim-1.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a81fabe45c726ce80bf516f70de7bac8",
+                "sha256": "e6f378357f3f3e4d8bdaedcd8f9587d4881627bf97062b5e95320f6378a25af7"
+            },
+            "downloads": -1,
+            "filename": "pyBim-1.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a81fabe45c726ce80bf516f70de7bac8",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5138,
+            "upload_time": "2018-03-13T18:20:55",
+            "url": "https://files.pythonhosted.org/packages/1c/c6/52f1e0dda6595ec560d1b0eb92dafca0eeb467e84fb70cf3bd6b8e5f2d84/pyBim-1.0.1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,229 @@
+{
+    "info": {
+        "author": "Rick Teachey",
+        "author_email": "ricky@teachey.org",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Text Processing",
+            "Topic :: Utilities"
+        ],
+        "description": "parmatter\r\n=========\r\n\r\nAll ``unformat`` methods return ``re.Result`` instances from the regex module. \r\n\r\nBasic parmatter\r\n---------------\r\n\r\nExample usage: \r\n\r\n>>> f = Parmatter()\r\n>>> assert f.format('{x}', x='foo') == 'foo'\r\n>>> assert f.format('{}', 'foo') == 'foo'\r\n>>> assert list(f.unformat('{}', 'foo')) == ['foo']\r\n\r\nCustom parmatters\r\n-----------------\r\n\r\nSome custom parmatters are also available. \r\n\r\n``StaticParmatter``\r\n^^^^^^^^^^^^^^^^^^^^\r\n\r\nA parmatter with a pre-compiled (i.e., static) parser:\r\n\r\n>>> f = StaticParmatter('{}')\r\n>>> assert f.format('foo') == 'foo'\r\n>>> assert list(f.unformat('foo')) == ['foo']\r\n\r\n``DefaultParmatter``\r\n^^^^^^^^^^^^^^^^^^^^\r\n\r\nA parmatter with a default namespace. The namespace should have ``int`` keys for positional arguments, and ``str`` keys for named arguments:\r\n\r\n>>> f = DefaultParmatter(default_namespace={0:'foo', 'a':'bar'})\r\n>>> assert f.format('{}: {a}') == 'foo: bar'\r\n>>> f.unformat('{}: {a}','foo: bar')\r\n    <Result ('foo',) {'a': 'bar'}>\r\n\r\n``PositionalDefaultParmatter``\r\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n\r\nA parmatter with a default *positional* namespace:\r\n\r\n>>> f = PositionalDefaultParmatter('foo', 'bar')\r\n>>> assert f.format('{}: {}') == 'foo: bar'\r\n>>> assert f.format('{}: {}', 'baz') == 'baz: bar'\r\n>>> assert list(f.unformat('{}: {}', 'foo: bar')) == ['foo', 'bar']\r\n\r\n``KeywordParmatter``\r\n^^^^^^^^^^^^^^^^^^^^^\r\n\r\nA parmatter with a default *keyword* namespace:\r\n\r\n>>> f = KeywordParmatter(x='foo', y='bar')\r\n>>> assert f.format('{x}: {y}') == 'foo: bar'\r\n>>> assert f.format('{x}: {y}', y='baz') == 'foo: baz'\r\n>>> f.unformat('{x}: {y}', 'foo: bar')\r\n<Result () {'x': 'foo', 'y': 'bar'}>\r\n\r\n``AttrParmatter``\r\n^^^^^^^^^^^^^^^^^^^^\r\n\r\nA parmatter whose ``format`` method can populate fields using attributes from an object provided as an argument: \r\n\r\n>>> obj = type('MyClass', (), {})()\r\n>>> obj.x = 'foo'\r\n>>> f = AttrParmatter()\r\n>>> assert f.format('{x}', obj) == 'foo'\r\n>>> f.unformat('{x}', 'foo')\r\n<Result () {'x': 'foo'}>\r\n\r\n``VersatileParmatter``\r\n^^^^^^^^^^^^^^^^^^^^^^^\r\n\r\nA parmatter with a combination of the above functionalities:\r\n\r\n*  a pre-compiled (i.e., static) parser\r\n*  a default *positional* namespace\r\n*  ``format`` method can populate fields using attributes from an object provided as an argument\r\n\r\n>>> obj = type('MyClass', (), {})()\r\n>>> obj.x = 'foo'\r\n>>> f = VersatileParmatter('{x}: {}', 'bar')\r\n>>> assert f.format(obj) == 'foo: bar'\r\n>>> f.unformat('foo: bar')\r\n<Result ('foo',) {'x': 'bar'}>\r\n\r\nBasic Format Groups\r\n-------------------\r\n\r\nParmatter groups are created in order to define different line types for files. \r\n\r\nAn individual parmatter could also be used to define a line type on its own, but the parmatter group also has options for prefixes, separators, and naming of parmatters (useful in formatting and unformatting). The basic ``FormatGroup`` factory uses the ``VersatileParmatter`` by default. Note that the ``parse.Result`` object has been modified to make use of a named tuples; the named tuple fields are named for the format group arguments.\r\n\r\n``FormatGroup``\r\n^^^^^^^^^^^^^^^^\r\n\r\nA format group factory. Example usage:\r\n\r\n>>> NodeCount = FormatGroup('NodeCount', Total = '{: >5d}')\r\n>>> NodeCount.unformat('    10').fixed\r\nNodeCountData(Total=10)\r\n>>> NodeCount.format(10)\r\n'   10'\r\n>>> NodeLine = FormatGroup('NodeLine', Num = '{: >5d}', X = ('{: >10f}', 0), Y = ('{: >10f}', 0))\r\n>>> NodeLine.unformat('    1    0.0000    0.0000').fixed\r\nNodeLineData(Num=1, X=0.0, Y=0.0)\r\n>>> NodeLine.format(1,5,6.3)\r\n'    5    5.0000    6.3000'\r\n\r\nFile Unformat\r\n-------------------\r\n\r\nBuilds the LineType sequence and LineType.unformat result for a file. Raises TypeError if an invalid line sequence is encountered.\r\n\r\nUse ``line_rules`` to define valid LineType succession (i.e., which line types are allowed to follow a given line type). Use ``None`` for the first line. \r\n\r\nGiven some example file (representing a group of 4 nodes) at 'SOME_PATH' and the ``NodeCount``, ``NodeLine`` format groups above:\r\n\r\n>>> SOME_FILE\r\n    4\r\n    1       0.0       0.0\r\n    2       1.0       0.0\r\n    3       0.0       1.0\r\n    4       1.0       1.0\r\n\r\nUnformat the file thusly:\r\n\r\n>>> line_rules={    None:(NodeCount),\r\n                    NodeCount:(NodeLine),\r\n                    NodeLine:(NodeLine),\r\n                    }\r\n>>> from pathlib import Path\r\n>>> path = Path('SOME_PATH')\r\n>>> unformat_tuple = unformat_file(path, line_rules)\r\nUnformatFile = nt('UnformatFile', 'unformat_tuple.result')\r\n>>> unformat_tuple.struct\r\n[NodeCount, NodeLine, NodeLine, NodeLine, NodeLine]\r\n>>> unformat_tuple.result\r\n[<Result (4) {}>, <Result (1, 0.0, 0.0) {}>, <Result (2, 1.0, 0.0) {}>, <Result (3, 0.0, 1.0) {}>, <Result (4, 1.0, 1.0) {}>]\r\n\r\nMake use of the file data:\r\n\r\n>>> node4 = unformat_tuple.result[-1].fixed\r\n>>> node4\r\nNodeLineData(Num=4, X=1.0, Y=1.0)\r\n>>> node4._asdict()\r\nOrderedDict([('Num', 4), ('X', 1.0), ('Y', 1.0)])\r\n>>> NodeLine.format(node4)\r\n'    4       1.0       1.0'\r\n\r\nChangelog (parmatter)\r\n=====================\r\n\r\n0.0.6 (2017-06-08)\r\n------------------\r\n\r\n- Reformat readme rst\r\n- Add ``python_requires='>=3'`` to setup py \r\n- Add ``__version__.py`` to populate setup py\r\n\r\n0.0.5 (2017-06-08)\r\n------------------\r\n\r\n- Even more readme rst bugs, setup py bug\r\n\r\n0.0.4 (2017-06-08)\r\n------------------\r\n\r\n- More readme rst bugs\r\n\r\n0.0.3 (2017-06-08)\r\n------------------\r\n\r\n- Corrected readme rst, added `parse` dependency\r\n\r\n0.0.2 (2017-06-08)\r\n------------------\r\n\r\n- First alpha release\r\n- Includes: basic parmatters, basic format group, and unformat_file\r\n\r\n0.0.1 (unreleased)\r\n------------------\r\n\r\n- Initial project completed",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Ricyteach/parmatter",
+        "keywords": "string Formatter format parse unformat parmatter format_group linemaker",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "parmatter",
+        "package_url": "https://pypi.org/project/parmatter/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/parmatter/",
+        "project_urls": {
+            "Homepage": "https://github.com/Ricyteach/parmatter"
+        },
+        "release_url": "https://pypi.org/project/parmatter/0.0.6/",
+        "requires_dist": [
+            "parse"
+        ],
+        "requires_python": ">=3",
+        "summary": "Tools for formatters that can also parse strings (i.e., with unformatting capability): a.k.a., \"parmatters\".",
+        "version": "0.0.6"
+    },
+    "last_serial": 2995674,
+    "releases": {
+        "0.0.1": [],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8d52289f3c5be2db1ecc74d7cb786df3",
+                    "sha256": "8fca3e42f35be2d28dac0fba77e9e69edff7e9b0bdfd0716ffaad30cd8a7db03"
+                },
+                "downloads": -1,
+                "filename": "parmatter-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8d52289f3c5be2db1ecc74d7cb786df3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 17391,
+                "upload_time": "2017-06-08T16:15:04",
+                "url": "https://files.pythonhosted.org/packages/7e/ad/81ba6052c1b940f2712419f9008500ac5b164c86533e71fbcf6237de23e0/parmatter-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab05f3e49d952d8f7a64fabf1c91a71d",
+                    "sha256": "21a7707fdda18b6cd939b9c9b32496fd084102ef4d9eee0b412234cdd4c0524d"
+                },
+                "downloads": -1,
+                "filename": "parmatter-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ab05f3e49d952d8f7a64fabf1c91a71d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14459,
+                "upload_time": "2017-06-08T16:09:05",
+                "url": "https://files.pythonhosted.org/packages/60/50/70be3b62798661a00752ba179c76bbe6cdbff23f8cd56e9ea6f928811b61/parmatter-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f0080ab058fe85af41e29b37c7c1ae16",
+                    "sha256": "0dfc97599abef426589b4f55185c0f3fc570e5332ce5156e305fd4f6a46ace94"
+                },
+                "downloads": -1,
+                "filename": "parmatter-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f0080ab058fe85af41e29b37c7c1ae16",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13497,
+                "upload_time": "2017-06-08T16:36:49",
+                "url": "https://files.pythonhosted.org/packages/56/99/6967a9830ed437520ec9a39cae47d8441be677c79ee2256a0c0dc0b6cbe5/parmatter-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "24092caf3a7e99541ded07f8298ab966",
+                    "sha256": "8c51652b06dbb742fef3a023ede0e1c38306a19443e741559a6a0ae5b43b2a19"
+                },
+                "downloads": -1,
+                "filename": "parmatter-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "24092caf3a7e99541ded07f8298ab966",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14473,
+                "upload_time": "2017-06-08T16:36:51",
+                "url": "https://files.pythonhosted.org/packages/1c/3c/2cd1dbe8a9a2eb1182b2c9b60463009ffb734441cc0efc74567d6744d671/parmatter-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7ed8f5523e0120caafb00ce8dfaa4b74",
+                    "sha256": "332d26a341d096f4030957d7500a63d544353c809fb3c030db8915390bd6f7a8"
+                },
+                "downloads": -1,
+                "filename": "parmatter-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7ed8f5523e0120caafb00ce8dfaa4b74",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13475,
+                "upload_time": "2017-06-08T19:40:53",
+                "url": "https://files.pythonhosted.org/packages/e5/f1/e51bb0ad937d8003022d0de274d086b33c8684ce1bee849732757fc5dafe/parmatter-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca2ec59e2deb7c10ec7dd8f3342b1f1a",
+                    "sha256": "1e2b4e7cfe335dfae8f649eb07f4ef5d36ede25f8bcb4fa10277aa1acd4a881d"
+                },
+                "downloads": -1,
+                "filename": "parmatter-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ca2ec59e2deb7c10ec7dd8f3342b1f1a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14516,
+                "upload_time": "2017-06-08T19:40:54",
+                "url": "https://files.pythonhosted.org/packages/be/06/337f43391b4ac32b51cf6cc2fce4cfa40be835d1f3925a69080ef73ad4a1/parmatter-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e67695f1ff9e560c293a31b1e94859a9",
+                    "sha256": "2b238bbf23db8127091d324c630d701504a3b39ced3692f50257a14bf98fed84"
+                },
+                "downloads": -1,
+                "filename": "parmatter-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e67695f1ff9e560c293a31b1e94859a9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 18216,
+                "upload_time": "2017-06-09T04:16:51",
+                "url": "https://files.pythonhosted.org/packages/0d/ea/e56f1e29523d36b4f6eca2035689fcec982b472d040126ec95dfb3380318/parmatter-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fe458c6d60e08c092d721a1077755436",
+                    "sha256": "47d85a3843afe2531d9525fffff1581a3ea147c63801606452a7a224db3df071"
+                },
+                "downloads": -1,
+                "filename": "parmatter-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fe458c6d60e08c092d721a1077755436",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3",
+                "size": 12967,
+                "upload_time": "2017-06-09T04:16:52",
+                "url": "https://files.pythonhosted.org/packages/cb/82/5ed20c1f9026c044305a92be363b6edd6b3ce38f0274396d3a41516fd45f/parmatter-0.0.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e67695f1ff9e560c293a31b1e94859a9",
+                "sha256": "2b238bbf23db8127091d324c630d701504a3b39ced3692f50257a14bf98fed84"
+            },
+            "downloads": -1,
+            "filename": "parmatter-0.0.6-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "e67695f1ff9e560c293a31b1e94859a9",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3",
+            "size": 18216,
+            "upload_time": "2017-06-09T04:16:51",
+            "url": "https://files.pythonhosted.org/packages/0d/ea/e56f1e29523d36b4f6eca2035689fcec982b472d040126ec95dfb3380318/parmatter-0.0.6-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "fe458c6d60e08c092d721a1077755436",
+                "sha256": "47d85a3843afe2531d9525fffff1581a3ea147c63801606452a7a224db3df071"
+            },
+            "downloads": -1,
+            "filename": "parmatter-0.0.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "fe458c6d60e08c092d721a1077755436",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3",
+            "size": 12967,
+            "upload_time": "2017-06-09T04:16:52",
+            "url": "https://files.pythonhosted.org/packages/cb/82/5ed20c1f9026c044305a92be363b6edd6b3ce38f0274396d3a41516fd45f/parmatter-0.0.6.tar.gz"
+        }
+    ]
+}

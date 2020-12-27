@@ -1,0 +1,188 @@
+{
+    "info": {
+        "author": "Jondy Zhao",
+        "author_email": "jondy.zhao@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: Microsoft :: Windows",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "=================\n PyMessageFilter\n=================\n\nA python package implements interface IMessageFilter for COM.\n\nThe main purpose is to fix 'Application is Busy' and 'Call was Rejected By Callee' errors in a WINDOWS COM/COM+ client.\n\nHere is a workaround\n\nhttps://docs.microsoft.com/en-us/previous-versions/ms228772(v=vs.140)\n\nBut it's written by C#, this package offers both C and Python versions.\n\nUsage\n-----\n\nInstall it by `pip install PyMessageFilter`\n\nImport `CMessageFilter` from `PyMessageFilter`\n\nCall static method `register` at the beginning of automation\n\nCall static method `revoke` at the end of work\n\nHere it's an example:\n\n.. code:: python\n\n    from comtypes.client import CreateObject\n    from PyMessageFilter import CMessageFilter\n\n    def iter_excel_sheets(filename):\n        CMessageFilter.register()\n        aobj = CreateObject('Excel.Application', dynamic=True)\n        aobj.Workbooks.Open(filename)\n        for sheet in aobj.ActiveWorkbook.Worksheets:\n            print('Processing %s' % sheet.Name)\n        CMessageFilter.revoke()\n\n\n.. note::\n\n   The interface `IMessageFilter` only works in single-threaded\n   apartments, it will not be called in the multithreaded\n   apartments. Refer to\n\n   https://docs.microsoft.com/en-us/windows/desktop/com/choosing-the-threading-model\n\nBuild `msgfilter.dll`\n---------------------\n\nBy visual studio command line `cl /LD msgfilter.c ole32.lib`\n\nBy mingw32 in cygwin `i686-pc-mingw32-gcc -shared -o msgfilter.dll msgfilter.c -lole32 -luuid`\n\nThere are 2 export functions, they can be used in any c file.\n\nHere it's an exmaple:\n\n.. code:: c\n\n    #include <stdio.h>\n    #include <objbase.h>\n\n    extern void register_message_filter();\n    extern void revoke_message_filter();\n\n    int main(int argc, char* argv[])\n    {\n      HRESULT ret;\n      ret = CoInitializeEx(0, COINIT_APARTMENTTHREADED);\n      register_message_filter();\n\n      // do something for automation\n\n      revoke_message_filter();\n      CoUninitialize();\n\n      return 0;\n    }",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jondy/PyMessageFilter",
+        "keywords": "COM IMessageFilter",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "PyMessageFilter",
+        "package_url": "https://pypi.org/project/PyMessageFilter/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/PyMessageFilter/",
+        "project_urls": {
+            "Homepage": "https://github.com/jondy/PyMessageFilter"
+        },
+        "release_url": "https://pypi.org/project/PyMessageFilter/0.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A python package implements interface IMessageFilter for COM",
+        "version": "0.2"
+    },
+    "last_serial": 4949236,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "692fb380d95b9f13f4372bbe82bcb009",
+                    "sha256": "e6f6f095850cce77a3515467c740cd2a7941f3a07568ff1f852e4643142b347f"
+                },
+                "downloads": -1,
+                "filename": "PyMessageFilter-0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "692fb380d95b9f13f4372bbe82bcb009",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 26639,
+                "upload_time": "2019-03-17T01:20:10",
+                "url": "https://files.pythonhosted.org/packages/e9/cf/02132a9ce90a52beb49193e158139f62de224a77c77c75a7caeb2a85350b/PyMessageFilter-0.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fa86fe2695797efc289ed3db16ae2068",
+                    "sha256": "ac0517fb53b62ffbc982c6d45d64566c33abfabb9114b7e0e6796381011e392c"
+                },
+                "downloads": -1,
+                "filename": "PyMessageFilter-0.1.zip",
+                "has_sig": false,
+                "md5_digest": "fa86fe2695797efc289ed3db16ae2068",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27299,
+                "upload_time": "2019-03-17T01:20:04",
+                "url": "https://files.pythonhosted.org/packages/d8/c0/96e6e88f062611113897f747d48873137106cde47c7c316171de9c6718be/PyMessageFilter-0.1.zip"
+            }
+        ],
+        "0.1a2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "04d4b37ece06cfc38e0c341507c6ac58",
+                    "sha256": "143d592e6d8e7b4f5385efea42dfc060273964967a1b8f1e5149b9123686cc2c"
+                },
+                "downloads": -1,
+                "filename": "PyMessageFilter-0.1a2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "04d4b37ece06cfc38e0c341507c6ac58",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 26740,
+                "upload_time": "2019-03-17T01:25:40",
+                "url": "https://files.pythonhosted.org/packages/c8/c4/ae29608092f8f77fbfa800049317b6c7313ad39408ec331b3aeb62d27cb7/PyMessageFilter-0.1a2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8996b5be86cf1b5a495d5df8fe624970",
+                    "sha256": "c8bf467528730459c50bc6b848750d85f41020c73872e9ab4750134fbc4ea71c"
+                },
+                "downloads": -1,
+                "filename": "PyMessageFilter-0.1a2.zip",
+                "has_sig": false,
+                "md5_digest": "8996b5be86cf1b5a495d5df8fe624970",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27427,
+                "upload_time": "2019-03-17T01:25:34",
+                "url": "https://files.pythonhosted.org/packages/e0/d7/5ec0ddfdcf39c56c9e9b4a32bbdfc60fc0fb1281fd53b006004a06a29ef6/PyMessageFilter-0.1a2.zip"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "04c7259a09cbc73a588740d49493d3f7",
+                    "sha256": "35b13f2f86c728220f4d8ae3d577b31bd781906b1876147bc6e46422bf1d3a04"
+                },
+                "downloads": -1,
+                "filename": "PyMessageFilter-0.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "04c7259a09cbc73a588740d49493d3f7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 26776,
+                "upload_time": "2019-03-17T01:41:56",
+                "url": "https://files.pythonhosted.org/packages/65/e3/fcf9315bc88314bbbc86520349c3428e6f1d39f51f2d672186f185a43372/PyMessageFilter-0.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d81fde55007dc105e823b00ed0b9377a",
+                    "sha256": "42653d0e726028813c7c4f365018a46a9e76cbf18c609259c7bd6fb368544c36"
+                },
+                "downloads": -1,
+                "filename": "PyMessageFilter-0.2.zip",
+                "has_sig": false,
+                "md5_digest": "d81fde55007dc105e823b00ed0b9377a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27477,
+                "upload_time": "2019-03-17T01:41:46",
+                "url": "https://files.pythonhosted.org/packages/65/54/d81cf184bc384b856d44c86b85088fd9cde037a98939d7cb8279a776ec34/PyMessageFilter-0.2.zip"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "04c7259a09cbc73a588740d49493d3f7",
+                "sha256": "35b13f2f86c728220f4d8ae3d577b31bd781906b1876147bc6e46422bf1d3a04"
+            },
+            "downloads": -1,
+            "filename": "PyMessageFilter-0.2-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "04c7259a09cbc73a588740d49493d3f7",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 26776,
+            "upload_time": "2019-03-17T01:41:56",
+            "url": "https://files.pythonhosted.org/packages/65/e3/fcf9315bc88314bbbc86520349c3428e6f1d39f51f2d672186f185a43372/PyMessageFilter-0.2-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d81fde55007dc105e823b00ed0b9377a",
+                "sha256": "42653d0e726028813c7c4f365018a46a9e76cbf18c609259c7bd6fb368544c36"
+            },
+            "downloads": -1,
+            "filename": "PyMessageFilter-0.2.zip",
+            "has_sig": false,
+            "md5_digest": "d81fde55007dc105e823b00ed0b9377a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 27477,
+            "upload_time": "2019-03-17T01:41:46",
+            "url": "https://files.pythonhosted.org/packages/65/54/d81cf184bc384b856d44c86b85088fd9cde037a98939d7cb8279a776ec34/PyMessageFilter-0.2.zip"
+        }
+    ]
+}

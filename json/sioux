@@ -1,0 +1,467 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 14,
+        "author": "Cognitive Computation Group",
+        "author_email": "mssammon@illinois.edu",
+        "bugtrack_url": "",
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Science/Research",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Operating System :: Unix",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Scientific/Engineering"
+        ],
+        "description": "Sioux\n====================\n.. image:: http://morgoth.cs.illinois.edu:8080/buildStatus/icon?job=python-utils\n    :target: http://morgoth.cs.illinois.edu:8080/job/python-utils/\n.. image:: https://semaphoreci.com/api/v1/projects/dc68ab4d-d1b7-4405-adca-b0c6af2e1aa0/1223617/badge.svg\n    :target: https://semaphoreci.com/danyaljj/sioux-2\n.. image:: https://img.shields.io/badge/%3E%3E%3E-Api%20Docs-brightgreen.svg\n    :target: http://cogcomp.cs.illinois.edu/software/doc/sioux/\n\nRun NLP tools such as Part-of-Speech tagging, Chunking, Named Entity Recognition, etc on your documents in Python with ease and breeze!\n\nInstallation\n------------\n\n1. Make sure `you have \"pip\" on your system <https://pip.pypa.io/en/stable/installing/>`_. \n2. Make sure you have installed Cython:\n\n    pip install cython\n\n3. Install:\n\n    pip install sioux\n\n4. Enjoy!\n\n**Note:** The package should be compatible with Python 2.6+ and Python 3.3+\n\n**Upgrading:** If you want to update your package: \n\n   pip install --upgrade sioux\n\nIf you want to upgrade upgrade it on a specific version replace :code:`pip` in the command above with :code:`pip2` or :code:`pip3`. \n\nGetting Started \n---------------\nHere is a sample usage showing how yeezily you run Sioux: \n\n.. code-block:: python\n\n   from sioux import remote_pipeline\n\n   pipeline = remote_pipeline.RemotePipeline()\n   doc = pipeline.doc(\"Hello, how are you. I am doing fine\")\n   print(doc.get_lemma) # will produce (hello Hello) (, ,) (how how) (be are) (you you) (. .) (i I) (be am) (do doing) (fine fine)\n   print(doc.get_pos) # will produce (UH Hello) (, ,) (WRB how) (VBP are) (PRP you) (. .) (PRP I) (VBP am) (VBG doing) (JJ fine)\n\nThe default/easy usage has some restrictions as will deliniate in the next section. See the next section to \n\n**Api Docs:** Here is the `API docs <http://cogcomp.cs.illinois.edu/software/doc/sioux/pipeliner.m.html>`_ of our `Pipeliner` module.\n\nStructure   \n----------------------------- \nSioux enables you accesss `CogComp pipeline <https://github.com/CogComp/cogcomp-nlp/tree/master/pipeline>`_ in different forms. The figure below summarizes these approaches: \n\n.. figure:: https://cloud.githubusercontent.com/assets/2441454/25446100/0e06d190-2a76-11e7-9438-f9a9bde717e0.png\n   :scale: 50 %\n\nThe figure above gives a summary of possible usages, as well as their pros and cons. Next we will go through each item and elaborate: \n\nRemote Pipeline \n~~~~~~~~~~~~~~~~~~~~~~\nIn this setting, Sioux sends annotation requests to a remote machine. Hence there is not much memory burden on your local machine. Instead all the heavy-lifting is on the remote server. \n\n**Default remote server:**  This is the default setting in Sioux. The requests are sent to our remote server, hence requires a network connection. This option is here to demonstrate how things work, but it is not a viable solution for your big experiments since we limit the number of queries to our serve (current limit is *100 queries a day*). If you are a busy nlp user, you should use any of the other options. \n\n**Starting your own (remote) server:** If you have a big (remote) machine, this is probably a good option for you. \nYou'll have to read the instructions on how to install the pipeline server in the `pipeline project documentation <https://github.com/CogComp/cogcomp-nlp/tree/master/pipeline#using-pipeline-webserver>`_. In summary: \n\n1. Clone our  `Cogcomp-NLP <https://github.com/CogComp/cogcomp-nlp/>`_ java project. \n2. Run :code:`pipeline/scripts/runWebserver.sh` to start the server. \n3. When you see :code:`Server:xxx - Started @xxxxxms`, the server is up and running: \n\nAfter making sure that the server is running, we can make python call to it: \n\n.. code-block:: python\n\n   from sioux import remote_pipeline\n   pipeline = remote_pipeline.RemotePipeline(server_api='http://www.fancyUrlName.com:8080') \n   # constructor declaration: RemotePipeline(server_api = None, file_name = None)\n   # \"server_api\" is the address of the server as string. An example: http://www.fancyUrlName.com:8080\n   # \"file_name\" is the config file used to set up pipeline (optional), please refer the latter section for more details\n\n**Note:** This tool is based on CogComp's `pipeline project <https://github.com/CogComp/cogcomp-nlp/tree/master/pipeline>`_. Essentially annotator included in the pipeline should be accessible here. \n\nLocal Pipeline \n~~~~~~~~~~~~~~~~~~~~~~\nIn this setting, Sioux will download the trained models and files required to run the pipeline locally. Since everything is run on your machine, it will probably require a lot of memory (the amount depends on which annotations you use). If you have a single big machine (i.e. memory > 15GB) for your expeirments, this is probably a good option for you. \n\nTo download the models, run the following command:\n\n  python -m sioux download\n\nThis will download model files into your home directly under :code:`~/.sioux/`. \n\n**Note:** Note that downloading the models require you to have Maven installed on your machine. If you don't, `here are some guidelines on how to install it <https://maven.apache.org/install.html>`_. \n\n**Note:** To use the pipelne locally (A) you have to make sure you have set :code:`JAVA_HOME` variable. In MacOS, you can verify it with :code:`echo \"$JAVA_HOME\"`. If it is not set, you can :code:`export JAVA_HOME=$(/usr/libexec/java_home)`. \n\nIn the local pipeline the views are disabled by default. If you want to change specific behaviors, such as activating or deactivating specific components, you can specify the parameters while initializing local/remote pipeline module.\n\n.. code-block:: python\n\n   from sioux import local_pipeline\n   pipeline = local_pipeline.LocalPipeline() \n   # constructor declaration: LocalPipeline()\n\n\nSetting from Configuration file \n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nYou can set settings on how to run Sioux via a local option too, rather than setting it programmatically. \nHere is how to: \n\n.. code-block:: python\n\n   from sioux import remote_pipeline\n   pipeline = remote_pipeline.RemotePipeline(file_name = 'path_to_custom_config_file')\n\n\nThe default keys and values are specified below. If you want to use custom config file, please provide a file in similar format.\n\n\n.. code-block:: bash\n\n    [remote_pipeline_setting]\n    api = ADDRESS_OF_THE_SERVER # example: http://fancyUrlName.com:8080\n\n\nQuestions/Suggestions/Comments \n------------------------------\nUse comments or pull requests. \n\nAbout the name \n-------------- \nIt is pronounced similar to \"Sue\". The *Sioux* are groups of Native American tribes and First Nations peoples in North America, mostly the tribal governments scattered across North Dakota, South Dakota, Nebraska, Minnesota, and Montana in the United States; and Manitoba and southern Saskatchewan in Canada. (`Read more <https://en.wikipedia.org/wiki/Sioux>`_)\n\n\n\n\n",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/IllinoisCogComp/sioux",
+        "keywords": "NLP,natural language processing",
+        "license": "Research and Academic Use License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sioux",
+        "package_url": "http://pypi.python.org/pypi/sioux",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/sioux/0.9.0",
+        "requires_dist": [
+            "six",
+            "requests",
+            "pyjnius",
+            "protobuf",
+            "configparser",
+            "Cython"
+        ],
+        "requires_python": "",
+        "summary": "Light-weight NLP annotators",
+        "version": "0.9.0"
+    },
+    "releases": {
+        "0.1.dev0": [
+            {
+                "comment_text": "",
+                "downloads": 14,
+                "filename": "sioux-0.1.dev0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a13c703b1497d00125f0bb467db019d8",
+                "packagetype": "bdist_wheel",
+                "path": "d9/dd/f72cd0dbc97f6e4c42dd24ed3acebab0a522c0ca95855d617e422c616576/sioux-0.1.dev0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 3826,
+                "upload_time": "2017-03-07T19:45:54",
+                "url": "https://pypi.python.org/packages/d9/dd/f72cd0dbc97f6e4c42dd24ed3acebab0a522c0ca95855d617e422c616576/sioux-0.1.dev0-py2.py3-none-any.whl"
+            }
+        ],
+        "0.2.dev0": [
+            {
+                "comment_text": "",
+                "downloads": 14,
+                "filename": "sioux-0.2.dev0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "01d486e63f6adab450941ed60c1d93d1",
+                "packagetype": "bdist_wheel",
+                "path": "16/0c/16cb4f2940fa73b164055d0775b4539769057934ffc5682c2fd375378765/sioux-0.2.dev0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 5560,
+                "upload_time": "2017-03-07T22:39:34",
+                "url": "https://pypi.python.org/packages/16/0c/16cb4f2940fa73b164055d0775b4539769057934ffc5682c2fd375378765/sioux-0.2.dev0-py2.py3-none-any.whl"
+            }
+        ],
+        "0.3.dev0": [
+            {
+                "comment_text": "",
+                "downloads": 15,
+                "filename": "sioux-0.3.dev0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e63e8ef961213781be0baf87c82a81af",
+                "packagetype": "bdist_wheel",
+                "path": "82/7e/c0738fa5f92bfdb5766208fd900251bd14185f5d8f8baf68c67255186e73/sioux-0.3.dev0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 5849,
+                "upload_time": "2017-03-08T01:14:02",
+                "url": "https://pypi.python.org/packages/82/7e/c0738fa5f92bfdb5766208fd900251bd14185f5d8f8baf68c67255186e73/sioux-0.3.dev0-py2.py3-none-any.whl"
+            }
+        ],
+        "0.3.dev1": [
+            {
+                "comment_text": "",
+                "downloads": 16,
+                "filename": "sioux-0.3.dev1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "acf125eebdef377653b0ee6c4597b7ed",
+                "packagetype": "bdist_wheel",
+                "path": "1e/2a/ad66cabc08494f3feffd5f223389151a7bfe8bd39f7becbfe93d27e655bb/sioux-0.3.dev1-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 5889,
+                "upload_time": "2017-03-08T06:18:24",
+                "url": "https://pypi.python.org/packages/1e/2a/ad66cabc08494f3feffd5f223389151a7bfe8bd39f7becbfe93d27e655bb/sioux-0.3.dev1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 13,
+                "filename": "sioux-0.3.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0bb1707a04b19119dff3cc3962efa35f",
+                "packagetype": "sdist",
+                "path": "9c/76/ccd681b941aebf141e3022e0b56b45fbeb75312565f84bea57a89b02b11a/sioux-0.3.dev1.tar.gz",
+                "python_version": "source",
+                "size": 4913,
+                "upload_time": "2017-03-08T06:18:26",
+                "url": "https://pypi.python.org/packages/9c/76/ccd681b941aebf141e3022e0b56b45fbeb75312565f84bea57a89b02b11a/sioux-0.3.dev1.tar.gz"
+            }
+        ],
+        "0.4.dev0": [
+            {
+                "comment_text": "",
+                "downloads": 14,
+                "filename": "sioux-0.4.dev0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6a18da8dc489ecd745df351f9130881f",
+                "packagetype": "bdist_wheel",
+                "path": "52/e9/be771f381d0aa659374557533c6c0dad9de975638ec044bd3ed217ddc65d/sioux-0.4.dev0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 9372,
+                "upload_time": "2017-03-10T20:55:36",
+                "url": "https://pypi.python.org/packages/52/e9/be771f381d0aa659374557533c6c0dad9de975638ec044bd3ed217ddc65d/sioux-0.4.dev0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 15,
+                "filename": "sioux-0.4.dev0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "36ee0c2d97cdfa6148f76ac79f19a99e",
+                "packagetype": "sdist",
+                "path": "3b/9a/3b2c9f030fec222fa3220b402eb880e0871f69f9db198bec2c418f836c61/sioux-0.4.dev0.tar.gz",
+                "python_version": "source",
+                "size": 6766,
+                "upload_time": "2017-03-10T20:55:37",
+                "url": "https://pypi.python.org/packages/3b/9a/3b2c9f030fec222fa3220b402eb880e0871f69f9db198bec2c418f836c61/sioux-0.4.dev0.tar.gz"
+            }
+        ],
+        "0.5.dev0": [
+            {
+                "comment_text": "",
+                "downloads": 23,
+                "filename": "sioux-0.5.dev0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "216d9be0ec63d037d4652417f4ee1fc8",
+                "packagetype": "bdist_wheel",
+                "path": "3b/9c/43ef9cb5fb9dab5f983c6f42417db512ed0df2b1171daf7e2e9f323019a9/sioux-0.5.dev0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 13297,
+                "upload_time": "2017-03-13T19:55:22",
+                "url": "https://pypi.python.org/packages/3b/9c/43ef9cb5fb9dab5f983c6f42417db512ed0df2b1171daf7e2e9f323019a9/sioux-0.5.dev0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 18,
+                "filename": "sioux-0.5.dev0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f9eccaa19d2720777d00e2e94677f5e0",
+                "packagetype": "sdist",
+                "path": "0f/9e/887aa3eb70716f90d57b3546e0aaa007e2afc4405f6cfd55388b325c8180/sioux-0.5.dev0.tar.gz",
+                "python_version": "source",
+                "size": 11552,
+                "upload_time": "2017-03-13T19:55:24",
+                "url": "https://pypi.python.org/packages/0f/9e/887aa3eb70716f90d57b3546e0aaa007e2afc4405f6cfd55388b325c8180/sioux-0.5.dev0.tar.gz"
+            }
+        ],
+        "0.6.dev0": [
+            {
+                "comment_text": "",
+                "downloads": 18,
+                "filename": "sioux-0.6.dev0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "45e25eb2d8b166a424ce2ab2af973136",
+                "packagetype": "bdist_wheel",
+                "path": "96/60/bc996720e403e5a8a86f7cac6ac107d39c66350726bd5cd9bc89962249ed/sioux-0.6.dev0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 16681,
+                "upload_time": "2017-04-02T05:30:25",
+                "url": "https://pypi.python.org/packages/96/60/bc996720e403e5a8a86f7cac6ac107d39c66350726bd5cd9bc89962249ed/sioux-0.6.dev0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 18,
+                "filename": "sioux-0.6.dev0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "effe01f82a748ee2dad1bbabcb0f3700",
+                "packagetype": "sdist",
+                "path": "87/9b/c8e2caa0886d5211a991c9ab701c7a9db855143c29ecb5c695f1191c73c9/sioux-0.6.dev0.tar.gz",
+                "python_version": "source",
+                "size": 14402,
+                "upload_time": "2017-04-02T05:30:27",
+                "url": "https://pypi.python.org/packages/87/9b/c8e2caa0886d5211a991c9ab701c7a9db855143c29ecb5c695f1191c73c9/sioux-0.6.dev0.tar.gz"
+            }
+        ],
+        "0.7.dev0": [
+            {
+                "comment_text": "",
+                "downloads": 145,
+                "filename": "sioux-0.7.dev0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6a8d6a8792579fa8856df082a92481d0",
+                "packagetype": "bdist_wheel",
+                "path": "39/e2/918fa4111772c2f78dc3f195180b4798a8322cebeac2e69093203c09c073/sioux-0.7.dev0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 20710,
+                "upload_time": "2017-04-07T20:54:15",
+                "url": "https://pypi.python.org/packages/39/e2/918fa4111772c2f78dc3f195180b4798a8322cebeac2e69093203c09c073/sioux-0.7.dev0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 149,
+                "filename": "sioux-0.7.dev0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f048bc06b6a660f0dcebbbbb683bc9ae",
+                "packagetype": "sdist",
+                "path": "38/fa/585d7b971d035d5095785cfe477536b08063ffa9213de239148a88aae548/sioux-0.7.dev0.tar.gz",
+                "python_version": "source",
+                "size": 17722,
+                "upload_time": "2017-04-07T20:54:16",
+                "url": "https://pypi.python.org/packages/38/fa/585d7b971d035d5095785cfe477536b08063ffa9213de239148a88aae548/sioux-0.7.dev0.tar.gz"
+            }
+        ],
+        "0.8.0": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f7b1bcd7e331ebdae5d3dd717b7730e4",
+                "packagetype": "bdist_wheel",
+                "path": "5f/ab/d1daa9c7a8b42bdca7f83805ab7a1799314322ababe41fa9f0d494bec85f/sioux-0.8.0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 23127,
+                "upload_time": "2017-04-13T21:21:20",
+                "url": "https://pypi.python.org/packages/5f/ab/d1daa9c7a8b42bdca7f83805ab7a1799314322ababe41fa9f0d494bec85f/sioux-0.8.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "93ea5035efad2c7d422b65ce6af5835f",
+                "packagetype": "sdist",
+                "path": "f8/7e/4b83834a6c47db2734006f6d3bab4dab2c270a931f73b77d4ab4e70dfb1f/sioux-0.8.0.tar.gz",
+                "python_version": "source",
+                "size": 19770,
+                "upload_time": "2017-04-13T21:21:22",
+                "url": "https://pypi.python.org/packages/f8/7e/4b83834a6c47db2734006f6d3bab4dab2c270a931f73b77d4ab4e70dfb1f/sioux-0.8.0.tar.gz"
+            }
+        ],
+        "0.8.1": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "14598242115b034c0f961d32e612cf05",
+                "packagetype": "bdist_wheel",
+                "path": "bb/22/1dc39e105cd07dd2cf03c71758a5325000c6953712578ea6375c12ea8566/sioux-0.8.1-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 22908,
+                "upload_time": "2017-04-21T21:12:11",
+                "url": "https://pypi.python.org/packages/bb/22/1dc39e105cd07dd2cf03c71758a5325000c6953712578ea6375c12ea8566/sioux-0.8.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6b74607418f3f292589a32a56db5a660",
+                "packagetype": "sdist",
+                "path": "2b/d6/090da336e6e72875ef84b9b20b636c9cd692ad97d7544717784d4548c616/sioux-0.8.1.tar.gz",
+                "python_version": "source",
+                "size": 16494,
+                "upload_time": "2017-04-21T21:12:13",
+                "url": "https://pypi.python.org/packages/2b/d6/090da336e6e72875ef84b9b20b636c9cd692ad97d7544717784d4548c616/sioux-0.8.1.tar.gz"
+            }
+        ],
+        "0.8.2": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bf79c01ca749c240d6cd8c2b81ee62c5",
+                "packagetype": "bdist_wheel",
+                "path": "da/a9/56059561097cb787c92585d88484a1a00c31a05c8db4730c453d19c7ae45/sioux-0.8.2-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 22908,
+                "upload_time": "2017-04-21T21:13:33",
+                "url": "https://pypi.python.org/packages/da/a9/56059561097cb787c92585d88484a1a00c31a05c8db4730c453d19c7ae45/sioux-0.8.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0546e2539c18e1f1e0553dadbea533d0",
+                "packagetype": "sdist",
+                "path": "82/4c/e86fdbfed110eca84600afca94215bd513ba73d31cfff266e6c8a6c6f7ab/sioux-0.8.2.tar.gz",
+                "python_version": "source",
+                "size": 16496,
+                "upload_time": "2017-04-21T21:13:34",
+                "url": "https://pypi.python.org/packages/82/4c/e86fdbfed110eca84600afca94215bd513ba73d31cfff266e6c8a6c6f7ab/sioux-0.8.2.tar.gz"
+            }
+        ],
+        "0.8.3": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bfe591c0227b1021bd846b5ff57006f7",
+                "packagetype": "bdist_wheel",
+                "path": "cb/45/116490adc7b2759d04ac9414efb166d0d0f83cd58769d2ab75b71fc7b583/sioux-0.8.3-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 24483,
+                "upload_time": "2017-04-24T17:55:48",
+                "url": "https://pypi.python.org/packages/cb/45/116490adc7b2759d04ac9414efb166d0d0f83cd58769d2ab75b71fc7b583/sioux-0.8.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "369fe223207e168a3780664e76485c08",
+                "packagetype": "sdist",
+                "path": "2e/9b/3a828bc29a890ecd796b3fbdada9875fd1b399a854ff8ab736afb464446c/sioux-0.8.3.tar.gz",
+                "python_version": "source",
+                "size": 16868,
+                "upload_time": "2017-04-24T17:55:50",
+                "url": "https://pypi.python.org/packages/2e/9b/3a828bc29a890ecd796b3fbdada9875fd1b399a854ff8ab736afb464446c/sioux-0.8.3.tar.gz"
+            }
+        ],
+        "0.8.4": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "75e0548b2ef88a62e6497addd669e747",
+                "packagetype": "bdist_wheel",
+                "path": "f4/37/15efa5feee8e691f66ee92ebbe649b352129a0bc3092e1829c1326feb006/sioux-0.8.4-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 24552,
+                "upload_time": "2017-04-28T20:03:45",
+                "url": "https://pypi.python.org/packages/f4/37/15efa5feee8e691f66ee92ebbe649b352129a0bc3092e1829c1326feb006/sioux-0.8.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "32aaccbd3502b344919e4569396a219c",
+                "packagetype": "sdist",
+                "path": "66/97/cd3d50d65199b0e62370f6a14e2cf04fee7079ddf595b1b63e6da1aaf619/sioux-0.8.4.tar.gz",
+                "python_version": "source",
+                "size": 16771,
+                "upload_time": "2017-04-28T20:03:46",
+                "url": "https://pypi.python.org/packages/66/97/cd3d50d65199b0e62370f6a14e2cf04fee7079ddf595b1b63e6da1aaf619/sioux-0.8.4.tar.gz"
+            }
+        ],
+        "0.8.5": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "16fd37983bcdbbcfe50a0b44f28c9995",
+                "packagetype": "bdist_wheel",
+                "path": "aa/70/47ae1d31347f1a9281ccbee81235cbcf765fa3cd4ef71f67cfe5cd979268/sioux-0.8.5-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 24411,
+                "upload_time": "2017-05-01T21:16:10",
+                "url": "https://pypi.python.org/packages/aa/70/47ae1d31347f1a9281ccbee81235cbcf765fa3cd4ef71f67cfe5cd979268/sioux-0.8.5-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.8.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1b1ee361912d757f25848a1ba0608716",
+                "packagetype": "sdist",
+                "path": "23/24/9f043abc4e8973a241f655dcc411f5997525261395e30bf425d5508a1d46/sioux-0.8.5.tar.gz",
+                "python_version": "source",
+                "size": 20172,
+                "upload_time": "2017-05-01T21:16:11",
+                "url": "https://pypi.python.org/packages/23/24/9f043abc4e8973a241f655dcc411f5997525261395e30bf425d5508a1d46/sioux-0.8.5.tar.gz"
+            }
+        ],
+        "0.9.0": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.9.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3c9b411f3275932574f43fa50795ce04",
+                "packagetype": "bdist_wheel",
+                "path": "03/55/c07e328dfa33665e297ee6ca62f4834ef6f772ca2bfdfdbb7538c13ddff8/sioux-0.9.0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "size": 24510,
+                "upload_time": "2017-05-04T17:09:59",
+                "url": "https://pypi.python.org/packages/03/55/c07e328dfa33665e297ee6ca62f4834ef6f772ca2bfdfdbb7538c13ddff8/sioux-0.9.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "sioux-0.9.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3c887b526fcaaf626355ec079626c219",
+                "packagetype": "sdist",
+                "path": "52/96/86d7992088296151f96b8169aa07ee787c4a5619c5d26b87027dd3f03807/sioux-0.9.0.tar.gz",
+                "python_version": "source",
+                "size": 20456,
+                "upload_time": "2017-05-04T17:10:00",
+                "url": "https://pypi.python.org/packages/52/96/86d7992088296151f96b8169aa07ee787c4a5619c5d26b87027dd3f03807/sioux-0.9.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 0,
+            "filename": "sioux-0.9.0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "3c9b411f3275932574f43fa50795ce04",
+            "packagetype": "bdist_wheel",
+            "path": "03/55/c07e328dfa33665e297ee6ca62f4834ef6f772ca2bfdfdbb7538c13ddff8/sioux-0.9.0-py2.py3-none-any.whl",
+            "python_version": "py2.py3",
+            "size": 24510,
+            "upload_time": "2017-05-04T17:09:59",
+            "url": "https://pypi.python.org/packages/03/55/c07e328dfa33665e297ee6ca62f4834ef6f772ca2bfdfdbb7538c13ddff8/sioux-0.9.0-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "downloads": 0,
+            "filename": "sioux-0.9.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3c887b526fcaaf626355ec079626c219",
+            "packagetype": "sdist",
+            "path": "52/96/86d7992088296151f96b8169aa07ee787c4a5619c5d26b87027dd3f03807/sioux-0.9.0.tar.gz",
+            "python_version": "source",
+            "size": 20456,
+            "upload_time": "2017-05-04T17:10:00",
+            "url": "https://pypi.python.org/packages/52/96/86d7992088296151f96b8169aa07ee787c4a5619c5d26b87027dd3f03807/sioux-0.9.0.tar.gz"
+        }
+    ]
+}

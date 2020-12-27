@@ -1,0 +1,158 @@
+{
+    "info": {
+        "author": "Andre Anjos",
+        "author_email": "andre.anjos@idiap.ch",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Other Environment",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: GNU General Public License (GPL)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Scientific/Engineering :: Artificial Intelligence",
+            "Topic :: Scientific/Engineering :: Mathematics",
+            "Topic :: Scientific/Engineering :: Visualization"
+        ],
+        "description": ".. Andre Anjos <andre.anjos@idiap.ch>\n.. vim: set fileencoding=utf-8 :\n.. Mon 11 Apr 2011 10:07:37 CEST\n\n===============\n Score Toolkit\n===============\n\nThe Toolkit is conceived for these purposes:\n\n1. Plot the DET curve for a particular system\n2. Check the consistency between score files w.r.t. the filenames scores refer\n   to\n\n.. _input-section:\n\nInstallation\n------------\n\nTo install from the command line on a machine you have access to the python\ninstallation tree (e.g., on a Windows machine)::\n\n  $ easy_install trstk\n\n  # or\n\n  $ pip install trstk\n\nIf you don't have adminstrative rights on the Python installation directory,\nyou can create an isolated virtual environment using `virtualenv`_. Follow\ninstructions there to download and create a virtual environment and then either\n`easy_install` or `pip install` this package.\n\nOur PyPI page also contains a link to a Windows graphical installer.\nUnfortunately, it does not install the package dependencies like the command\nline installer does. You have to do it yourself. Here is the dependencies list:\n\n* `NumPy`_\n* `Matplotlib`_\n\nVisit those webpages for more information.\n\nInput\n-----\n\nTools in this package accept score files in one single textual format. Each\nline in the file refers to one single sample in the database being analyzed.\nEach line is composed of 4 fields separated by spaces in this order:\n\n1. Claimed identity: a string that defines the claimed identity of the subject\n   being analyzed\n2. Model label: contains a label/reference to the data used to make the model\n   (filename <id>d<capture_number> used to make the model)\n3. Real identity: a string that defines the real identity of the subject\n   being analyzed (i.e. the output of the classification)\n4. Test label: contains a label/reference to the data used to do the\n   testing (filename <id>d<capture_number> of the test file)\n5. Score: a floating-point value representing the score\n\nEach of the above-mentioned fields **cannot have spaces in between**. Failing\nto comply will make the tools emit syntax errors pointing to the location in\nthe file where problems seem to occur.\n\nHere is a valid example score file::\n\n  02463 02463d547 02463 02463d653 0.623265\n  02463 02463d547 02463 02463d655 0.920861\n  02463 02463d547 02463 02463d657 0.938942\n  02463 02463d547 02463 02463d659 0.743715\n  02463 02463d547 02463 02463d661 0.397660\n  02463 02463d547 02463 02463d663 0.615722\n  02463 02463d547 02463 02463d665 0.613291\n  02463 02463d547 02463 02463d667 0.543184\n  02463 02463d547 02463 02463d669 0.829777\n  02463 02463d547 02463 02463d671 0.869681\n  02463 02463d547 02463 02463d673 0.806394\n  02463 02463d547 02463 02463d675 1.007791\n  02463 02463d547 04200 04200d75 0.257423\n\nHere is an invalid example score file::\n\n  Bob_Jones bob-file-001 Bob_Jones bob-file-004 -37.643410\n  Susan Smith susan-file-001 Susan Smith susan-file-001 -33.393433\n  Joe joe-file-030 Joe joe-file-001 -72.295616\n\nIn this case, line 2 above will fail because the real identity field and the\nclaimed identity fields contain spaces. Lines 1 and 3 do conform to the\nproposed scheme and will be parsed without problems.\n\nMulti-modality Input\n====================\n\nIf you have multiple modalities you should build a single text file along the\nlines explained before, for each modality. The order of the *tags* within each\nfile should be respected. Example *Hypothetical face verification experiment\noutput*::\n\n  02463 02463d547 02463 02463d675 1.007791\n  02463 02463d547 04200 04200d75 0.257423\n  02463 02463d547 04201 04201d435 0.315074\n  02463 02463d547 04201 04201d437 0.347413\n  02463 02463d547 04201 04201d439 0.296383\n  02463 02463d547 04201 04201d443 0.371881\n  02463 02463d547 04201 04201d445 0.260964\n\n*Hypothetical speech verification experiment output*::\n\n  02463 02463d547 02463 02463d675 0.9932 \n  02463 02463d547 04200 04200d75  0.0027\n  02463 02463d547 04201 04201d435 0.0144\n  02463 02463d547 04201 04201d437 0.0159\n  02463 02463d547 04201 04201d439 0.1250\n  02463 02463d547 04201 04201d443 0.0031\n  02463 02463d547 04201 04201d445 0.0002\n\nA set of working examples is included in the ``example`` directory of this\npackage.\n\n.. _dependence-section:\n\nDependencies\n------------\n\nTo properly run the software in this package you must have the following\npackages installed:\n\n* `Python`_: is the scripting language used for the programs\n* `Matplotlib`_: is used for plotting\n* `Sphinx`_: if you need to *recompile* the documentation\n\n.. _usage-section:\n\nUsage\n-----\n\nWe describe a few scenarios for using the Toolkit in specific cases. Read the\nfull documentation in the **doc** directory for instructions on how to create\nyour own scripts that can re-use the readout functionality available in the\nkit.\n\nExample 1: Plotting a DET Curve\n===============================\n\nThe following command will plot a single DET curve for a given input score file::\n\n  $ plotDET.py test.scores\n\nThis command should produce a single plot in PDF file named ``det.pdf``\ncalculated using the contents of the input score file ``test.scores``. The plot\ntitle will be empty. You can change the output filename and its type (we\nsupport either `.png` files or `.jpg`) or add a plot title like this::\n\n  $ plotDET.py --title=\"My Test DET\" --output=test.png test.scores\n\nYou can plot a series of overlayed DET curves in the following manner::\n\n  $ plotDET.py --title=\"My Test DET\" --output=overlayed.pdf \\\n      --label=devel development.scores --label=test test.scores\n\nThis command will produce a single plot in a PDF file, with the overlayed DET\ncurves generated using each of the score files given as input parameters. A\nlegend will be drawn at a convenient location in the plot using the labels for\neach of the curves as determined by your input. By default the program\ngenerates black-and-white plots, but can be instructed to produce coloured\nplots using the ``--colour`` option (see ``plotDET.py --help`` message).\n\nExample 2: Checking score set consistency\n=========================================\n\nYou can check the consistency between two (or more) score sets that are\nsupposed to provide scores for multiple biometric modalities using the\n``checkModalities.py`` script. This tool will compare two input files and will\nstop on the first error it finds::\n\n  $ checkModalities.py faceverif.scores speechverif.scores\n\nIf you sort all files before calling the program, huge score files can be\nchecked in a much faster way as we will avoid the sorting step within the\nprogram. You can do this using the ``sort`` and ``uniq`` unix utilities to sort\nall score files before using ``checkModalities.py`` like this::\n\n  $ sort my-scores.txt | uniq > sorted-scores.txt\n  $ sort other-scores.txt | uniq > other-sorted-scores.txt\n  $ checkModalities.py --sorted sorted-scores.txt other-sorted-scores.txt\n\nExample 3: Plotting a scores distribution\n=========================================\n\nYou can plot joint score distributions including impostors, clients and attacks\nusing the `plotScores.py` script. to do so::\n\n  $ plotScores.py --title=\"My Score Distribution\" --output=test.png legit.txt attack.txt\n\nThe input is expected to be divided among 2 files that contain the results of\nthe baseline verification evaluation for the legit protocol and for the\nspoofing attack protocol. The routine will draw 3 histograms. The first 2\ncorrespond to the clients and impostor groups found on the first file. The\nsecond histogram corresponds to the attacks found on the second file.\n\n.. Place your references here:\n.. _Python: http://www.python.org\n.. _Matplotlib: http://matplotlib.sourceforge.net\n.. _Sphinx: http://sphinx.pocoo.org\n.. _PyPI: http://pypi.python.org/pypi\n.. _NumPy: http://numpy.scipy.org/\n.. _virtualenv: http://pypi.python.org/pypi/virtualenv",
+        "description_content_type": null,
+        "docs_url": "https://pythonhosted.org/trstk/",
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://www.tabularasa-euproject.org/",
+        "keywords": "biometrics,spoofing,scoring,det,tabula rasa",
+        "license": "GPLv3",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "trstk",
+        "package_url": "https://pypi.org/project/trstk/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/trstk/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://www.tabularasa-euproject.org/"
+        },
+        "release_url": "https://pypi.org/project/trstk/1.0.4/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "TABULA RASA (EU-project) plotting/score checking tool",
+        "version": "1.0.4"
+    },
+    "last_serial": 752581,
+    "releases": {
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "daf767c52f0cb6d1077fb789dabafb9a",
+                    "sha256": "402250b58878c6a1bc9d465770f6e2248a36af0e02639cf674a9d0b1a08f0d78"
+                },
+                "downloads": -1,
+                "filename": "trstk-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "daf767c52f0cb6d1077fb789dabafb9a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 62727,
+                "upload_time": "2011-09-28T16:25:46",
+                "url": "https://files.pythonhosted.org/packages/cc/cb/a003d8b12dd19a3d9de3f2390d0ac16c478f1227a50c311ed11366e99836/trstk-1.0.2.tar.gz"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4277c5228376eefe763c4709d694536f",
+                    "sha256": "f78961cd7f909fdf57b9a42e9b87b975cdee46fe799334bc6d3c2e914d832b59"
+                },
+                "downloads": -1,
+                "filename": "trstk-1.0.2.win32.exe",
+                "has_sig": false,
+                "md5_digest": "4277c5228376eefe763c4709d694536f",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 88442,
+                "upload_time": "2011-09-28T16:25:46",
+                "url": "https://files.pythonhosted.org/packages/eb/7c/7ca962280f6febfc903d49702a48d42c2d099f18cf7088350fe8a5ffa9b5/trstk-1.0.2.win32.exe"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18c4a78f0191960c2f2fbea0a865a1d6",
+                    "sha256": "672893b0c2d4cb255ead0afd6897ca7d9fac30db1636bc058d3e9086679d4b44"
+                },
+                "downloads": -1,
+                "filename": "trstk-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18c4a78f0191960c2f2fbea0a865a1d6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 75992,
+                "upload_time": "2012-02-21T15:02:31",
+                "url": "https://files.pythonhosted.org/packages/af/2a/e97469e9989ba9414d0027ce36f891809df31f37ef23d1c567f837db3655/trstk-1.0.3.tar.gz"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3120a7385bde3c42ec5c3452b6852cc",
+                    "sha256": "03b1f45b8ae9628ae327ed5c0b3b32bdacee2dfc8ff0270fcb8b2e0ce94aae7f"
+                },
+                "downloads": -1,
+                "filename": "trstk-1.0.3.win32.exe",
+                "has_sig": false,
+                "md5_digest": "f3120a7385bde3c42ec5c3452b6852cc",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 95489,
+                "upload_time": "2012-02-21T15:04:33",
+                "url": "https://files.pythonhosted.org/packages/3c/d1/b69d0ea9a53d1e28d02738a4bc01933d232f52728e737c1273fb8736c47f/trstk-1.0.3.win32.exe"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d8defc9253f15b541f6d8b06ec1a3803",
+                    "sha256": "840b2fd1bc20d0f20c4ef69febb9a1dc2027ec4775c6a2cab758ee38acc15e26"
+                },
+                "downloads": -1,
+                "filename": "trstk-1.0.4.zip",
+                "has_sig": false,
+                "md5_digest": "d8defc9253f15b541f6d8b06ec1a3803",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 89115,
+                "upload_time": "2013-02-19T14:28:02",
+                "url": "https://files.pythonhosted.org/packages/09/89/0c2ecbdf6fccd57d1d827bef23d22c8e4c8c605deb7c2a83f7ce4dbd74d5/trstk-1.0.4.zip"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d8defc9253f15b541f6d8b06ec1a3803",
+                "sha256": "840b2fd1bc20d0f20c4ef69febb9a1dc2027ec4775c6a2cab758ee38acc15e26"
+            },
+            "downloads": -1,
+            "filename": "trstk-1.0.4.zip",
+            "has_sig": false,
+            "md5_digest": "d8defc9253f15b541f6d8b06ec1a3803",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 89115,
+            "upload_time": "2013-02-19T14:28:02",
+            "url": "https://files.pythonhosted.org/packages/09/89/0c2ecbdf6fccd57d1d827bef23d22c8e4c8c605deb7c2a83f7ce4dbd74d5/trstk-1.0.4.zip"
+        }
+    ]
+}

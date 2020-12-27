@@ -1,0 +1,201 @@
+{
+    "info": {
+        "author": "John Loverich",
+        "author_email": "john.loverich@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "[![Build Status](https://travis-ci.org/jloveric/piecewise-polynomial-layers.svg?branch=master)](https://travis-ci.org/jloveric/piecewise-polynomial-layers)\n[![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.3628932.svg)](https://zenodo.org/record/3628932#.Xi-RAd-YXRY)\n# Piecewise Polynomial Layers for Tensorflow\nTensorflow layers using piecewise Lagrange polynomials with Gauss Lobatto nodes (I'm also adding truncated fourier series and other orthogonal functions).  This is a technique commonly used in finite element\nanalysis and means that the weight assigned to each node is exactly the function value at that node.  Long ago I wrote a c++ code that explored higher \norder polynomials in the synapse of a standard neural network [here](https://www.researchgate.net/publication/276923198_Discontinuous_Piecewise_Polynomial_Neural_Networks) .  Here I'm implementing some of that capability in Tensorflow.\n\n## Idea\n\nThe idea is extremely simple - instead of a single weight at the synapse, use n-weights.  The n-weights describe a piecewise polynomial and each of the n-weights can be updated independently.  A Lagrange polynomial and Gauss Lobatto points are used to minimize oscillations of the polynomial.\n\n## Why\n\nUsing higher order polynomial representations might allow networks with much fewer total weights. In physics, higher order methods\ncan be much more efficient, (while being more complex to implement). Spectral and discontinuous galerkin methods are examples of this.  Note that a standard neural network with relu activations is piecewise linear.  Here there are no bias weights and the \"non-linearity\" is in the synapse. \n\nIn addition, it's well known that the dendrites are also computational units in neurons, for example [Dendritic action potentials and computation in human layer 2/3 cortical neurons](https://science.sciencemag.org/content/367/6473/83) and this is a simple way to add more computational power into the artificial neural network model.\n\n# Installation\n\n```bash\npip install snovalleyai-piecewise-polynomial-layers\n```\n\n# Use\n\n```python\nimport tensorflow as tf\nimport snovalleyai_piecewise_polynomial_layers.PolynomialLayers as poly\nfrom tensorflow.keras.layers import *\nmnist = tf.keras.datasets.mnist\n\n(x_train, y_train),(x_test, y_test) = mnist.load_data()\nx_train, x_test = (x_train / 128.0-1.0), (x_test / 128.0-1.0)\n\nunits = 20\n\nbasis = poly.b3\n\nmodel = tf.keras.models.Sequential([\n  Flatten(input_shape=(28, 28)),\n  poly.Polynomial(units, basis=basis),\n  LayerNormalization(),\n  poly.Polynomial(units, basis=basis),\n  LayerNormalization(),\n  poly.Polynomial(units, basis=basis),\n  LayerNormalization(),\n  poly.Polynomial(units, basis=basis),\n  LayerNormalization(),\n  Dense(10, activation='softmax')\n])\n\nmodel.compile(optimizer='adam',\n              loss='sparse_categorical_crossentropy',\n              metrics=['accuracy'])\n\nmodel.fit(x_train, y_train, epochs=20, batch_size=10)\nmodel.evaluate(x_test, y_test)\n```\n\n# Examples\n\nRun the example from the main directory.  For the functionExample case run\n```bash\npython functionExample.py\n```\n\n1. [invariant mnist](examples/invariantMnistExample.py)\n2. [convolutional neural network mnist](examples/mnistCNNExample.py)\n3. [fitting a sin wave](examples/functionExample.py)\n4. [cifar10 convolutional neural network](examples/cifar10CNNExample.py)\n5. [invariant cifar10](examples/invariantCIFAR10Example.py)\n6. [invariant mnist using Fourier series](examples/MnistFourierResNetExample.py)\n\nThese examples have not been tuned.\n\n# Fitting a function\n\nThe examples below are super simple - just fit a shifted sin wave.  Using the Lagrange Polynomial layers here a single input and ouput unit with no hidden layers is sufficient to fit the sin wave (as demonstrated below).  I'm hoping this helps illustrate exactly what is going on and why one might want to use a technique like this.  A comparison with a standard ReLU network with 1 and 2 hidden layers is provided for comparison.\n\n## Example - Simple Polynomial\n\nSolution is for a linear, cubic and 5th order polynomial used in the synapse - there are 6 weights in the 5th order polynomial and 2 units total (1 input and 1 output).\n\n![](sin5p.png)\n\n## Example 2 - Piecewise Discontinuous Polynomial (2 pieces)\n\nSame problem, but comparison between 1st, 2nd and 5th order piecewise discontinuous polynomial synapse.  This could be useful in problems that\nhave discontinuties such as many problems in physics.\n\n![](sin5d.png)\n\n## Example 3 - Piecewise Continuous Polynomial (2 pieces)\n\nSame problem, but comparison between 1st, 2nd and 5th order piecewise continuous polynomial synapse.\n\n![](sin5c.png)\n\n## Example 4 - Fourier series layer up to 5 frequencies\n\nSame problem, but comparison between 1, 2 and 5 and 5 frequency fourier series.\n\n![](sin5f.png)\n\n## Comparison with ReLU layer\n\nReLU network for comparison.\n![1 hidden layer with given number of units in each layer](sinRelu1.png)\nAdding a second layer and we get the result we expect.  However, at the cost of a massive increase in the total number of weights.  Since we are using a dense layer in the case of 5 units per layer we have a total of 35 weights.  At 10 units per layer we have 120 weights...  5th order polynomial pair has a total of 12 weights in the discontinuous case and 11 in the continuous case.  So, it's possible the number of weights decreases by as much as an order of magnitude - more research necessary, however this is inline with results from computational physics.\n![2 hidden layers with given number of units in each layer](sinRelu2.png)\n\n## Available polynomial orders\n\n```python\nimport snovalleyai_piecewise_polynomial_layers.PolynomialLayers as poly\n\n#Non piecewise polynomials\npoly.b1 #linear\npoly.b2 #quadratic\npoly.b3 #3rd order\nboly.b4 #4th order\npoly.b5 #5th order\n\n## Discontinous piecewise polynomials, 2 pieces\npoly.b1D #linear (discontinuous pair)\npoly.b2D #quadratic (discontinuous pair)\npoly.b3D #dubic (discontinuous pair)\npoly.b4D #quartic (discontinuous pair)\npoly.b5D #5th order (discontinuous pair)\n\n## Continuous piecewise polynomials, 2 pieces\npoly.b1C #linear (continuous pair)\npoly.b2C #quadratic (continuous pair)\npoly.b3C #cubic (continuous pair)\npoly.b4C #quartic (continuous pair)\npoly.b5C #5th order (continuous pair)\n\n## Truncated Fourier series\npoly.b1F #1 frequency\npoly.b2F #2 frequencies\npoly.b3F #3 frequencies\npoly.b4F #4 frequencies\npoly.b5F #5 frequencies\n\n```\nThe layer inside tensorflow is then called (see mnist example above)\n```\npoly.Polynomial(units, input, basis=basis),\n```\nwhere units is the number of units and input is the size of the input and basis would be 'poly.b3' for example.",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jloveric/piecewise-polynomial-layers",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "snovalleyai-piecewise-polynomial-layers",
+        "package_url": "https://pypi.org/project/snovalleyai-piecewise-polynomial-layers/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/snovalleyai-piecewise-polynomial-layers/",
+        "project_urls": {
+            "Homepage": "https://github.com/jloveric/piecewise-polynomial-layers"
+        },
+        "release_url": "https://pypi.org/project/snovalleyai-piecewise-polynomial-layers/1.1.4/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Piecewise Lagrange Gauss Lobatto polynomial layer for tensorflow",
+        "version": "1.1.4"
+    },
+    "last_serial": 6560082,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "023069c34bc706c4f7427c933830c63f",
+                    "sha256": "278b88d672ecc8bd0999cbb6571f87fd9f3ec8f302832101b0b7ebab1c340d57"
+                },
+                "downloads": -1,
+                "filename": "snovalleyai_piecewise_polynomial_layers-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "023069c34bc706c4f7427c933830c63f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3996,
+                "upload_time": "2020-01-21T01:08:03",
+                "upload_time_iso_8601": "2020-01-21T01:08:03.024205Z",
+                "url": "https://files.pythonhosted.org/packages/47/8d/2af3505aeca74903d937f78ba51dd5bba1419e4829c074452531be00a1c7/snovalleyai_piecewise_polynomial_layers-0.0.1.tar.gz"
+            }
+        ],
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5c6c916b04e6cee0a2370f5e40c26df",
+                    "sha256": "123f517ab7870163e524ab3c3773ea2d723d8cf4c1dca3dabb5ca9f55b020f96"
+                },
+                "downloads": -1,
+                "filename": "snovalleyai_piecewise_polynomial_layers-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a5c6c916b04e6cee0a2370f5e40c26df",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5158,
+                "upload_time": "2020-01-22T21:56:04",
+                "upload_time_iso_8601": "2020-01-22T21:56:04.383057Z",
+                "url": "https://files.pythonhosted.org/packages/39/f5/aff81d9d5c7d4667e38b78972d8e2c3f88c1dcb852c95a0af0eb5bee8b95/snovalleyai_piecewise_polynomial_layers-1.0.0.tar.gz"
+            }
+        ],
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "169f634e40418f247eb9a1e18d90c0a8",
+                    "sha256": "8121f38364852b310f237e18bee57931ace86e12d836aa7333229caefec5d588"
+                },
+                "downloads": -1,
+                "filename": "snovalleyai_piecewise_polynomial_layers-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "169f634e40418f247eb9a1e18d90c0a8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5408,
+                "upload_time": "2020-01-23T01:03:33",
+                "upload_time_iso_8601": "2020-01-23T01:03:33.122856Z",
+                "url": "https://files.pythonhosted.org/packages/e1/9e/296d870ee05d125e4854fd15b4925190c36dfd14c09c5447b4737ffb35cf/snovalleyai_piecewise_polynomial_layers-1.1.0.tar.gz"
+            }
+        ],
+        "1.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "090aa33685c412bc1748a0ac38b039ce",
+                    "sha256": "e3e0dcb655db9c813fc5c65373db7a8415f4fa21adbd77dfcb679127d8024861"
+                },
+                "downloads": -1,
+                "filename": "snovalleyai_piecewise_polynomial_layers-1.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "090aa33685c412bc1748a0ac38b039ce",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6434,
+                "upload_time": "2020-01-25T01:47:20",
+                "upload_time_iso_8601": "2020-01-25T01:47:20.025064Z",
+                "url": "https://files.pythonhosted.org/packages/c0/c7/a68dcd019001ec7996c3c8b83f9de740c132a6330b76577549080613b780/snovalleyai_piecewise_polynomial_layers-1.1.1.tar.gz"
+            }
+        ],
+        "1.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0edcca422cb13bc717ac78b526f586f3",
+                    "sha256": "4f23f3c1414da3b6cd763bfef1c765c23574e73ae50856eda4433d08b9d68024"
+                },
+                "downloads": -1,
+                "filename": "snovalleyai_piecewise_polynomial_layers-1.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0edcca422cb13bc717ac78b526f586f3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6532,
+                "upload_time": "2020-01-28T05:16:13",
+                "upload_time_iso_8601": "2020-01-28T05:16:13.507937Z",
+                "url": "https://files.pythonhosted.org/packages/43/6a/e62181a111b66c559abf40ccff988e3f00b8cebeae70d2552343ddea6908/snovalleyai_piecewise_polynomial_layers-1.1.2.tar.gz"
+            }
+        ],
+        "1.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a2b292c14418b8b7569cad61beeda893",
+                    "sha256": "20828647ec8283587c2e9703f48d88b8aa8fe6ef4d67dea2fb1924a3a571cf1f"
+                },
+                "downloads": -1,
+                "filename": "snovalleyai_piecewise_polynomial_layers-1.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a2b292c14418b8b7569cad61beeda893",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6500,
+                "upload_time": "2020-01-28T05:34:51",
+                "upload_time_iso_8601": "2020-01-28T05:34:51.912144Z",
+                "url": "https://files.pythonhosted.org/packages/24/62/e7bada144f293dde5f4652e3f6dfdbba6cc7a3ae5cbc45713df79d8f0a4d/snovalleyai_piecewise_polynomial_layers-1.1.3.tar.gz"
+            }
+        ],
+        "1.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6ee491061774b9b4d694182dbafc99df",
+                    "sha256": "faf1f8dfdb20c4b04d20188c15cd5fe261c4a12204495eee603a57cc916c4aa4"
+                },
+                "downloads": -1,
+                "filename": "snovalleyai_piecewise_polynomial_layers-1.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6ee491061774b9b4d694182dbafc99df",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6899,
+                "upload_time": "2020-02-02T22:25:46",
+                "upload_time_iso_8601": "2020-02-02T22:25:46.823725Z",
+                "url": "https://files.pythonhosted.org/packages/c9/b5/4de6ac9083f3b0b648fa178d812205a5e9b8077f8417844e6dc427a690fc/snovalleyai_piecewise_polynomial_layers-1.1.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6ee491061774b9b4d694182dbafc99df",
+                "sha256": "faf1f8dfdb20c4b04d20188c15cd5fe261c4a12204495eee603a57cc916c4aa4"
+            },
+            "downloads": -1,
+            "filename": "snovalleyai_piecewise_polynomial_layers-1.1.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "6ee491061774b9b4d694182dbafc99df",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 6899,
+            "upload_time": "2020-02-02T22:25:46",
+            "upload_time_iso_8601": "2020-02-02T22:25:46.823725Z",
+            "url": "https://files.pythonhosted.org/packages/c9/b5/4de6ac9083f3b0b648fa178d812205a5e9b8077f8417844e6dc427a690fc/snovalleyai_piecewise_polynomial_layers-1.1.4.tar.gz"
+        }
+    ]
+}

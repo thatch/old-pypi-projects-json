@@ -1,0 +1,544 @@
+{
+    "info": {
+        "author": "Eli Barnett, Dustin Spicuzza",
+        "author_email": "emichaelbarnett@gmail.com, dustin@virtualroadside.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Robot Characterization Toolsuite\n\n<!-- TOC -->\n\n- [Robot Characterization Toolsuite](#robot-characterization-toolsuite)\n  - [Included Characterization Tools](#included-characterization-tools)\n  - [Prerequisites (PC)](#prerequisites-pc)\n  - [Installing and launching the toolsuite](#installing-and-launching-the-toolsuite)\n  - [Using the toolsuite](#using-the-toolsuite)\n    - [Generating a project](#generating-a-project)\n      - [Select project location](#select-project-location)\n      - [Select project type](#select-project-type)\n      - [Configure project parameters](#configure-project-parameters)\n      - [Enter team number](#enter-team-number)\n      - [Generate project](#generate-project)\n    - [Deploying a project](#deploying-a-project)\n      - [Option 1: Use the `Deploy Project` button](#option-1-use-the-deploy-project-button)\n      - [Option 2: Deploy manually](#option-2-deploy-manually)\n    - [Running the characterization routine](#running-the-characterization-routine)\n      - [Launch the data logger](#launch-the-data-logger)\n      - [Connect to robot](#connect-to-robot)\n      - [Run tests](#run-tests)\n    - [Analyzing data](#analyzing-data)\n      - [Load your data file](#load-your-data-file)\n      - [Run feedforward analysis](#run-feedforward-analysis)\n      - [View diagnostics](#view-diagnostics)\n        - [Time-domain diagnostics](#time-domain-diagnostics)\n        - [Voltage-domain diagnostics](#voltage-domain-diagnostics)\n        - [3D diagnostics](#3d-diagnostics)\n      - [Feedback Analysis](#feedback-analysis)\n        - [Set units](#set-units)\n        - [Enter controller parameters](#enter-controller-parameters)\n        - [Enter optimality constraints](#enter-optimality-constraints)\n        - [Select loop type (drive only)](#select-loop-type-drive-only)\n        - [Enter known kV/kA](#enter-known-kvka)\n        - [Calculate gains](#calculate-gains)\n  - [Contributing new changes](#contributing-new-changes)\n  - [License](#license)\n  - [Authors](#authors)\n\n<!-- /TOC -->\n\nThis is a toolsuite for characterization of FRC robot mechanisms.  The characterization tools consist of a python application that runs on the user's PC, and matching robot code that runs on the user's robot.  The PC application will send control signals to the robot over network tables, while the robot sends data back to the application.  The application then processes the data and determines  characterization parameters for the user's robot mechanism, as well as producing diagnostic plots.  Data can be saved (in JSON format) for future use, if desired.\n\n## Included Characterization Tools\n\nThe robot characterization toolsuite currently supports chracterization for:\n\n- Drivetrains\n- Arms\n- Elevators\n\nFeature requests for additional characterization tools are welcome.  Also note that many mechanisms can be characterized by simply adapting the existing code in this library.\n\n## Prerequisites (PC)\n\nTo use the Robotpy Characterization Toolsuite, you must have Python (3.6 or higher) installed on your computer, as well as the standard WPILib tools for uploading a robot project:\n\n* https://www.python.org/downloads/\n* https://wpilib.screenstepslive.com/s/4485\n\n## Installing and launching the toolsuite\n\nTo install the Robotpy Characterization Toolsuite, open a console and enter the following command:\n\n`pip install robotpy-characterization`\n\nThe toolsuite, and all of its dependencies, should be automatically downloaded and installed.  If you are using a windows machine and the command `pip` is not recognized, ensure that [your python scripts folder has been added to the PATH](https://datatofish.com/add-python-to-windows-path/).\n\nOnce the toolsuite has been installed, launch a new drive characterization project to ensure that it works:\n\n`robotpy-characterization drive new`\n\nThe new project GUI should open momentarily.  To launch other characterization projects, simply replace `drive` with the desired characterization type.\n\nWhile the new project GUI has buttons for launching both the logging tool and the analyzer tool, these can also be launched directly from the CLI by replacing `new` with `logger` or `analyzer`.\n\nFor more information on CLI usage, enter `robotpy-characterization -h`.\n\n## Using the toolsuite\n\n### Generating a project\n\nTo use the toolsuite, we first need to generate a robot project.\n\n#### Select project location\n\nFirst, select the desired project location on the new project GUI:\n\n![Select project location](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/projloc.png)\n\n#### Select project type\n\nNext, select your project type from the drop-down menu:\n\n![Select project type](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/projtype.png)\n\n* 'Simple' projects use encoders plugged into the RIO's DIO ports, and measure voltage with the PDP.\n* 'Talon' projects use encoders plugged into a Talon SRX, and measure voltage with the Talon.\n* More project types may be added in the future.\n\n#### Configure project parameters\n\nIn order to run on your robot, the tool must know some parameters about how your robot is set up.  Project config settings are formatted as a [Python dictionary literal](https://www.linuxtopia.org/online_books/programming_books/python_programming/python_ch15s02.html).  These can be modified via the in-window config editor:\n\n![Config editor](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/configeditor.png)\n\nTake care of the following caveats when entering your robot specifications:\n\n* The key names *must not be changed*, as they are hard-coded for each project type.  Only the values (i.e. the things on the right-hand side of the colons) should be modified.\n* `True` and `False` *must* be capitalized, as they are evaluated as native Python.\n* All string values (e.g. controller names and unit types) *must* be wrapped in quotes and *must* correspond exactly to one of the options described.\n* All list values *must* be lists, even if they have only one element.  Do *not* omit trailing commas (e.g. in `(False,)`), as this will cause them not to be parsed as a list.\n\nOnce your robot configuration is set, you may save it to a location/name of your choice:\n\n![Save config](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/saveconfig.png)\n\nAccordingly, you can also load an existing config file (config files are project-type-specific!):\n\n![Load config](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/loadconfig.png)\n\n#### Enter team number\n\nBe sure to enter your team number in the team number field:\n\n![Team number](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/teamno.png)\n\nThis is crucial to ensure your project will deploy to your robot successfully.  Note that the default team number of `0` corresponds to a localhost project, which will run locally using the WPILib robot simulator - this can be useful for ensuring that you have not made an error in your config file that results in code that does not build.\n\n#### Generate project\n\nOnce your project has been configured, it's time to generate a deployable robot project to run the characterization:\n\n![Generate project](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/genproject.png)\n\nA generated robot project will be placed in a subfolder (named `characterization-project`) of your specified project location.\n\nThe generated robot code will be in Java, and will reflect the settings specified in your config file.  Advanced users are free to modify the generated code to their liking, if the existing configuration options do not suffice.\n\n### Deploying a project\n\nOnce a project has been generated, it is time to deploy it to the robot.  This can be done in two ways:\n\n#### Option 1: Use the `Deploy Project` button\n\nPressing the `Deploy Project` button on the GUI will attempt to use GradleRIO to deploy the project to your robot.  The GUI will *always* assume that the project is located in the `characterization-project` subfolder of the chosen project location.\n\n![Deploy project button](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/deployproj.png)\n\nAssuming a valid robot project is present at that location, a window should pop up displaying the Gradle output as the project builds and deploys:\n\n![Deploy progress window](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/deployprog.png)\n\n#### Option 2: Deploy manually\n\nSince the generated project is a standard GradleRIO Java project, it can be deployed like any other.  Users may open the generated project in their editor of choice and deploy as they normally would any other robot project.  This can be convenient if customization of the generated code is required.\n\n### Running the characterization routine\n\nOnce the characterization code has been deployed, we can now run the characterization routine, and record the resulting data for analysis.\n\nNOTE:  Ensure you have sufficient space around the robot before running any characterization routine!  The drive characterization requires *at least* 10' of space, ideally closer to 20'.  The robot drive can *not* be accurately characterized while on blocks.\n\n#### Launch the data logger\n\nTo launch the data logger, press the `Launch Data Logger` button:\n\n![Launch data logger](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/launchlogger.png)\n\nThis should open the data logger GUI:\n\n![Data logger GUO](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/datalogger.png)\n\n#### Connect to robot\n\nNext, we must connect to the robot.  Press the `Connect to Robot` button.  The status indicated next to the button should change to `Connecting...` while the tool attempts to connect to the robot's NetworkTables server.\n\n![Connect to robot](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/connect.png)\n\nIf the tool does not seem to be successfully connecting, try rebooting the robot.  Eventually, the status should change to `Connected`, indicating the tool is successfully communicating with the robot:\n\n![Connected to robot](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/connected.png)\n\n#### Run tests\n\nA standard motor characterization routine consists of two types of tests:\n\n* Quasistatic: In this test, the mechanism is gradually sped-up such that the voltage corresponding to acceleration is negligible (hence, \"as if static\").\n* Dynamic: In this test, a constant 'step voltage' is given to the mechanism, so that the behavior while accelerating can be determined.\n\nEach test type is run both forwards and backwards, for four tests in total, corresponding to the four buttons:\n\n![Test buttons](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/testbuttons.png)\n\nThe tests can be run in any order, but running a \"backwards\" test directly after a \"forwards\" test is generally adviseable (as it will more or less reset the mechanism to its original position).\n\nFollow the instructions in the pop-up windows after pressing each test button:\n\n![Test instructions](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/runningtest.png)\n\nAfter all four tests have been completed, the `save` button will become activated:\n\n![Save data](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/savedata.png)\n\nThis will save the data as a JSON file with the specified location/name.  A timestamp (`%Y%m%d-%H%M`) will be appended to the chosen filename if the \"add timestamp\" button is checked:\n\n![Add timestamp](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/timestamp.png)\n\n### Analyzing data\n\nOnce we have data from a characterization run, we can analyze it.  To launch the data analyzer, click on the `Launch Data Analyzer` button:\n\n![Launch data analyzer](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/launchanalyzer.png)\n\n#### Load your data file\n\nNow it's time to load the data file we saved from the logger tool.  Click on `Select Data File`:\n\n![Select data file](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/selectdatafile.png)\n\nIn the resulting file dialog, select the JSON file you want to analyze.  If the file appears to be malformed, an error will be shown.\n\n#### Run feedforward analysis\n\nOnce a data file has been selected, the `Analyze Data` button becomes available in the `Feedforwad Analysis` frame.  Click it.\n\n![Analyze data](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/analyzedata.png)\n\nBy default, the analysis will be run by combining all the data in the test.  For a finer-grained analysis, the analysis may be limited to a specific subset of data using the subset dropdown menu:\n\n![Subset menu](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/subset.png)\n\nThe computed coefficients of the mechanism characterization will then be filled in, along with a goodness-of-fit measure (r-squared):\n\n![Regression coefficients](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/regrcoeffs.png)\n\nThe coefficients correspond to the characterization equation for each of the mechanism types:\n\n* Drive: ![voltage balance equation](https://latex.codecogs.com/gif.latex?V_{applied}=kS&plus;kV\\cdot\\dot{d}&plus;kA\\cdot\\ddot{d})\n* Arm: ![voltage balance equation](https://latex.codecogs.com/gif.latex?V_{applied}=kS&plus;kCos\\cdot\\cos{\\theta}&plus;kV\\cdot\\dot{\\theta}&plus;kA\\cdot\\ddot{\\theta})\n* Elevator: ![voltage balance equation](https://latex.codecogs.com/gif.latex?V_{applied}=kG&plus;kFr\\cdot&space;sgn(\\dot{d})&plus;kV\\cdot\\dot{d}&plus;kA\\cdot\\ddot{d})\n\n#### View diagnostics\n\nThe first diagnostic to look at is the r-squared - it should be somewhere north of ~.9.  If it is significantly lower than this, there is likely a problem with your characterization data.\n\nTo investigate further, you can generate a number of diagnostic plots with the buttons on the left-hand side:\n\n![Diagnostic plot buttons](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/plotbuttons.png)\n\n##### Time-domain diagnostics\n\nThe `Time-Domain Diagnostics` plots display velocity and acceleration versus time over the course of the analyzed tests.  For a typical drive characterization, these should look something like this (other mechanisms will be highly similar):\n\n![Time-domain plots](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/timedomain.png)\n\nThe vertical \"mirroring\" visible here is normal, and is simply the result of the left- and right-side encoders having different signs - this does not cause any trouble for the characterization tool.\n\nThe quasistatic test ought to have nearly linear velocity, and nearly-zero acceleration (hense \"quasistatic\").  The dynamic test ought to have velocity that asymptotically approaches a steady-state speed (the shape of the curve should be exponential, in fact), and acceleration that, accordingly, rapidly falls to zero (also exponentially, as the derivative of an exponential function is also an exponential function).\n\nDeviation from this behavior is a sign of an error, either in your analysis settings or your test procedure.  In particular, a \"flat\" portion at the start of the the `Quasistatic velocity vs time` plot\n\n![Time-domain plot of threshold error](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/timedomainthresherror.png)\n\nindicates that the `Motion Threshold` setting is too low, and thus data points from before the robot begins to move are being included:\n\n![Motion threshold setting](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/motionthresh.png)\n\nTo solve this, increase the setting and re-analyze the data.\n\n##### Voltage-domain diagnostics\n\nThe `Voltage-Domain Diagnostics` button plots velocity and acceleration versus voltage.  Velocity is ploted for the quasistatic test, and acceleration is plotted for the dynamic test.  For a typical drive characterization, the plots should resemble this (again, other mechanisms will be similar):\n\n![Voltage-domain plots](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/voltagedomain.png)\n\nBoth plots should be linear, however the dynamic plot will almost certainly have substantially-more noise.  The noise on the dynamic plot may be reduced by increasing the `Accel Window Size` setting:\n\n![Acceleration window size](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/accelwindow.png)\n\nHowever, if your robot or mechanism has low mass compared to the motor power, this may \"eat\" what little meaningful acceleration data you have (however, in these cases `kA` will tend towards zero and can usually be ignored, anyway).\n\nNote that the x-axes corresponds to `velocity-portion voltage` and `acceleration-portion voltage`, respectively - as the governing voltage-balance equations are multi-dimensional, plots against raw voltage are not as useful as one might expect.\n\nAs before, an overly-small threshold setting may be seen as a flat \"leading tail\" on the quasistatic plot.\n\n##### 3D diagnostics\n\nThe `3D Diagnostics` button will generate a 3d plot of voltage over the entire velocity-acceleration plane (this may be an adjusted voltage to remove the nonlinearity in mechanisms with nonlinear equations, such as arms):\n\n![3D diagnostic plot](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/3d.png)\n\nThis plot is interactive, and may be rotated by clicking-and-dragging.  The quasistatic and dynamic tests should both be clearly visible as streaks of data, and the best fit-plane should pass through all the data points.  The data from both the quasistatic and dynamic tests should appear as straight lines (the reason for this is left as an exercise for the reader).\n\nThe discontinuity corresponds to `kS`, which always opposes the direction of motion and thus changes direction as the plot crosses the 0 velocity mark.\n\n#### Feedback Analysis\n\nOnce the feedforward coefficients have been computed, the controls on the `Feedback Analysis` pane become available:\n\n![Feedback analysis pane](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/feedbackanalysis.png)\n\nThese can be used to calculate optimal gains for a PD or P controller for your mechanism.\n\nNote that these gains are, in effect, \"educated guesses\" - they are not guaranteed to be perfect, and should be viewed as a \"starting point\" for further tuning.\n\n##### Set units\n\nBefore using the `Feedback Analysis` pane, it is *crucial* that you set the `Units` settings to match the units of your data:\n\n![Units setting](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/units.png)\n\nAdditionally, if your choice of units requires a physical measurement (i.e. it is non-rotational), it is also important to specify the relevant mechanism dimension used for conversion:\n\n![Wheel diameter setting](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/diameter.png)\n\n##### Enter controller parameters\n\nThe calculated feedforward gains are *dimensioned quantities*.  Unfortunately, not much attention is often paid to the units of PID gains in FRC controls, and so the various typical options for PID controller implementations differ in their unit conventions (which are often not made clear to the user).\n\nTo specify the correct settings for your PID controller, use the following options:\n\n![Controller settings](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/controllersettings.png)\n\n* `Gain Settings Preset`: This drop-down menu will auto-populate the remaining fields with likely settings for one of a number of common FRC controller setups.  Note that some settings, such as post-encoder gearing, PPR, and the presense of a slave motor must still be manually specified (as the analyzer has no way of knowing these without user input), and that others may vary from the given defaults depending on user setup.\n* `Controller Period`: This is the execution period of the control loop, in seconds.  The default RIO loop rate is 50Hz, corresponding to a period of .02s.  The onboard controllers on most \"smart controllers\" run at 1Khz, or a period of .001s.\n* `Max Controller Output`: This is the maximum value of the controller output, with respect to the PID calculation.  Most controllers calculate outputs with a maximum value of 1, but early versions of the Talon firmware have a maximum output of 1023.\n* `Time-Normalized Controller`: This specifies whether the PID calculation is normalized to the period of execution, which affects the scaling of the D gain.\n* `Controller Type`: This specifies whether the controller is an onboard RIO loop, or is running on a smart motor controller such as a Talon or a SPARK Max.\n* `Post-Encoder Gearing`: This specifies the gearing between the encoder and the mechanism itself.  This is necessary for control loops that do not allow user-specified unit scaling in their PID computations (e.g. those running on Talons).  This will be disabled if not relevant.\n* `Encoder PPR`: This specifies the pulses-per-revolution (*not* cycles per revolution) of the encoder used, which is needed in the same caes as `Post-Encoder Gearing`.\n* `Has Slave`: Whether there is a motor controller slaved to the controller running the control loop, if the control loop is being run on a peripheral device.  This changes the effective loop period.\n* `Slave Update Period`: The rate at which the slave (if present) is updated.  By default, this is 100Hz (ever .01s) for Talons and Sparks, but can be changed.\n\n##### Enter optimality constraints\n\nFinally, the user must specify some constraints for what will be considered an \"optimal\" controller:\n\n![Optimality constraints](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/optimalityconstraints.png)\n\nAs a rule, smaller values for the `Max Acceptable Error` and larger values for the `Max Acceptable Control Effort` will result in larger gains - this will result in larger control efforts, which can grant better setpoint-tracking but may cause more violent behavior and greater wear on components.\n\nThe `Max Acceptable Control Effort` should never exceed 12V, as that corresponds to full battery voltage, and ideally should be somewhat lower than this.\n\n##### Select loop type (drive only)\n\nIt is typical to control drives with both position and velocity PIDs, depending on application.  Either can be selected using the drop-down `Loop Type` menu:\n\n![Loop type](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/looptype.png)\n\n##### Enter known kV/kA\n\nIf one wishes to use the `Feedback Analysis` pane without running a full analysis on a set of data, or otherwise view the effect of modifying the `kV` and `kA` values, this can be done here:\n\n![Modify kV/kA](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/modkvka.png)\n\n##### Calculate gains\n\nFinally, press the `Calculate Optimal Controller Gains` to run the LQR algorithm and determine the gains:\n\n![Calculate optimal controller gains](https://github.com/robotpy/robot-characterization/raw/logging_gui/images/calcgains.png)\n\n## Contributing new changes\n\nThis is intended to be a project that all members of the FIRST community can\nquickly and easily contribute to. If you find a bug, or have an idea that you\nthink others can use:\n\n1. [Fork this git repository](https://github.com/robotpy/robot-characterization/fork) to your github account\n2. Create your feature branch (`git checkout -b my-new-feature`)\n3. Commit your changes (`git commit -am 'Add some feature'`)\n4. Push to the branch (`git push -u origin my-new-feature`)\n5. Create new Pull Request on github\n\n## License\n\nAll code in this repository is available under the Apache v2 license.\n\n## Authors\n\nDustin Spicuzza (dustin@virtualroadside.com)\n\nEli Barnett (emichaelbarnett@gmail.com)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/robotpy/robot-characterization",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "robotpy-characterization",
+        "package_url": "https://pypi.org/project/robotpy-characterization/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/robotpy-characterization/",
+        "project_urls": {
+            "Homepage": "https://github.com/robotpy/robot-characterization"
+        },
+        "release_url": "https://pypi.org/project/robotpy-characterization/0.1.17/",
+        "requires_dist": [
+            "control",
+            "frccontrol",
+            "matplotlib",
+            "pynetworktables (>=2018.1.2)",
+            "statsmodels",
+            "argcomplete",
+            "console-menu",
+            "mako"
+        ],
+        "requires_python": ">=3.7",
+        "summary": "RobotPy Characterization Library",
+        "version": "0.1.17"
+    },
+    "last_serial": 6003448,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "23f050225ce3463e133f9c73aa4f1702",
+                    "sha256": "f04ccf774331aac1c718bd04fee657031fe523607613255d282bb0e3869dfe7e"
+                },
+                "downloads": -1,
+                "filename": "robotpy-characterization-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "23f050225ce3463e133f9c73aa4f1702",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.4",
+                "size": 39134,
+                "upload_time": "2019-09-24T20:48:40",
+                "url": "https://files.pythonhosted.org/packages/5d/12/ae604b523f2d8da6eed7731e402be1bfe18a730503d4766ea9c86e9a5759/robotpy-characterization-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ef4890a90cdce7dd2dc210c050d11a2c",
+                    "sha256": "363b75d3e6b6b6bbbaea2d1b36d50d8536b11e9e9c5cbaa78cd52a63fa5251a1"
+                },
+                "downloads": -1,
+                "filename": "robotpy-characterization-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ef4890a90cdce7dd2dc210c050d11a2c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.4",
+                "size": 39135,
+                "upload_time": "2019-09-24T22:50:13",
+                "url": "https://files.pythonhosted.org/packages/4f/56/f785fa4f5fd4192e45a2a2fe7fde5cac12589427f1643aea74e9ef928023/robotpy-characterization-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fc827fd18ad419913ff8a70a7555031a",
+                    "sha256": "4edea71a4c15525f7bf8cb2edfee41feb2f8ec471bd9c4cf8f957153cf8a1ecc"
+                },
+                "downloads": -1,
+                "filename": "robotpy-characterization-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fc827fd18ad419913ff8a70a7555031a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.4",
+                "size": 39143,
+                "upload_time": "2019-09-24T22:52:28",
+                "url": "https://files.pythonhosted.org/packages/57/3f/15e23cfcb6c3e582cd4194dd3431e2696907ba7ccfb99e354f8b2113a42e/robotpy-characterization-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c3e72151d8ef3587f0de29f8e97a559",
+                    "sha256": "2a4a2b5e08ab4e0782681b94469ad209dd1c9a036586ae3137aab131a8d828e7"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.0.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7c3e72151d8ef3587f0de29f8e97a559",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=3.4",
+                "size": 47040,
+                "upload_time": "2019-09-24T23:15:36",
+                "url": "https://files.pythonhosted.org/packages/54/81/9a3708298b288fb5dababb30586803b403a553aba7f79d124cdfdbfc6a12/robotpy_characterization-0.0.4-py2.py3-none-any.whl"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca0556987732b4302fc80107d4d0a44f",
+                    "sha256": "c9955c640316872d472c8b34ca921b17776fd43284f4549cc4a264dd6f20c565"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.0.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ca0556987732b4302fc80107d4d0a44f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=3.4",
+                "size": 46942,
+                "upload_time": "2019-09-25T13:43:31",
+                "url": "https://files.pythonhosted.org/packages/08/2f/6e79ef9e656011ebc045768c713db6bb37a6b7990608a73bb28e0f876a35/robotpy_characterization-0.0.5-py2.py3-none-any.whl"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "67220e6f2928323d0b25b1c8dc3361ac",
+                    "sha256": "04d1d088c2b34e0251a2ba3090aad11a4f7c34f22f24ae3bb03070445274e25d"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "67220e6f2928323d0b25b1c8dc3361ac",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4",
+                "size": 673657,
+                "upload_time": "2019-09-29T19:22:14",
+                "url": "https://files.pythonhosted.org/packages/59/a8/00408b520d6376d4eeb747beade8557733ea0132daeafcf5572535049e53/robotpy_characterization-0.0.6-py3-none-any.whl"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b63157f1eb1e16b4fa66df429d5af991",
+                    "sha256": "01b094fefb211dfb884aea0cd13af540183bba4366b76f32b33ac63ec6d7d900"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b63157f1eb1e16b4fa66df429d5af991",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4",
+                "size": 16073932,
+                "upload_time": "2019-10-04T03:19:46",
+                "url": "https://files.pythonhosted.org/packages/04/4f/d65a9ae0d6c6a298586cf21a4bd5b68215c077c5768e8401fa3dbcd078a1/robotpy_characterization-0.0.7-py3-none-any.whl"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8d09edeb790997b405ea5e416d6c6883",
+                    "sha256": "283a1feb06d718d08c74bb38a7a680047a36bb21dbc3f4466e1a1d81ca411379"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8d09edeb790997b405ea5e416d6c6883",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4",
+                "size": 16074028,
+                "upload_time": "2019-10-04T03:43:06",
+                "url": "https://files.pythonhosted.org/packages/c4/2f/232d1966460f31ba3966d84961a63f1b1948d8265ba3de261127483a60f2/robotpy_characterization-0.0.8-py3-none-any.whl"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c88d4b41dc29bb197be5de5d878e8e30",
+                    "sha256": "021d40aa07ace2a9c1e4984ed5c669125ff267b026e27e7a2b42e24d0d2dfeeb"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c88d4b41dc29bb197be5de5d878e8e30",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4",
+                "size": 16196840,
+                "upload_time": "2019-10-04T14:50:45",
+                "url": "https://files.pythonhosted.org/packages/b0/0f/55d5a2175f400502a751cb0e1b5866cca199dca5b9f74d33aac719d04bb2/robotpy_characterization-0.1.0-py3-none-any.whl"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a96fe3a9cb35fdf1b026e252eb4044b4",
+                    "sha256": "3d7d78fe0c317d6aeac9d9d63b349c44ab4c4904e234ec8b71ea769a36d2fe5d"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a96fe3a9cb35fdf1b026e252eb4044b4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4",
+                "size": 16196927,
+                "upload_time": "2019-10-04T16:45:54",
+                "url": "https://files.pythonhosted.org/packages/3c/d4/7724d3dda6f8b8a365f4d87b27542d4b41879f9fa2a2724de8fb40ccbad8/robotpy_characterization-0.1.1-py3-none-any.whl"
+            }
+        ],
+        "0.1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f75126aa82ae62cef84833002253e9a0",
+                    "sha256": "a62ca519c0d79bc6974838d879b756ca38a1c33375d4bf6b659bba7b1166a98d"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f75126aa82ae62cef84833002253e9a0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401814,
+                "upload_time": "2019-10-11T01:58:33",
+                "url": "https://files.pythonhosted.org/packages/ca/2d/f5bae1c7a254acce783e0446a30482a8e44425de95a3cb243128994f319f/robotpy_characterization-0.1.10-py3-none-any.whl"
+            }
+        ],
+        "0.1.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d8c72ef36f25c5c73499962f7a7f9d7a",
+                    "sha256": "0a239f47d173ec4f0997b42e93249b6e9fdda3f7e1939d164ae459dfc7ccbd9e"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d8c72ef36f25c5c73499962f7a7f9d7a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401811,
+                "upload_time": "2019-10-11T13:22:30",
+                "url": "https://files.pythonhosted.org/packages/9a/fa/53510ac0af97eee28f15e7b9f398166a8320c83c25b97e1fbfc05be2ec4a/robotpy_characterization-0.1.11-py3-none-any.whl"
+            }
+        ],
+        "0.1.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b41d29511d53f9ca34aac61b4e1184cf",
+                    "sha256": "9c76252c31164d49b9685ded347985fb0069f37dc2f1e2d7463fadc009a32ede"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.12-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b41d29511d53f9ca34aac61b4e1184cf",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401821,
+                "upload_time": "2019-10-12T00:27:02",
+                "url": "https://files.pythonhosted.org/packages/49/78/bd62822587ff49fd8ee34c4339f35a69df6674bbc8d2633317c061f70f1c/robotpy_characterization-0.1.12-py3-none-any.whl"
+            }
+        ],
+        "0.1.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8fac98842b7cd835aefcfc8590f78fcb",
+                    "sha256": "f6713de0301286696b1a63c1e5bbe4918b14e3f3b7b313b25fd17efec587bb60"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.14-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8fac98842b7cd835aefcfc8590f78fcb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401823,
+                "upload_time": "2019-10-15T22:41:38",
+                "url": "https://files.pythonhosted.org/packages/d9/6c/f25234a0d0a93b0b18fa08904e696ad1d392beb8cba18ee6ce5b8c70b5b7/robotpy_characterization-0.1.14-py3-none-any.whl"
+            }
+        ],
+        "0.1.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "358f8c1415d9bfdda53a7c26ebf648c8",
+                    "sha256": "ad6657af7cfc7162ebb0fe68986c511914101cbd48580c02ce10eab08fba3ad7"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.15-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "358f8c1415d9bfdda53a7c26ebf648c8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401863,
+                "upload_time": "2019-10-16T14:33:03",
+                "url": "https://files.pythonhosted.org/packages/3e/58/ca6dd2983613fd6072f4374c0c525d47b84be5a51e0db201af8e78479337/robotpy_characterization-0.1.15-py3-none-any.whl"
+            }
+        ],
+        "0.1.16": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9d44a4d9258027787c2104bc73735ee2",
+                    "sha256": "3f1fb797a935389078ab207d3dc008fbe52d7e4b0407ef151d64cb7048a2a3f0"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.16-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9d44a4d9258027787c2104bc73735ee2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401215,
+                "upload_time": "2019-10-16T14:58:13",
+                "url": "https://files.pythonhosted.org/packages/a6/5f/71763fc54245c97ad25325135e8a4451e248e3a5aee6ae4493e5018f3b47/robotpy_characterization-0.1.16-py3-none-any.whl"
+            }
+        ],
+        "0.1.17": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "754c48e57add2f09159f3b9c299fcfb7",
+                    "sha256": "ac8bdb2b3d8a9c9cd018bcf6885d796b3b888b022430303d8a50f5a05b374eba"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.17-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "754c48e57add2f09159f3b9c299fcfb7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31425648,
+                "upload_time": "2019-10-20T16:41:38",
+                "url": "https://files.pythonhosted.org/packages/12/fe/b1a0aa8584c0123a08cc0fda9182db29cd269d8567790199b27f43214755/robotpy_characterization-0.1.17-py3-none-any.whl"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ce752da15471b3378082ff4fb660013c",
+                    "sha256": "a16b9bd47067b0fc69d4e8e281feba815affd19931edd1f1e6e1d7668d3e7797"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ce752da15471b3378082ff4fb660013c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 16197364,
+                "upload_time": "2019-10-07T04:54:42",
+                "url": "https://files.pythonhosted.org/packages/62/9c/eb0d06a88f888dbf84d10ac44b5a00bece80efa8892454837ae680896236/robotpy_characterization-0.1.2-py3-none-any.whl"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0603e12e6fbab343fb5324f52d71ae09",
+                    "sha256": "397d76e2b48f81ada3898855dcbe2f943ff4eba9bc650184932b996c02d02746"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0603e12e6fbab343fb5324f52d71ae09",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31393494,
+                "upload_time": "2019-10-07T15:02:15",
+                "url": "https://files.pythonhosted.org/packages/53/47/96d7b6c1e3cfb94f201aa0bbe347bf17ed2a5f2a29a14fecc1c144f8c6e0/robotpy_characterization-0.1.3-py3-none-any.whl"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "831d9e65e1f685d6ba19c08ef8f53984",
+                    "sha256": "eb40f1d3da96168f70a7f9f6c5a6941904ce819cc443022d91fa7354ec818b0b"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "831d9e65e1f685d6ba19c08ef8f53984",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31393578,
+                "upload_time": "2019-10-07T15:12:28",
+                "url": "https://files.pythonhosted.org/packages/db/9d/47da7b470f8be205299ab97384a6fd50f889c1b8d548576cce1927730c0f/robotpy_characterization-0.1.4-py3-none-any.whl"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3c62d967a69d86dd5cf03c7031b92da4",
+                    "sha256": "cd676b5135ac82c10423ab473cebbff789ad4463e429ddb044041b1c039ba3da"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3c62d967a69d86dd5cf03c7031b92da4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31393580,
+                "upload_time": "2019-10-09T22:03:58",
+                "url": "https://files.pythonhosted.org/packages/22/8d/896df3b73ee59ab1208254c96b035272e256eec5f0837e991ff65f725f52/robotpy_characterization-0.1.5-py3-none-any.whl"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d71dd8ae556179b870a5b076572dab9e",
+                    "sha256": "4d19c354249e1454c9c167498f43128293a7cd57503f007dfeefc9e301397edd"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d71dd8ae556179b870a5b076572dab9e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401362,
+                "upload_time": "2019-10-09T22:07:59",
+                "url": "https://files.pythonhosted.org/packages/bc/35/1aad77156c54e047fa2f1b51fa0d0f9ce8a916ae6b933983e5dc5a3f8ac6/robotpy_characterization-0.1.6-py3-none-any.whl"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f35e6ace8068c212c9874cf3bd626088",
+                    "sha256": "cd0d5b896a9e757dfba8bf4a64349f17d0b7872bc056770c6a3e5cecf29380be"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f35e6ace8068c212c9874cf3bd626088",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401450,
+                "upload_time": "2019-10-09T22:15:23",
+                "url": "https://files.pythonhosted.org/packages/83/40/f9c626a3a3d42337d26f6493f8fbfc4c3a548782e1f47f574cb74a120225/robotpy_characterization-0.1.7-py3-none-any.whl"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ae674c59c3d7a1d96ed585b34f5c6853",
+                    "sha256": "9ffdff4f62d73a8ed4a93579a52ffed87ea232594b6a6c0d5e957bef4bc7edfc"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ae674c59c3d7a1d96ed585b34f5c6853",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401457,
+                "upload_time": "2019-10-10T01:30:30",
+                "url": "https://files.pythonhosted.org/packages/7a/36/459773147d1eb2d784127a9ea82027cd83e58a7208fb2a9eb81afa1b3842/robotpy_characterization-0.1.8-py3-none-any.whl"
+            }
+        ],
+        "0.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "de5e41cbefa5381cd76232f7d7ad3e6f",
+                    "sha256": "c7daabbd5901b395aae5aa84bed43196d722c65a7a0ca4eab059945ae6f749c2"
+                },
+                "downloads": -1,
+                "filename": "robotpy_characterization-0.1.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "de5e41cbefa5381cd76232f7d7ad3e6f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 31401472,
+                "upload_time": "2019-10-10T01:51:58",
+                "url": "https://files.pythonhosted.org/packages/42/8d/36566844e8baf17c3171966ca55e041c6d49b9c5cff6efd63de686beb78a/robotpy_characterization-0.1.9-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "754c48e57add2f09159f3b9c299fcfb7",
+                "sha256": "ac8bdb2b3d8a9c9cd018bcf6885d796b3b888b022430303d8a50f5a05b374eba"
+            },
+            "downloads": -1,
+            "filename": "robotpy_characterization-0.1.17-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "754c48e57add2f09159f3b9c299fcfb7",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7",
+            "size": 31425648,
+            "upload_time": "2019-10-20T16:41:38",
+            "url": "https://files.pythonhosted.org/packages/12/fe/b1a0aa8584c0123a08cc0fda9182db29cd269d8567790199b27f43214755/robotpy_characterization-0.1.17-py3-none-any.whl"
+        }
+    ]
+}

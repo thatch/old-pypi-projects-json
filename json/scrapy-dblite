@@ -1,0 +1,86 @@
+{
+    "info": {
+        "author": "Andrey Usov <https://github.com/ownport/scrapy-dblite>",
+        "author_email": "ownport@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Database",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "scrapy-dblite\n=============\n\nSimple library for storing `Scrapy Items <http://doc.scrapy.org/en/latest/topics/items.html>`_ in sqlite. There's no special requirements or dependencies for using this library but main goal of dblite is working together with `Scrapy <http://scrapy.org/>`_ - a fast high-level screen scraping and web crawling framework, used to crawl websites and extract structured data from their pages.\n\nAccording to `Scrapy documentation <http://doc.scrapy.org/en/latest/>`_ Item objects are simple containers used to collect the scraped data. They provide a dictionary-like API with a convenient syntax for declaring their available fields.::\n\n    from scrapy.item import Item, Field\n\n    class Product(Item):\n        _id     = Field()\n        name    = Field()\n        price   = Field()\n\nFor more information about Scrapy Items please read `documentation <http://doc.scrapy.org/en/latest/topics/items.html>`_. Item and Field classes also included in dblite library but there's no need to use them. It's just simplifed version of Scrapy's classes. \n\nThe *_id* field is required to be defined for Item(). Most probably you will never use this directly but dblite is used for own logic: *_id* equals *rowid* in sqlite database.\n\nItem & Field classes defintions in dblite described in `Items specification <https://github.com/ownport/scrapy-dblite/blob/master/docs/items.md>`_ \n\nWorking with storage\n--------------------\nThe simplest way to open sqlite database for storing Scrapy items is use *open()*::\n\n    >>> import dblite\n    >>> ds = dblite.open(Product, 'sqlite://tests/db/test-db.sqlite:test_tbl')\n    >>> ds\n    <dblite.Storage object at 0x17e1f10>\n    >>> ds.fieldnames\n    set(['price', '_id', 'name'])\n\nAll manipulations with Items are performed via 3 methods: get(), put(), delete()::\n\n    >>> p1 = Product(name='Laptop', price=1000)\n    >>> p1\n    {'name': 'Laptop', 'price': 1000}\n    >>> ds.put(p1)\n    >>> [product for product in ds.get()]\n    [{'_id': 1, 'name': u'Laptop', 'price': 1000}]\n    >>> ds.delete(p1)\n    >>> [i for i in ds.get()]\n    []\n    >>>\n\nMore detail information about dblite can be founded in `docs/dblite-api <https://github.com/ownport/scrapy-dblite/blob/master/docs/dblite-api.md>`_ document\n\nInstallation\n------------\n\nTo install scrapy-dblite directly from github::\n    \n    pip install git+https://github.com/ownport/scrapy-dblite.git\n\nor install from `PyPI - the Python Package Index <https://pypi.python.org/pypi>`_::\n\n    pip install scrapy-dblite\n\nChange log\n----------\nChange log for dblite is based on `GitHub Milestones <https://github.com/ownport/scrapy-dblite/issues/milestones>`_\n\nHow to use scrapy-dblite with Scrapy\n------------------------------------\nUsing dblite in Item Pipeline::\n    \n    from scrapy.exceptions import DropItem\n    from myproject.items import Product\n    import dblite\n\n    class StoreItemsPipeline(object):\n        def __init__(self):\n            self.ds = None\n        \n        def open_spider(self, spider):\n            self.ds = dblite.open(Product, 'sqlite://db/products.sqlite:items', autocommit=True)\n\n        def close_spider(self, spider):\n            self.ds.close()\n\n        def process_item(self, item, spider):           \n            if isinstance(item, Product):\n                try:\n                    self.ds.put(item)\n                except dblite.DuplicateItem:\n                    raise DropItem(\"Duplicate item found: %s\" % item)\n            else:\n                raise DropItem(\"Unknown item type, %s\" % type(item))\n            return item\n\nFor developers\n--------------\n\nCreation of development environment::\n\n    $ git clone https://github.com/ownport/scrapy-dblite.git\n    $ cd scrapy-dblite\n    $ docker build -t 'scrapy-dblite:dev' .\n    $ docker run -ti --rm --name 'scrapy-dblite' -v $(pwd):/data/scrapy-dblite scrapy-dblite:dev\n    $ cd /data/scrapy-dblite/\n\nPerform unit tests::\n\n    $ make test-all              \n    ........................................................\n    ----------------------------------------------------------------------\n    Ran 56 tests in 7.407s\n\n    OK\n    $\n    $ make test-all-with-coverage\n    .........................................................\n    Name                 Stmts   Miss  Cover   Missing\n    --------------------------------------------------\n    dblite                 207      3    99%   285, 344-345\n    dblite.item             46      2    96%   84, 89\n    dblite.query            80      0   100%   \n    dblite.serializers      27      0   100%   \n    dblite.settings          2      0   100%   \n    --------------------------------------------------\n    TOTAL                  362      5    99%   \n    ----------------------------------------------------------------------\n    Ran 57 tests in 7.923s\n\n    OK",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ownport/scrapy-dblite",
+        "keywords": null,
+        "license": "BSD",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "scrapy-dblite",
+        "package_url": "https://pypi.org/project/scrapy-dblite/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/scrapy-dblite/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/ownport/scrapy-dblite"
+        },
+        "release_url": "https://pypi.org/project/scrapy-dblite/0.2.7/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Simple library for storing Scrapy Items in sqlite database",
+        "version": "0.2.7"
+    },
+    "last_serial": 1905112,
+    "releases": {
+        "0.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c75bc8858569a1bea2b960b278a281a7",
+                    "sha256": "3862cee73bd6d260feb2e251c7c2fb2083b8ceffa7cc8fc76487b1e858d2670b"
+                },
+                "downloads": -1,
+                "filename": "scrapy-dblite-0.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c75bc8858569a1bea2b960b278a281a7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9245,
+                "upload_time": "2016-01-14T22:55:08",
+                "url": "https://files.pythonhosted.org/packages/12/f9/25046d18e5b75c71cde1e49a2adf0d457b98f255e0aed1d3d1d21bee631b/scrapy-dblite-0.2.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c75bc8858569a1bea2b960b278a281a7",
+                "sha256": "3862cee73bd6d260feb2e251c7c2fb2083b8ceffa7cc8fc76487b1e858d2670b"
+            },
+            "downloads": -1,
+            "filename": "scrapy-dblite-0.2.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c75bc8858569a1bea2b960b278a281a7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 9245,
+            "upload_time": "2016-01-14T22:55:08",
+            "url": "https://files.pythonhosted.org/packages/12/f9/25046d18e5b75c71cde1e49a2adf0d457b98f255e0aed1d3d1d21bee631b/scrapy-dblite-0.2.7.tar.gz"
+        }
+    ]
+}

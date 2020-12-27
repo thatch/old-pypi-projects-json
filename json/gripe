@@ -1,0 +1,158 @@
+{
+    "info": {
+        "author": "Oren Ben-Kiki",
+        "author_email": "oren@ben-kiki.org",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Software Development :: Build Tools"
+        ],
+        "description": "GRIPE - Goal-oriented Repeatable Incremental Pipeline Execution\n===============================================================\n\nGripe is \"make for function calls\". It was developed to scratch a personal itch, with no claims for\nuniversal applicability. That said, it might be useful for others who share the same use case.\n\nSee `ReadTheDocs <https://gripe.readthedocs.io/en/latest/>`_ for a properly formatted latest version\nof this README, with active links into the sphinx-generated `Python code documentation\n<https://gripe.readthedocs.io/en/latest/modules.html>`_.\n\n**Note**: Version 0.5 is a significant breaking change from the previous versions. Currently this\ncomes with greatly reduced functionality, which will hopefully be restored \"soon\".\n\nOverview\n--------\n\nThe Use Case\n............\n\nGripe is intended to support a specific use case: medium-sized data analysis.\n\nSpecifically:\n\n- You have some data that fits in a single computer's memory.\n\n- You need to perform some complex analysis of this data.\n\n- This analysis requires performing multiple steps.\n\n- Each step may be controlled by some parameters.\n\n- Steps may require a medium amount of time to compute (seconds to minutes, but not hours to days).\n\n- You might need to tweak either the parameters, or even the step themselves, to obtain your result.\n\n- You need to be able to repeat the analysis on a later date, possibly with different data.\n\nGripe was written to address this specific use case. I encountered it in the context of\nbio-informatics (specifically, single-cell mRNA metacell analysis), but this applies to\nmany other research domains.\n\nGripe uses the term *pipeline* for \"a set of analysis steps\", though technically it actually\nsupports a DAG (Directed Acyclic Graph) of steps, including loops and even recursion. That is, the\ninput of one step may be used by several other steps, as long as there are no cycles between the\nsteps. In practice, most analysis does tend to be pretty linear, with only the occasional use of\nauxiliary data arriving from multiple previous steps.\n\nThe Requirements\n................\n\nIdeally, one would like to:\n\n1. Use default values of parameters unless they need tweaking.\n\n2. Provide a convenient way to tweak parameters and observe the effect on the final or intermediate\n   analysis results.\n\n3. Execute the minimal number of steps when tweaking the value of a parameter and/or the\n   implementation of a step.\n\n4. Encapsulate pipelines as steps within larger pipelines.\n\n5. Compare the results of different tweaked pipelines.\n\n6. Capture the visualization of the analysis results.\n\n7. Capture the tweaked parameters for future use.\n\n8. Cache the results of expensive steps for future use:\n\n   8.1 Within one Python session.\n\n   8.2 Between a sequence of sessions.\n\n   8.3 Between multiple parallel sessions by multiple users.\n\n9. Use multiple processes, possibly on multiple machines, to speed up the computation.\n\n10. Provide a convenient way to identify computation hot spots for optimization.\n\nGripe is at an initial stages of development. It currently focuses on (1), (2) and (9).\n\nRelationship to Jupyter Notebooks\n.................................\n\nJupyter is a popular platform for addressing the same use case. However, Jupyter does not address\nrequirement (3) above. For me, this is the major point, as it requires Gripe to understand the\nstructure of the pipeline. This in turn enables many other features, for example generating a GUI\nfor tweaking the parameters, automating step execution, and managing visualizations of tweaked\npipelines.\n\nIn principle, Gripe and Jupyter might be combined together for an even better experience. At this\npoint I'm focusing on Gripe itself (to support the actual research work I am doing). If you are\ninterested in such a combination and have concrete ideas on how it may work, please drop me a line.\n\nBasic usage\n-----------\n\nAnalysis Steps\n..............\n\nTo use Gripe, your analysis pipeline steps need to be \"pure\" functions, that is, functions which\ntake inputs (left unmodified!), parameters (likewise), and produce some outputs (to be used by\nfurther steps, or the final results). Such functions \"should\" not depend on any global state\n(variables), though Gripe does allow for controlled use of such variables (covered in the advanced\nsection).\n\n**DANGER WILL ROBINSON**: Gripe **relies on** neither the step functions nor the callers of the\npipeline *ever* modifying *any* of the arguments passed to the steps, or the data returned by the\nsteps. Since Python has no concept of ``const``, and many useful libraries do not provide a way to\n\"freeze\" their data structures, this is very difficult to enforce. Copying the data each time would\nbe safe, but is impractical for the data sizes involved in realistic use cases. Instead we must rely\non the discipline of both implementors and users.\n\nGripe requires decorating the step functions with the :py:func:`gripe.step` decorator. For example:\n\n.. code-block:: python\n\n    @gripe.step()\n    def low_pass_filter(input_image, filter_size=3):\n        ...\n        return ...\n\nGripe automatically extracts the list of inputs and parameters from the function signatures;\nparameters are the arguments which have a default value, inputs are the arguments without such a\ndefault.\n\nAnalysis Pipelines\n..................\n\nA pipeline is similar to a step function, but is more restricted. In particular, a pipeline\nmay only invoke steps (or pipeline) functions, and is severely restricted in the control\nflow operations allowed.\n\nGripe requires decorating the pipeline functions with the :py:func:`gripe.pipeline` decorator.\nFor example:\n\n.. code-block:: python\n\n   @gripe.pipeline()\n   def analyze_image(input_image):\n    filtered_image = low_pass_filter(input_image)\n    edges_image = detect_edges(filtered_image)\n    ...\n    return ...\n\nA pipeline function may have parameters of its own, but often does not. It may also\nforce the values of invoked function parameters, but typically does not. This allows\nthe user to freely tweak them from the outside.\n\nInvocation\n..........\n\nTo invoke a pipeline (or a step) function, simply call it as usual. Specifying the value of\nparameter arguments will force them for this specific call, but will have no effect on internal\ncalls.\n\n.. code-block:: python\n\n   filtered = low_pass_filter(input_image, filter_size=4)\n   using_default_filter_size = analyze_image(input_image)  # Use default parameters\n\nTweaking Parameters\n-------------------\n\nTo tweak the parameters of internal calls, use an ``_override`` parameter. In general Gripe\nuses additional parameters with a ``_`` prefix to provide additional functionality. For\nexample:\n\n.. code-block:: python\n\n   using_tweaked_filter_size = analyze_image(input_image, _overrides={'filter_size': 4})\n\nTo avoid error messages from ``pylint`` and/or ``mypy``, it is possible to use a ``with``\nnotation instead:\n\n.. code-block:: python\n\n   with gripe.override({'filter_size': 4})\n       using_tweaked_filter_size = analyze_image(input_image)\n\nThe ``with`` form also makes it easier for multiple calls to use the same overrides.\n\nThe keys of the ``_override`` mapping are \"patterns\" which are matched against each specific\ninvocation (including the one containing the ``_override`` parameter). Each invocation is\ngiven a ``.``-separated path consisting of the names of the functions; in the above example,\nthe top invocation has a path of ``analyze_image`` and the inner call has a path of\n``analyze_image.low_pass_filter``.\n\nThe override pattern is also ``.``-separated. Each element is either a literal,\nwhich must match exactly the invocation path; a ``?``, which will match any function name;\nor ``*``, which will match zero or more function names. The pattern ends with ``:``\nfollowed by the parameter name. Omitting the ``:`` or the pattern is equivalent to\nusing a ``*`` pattern.\n\nThus the above example is equivalent to writing ``:filter_size`` or the complete ``*:filter_size``.\nIn this example, we could also have written ``analyze_image.low_pass_filter:filter_size``,\n``*.low_pass_filter:filter_size``, ``analyze_image.?:filter_size``, and so on - all would have\nmatched the invocation of ``low_pass_filter`` from ``analyze_image``.\n\nLogging\n-------\n\nGripe provides nested loggers using the invocation path. By default these use the\n:py:attr:`gripe.wrappers.Wrapper.default_log_level` which by default is ``logging.WARN``.\nYou can override the log level of any invocation by specifying the value of the ``_log_level``\nparameter. This is another example of a ``_``-prefixed parameter used by Gripe.\n\nThe :py:func:`gripe.logger` function can be invoked inside any Gripe function to access\nthe current logger. For example:\n\n.. code-block:: python\n\n    @gripe.step()\n    def low_pass_filter(input_image, filter_size=3):\n        gripe.logger().debug('Using filter size: %d', filter_size)\n        ...\n        return ...\n\nCollectors\n----------\n\nIt is often needed to collect the output of some number of repeated inner functions into a list\nfor further processing (e.g., map-reduce style computations). This is a natural point for\nparallelization or distribution of the work across multiple processes and/or machines.\n\nGripe provides explicit support for this using the :py:func:`gripe.collectors.Collector.collect`\nfunction. Three concrete implementations are provides. Each has its own parameters and performance\ncharacteristics, and they differ enough that it makes sense to (at least by default) make the choice\nexplicit in the code (as opposed to basing it on a tweakable parameter). If tweaking is truly\nneeded, it is possible to wrap the collection with code that makes the decision based on the sizes\nof the data and/or some tweakable policy parameter.\n\nSerial\n......\n\nThe :py:obj:`gripe.collectors.Serial` collector runs invocations one at a time:\n\n.. code-block:: python\n\n    @gripe.pipeline()\n    def analyze_image(input_image):\n        filtered_chunks = Serial.collect(10, filter_chunk, whole_image=input_image)\n\n    @gripe.step()\n    def filter_chunk(whole_image, _index=0, _out_of=0):\n        chunk = slice_image(whole_image, _index, _out_of)\n        return low_pass_filter(chunk)\n\nThis will execute each invocation in turn in the same process as the call to ``collect``. Gripe\nautomatically provides the (optional) ``_index`` and ``_out_of`` parameters for each invocation.\n\nAnother way to write the above example would be:\n\n.. code-block:: python\n\n    @gripe.pipeline()\n    def analyze_image(input_image):\n        filtered_chunks = Serial.collect(10, low_pass_filter, _kwargs=lambda index: {\n            'input_image': slice_image(whole_image, index, 10)\n        })\n\nThe ``_kwargs`` parameter must be a callable (lambda in this case) which returns a mapping of the\ninputs for each invocation index. If the callable takes two arguments, the second one is the number\nof invocations (e.g., ``lambda index, invocations: ...``). The ``_override`` parameter, if\nspecified, must also be a similar callable which returns a mapping of the override patterns and\nvalues for each invocation index.\n\nParallel\n........\n\nThe :py:obj:`gripe.collectors.Parallel` collector runs invocations in parallel on the same machine:\n\n.. code-block:: python\n\n    @gripe.pipeline()\n    def analyze_image(input_image):\n        filtered_chunks = Parallel.collect(10, filter_chunk, _processes=10, whole_image=input_image)\n\nSetting ``_processes`` to the default ``None`` will use all the available processors of the current\nmachine. Setting it to a specific integer uses that number of processors. Hence, the above will fork\n10 processes on the same machine, each executing the filter on a separate chunk. Due to the way that\nPython works, each process starts with a copy of all the data, hence there is no problem passing the\nwhole image as an input. However, newly created objects are specific to each spawned process, and\nneed to be de/serialized to pass them back to the caller. This is done using YAML, which is very\nslow for large data.\n\nA common tactic to speed this up is to serialize the data to a file, and only include the\npath name in the YAML. Gripe automates this using the :py:func:`gripe.register_yaml_class`\nfunction. For example:\n\n.. code-block:: python\n\n    def image_to_file(image, path):\n        ...\n\n    def image_from_file(path):\n        ...\n        return image\n\n    def register_image_class():\n        gripe.register_yaml_class(Image, '!image', dump=image_to_file, load=image_from_file)\n\n    register_image_yaml_class()\n\nIf some data has been loaded from a disk file, it is possible to register it using\n:py:func:`gripe.data_loadable_from_path`, so it will not need to be dumped again if sent to a\nparallel invocation.\n\nGripe will manage for you the creation and cleanup of a temporary directory containing these files.\nYou can specify additional parameters ``_keep_files_on_success`` (by default, ``False``)\nand ``_keep_files_on_failure`` (by default, ``True``) to tweak this behavior. A warning is logged\nwhen keeping the files of a failed invocation.\n\nA more advanced way is to create shared memory objects before the collection, and pass them as\nparameters to the invoked functions. This requires care ensuring different invocations do not\nwrite to the same memory location, possibly requiring the use of locks.\n\nThe computation of per-invocation ``_kwargs``, if specified, is done in the main process,\nwhile the computation of the invoked function is done in the spawned processes.\n\nSince the invocation of a function on a spawned process has a non-trivial cost, it is sometimes\npreferable to use the :py:func:`gripe.indexed_range` function to split a large range of indices to\nchunks which will be processed by the collected call. This reduces the overhead to once per chunk\ninstead of once per index.\n\nDistributed\n...........\n\nThe :py:obj:`gripe.collectors.Distributed` collector runs invocations in parallel\non multiple machines of some cluster:\n\n.. code-block:: python\n\n    import gripe.drmaa\n\n    drmaa = gripe.drmaa.Drmaa(...)\n\n    @gripe.pipeline()\n    def analyze_image(input_image):\n        filtered_chunks = drmaa.collect(10, low_pass_filter,\n                                        _kwargs=lambda index, invocations: {\n                                            'input_image': slice_image(whole_image, index, invocations)\n                                        })\n\nAs this example shows, this requires a :py:obj:`gripe.distributors.Distributor` to handle sending\nthe jobs to the different machines. Currently only one distributor is available,\n:py:obj:`gripe.drmaa.Drmaa`, which uses the `DRMAA <https://en.wikipedia.org/wiki/DRMAA>`_\ninterface, which in theory allows sending jobs to various cluster implementations (e.g. SunGrid).\nEach distributed job is executed using the :py:mod:`gripe.bin.gripe_job` script.\n\nThe ``_processes`` parameter is still supported, but its meaning changes; now it specifies\nhow many processes each invoked job will spawn. This should be used by the distributor\nto ensure the jobs are given to machines with a sufficient number of available processors.\nIn this case the default value is ``1`` and, at least for now, a value of ``None`` (to\ncompletely take over the machine) is not supported.\n\nWhen distributing jobs, there is no shared memory at all between the caller and invocations,\nand hence no way around the need to de/serialize all the input and output data of each jobs.\nAlso, in general cluster software takes a relatively long time to queue and dispatch each\njob. Overall the overhead of distributed jobs is large (at least several seconds, possibly\nminutes on a bad day), so distribution is only worthwhile for very long computations.\n\nIt is therefore advisable to minimize the size of the data passed to each invocation. Similarly to\nthe ``Parallel`` case, the computation of per-invocation ``_kwargs``, if specified, is done in the\nmain process, while the computation of the invoked function is done in the remote processes. This\nallows each invocation to be given the bare minimum of data needed for the computation. In the above\nexample, each invocation is only passed its own slice of the whole image.\n\nCapturing Results\n-----------------\n\nNormally, the code just invokes the top level pipeline function and uses its return value.\nIt is sometimes useful to capture the results of internal calls, for example for testing.\nThis can be done by setting the value of the ``_capture`` parameter to ``True`` for a specific\ncall, typically by using an ``_override`` pattern. The captured data is available in\n:py:attr:`gripe.contexts.Context.captured``. For example:\n\n.. code-block:: python\n\n    analyzed = analyze_image(input_image, _overrides={'*.low_pass_filter:_capture': True})\n    filtered = gripe.Context.captured['analyze_image.low_pass_filter']\n\nStatic Methods\n--------------\n\nGripe allows using static methods as well as module functions. In this case, the name of the\nfunction would be ``Class`method`` (or ``Outer`Inner`method`` for inner class static methods).,\nThis means there is no way to restrict patterns to  all methods of a specific class, since\nthe whole name is an atomic path element.\n\nProfiling\n---------\n\nThe :py:func:`gripe.write_flame_graph` function will write a file in the format expected by\n``flamegraph.pl`` (or, if requested, ``flameview.py`` for additional data). This allows\nviewing the elapsed time in each step and focusing on hot spots. For more detailed\nprofiling, use standard Python/C++ tools.\n\nRandomized Steps\n----------------\n\nRandomized steps use some random number generator(s). To make steps repeatable, each randomized step\n*must* take a ``random_seed`` parameter and use it to reset these random number generator(s). This\nis vital regardless whether the random number generator(s) are global or local to the step.\n\nThe :py:func:`gripe.indexed_seed` function is designed to ease the generation of unique\n(deterministic) random seeds for collected (indexed) steps.",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/orenbenkiki/gripe",
+        "keywords": "logging configuration",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "gripe",
+        "package_url": "https://pypi.org/project/gripe/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/gripe/",
+        "project_urls": {
+            "Homepage": "https://bitbucket.org/orenbenkiki/gripe"
+        },
+        "release_url": "https://pypi.org/project/gripe/0.5.19/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Goal-oriented Repeatable Incremental Pipeline Execution",
+        "version": "0.5.19"
+    },
+    "last_serial": 4556031,
+    "releases": {
+        "0.1.50": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0161cf5143560b2957d088b138dd98a",
+                    "sha256": "196c0ad061d639c822750b2a4edec05c92bc561429ea91f3c3cdf7ed7bae8448"
+                },
+                "downloads": -1,
+                "filename": "gripe-0.1.50.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c0161cf5143560b2957d088b138dd98a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 30205,
+                "upload_time": "2018-08-05T13:40:51",
+                "url": "https://files.pythonhosted.org/packages/28/1f/67ddb2601017a510c7a069de73bc66c7bf46c69b222eb16916e865c91a18/gripe-0.1.50.tar.gz"
+            }
+        ],
+        "0.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94ac512dd6957296b984b1043599a6e8",
+                    "sha256": "b7d3cd82c0e513daa8d8a4d42e1419c9aa9f2178f2ee4e5794b7a80a839954ab"
+                },
+                "downloads": -1,
+                "filename": "gripe-0.2.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "94ac512dd6957296b984b1043599a6e8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 49030,
+                "upload_time": "2018-08-16T14:32:27",
+                "url": "https://files.pythonhosted.org/packages/74/7e/c7d51aff56d49ddca3edc992bb33762c2e4667c8f6c8050e0f7b262bc439/gripe-0.2.8.tar.gz"
+            }
+        ],
+        "0.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42afa10e8d3ebb5cc7aef9494671ce89",
+                    "sha256": "934e63ed98902d93c7fd4232547c175514dec629738bc8a3ca98429a0978c499"
+                },
+                "downloads": -1,
+                "filename": "gripe-0.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "42afa10e8d3ebb5cc7aef9494671ce89",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 53685,
+                "upload_time": "2018-08-22T08:23:30",
+                "url": "https://files.pythonhosted.org/packages/d5/2f/ada994ea559e2a05c6548d9c97eaa96d75fa9d131815b78d76ae3ed0744a/gripe-0.3.3.tar.gz"
+            }
+        ],
+        "0.4.44": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f8e9042cb29bb67655feadd109caa728",
+                    "sha256": "e6aaa054febc44a1d196f041bf92730583c84ddfa2ac2c5deae14fe0e5ad5288"
+                },
+                "downloads": -1,
+                "filename": "gripe-0.4.44.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f8e9042cb29bb67655feadd109caa728",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 65878,
+                "upload_time": "2018-11-11T09:56:26",
+                "url": "https://files.pythonhosted.org/packages/11/c6/20ada1a53359aa8234ecff2448fc26c00015bb74c44236d638b55e39e90d/gripe-0.4.44.tar.gz"
+            }
+        ],
+        "0.5.19": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "488b4bdd68ff7b4aac0fe1f3fc42f450",
+                    "sha256": "98a38aa45ed908e7c8e0ec981afc9647da88cad63147465cc43ca7ce9abe7425"
+                },
+                "downloads": -1,
+                "filename": "gripe-0.5.19.tar.gz",
+                "has_sig": false,
+                "md5_digest": "488b4bdd68ff7b4aac0fe1f3fc42f450",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 42164,
+                "upload_time": "2018-12-03T14:49:59",
+                "url": "https://files.pythonhosted.org/packages/dc/ba/5148e9b5c34d5d1ec8e4ea71e3ec28f1a1bbccd686815b7a664023b44298/gripe-0.5.19.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "488b4bdd68ff7b4aac0fe1f3fc42f450",
+                "sha256": "98a38aa45ed908e7c8e0ec981afc9647da88cad63147465cc43ca7ce9abe7425"
+            },
+            "downloads": -1,
+            "filename": "gripe-0.5.19.tar.gz",
+            "has_sig": false,
+            "md5_digest": "488b4bdd68ff7b4aac0fe1f3fc42f450",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 42164,
+            "upload_time": "2018-12-03T14:49:59",
+            "url": "https://files.pythonhosted.org/packages/dc/ba/5148e9b5c34d5d1ec8e4ea71e3ec28f1a1bbccd686815b7a664023b44298/gripe-0.5.19.tar.gz"
+        }
+    ]
+}

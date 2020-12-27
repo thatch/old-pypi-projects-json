@@ -1,0 +1,165 @@
+{
+    "info": {
+        "author": "Domenico Nappo",
+        "author_email": "domenico.nappo@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Other Audience",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Operating System :: Unix",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Topic :: Scientific/Engineering :: Physics"
+        ],
+        "description": "# pcr2nc\n\n__pcr2nc__ is a tool to convert PCRaster maps to netCDF4 files.\nIt's developed at JRC E1 directorate, as a Floods group initiative.\n\n- convert a single map into a NetCDF4 file\n- convert a time series of maps into a NetCDF4 mapstack\n- support for WGS84 and ETRS89 (LAEA) reference systems\n- fine tuning of output files (compression, significant digits, etc.)\n\n## Installation\n\nThere are two ways to install the software: one via pip tool and one by cloning the repository.\n\n### Requisites\n\nEnsure you have properly installed the following software:\n\n- Python 3.5+\n- GDAL C library and software\n- netCDF4 C library\n\nCreate a python3 virtualenv for using the software and activate it.\n\nIf you have virtualenvwrapper:\n```bash\n$ workon pcr2nc\n```\n\nOtherwise just execute the activate script\n```bash\n$ source /path/to/virtualenvs/pcr2nc/bin/activate\n```\n\n### Install via pip tool\n\nActivate the virtualenv and then:\n\n```bash\n$ pip install pcr2nc\n```\n\nAfter the install was complete, you still have to install the proper GDAL package,\naccording to the version of gdal library that is installed on your machine.\nYou will also need C GDAL headers to properly install python GDAL wrapper.\n\nE.g.\n\n```bash\nsudo apt-get install libgdal-dev libgdal\nexport CPLUS_INCLUDE_PATH=/usr/include/gdal\nexport C_INCLUDE_PATH=/usr/include/gdal\ngdal-config --version  # 2.2.3\npip install GDAL==2.2.3\n```\n\n### Install by cloning the repository\n\nAssuming your Python 3 virtualenv is called pcr2nc and you have virtualenvwrapper installed:\n\n```bash\ngit clone https://github.com/ec-jrc/lisflood-utilities\ncd lisflood-utilities/pcr2nc\nworkon pcr2nc\n```\n\nInstall requirements\n\n```bash\n$ pip install -r requirements.txt\n```\n\nIf GDAL library fails to install, ensure to install the same package version of the\nlibrary you have on your system.\nTo check which version of GDAL libraries you have installed on your computer, use gdal-config\n\n```bash\ngdal-config --version\n2.1\n```\n\nExample: you have installed gdal 2.1, then:\n\n```bash\n$ pip install GDAL==2.1\n$ pip install -r requirements.txt\n```\n\n## Usage\n\n> __Note:__ This guide assumes you have installed the program with pip tool.\n> If you cloned the source code instead, just substitute the executable `pcr2nc` with `python pcr2nc_script.py` that is in the root folder of the cloned project.\n\nThe tool takes three command line input arguments:\n\n- -i, --input: It can be a path to a single file, a folder or a unix-like widlcard expression like _/path/to/files/dis00*_\n- -o, --output_file: Path to the output nc file\n- -m, --metadata: Path to a yaml or json file containing configuration for the NetCDF4 output file.\n\nUnless the input is a single file, the resulting NetCDF4 file will be a mapstack according to a time dimension.\n\n#### Example of usages:\n\nInput as a folder containing PCRaster maps. In this case, the folder must contain ONLY PCraster files and the output will be a mapstack.\n\n```bash\npcr2nc -i /path/to/input/ -o /path/to/output/out.nc -m ./nc_metadata.yaml\n```\n\nInput as a path to a single map. In this case, the output won't be a mapstack.\n\n```bash\npcr2nc -i /path/to/input/pcr.map -o /path/to/output/out.nc -m ./nc_metadata.yaml\n```\n\nInput as a _Unix style pathname pattern expansion_. The output will be a mapstack. __Note that in this case the input argument must be contained in double quotes!__\n\n```bash\npcr2nc -i \"/path/to/input/pcr00*\" -o /path/to/output/out.nc -m ./nc_metadata.json\n```\n\n### Writing metadata configuration file\n\nFormat of resulting NetCDF4 file is configured into a metadata configuration file. This file can be written in YAML or JSON format.\n\nAn example of a metadata configuration file is the following\n\n```yaml\nvariable:\n  shortname: dis\n  description: Discharge\n  longname: discharge\n  units: m3/s\n  compression: 9\n  least_significant_digit: 2\nsource: JRC Space, Security, Migration\nreference: JRC Space, Security, Migration\ngeographical:\n  datum: WGS84\ntime:\n  calendar: proleptic_gregorian\n  units: days since 1996-01-01\n\n```\n\n#### Variable section\n\nIn `variable` section you can configure metadata for the main variable:\n\n- `shortname`: A short name for the variable\n- `longname`: The long name version\n- `description`: A description for humans\n- `units`: The units of the variable\n- `compression`: Optional, integer number between 1 and 9, default 0 (no compression). If present the output nc file will be compressed at this level.\n- `least_significant_digit`: Optional, integer number, default 2. From NetCDF4 documentation:\n\n> If your data only has a certain number of digits of precision\n(say for example, it is temperature data that was measured with a precision\nof 0.1 degrees), you can dramatically improve zlib compression by quantizing\n(or truncating) the data using the least_significant_digit keyword argument\nto createVariable. The least significant digit is the power of ten of the\nsmallest decimal place in the data that is a reliable value.\nFor example if the data has a precision of 0.1,\nthen setting least_significant_digit=1 will cause data the data to be\nquantized using `numpy.around(scale*data)/scale`, where `scale = 2**bits`,\nand bits is determined so that a precision of 0.1 is retained\n(in this case bits=4). Effectively, this makes the compression 'lossy'\ninstead of 'lossless', that is some precision in the data is sacrificed for the sake of disk space.\n\n#### Source and reference\n\n`source` and `reference` add information for the institution that is providing the NetCDF4 file.\n\n#### Geographical section\n\nIn `geographical` section the only setting to configure is `datum`. \nCurrently, pcr2nc supports the following list:\n\n  * `WGS84`\n  * `ETRS89`\n  * `GISCO`\n\n#### Time section\n\nThis section is optional and is only required if the output file is a mapstack (a timeseries of georeferenced 2D arrays)\nIn this section you have to configure `units` and `calendar`.\n\n- `units`: Can be one of the following strings (replacing placeholders with the actual date):\n    - `hours since YYYY-MM-DD HH:MM:SS`\n    - `days since YYYY-MM-DD`\n- `calendar`: A recognized calendar identifier, like `proleptic_gregorian`, `gregorian` etc.",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ec-jrc/lisflood-model",
+        "keywords": "netCDF4,PCRaster,mapstack",
+        "license": "EUPL 1.2",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pcr2nc",
+        "package_url": "https://pypi.org/project/pcr2nc/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pcr2nc/",
+        "project_urls": {
+            "Homepage": "https://github.com/ec-jrc/lisflood-model"
+        },
+        "release_url": "https://pypi.org/project/pcr2nc/0.6/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Convert PCRaster files to netCDF4",
+        "version": "0.6"
+    },
+    "last_serial": 5391299,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "28895fc53777d8675adbadda44f3ca13",
+                    "sha256": "114251eb988fbbb45537825d2093dfc0c2d54f0f3be8b34497aff34c343c2607"
+                },
+                "downloads": -1,
+                "filename": "pcr2nc-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "28895fc53777d8675adbadda44f3ca13",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7937,
+                "upload_time": "2019-05-20T08:32:33",
+                "url": "https://files.pythonhosted.org/packages/bc/cf/b73149d86794aa0291716f420dd359bfc27324b2dd1161a06d5d948f5f49/pcr2nc-0.1.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dd33dfed77175344272d244d1c828d8c",
+                    "sha256": "ea4280c9ab9ba1a4d685bb0b08fb5b83099010aa95ff53c0520f0f9ae6ebfce8"
+                },
+                "downloads": -1,
+                "filename": "pcr2nc-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dd33dfed77175344272d244d1c828d8c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9314,
+                "upload_time": "2019-05-20T08:55:02",
+                "url": "https://files.pythonhosted.org/packages/92/0d/f2751d35018440662b7515daaafebb1f49a89ae5b84f847a2eee5d599734/pcr2nc-0.3.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "20a57b74944bb81d1aa93888dcfddac7",
+                    "sha256": "80e9846b4d06d73e84ae9e9ea5f662f0de38df36fe146dcc602ae1f318144674"
+                },
+                "downloads": -1,
+                "filename": "pcr2nc-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "20a57b74944bb81d1aa93888dcfddac7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9302,
+                "upload_time": "2019-05-20T08:57:11",
+                "url": "https://files.pythonhosted.org/packages/7c/1e/f8a0794719d5508fab02a27fa369d3cba5c1129963316c6cbdb4dabbfb0c/pcr2nc-0.4.tar.gz"
+            }
+        ],
+        "0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e2b8663ae2cb0b1e531a6423de8e84dd",
+                    "sha256": "d1f316e4ff544cd0217e7a2f6e8ca26ab368eac76e9612acd8c5b97bb23a35f8"
+                },
+                "downloads": -1,
+                "filename": "pcr2nc-0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e2b8663ae2cb0b1e531a6423de8e84dd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9381,
+                "upload_time": "2019-06-12T13:10:28",
+                "url": "https://files.pythonhosted.org/packages/f3/4a/ed8a3058ad809787fb8302b6aac8d04da219d720de83148d22da47379a66/pcr2nc-0.5.tar.gz"
+            }
+        ],
+        "0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "91b92a8a27a9170fcf66c93a45ed1696",
+                    "sha256": "d2362827ff4b53075d53c25756f7edfa6e39c3d453b8554e5f16e6d02e9dae90"
+                },
+                "downloads": -1,
+                "filename": "pcr2nc-0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "91b92a8a27a9170fcf66c93a45ed1696",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10482,
+                "upload_time": "2019-06-12T13:48:06",
+                "url": "https://files.pythonhosted.org/packages/b1/99/4881fb9109a1a004d02c103f29a44c3ea5945054ef1efe3fe2da83ca1f5f/pcr2nc-0.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "91b92a8a27a9170fcf66c93a45ed1696",
+                "sha256": "d2362827ff4b53075d53c25756f7edfa6e39c3d453b8554e5f16e6d02e9dae90"
+            },
+            "downloads": -1,
+            "filename": "pcr2nc-0.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "91b92a8a27a9170fcf66c93a45ed1696",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 10482,
+            "upload_time": "2019-06-12T13:48:06",
+            "url": "https://files.pythonhosted.org/packages/b1/99/4881fb9109a1a004d02c103f29a44c3ea5945054ef1efe3fe2da83ca1f5f/pcr2nc-0.6.tar.gz"
+        }
+    ]
+}

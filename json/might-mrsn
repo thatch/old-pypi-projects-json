@@ -1,0 +1,80 @@
+{
+    "info": {
+        "author": "Brendan Corey",
+        "author_email": "brendan.w.corey.ctr@mail.mil",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# MIGHT\n\nMIGHT: MRSN Integrated Genome Handling Tool for bacterial clinical isolates\n\n## Contents\n* [Introduction](#introduction)\n* [Installation](#installation)\n  * [Conda Installation](#conda-installation)\n* [Usage](#usage)\n\n## Introduction\n\nMIGHT was developed as a way to automate many of the standard bioinformatics tasks that the MRSN\nperforms as part of its surveillance mission.\n\nBrief summary of the workflow:\n\n1. Run [bcl2fastq](https://support.illumina.com/downloads/bcl2fastq-conversion-software-v2-20.html) to demultiplex Illumina paired-end read data from MiSeq/Nextseq data\n2. Run [Kraken2](https://github.com/DerrickWood/kraken2) to get species ID and identify possible sample contamination\n3. Preprocess short reads using [bbduk](https://sourceforge.net/projects/bbmap/) for short read data and/or [filtlong](https://github.com/rrwick/Filtlong) for long read data\n4. Run the [Unicycler](https://github.com/rrwick/Unicycler) assembler (with or without long read data)\n5. Run [QUAST](https://github.com/ablab/quast) to gather assembly statistics\n6. Run [Andale](https://gitlab.com/mrsn-bio/andale), a hybrid read/assembly AMR gene identification tool\n\n## Installation\n\nThis script is designed to be installed and run using conda\n\n### Conda Installation\n\n\n## Usage\n\nMIGHT can be run either on a __single isolate__ using Might.py or on all of the samples of an __Illumina run__ using AllMight.py. \nThe primary difference from an input perspective is that Might.py assumes that you are processing\na single sample for which you will provide 1) the sample name and 2) the location(s) or the\nrelevant input files. Conversely, AllMight.py will takes a user provided SampleSheet.csv\nto determine what samples should be included in the run. It will ultimately run the specified\nanalyses on each sample as parallel implementations of the analysis methods found in Might.py.\n\n\nFor a __single isolate__:\n  ```\n  \n        \n        \n            .___  ___.  __    _______  __    __  .__________.\n            |   \\/   | |  |  /  _____||  |  |  | |          |\n            |  \\  /  | |  | |  |  __  |  |__|  | `---|  |---`\n            |  |\\/|  | |  | |  | |_ | |   __   |     |  |     \n            |  |  |  | |  | |  |__| | |  |  |  |     |  |     \n            |__|  |__| |__|  \\______| |__|  |__|     |__|     \n    \n                \n        \nusage: Might.py --output OUTPUT [--sample-name SAMPLE_NAME] [--fastq FASTQ]\n                [--fasta FASTA] [--all] [--kraken2] [--assembly]\n                [--amr {combination,reads,contigs,summary}] [--mlst]\n                [--plasmidfinder] [--kraken2-database KRAKEN2_DATABASE]\n                [--adapter-file ADAPTER_FILE] [--ramdisk RAMDISK] [--update]\n                [--force] [--cores CORES] [--verbosity VERBOSITY] [-h]\n\nMIGHT! MRSN Integrated Genome Handling Tool\n\nRequired arguments:\n  --output OUTPUT       path to the directory where output is/will be stored\n\nInput arguments:\n  --sample-name SAMPLE_NAME\n                        Name of the sample to be analyzed.\n  --fastq FASTQ         path to the directory containing the read files for\n                        this sample [output/reads/raw_reads]\n  --fasta FASTA         path to the directory containing the assembly file for\n                        this sample [output/assembly]\n\nAnalysis arguments:\n  --all                 run all analysis options\n  --kraken2             run Kraken2 on read files to determine species ID and\n                        potentially detect contamination\n  --assembly            trim and filter reads using bbduk, then perform\n                        assembly using Unicycler\n  --amr {combination,reads,contigs,summary}\n                        run Andale using one of the four setting choices\n  --mlst                perform MLST assignments for samples using MLST\n  --plasmidfinder       run Plasmidfinder on contig files to identify rep gene\n                        content\n\nResource arguments:\n  --kraken2-database KRAKEN2_DATABASE\n                        Path to the kraken2 database. Required for kraken2\n                        analysis\n  --adapter-file ADAPTER_FILE\n                        Path to the adapter.fa file required for adapter\n                        trimming of Illumina reads\n  --ramdisk RAMDISK     Path to the ramdisk for speeding up kraken2\n\nOptional arguments:\n  --update              update AMRFinderPlus and MLST databases\n  --force               force overwrite of existing data/output related to\n                        this sample\n  --cores CORES         the MAXIMUM number of CPUs to use in the analysis [1]\n  --verbosity VERBOSITY\n                        the level of reporting done to the terminal window [1]\n\nHelp:\n  -h, --help            show this help message and exit\n```\n\nFor an __Illumina run__\n```\n        \n        \n            .___  ___.  __    _______  __    __  .__________.\n            |   \\/   | |  |  /  _____||  |  |  | |          |\n            |  \\  /  | |  | |  |  __  |  |__|  | `---|  |---`\n            |  |\\/|  | |  | |  | |_ | |   __   |     |  |     \n            |  |  |  | |  | |  |__| | |  |  |  |     |  |     \n            |__|  |__| |__|  \\______| |__|  |__|     |__|     \n    \n                \n        \nusage: AllMight.py --output OUTPUT [--bcl2fastq]\n                   [--run-directory RUN_DIRECTORY]\n                   [--sample-sheet SAMPLE_SHEET] [--all] [--kraken2]\n                   [--assembly] [--amr {combination,reads,contigs,summary}]\n                   [--mlst] [--plasmidfinder]\n                   [--kraken2-database KRAKEN2_DATABASE]\n                   [--adapter-file ADAPTER_FILE] [--ramdisk RAMDISK]\n                   [--update] [--force] [--cores CORES]\n                   [--verbosity VERBOSITY] [-h]\n\nMIGHT! MRSN Integrated Genome Handling Tool\n\nRequired arguments:\n  --output OUTPUT       path to the directory where output is/will be stored\n\nbcl2fastq2 arguments:\n  --bcl2fastq           Run bcl2fastq2 to generate demultiplexed fastq files\n                        from the bcl files\n  --run-directory RUN_DIRECTORY\n                        Path to the run directory to be analyzed\n  --sample-sheet SAMPLE_SHEET\n                        Path to the Illumina sample sheet file for the run\n                        being analyzed\n\nAnalysis arguments:\n  --all                 run all analysis options\n  --kraken2             run Kraken2 on read files to determine species ID and\n                        potentially detect contamination\n  --assembly            trim and filter reads using bbduk, then perform\n                        assembly using Unicycler\n  --amr {combination,reads,contigs,summary}\n                        run Andale using one of the four setting choices\n  --mlst                perform MLST assignments for samples using MLST\n  --plasmidfinder       run Plasmidfinder on contig files to identify rep gene\n                        content\n\nResource arguments:\n  --kraken2-database KRAKEN2_DATABASE\n                        Path to the kraken2 database. Required for kraken2\n                        analysis\n  --adapter-file ADAPTER_FILE\n                        Path to the adapter.fa file required for adapter\n                        trimming of Illumina reads\n  --ramdisk RAMDISK     Path to the ramdisk for speeding up kraken2\n\nOptional arguments:\n  --update              update AMRFinderPlus and MLST databases\n  --force               force overwrite of existing data/output related to\n                        this sample\n  --cores CORES         the MAXIMUM number of CPUs to use in the analysis [1]\n  --verbosity VERBOSITY\n                        the level of reporting done to the terminal window [1]\n\nHelp:\n  -h, --help            show this help message and exit\n\n```",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/mrsn-bio/might/",
+        "keywords": "",
+        "license": "GPLv3",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "might-mrsn",
+        "package_url": "https://pypi.org/project/might-mrsn/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/might-mrsn/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/mrsn-bio/might/"
+        },
+        "release_url": "https://pypi.org/project/might-mrsn/1.0.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "MIGHT: MRSN Integrated Genome Handling Tool for bacterial clinical isolates",
+        "version": "1.0.0"
+    },
+    "last_serial": 6249787,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48692e71a085179054d1498efee0330b",
+                    "sha256": "59f4e21b77d92821740c07a5507228cdbdd370aca8bb6cfae6c242dc196edce7"
+                },
+                "downloads": -1,
+                "filename": "might-mrsn-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "48692e71a085179054d1498efee0330b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 30229,
+                "upload_time": "2019-12-05T19:20:30",
+                "upload_time_iso_8601": "2019-12-05T19:20:30.791256Z",
+                "url": "https://files.pythonhosted.org/packages/8a/1e/5b757292ec71e9ec90598e175ce65bcb3172052d40eae7617fc4b1a75d38/might-mrsn-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "48692e71a085179054d1498efee0330b",
+                "sha256": "59f4e21b77d92821740c07a5507228cdbdd370aca8bb6cfae6c242dc196edce7"
+            },
+            "downloads": -1,
+            "filename": "might-mrsn-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "48692e71a085179054d1498efee0330b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 30229,
+            "upload_time": "2019-12-05T19:20:30",
+            "upload_time_iso_8601": "2019-12-05T19:20:30.791256Z",
+            "url": "https://files.pythonhosted.org/packages/8a/1e/5b757292ec71e9ec90598e175ce65bcb3172052d40eae7617fc4b1a75d38/might-mrsn-1.0.0.tar.gz"
+        }
+    ]
+}

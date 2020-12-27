@@ -1,0 +1,118 @@
+{
+    "info": {
+        "author": "Chao Li",
+        "author_email": "chaoli.job@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "gazetteer-matcher\n=================\n\nDescription\n-----------\n\nGiven a gazetteer/taxonomy and some input text, ``gz-matcher`` can\nbe used to find all matched phrases.\n\nRequirements\n------------\n\nPython 3.6+\n\nUsage\n-----\n\nUse gazetteer-matcher module\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n-  From normalization table in JSOM format:\n\n::\n\n   from gz_matcher.matcher import GazetteerMatcher\n   gz_matcher = GazetteerMatcher(normtable=json_file)\n   for matched in gz_matcher.matching(text):\n       print(matched)\n\nAnd an example of the normalization table in JSON:\n\n::\n\n    {\n      \"meta\": {\n        \"concept_type\": \"skills\",\n        \"release_datetime\": \"2019-xx-xx\"\n      },\n      \"concepts\": [\n        {\n          \"display_name\": \"Risk Analysis\",\n          \"category\": \"Financial Skill\",\n          \"id\": \"ABCDEFG001\",\n          \"surface_forms\": [\n            {\n              \"surface_form\": \"risk analysis\",\n              \"skill_likelihood\": 0.9\n            },\n            {\n              \"surface_form\": \"quantitative risk assessment\",\n              \"skill_likelihood\": 1.0\n            },\n            {\n              \"surface_form\": \"risk assessment\",\n              \"skill_likelihood\": 0.7\n            }\n          ]\n        },\n        .......\n        {\n          \"display_name\": \"Mobile Data\",\n          \"category\": \"Computer Skill\",\n          \"id\": \"ABCDEFG002\",\n          \"surface_forms\": [\n            {\n              \"surface_form\": \"mobile data\"\n            }\n          ]\n        }\n      ]\n    }\n\n-  From gazetteer:\n\n::\n\n   from gz_matcher.matcher import GazetteerMatcher\n   gz_matcher = GazetteerMatcher(gazetteer=gz_file)\n   for matched in gz_matcher.matching(text):\n       print(matched)\n\nand an example of the gazetteer\n\n::\n\n    # gazetteer\n    mobile data\n    risk analysis\n    quantitative risk assessment\n    risk assessment\n    .....\n\n-  From Taxonomy Codetable:\n\n::\n\n   from gz_matcher.matcher import GazetteerMatcher\n   ct_matcher = GazetteerMatcher(codetable=ct_file)\n   for matched in ct_matcher.matching(text):\n       print(matched)\n\nCodeTable is a XML version of the JSON example given above.\n\nother functions\n~~~~~~~~~~~~~~~\n\n-  Context words:\n\nWhen context are needed for matched phrases, e.g. for the following up\nvalidation functions, enable the ``with\\_context`` option:\n\n::\n\n   from gz_matcher.matcher import GazetteerMatcher\n   gz_matcher = GazetteerMatcher(normtable=json_file,with_context=True)\n   for matched in gz_matcher.matching(text):\n       print(matched.left_context, matched.right_context)\n\n-  Code Property lookup\n\nIf need to lookup the property of an Code in the taxonomy,\ncheck the matcher Class property 'code\\_property\\_mapping',\nit is a dictionary mapping id to description and category, it is in\nthe form of:\n\n::\n\n    dict[code_id] = {\n        'desc':code_description,\n        'type':code_category\n    }\n\nE.g. to get the description of the codeid:\n\n::\n\n    codeid = 12345\n    from gz_matcher.matcher import GazetteerMatcher\n    gz_matcher = GazetteerMatcher(normtable=json_file)\n    if codeid in gz_matcher.code_property_mapping:\n        print(gz_matcher.code_property_mapping[codeid]['desc'])\n\n\ncheck the Metainfo of the Taxonomy or Gazetteer:\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nNote: currently only available for the Normalized code JSOM.\n\nThe metainfo can be stored in meta part of the JSON document, e.g. if\nthe following information is listed in the JSOM meta section:\n\n::\n\n    \"meta\": {\n      \"language\": \"EN\",\n      \"release_datetime\": \"2019-04-17T12:22:10.729673\",\n      \"concept_type\": \"skills\",\n      \"purpose\": \"normalization\"\n    },\n\nWe can fetch it via the matcher object\n\n::\n\n    from gz_matcher.matcher import GazetteerMatcher\n    gz_matcher = GazetteerMatcher(normtable=json_file)\n    print(gz_matcher['meta_info'])\n\noutput will be:\n\n::\n\n    {\n      'language': 'EN',\n      'release_datetime': '2019-04-17T12:22:10.729673',\n      'concept_type': 'skills',\n      'purpose': 'normalization'\n    }\n\nmatched phrase object: MatchedPhrase\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nmatcher.matching is an iterable which return a MatchedPhrase instance,\nthe instance has the following attributes:\n\n- normalize pattern form: matched\\_pattern\n\n- surface form: surface\\_form\n\n- start position and end position: start\\_pos, end\\_pos\n\n- code\\_id and code\\_description (None if not set in the pattern file)\n\n- left context and right context of the matched skills (only availabe if with\\_context=True )\n\n\n::\n\n    for match in matcher.matching(text):\n        print(\"found pattern [{}] in the form of [{}] at position ({}:{}), code:{} {} {}\".format(\n            matched.matched_pattern\n            matched.surface_form\n            matched.start_pos\n            matched.end_pos\n            matched.code_id\n            matched.code_description\n            matched.category\n            matched.left_context\n            matched.right_context\n        )\n\nDevelopment\n-----------\n\nTo install package and its dependencies, run the following from project\nroot directory:\n\n::\n\n    python setup.py install\n\nTesting\n~~~~~~~\n\nTo run unit tests, execute the following from the project root\ndirectory:\n\n::\n\n    python setup.py test\n\n\n\n0.0.1 (2019-07-27)\n==================\n\nAdded a working version gazetteer matcher, which can create a matcher with\nthe gazetteer from eighor a txt, json, or xml format, and found matched phrases\nfrom input text.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/tilaboy/gazetteer-matcher",
+        "keywords": "gz-matcher",
+        "license": "MIT license",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "gz-matcher",
+        "package_url": "https://pypi.org/project/gz-matcher/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/gz-matcher/",
+        "project_urls": {
+            "Homepage": "https://github.com/tilaboy/gazetteer-matcher"
+        },
+        "release_url": "https://pypi.org/project/gz-matcher/0.0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Python tool to match phrases listed in the gazetteer",
+        "version": "0.0.1"
+    },
+    "last_serial": 5600381,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f549d10f51018ab48ffcbe67a5477c71",
+                    "sha256": "39ad187b0c2628522d0069e376b9b1c82cd08c752f7404fa5ce1879ccaf84d5b"
+                },
+                "downloads": -1,
+                "filename": "gz_matcher-0.0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f549d10f51018ab48ffcbe67a5477c71",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15483,
+                "upload_time": "2019-07-29T16:10:21",
+                "url": "https://files.pythonhosted.org/packages/5b/94/bc1bcfbfd7d9a119042b0221e62cd08f104b1e8523bd4c8cb29fcc1e0104/gz_matcher-0.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "979bc1fa6a0d0c85761f18c6b3e795d3",
+                    "sha256": "6b4e80e0d04e79a78c5d7c166aa6aa5f14ff54ef097886dc5e0d2a7decec7700"
+                },
+                "downloads": -1,
+                "filename": "gz_matcher-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "979bc1fa6a0d0c85761f18c6b3e795d3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11098,
+                "upload_time": "2019-07-29T16:10:24",
+                "url": "https://files.pythonhosted.org/packages/39/d3/3091dedcfabbe43fef0dabeb878493cd34e6cafe048acc3a7c80d568955d/gz_matcher-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f549d10f51018ab48ffcbe67a5477c71",
+                "sha256": "39ad187b0c2628522d0069e376b9b1c82cd08c752f7404fa5ce1879ccaf84d5b"
+            },
+            "downloads": -1,
+            "filename": "gz_matcher-0.0.1-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "f549d10f51018ab48ffcbe67a5477c71",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 15483,
+            "upload_time": "2019-07-29T16:10:21",
+            "url": "https://files.pythonhosted.org/packages/5b/94/bc1bcfbfd7d9a119042b0221e62cd08f104b1e8523bd4c8cb29fcc1e0104/gz_matcher-0.0.1-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "979bc1fa6a0d0c85761f18c6b3e795d3",
+                "sha256": "6b4e80e0d04e79a78c5d7c166aa6aa5f14ff54ef097886dc5e0d2a7decec7700"
+            },
+            "downloads": -1,
+            "filename": "gz_matcher-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "979bc1fa6a0d0c85761f18c6b3e795d3",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11098,
+            "upload_time": "2019-07-29T16:10:24",
+            "url": "https://files.pythonhosted.org/packages/39/d3/3091dedcfabbe43fef0dabeb878493cd34e6cafe048acc3a7c80d568955d/gz_matcher-0.0.1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,201 @@
+{
+    "info": {
+        "author": "Dr. Leo",
+        "author_email": "dr-leo@berlios.de",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: End Users/Desktop",
+            "License :: OSI Approved",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Adaptive Technologies",
+            "Topic :: Printing",
+            "Topic :: Text Processing"
+        ],
+        "description": "==================================================================\nTranscribo - a plain text rendering library written in pure Python\n==================================================================\n\n| *Project home:* https://bitbucket.org/fhaxbox66/transcribo/\n| *Mercurial repository:* https://bitbucket.org/fhaxbox66/transcribo/\n| *Mailing List:* (currently not maintained)\n| *Version:* 0.7 alpha\n| *Author:* fhaxbox66 at googlemail.com\n| *License:* GPL (http://www.opensource.org/licenses/gpl-license.html)\n| (c) 2009-2010 Dr. leo\n\n\n\n\n-----\n\n.. contents ::\n\n.. sectnum::\n\n\n\nWhat's new?\n==================\n\n*Version 0.7*\n\nThis is a milestone release with many new features. Much of the code has been refactored.\n\n    * unified command line front end using argparse (dependency under Python2.6)\n    * new generic configuration system named yaconfig with cascading style sheets using PyYAML (new dependency)\n\n      * supports multiple YAML files which are successively mixed into a tree of nested dictionaries\n      * multiple inheritance from any node specified by absolute or local paths (relative paths not fully supported)\n      * supports string interpolation similar to configparser from the stdlib (this feature is not used though)\n\n    * more rST features including\n\n      * references and targets (not yet footnotes)\n      * table of contents with or without page numbers\n      * definition lists, literal blocks and transitions\n      * use the class directive to change hyphenation, wrapper, translator etc. on the fly\n\n    * readers (the components that read the input files such as rST\n      are fully configurable through cascading style sheets in YAML format.\n      In case of rST this means that the Docutils own configuration system is no longer visible to the Transcribo user.\n      Note that Transcribo when used with the rst reader acts as a Docutils writer component.\n    * no longer depends on a Braille translator such as YABT\n    * hard page breaks improved; can be used with rST reader through style sheets: break page after end of section etc.\n\n\n*Version 0.6*\n\n* hard page breaks\n* avoid widows and orphans when soft-breaking pages\n* support for Hyphenation (requires PyHyphen, see the installation instructions below)\n* numerous bug fixes and improvements\n\n*Version 0.5.3:*\n\nThis is a minor bug fix release.\n\n\nIntroduction\n=================\n\nThe transcribo project is aimed at the development of \na modular, easy to use and powerful cross-platform software to convert various file formats\ninto accurate plain text. What might seem a somewhat strange goal in the age of pdf and HTML turns out to\nbe very useful, e.g., for output devices which can only handle plain text such as Braille\nembossers. Indeed, Transcribo has been designed with the objective in mind to allow printing\ndocuments in high-quality Braille. However, Transcribo should be useful in all\ncontexts where text-based output formats in highly customizable layouts are needed.\n\nTranscribo has been designed so as to separate the processing of the input file from the actual rendering\nalgorithm. Hence, there are two layers: In the input layer various format-specific readers parse the input streams and feed\nthem into the renderer (second layer).\n\nMore specifically, the input layer may contain readers specific to\neach supported  input format. readers do the following:\n\n* parse the input file,\n* derive from it the layout structure and\n* use the renderer to generate\n\n  + a proprietary tree representation of the document, and\n  + traverse the tree creating a line-by-line representation of the document.\n\n* Thereafter, the renderer's paginator\n  is called to insert white space as margins, page breaks, create headers and footers, resolve page references  etc.\n* Finally, the paginated line-by-line\n  representation is assembled to a plain text file.\n\nThe renderer allows to attach to each content block (paragraph, heading, reference etc.) a\nspecific *translator* and *wrapper including optional hyphenation* to perform translations and achieve the required text outline. In combination with\nreaders for mark-up languages, this\nfeature allows the user to control the output at a high level of granularity.\n\nCurrently there are readers for `reStructuredText <http://docutils.sourceforge.net/rst.html>`_ and plain text. Additional readers\nfor formats such as LaTeX, ODF, RTF, XML formats such as DocBook and HTML appear useful.\n\nInstallation and usage\n=====================================\n\nTranscribo is developed with Python 2.6. It should run on older versions, possibly with\nsmall changes. There are a few mandatory and optional dependencies:\n\n* `PyYAML <http://pypi.python.org/pypi/PyYAML>`_ \n* `argparse <http://pypi.python.org/pypi/argparse>`_\n  It is already included in the stdlib of Python 2.7.\n* if you want to have hyphenated output, you'll need `PyHyphen <http://pypi.python.org/pypi/PyHyphen/>`_\n* If you want to\n  use the translation features for Braille, you may wish to install one of the following Braille translators:\n  \n  - `liblouis <http://liblouis.googlecode.com>`_ plus the\n    `Python bindings <http://www.nvda-project.org/3rdParty/liblouis-python-win_2.1.1.zip>`_\n  - `YABT <http://pypi.python.org/pypi/YABT>`_.\n  \n* `Docutils <http://docutils.sourceforge.net>`_, because Transcribo's rST reader is essentially a docutils\n  writer component. Well, if you are happy with txt2txt, forget this.\n\nTranscribo is a pure Python package. It is installed by unpacking the archive and typing\nfrom the shell prompt something like: ::\n\n    cd <package dir>\n    python setup.py install\n\nThe test/test.py script demonstrates how to use Transcribo programmatically.\nUse the *transcribe.py* script from the shell prompt to generate paginated plain text from\nrST or plain text documents. Type 'transcribo.py --help' to read an argparse-generated help text\non the available commands. Examples::\n\n    # Generate a block-aligned text with en_US hyphenation dictionary. Requires PyHyphen!\n    transcribe infile.rst outfile.out --styles align-block hyphen_en_US\n    # Note that '--reader rst' is used by default. the 'base.yaml' style file is\n    # loaded automatically.\n    # Generate paginatd plain text from plain text. Each blank line\n    # is interpreted as a paragraph separator.\n    transcribe infile.txt outfile.out --reader txt\n\n\nDownloading and contributing\n===============================\n\n* You can download the latest release_ or a snapshot_ from the Mercurial repository\n* if Mercurial_ is installed on your machine, you can pull the latest sources_\n* send an e-mail to the author_ \n* visit the `project page`_ and contribute code, bug reports or feedback\n* use it under the terms of the GPL 3.0\n* have fun!\n\n\n\n.. _Mercurial: http://mercurial.selenic.com/wiki/\n\n.. _Python: http://www.python.org\n\n.. _snapshot: https://bitbucket.org/fhaxbox66/transcribo/\n\n.. _sources: https://bitbucket.org/fhaxbox66/transcribo/\n\n.. _project page: https://bitbucket.org/fhaxbox66/transcribo/\n\nDocumentation\n=================\n\nDocumentation to be built with Sphinx is planned. The renderer's API\nis demonstrated by transcribo/plaintext.py, the plain text reader. More complex examples including extensive usage\nof styles can be found in rST.py. Please feel free to submit any questions to the author_.\n\n\n.. _author: fhaxbox66@googlemail.com\n\n.. _release: http://pypi.python.org/pypi/Transcribo/",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://transcribo.berlios.de",
+        "keywords": null,
+        "license": "UNKNOWN",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "Transcribo",
+        "package_url": "https://pypi.org/project/Transcribo/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/Transcribo/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://transcribo.berlios.de"
+        },
+        "release_url": "https://pypi.org/project/Transcribo/0.7.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "A general purpose plain text renderer for arbitrary input formats including frontends for reStructuredText and plain text",
+        "version": "0.7.1"
+    },
+    "last_serial": 785897,
+    "releases": {
+        "0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "50937499284129f283281641ecb80d2c",
+                    "sha256": "da08dc561e2bf234dec3fff80fe2cb5f16049c81a738bbe7ed1e83490fd9c406"
+                },
+                "downloads": -1,
+                "filename": "Transcribo-0.5.zip",
+                "has_sig": false,
+                "md5_digest": "50937499284129f283281641ecb80d2c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24632,
+                "upload_time": "2009-08-13T09:48:37",
+                "url": "https://files.pythonhosted.org/packages/c0/f3/8fe8a5db62f4653eaef1891e5e31ec553e1a237267b71181a8880c87bec9/Transcribo-0.5.zip"
+            }
+        ],
+        "0.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5367de2fdfcc4f23cd9745679e75651f",
+                    "sha256": "bcdb63db7572c760a95dbb1a0bc26603dd210f09974be4a492bbf559ba5930e6"
+                },
+                "downloads": -1,
+                "filename": "Transcribo-0.5.1.zip",
+                "has_sig": false,
+                "md5_digest": "5367de2fdfcc4f23cd9745679e75651f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24749,
+                "upload_time": "2009-08-13T12:00:29",
+                "url": "https://files.pythonhosted.org/packages/ce/21/8aa8639e4f931269001c075b0741242dcf7bb3820e620304e520fd713b26/Transcribo-0.5.1.zip"
+            }
+        ],
+        "0.5.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "234618528d35383cde28561cc7b7d1d5",
+                    "sha256": "7b9785cde13e813b02ea832854cbbd18796be4ffc35bb71f39d3cb464981a4ac"
+                },
+                "downloads": -1,
+                "filename": "Transcribo-0.5.2.zip",
+                "has_sig": false,
+                "md5_digest": "234618528d35383cde28561cc7b7d1d5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24842,
+                "upload_time": "2009-08-25T23:35:21",
+                "url": "https://files.pythonhosted.org/packages/98/e5/fdcb7b041bbf469c400b653e4a618c8d96606e0588cd0a36492d938ef5a9/Transcribo-0.5.2.zip"
+            }
+        ],
+        "0.5.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3634582c945e7b7c4cd9855b168a0980",
+                    "sha256": "002258724248ad0f4eee6c98b1d0a75937e32e0de6993551b765c86910581dfd"
+                },
+                "downloads": -1,
+                "filename": "Transcribo-0.5.3.zip",
+                "has_sig": false,
+                "md5_digest": "3634582c945e7b7c4cd9855b168a0980",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24851,
+                "upload_time": "2010-01-24T18:40:26",
+                "url": "https://files.pythonhosted.org/packages/76/15/a756417ae355cfbe80cfbe9b9a534a4df9e7d9aed1014b328e5280ca3956/Transcribo-0.5.3.zip"
+            }
+        ],
+        "0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d6d4a77dae434172392fd6039e211ccb",
+                    "sha256": "94b9411bf2d09c007d600d30540a0eb284590c07a39d02e3ce25fc13bfad83da"
+                },
+                "downloads": -1,
+                "filename": "Transcribo-0.6.zip",
+                "has_sig": false,
+                "md5_digest": "d6d4a77dae434172392fd6039e211ccb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 26844,
+                "upload_time": "2010-05-24T18:48:36",
+                "url": "https://files.pythonhosted.org/packages/f6/02/c20b6dce6d0d80c39e4841b45ce93698a5798aa16635c23831ee9805b92b/Transcribo-0.6.zip"
+            }
+        ],
+        "0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4680b85a51fe0eebae75d53773cb82a4",
+                    "sha256": "b6d425f899a35e88dfeaab181bfbb0ec26e36d358ecd6f9a85386a0586968818"
+                },
+                "downloads": -1,
+                "filename": "Transcribo-0.7.zip",
+                "has_sig": false,
+                "md5_digest": "4680b85a51fe0eebae75d53773cb82a4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32209,
+                "upload_time": "2010-10-29T12:22:59",
+                "url": "https://files.pythonhosted.org/packages/cf/45/82754ab6e40a168e5631f4a5e0aa50b7e49775eb52d26f33c47c31c5551b/Transcribo-0.7.zip"
+            }
+        ],
+        "0.7.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2492f2a1cd7cee0aa4b0241ab3ad6fac",
+                    "sha256": "a9e6d14ac03b8d6fd41f6b72847c40b4cb8fa0f7d3d1ab49ea679446949f51a2"
+                },
+                "downloads": -1,
+                "filename": "Transcribo-0.7.1.zip",
+                "has_sig": false,
+                "md5_digest": "2492f2a1cd7cee0aa4b0241ab3ad6fac",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32641,
+                "upload_time": "2010-10-29T12:45:33",
+                "url": "https://files.pythonhosted.org/packages/d5/ae/a3ebfac3db026217c1250906d9972737e5910edea9bdbf9dd2c2e157bf7f/Transcribo-0.7.1.zip"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2492f2a1cd7cee0aa4b0241ab3ad6fac",
+                "sha256": "a9e6d14ac03b8d6fd41f6b72847c40b4cb8fa0f7d3d1ab49ea679446949f51a2"
+            },
+            "downloads": -1,
+            "filename": "Transcribo-0.7.1.zip",
+            "has_sig": false,
+            "md5_digest": "2492f2a1cd7cee0aa4b0241ab3ad6fac",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 32641,
+            "upload_time": "2010-10-29T12:45:33",
+            "url": "https://files.pythonhosted.org/packages/d5/ae/a3ebfac3db026217c1250906d9972737e5910edea9bdbf9dd2c2e157bf7f/Transcribo-0.7.1.zip"
+        }
+    ]
+}

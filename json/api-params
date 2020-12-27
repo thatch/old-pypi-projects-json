@@ -1,0 +1,112 @@
+{
+    "info": {
+        "author": "John Faucett",
+        "author_email": "john.faucett@protonmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy"
+        ],
+        "description": "## API Params\n\nThis projoct is designed to provide a simple solution to parameter parsing in restful api services.\nThere are a lot of solutions for parameter parsing out there, but I couldn't find one that did what I wanted so I built this.\n\nBasically the idea is that you create a schema where you explicity define all the fields which your api endpoint should provide. You can set fields as either required or not and you can decide to attempt to coerce input values if you want to, for instance you could coerce a '1' to a boolean True in python or the string '14.38' into the float 14.38, etc.\n\nNext for each field you can define validator functions which take the (possibly coerced) input value and return a boolean and a message indicating True for when the value successfully passes the validation and False for when the value fails. The message object is there to give the user control of how he wants to format error response messages.\n\nIf all the required parameters, coercions and validator functions work then a tuple object that is returned in which the first element is a boolean True for success and the second element is the parsed and coerced hash of parameter values. On failure a False value is returned as well as a dictionary of parameter name to list of error message mappings is returned indicating the reason for failure.\n\n#### Usage Example\n\n```python\nfrom api_params.schema import Schema, Validator\nfrom api_params.types import Type\n\n# Create the schema\nschema = Schema()\nschema.field('username', Type.STRING, required=True)\nschema.field('password', Type.STRING, required=True)\nschema.field('remember_me', Type.BOOLEAN, required=True, coerce=True)\nschema.field('selected_number', Type.NUMBER, required=True, coerce=True)\n\n# write some validation functions\n# all validation functions must return a tuple (pass_or_fail, message)\ndef not_empty(value):\n    return (len(value) > 0, \"cannot be empty\")\n\ndef create_in_range(min_value, max_value):\n    def in_range(value):\n        return (value >= min_value and value <= max_value, \"value must be >= {} and <= to {}\".format(min_value, max_value))\n    return in_range\n\n# Create the validator\nvalidator = Validator(schema)\nvalidator.add_validator('username', not_empty)\nvalidator.add_validator('password', not_empty)\nvalidator.add_validator('selected_number', create_in_range(0,100))\n\n\n# Now run the validations on some input\nsuccess, parsed_result = validator.validate({\n    'username' : 'bob',\n    'password' : '123456',\n    'selected_number' : '85',\n    'remember_me' : '1'\n})\n\nprint(success) # True\nprint(parsed_result) # { 'username' : 'bob', 'password' : '123456', 'remember_me' : True, 'selected_number' : 85 }\n```",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jwaterfaucett/py-api_params",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "api-params",
+        "package_url": "https://pypi.org/project/api-params/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/api-params/",
+        "project_urls": {
+            "Homepage": "https://github.com/jwaterfaucett/py-api_params"
+        },
+        "release_url": "https://pypi.org/project/api-params/0.0.2/",
+        "requires_dist": null,
+        "requires_python": ">=2.6",
+        "summary": "A simple, customizable, and generic parameter validation api.",
+        "version": "0.0.2"
+    },
+    "last_serial": 4283736,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2de8d6f1dc6454c05bd78401609f11cf",
+                    "sha256": "27c54da92c838592d84cdbf30829f9d76aea0fd8685787da96f1ad377d1771a2"
+                },
+                "downloads": -1,
+                "filename": "api_params-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2de8d6f1dc6454c05bd78401609f11cf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 3734,
+                "upload_time": "2018-09-18T14:07:12",
+                "upload_time_iso_8601": "2018-09-18T14:07:12.243226Z",
+                "url": "https://files.pythonhosted.org/packages/64/ad/ecb2276ed900ef6e16449829ff23295c063797812ec1bab24c5682dcbbfd/api_params-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7e34dcdc9ad6de88679d1d2dac3da391",
+                    "sha256": "f394093ceeee606d5d10b78e60589872af5b346a41e9df5e71df41cd1d992520"
+                },
+                "downloads": -1,
+                "filename": "api_params-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7e34dcdc9ad6de88679d1d2dac3da391",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.6",
+                "size": 4593,
+                "upload_time": "2018-09-18T14:19:45",
+                "upload_time_iso_8601": "2018-09-18T14:19:45.844736Z",
+                "url": "https://files.pythonhosted.org/packages/78/fb/46bba4b7f41af611392005a3e95a9b700d904fe319c385d81416c8b1ebdf/api_params-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7e34dcdc9ad6de88679d1d2dac3da391",
+                "sha256": "f394093ceeee606d5d10b78e60589872af5b346a41e9df5e71df41cd1d992520"
+            },
+            "downloads": -1,
+            "filename": "api_params-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7e34dcdc9ad6de88679d1d2dac3da391",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=2.6",
+            "size": 4593,
+            "upload_time": "2018-09-18T14:19:45",
+            "upload_time_iso_8601": "2018-09-18T14:19:45.844736Z",
+            "url": "https://files.pythonhosted.org/packages/78/fb/46bba4b7f41af611392005a3e95a9b700d904fe319c385d81416c8b1ebdf/api_params-0.0.2.tar.gz"
+        }
+    ]
+}

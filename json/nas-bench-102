@@ -1,0 +1,118 @@
+{
+    "info": {
+        "author": "Xuanyi Dong",
+        "author_email": "dongxuanyi888@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python",
+            "Topic :: Database",
+            "Topic :: Scientific/Engineering :: Artificial Intelligence"
+        ],
+        "description": "# [NAS-BENCH-102: Extending the Scope of Reproducible Neural Architecture Search](https://openreview.net/forum?id=HJxyZkBKDr)\n\nWe propose an algorithm-agnostic NAS benchmark (NAS-Bench-102) with a fixed search space, which provides a unified benchmark for almost any up-to-date NAS algorithms.\nThe design of our search space is inspired by that used in the most popular cell-based searching algorithms, where a cell is represented as a directed acyclic graph.\nEach edge here is associated with an operation selected from a predefined operation set.\nFor it to be applicable for all NAS algorithms, the search space defined in NAS-Bench-102 includes 4 nodes and 5 associated operation options, which generates 15,625 neural cell candidates in total.\n\nIn this Markdown file, we provide:\n- [How to Use NAS-Bench-102](#how-to-use-nas-bench-102)\n- [Instruction to re-generate NAS-Bench-102](#instruction-to-re-generate-nas-bench-102)\n- [10 NAS algorithms evaluated in our paper](#to-reproduce-10-baseline-nas-algorithms-in-nas-bench-102)\n\nNote: please use `PyTorch >= 1.2.0` and `Python >= 3.6.0`.\n\nSimply type `pip install nas-bench-102=1.0` to install our api.\n\nIf you have any questions or issues, please post it at [here](https://github.com/D-X-Y/NAS-Projects/issues) or email me.\n\n### Preparation and Download\n\nThe benchmark file of NAS-Bench-102 can be downloaded from [Google Drive](https://drive.google.com/open?id=1SKW0Cu0u8-gb18zDpaAGi0f74UdXeGKs) or [Baidu-Wangpan (code:6u5d)](https://pan.baidu.com/s/1CiaNH6C12zuZf7q-Ilm09w).\nYou can move it to anywhere you want and send its path to our API for initialization.\n- v1.0: `NAS-Bench-102-v1_0-e61699.pth`, where `e61699` is the last six digits for this file. It contains all information except for the trained weights of each trial.\n- v1.0: The full data of each architecture can be download from [Google Drive](https://drive.google.com/open?id=1X2i-JXaElsnVLuGgM4tP-yNwtsspXgdQ) (about 226GB). This compressed folder has 15625 files containing the the trained weights.\n- v1.0: Checkpoints for 3 runs of each baseline NAS algorithm are provided in [Google Drive](https://drive.google.com/open?id=1eAgLZQAViP3r6dA0_ZOOGG9zPLXhGwXi).\n\nThe training and evaluation data used in NAS-Bench-102 can be downloaded from [Google Drive](https://drive.google.com/open?id=1L0Lzq8rWpZLPfiQGd6QR8q5xLV88emU7) or [Baidu-Wangpan (code:4fg7)](https://pan.baidu.com/s/1XAzavPKq3zcat1yBA1L2tQ).\nIt is recommended to put these data into `$TORCH_HOME` (`~/.torch/` by default). If you want to generate NAS-Bench-102 or similar NAS datasets or training models by yourself, you need these data.\n\n## How to Use NAS-Bench-102\n\n1. Creating an API instance from a file:\n```\nfrom nas_102_api import NASBench102API as API\napi = API('$path_to_meta_nas_bench_file')\napi = API('NAS-Bench-102-v1_0-e61699.pth')\napi = API('{:}/{:}'.format(os.environ['TORCH_HOME'], 'NAS-Bench-102-v1_0-e61699.pth'))\n```\n\n2. Show the number of architectures `len(api)` and each architecture `api[i]`:\n```\nnum = len(api)\nfor i, arch_str in enumerate(api):\n  print ('{:5d}/{:5d} : {:}'.format(i, len(api), arch_str))\n```\n\n3. Show the results of all trials for a single architecture:\n```\n# show all information for a specific architecture\napi.show(1)\napi.show(2)\n\n# show the mean loss and accuracy of an architecture\ninfo = api.query_meta_info_by_index(1)  # This is an instance of `ArchResults`\nres_metrics = info.get_metrics('cifar10', 'train') # This is a dict with metric names as keys\ncost_metrics = info.get_comput_costs('cifar100') # This is a dict with metric names as keys, e.g., flops, params, latency\n\n# get the detailed information\nresults = api.query_by_index(1, 'cifar100') # a dict of all trials for 1st net on cifar100, where the key is the seed\nprint ('There are {:} trials for this architecture [{:}] on cifar100'.format(len(results), api[1]))\nprint ('Latency : {:}'.format(results[0].get_latency()))\nprint ('Train Info : {:}'.format(results[0].get_train()))\nprint ('Valid Info : {:}'.format(results[0].get_eval('x-valid')))\nprint ('Test  Info : {:}'.format(results[0].get_eval('x-test')))\n# for the metric after a specific epoch\nprint ('Train Info [10-th epoch] : {:}'.format(results[0].get_train(10)))\n```\n\n4. Query the index of an architecture by string\n```\nindex = api.query_index_by_arch('|nor_conv_3x3~0|+|nor_conv_3x3~0|avg_pool_3x3~1|+|skip_connect~0|nor_conv_3x3~1|skip_connect~2|')\napi.show(index)\n```\n\n5. For other usages, please see `lib/nas_102_api/api.py`\n\n\n### Detailed Instruction\n\nIn `nas_102_api`, we define three classes: `NASBench102API`, `ArchResults`, `ResultsCount`.\n\n`ResultsCount` maintains all information of a specific trial. One can instantiate ResultsCount and get the info via the following codes (`000157-FULL.pth` saves all information of all trials of 157-th architecture):\n```\nfrom nas_102_api import ResultsCount\nxdata  = torch.load('000157-FULL.pth')\nodata  = xdata['full']['all_results'][('cifar10-valid', 777)]\nresult = ResultsCount.create_from_state_dict( odata )\nprint(result) # print it\nprint(result.get_train())   # print the final training loss/accuracy/[optional:time-cost-of-a-training-epoch]\nprint(result.get_train(11)) # print the training info of the 11-th epoch\nprint(result.get_eval('x-valid'))     # print the final evaluation info on the validation set\nprint(result.get_eval('x-valid', 11)) # print the info on the validation set of the 11-th epoch\nprint(result.get_latency())           # print the evaluation latency [in batch]\nresult.get_net_param()                # the trained parameters of this trial\narch_config = result.get_config(CellStructure.str2structure) # create the network with params\nnet_config  = dict2config(arch_config, None)\nnetwork    = get_cell_based_tiny_net(net_config)\nnetwork.load_state_dict(result.get_net_param())\n```\n\n`ArchResults` maintains all information of all trials of an architecture. Please see the following usages:\n```\nfrom nas_102_api import ArchResults\nxdata   = torch.load('000157-FULL.pth')\narchRes = ArchResults.create_from_state_dict(xdata['less']) # load trials trained with  12 epochs\narchRes = ArchResults.create_from_state_dict(xdata['full']) # load trials trained with 200 epochs\n\nprint(archRes.arch_idx_str())      # print the index of this architecture \nprint(archRes.get_dataset_names()) # print the supported training data\nprint(archRes.get_comput_costs('cifar10-valid')) # print all computational info when training on cifar10-valid \nprint(archRes.get_metrics('cifar10-valid', 'x-valid', None, False)) # print the average loss/accuracy/time on all trials\nprint(archRes.get_metrics('cifar10-valid', 'x-valid', None,  True)) # print loss/accuracy/time of a randomly selected trial\n```\n\n`NASBench102API` is the topest level api. Please see the following usages:\n```\nfrom nas_102_api import NASBench102API as API\napi = API('NAS-Bench-102-v1_0-e61699.pth') # This will load all the information of NAS-Bench-102 except the trained weights\napi = API('{:}/{:}'.format(os.environ['TORCH_HOME'], 'NAS-Bench-102-v1_0-e61699.pth')) # The same as the above line while I usually save NAS-Bench-102-v1_0-e61699.pth in ~/.torch/.\napi.show(-1)  # show info of all architectures\napi.reload('{:}/{:}'.format(os.environ['TORCH_HOME'], 'NAS-BENCH-102-4-v1.0-archive'), 3) # This code will reload the information 3-th architecture with the trained weights\n\nweights = api.get_net_param(3, 'cifar10', None) # Obtaining the weights of all trials for the 3-th architecture on cifar10. It will returns a dict, where the key is the seed and the value is the trained weights.\n```\n\n# Citation\n\nIf you find that NAS-Bench-102 helps your research, please consider citing it:\n```\n@inproceedings{dong2020nasbench102,\n  title     = {NAS-Bench-102: Extending the Scope of Reproducible Neural Architecture Search},\n  author    = {Dong, Xuanyi and Yang, Yi},\n  booktitle = {International Conference on Learning Representations (ICLR)},\n  year      = {2020}\n}\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/D-X-Y/NAS-Projects",
+        "keywords": "NAS Dataset API DeepLearning",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "nas-bench-102",
+        "package_url": "https://pypi.org/project/nas-bench-102/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/nas-bench-102/",
+        "project_urls": {
+            "Homepage": "https://github.com/D-X-Y/NAS-Projects"
+        },
+        "release_url": "https://pypi.org/project/nas-bench-102/1.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "API for NAS-Bench-102 (a benchmark for neural architecture search).",
+        "version": "1.0"
+    },
+    "last_serial": 6428962,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ad2d254ae61d6cd5fb371f4c9970e382",
+                    "sha256": "bd22c915bb58f4789cf919d20c9ad6801fcddc708d5f45f67dfdf9365f032cca"
+                },
+                "downloads": -1,
+                "filename": "nas_bench_102-1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ad2d254ae61d6cd5fb371f4c9970e382",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10752,
+                "upload_time": "2020-01-10T11:01:14",
+                "upload_time_iso_8601": "2020-01-10T11:01:14.405078Z",
+                "url": "https://files.pythonhosted.org/packages/40/69/5d28312d922e977835a59605d71d6616399c5ef74e9a0fc6b5f0b0475b6c/nas_bench_102-1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "534f733ab3dd177ceddea5026b653bd1",
+                    "sha256": "6f1b594c7154048bc77dced06bf21adab4ab3c7a82ebfd3ed2536e29ee7bd985"
+                },
+                "downloads": -1,
+                "filename": "nas_bench_102-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "534f733ab3dd177ceddea5026b653bd1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12553,
+                "upload_time": "2020-01-10T11:01:17",
+                "upload_time_iso_8601": "2020-01-10T11:01:17.024042Z",
+                "url": "https://files.pythonhosted.org/packages/65/54/976955f774e4faf61f0d7cabcfee5fb63d3db7e1c2c81011f97bbf4bb810/nas_bench_102-1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ad2d254ae61d6cd5fb371f4c9970e382",
+                "sha256": "bd22c915bb58f4789cf919d20c9ad6801fcddc708d5f45f67dfdf9365f032cca"
+            },
+            "downloads": -1,
+            "filename": "nas_bench_102-1.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ad2d254ae61d6cd5fb371f4c9970e382",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 10752,
+            "upload_time": "2020-01-10T11:01:14",
+            "upload_time_iso_8601": "2020-01-10T11:01:14.405078Z",
+            "url": "https://files.pythonhosted.org/packages/40/69/5d28312d922e977835a59605d71d6616399c5ef74e9a0fc6b5f0b0475b6c/nas_bench_102-1.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "534f733ab3dd177ceddea5026b653bd1",
+                "sha256": "6f1b594c7154048bc77dced06bf21adab4ab3c7a82ebfd3ed2536e29ee7bd985"
+            },
+            "downloads": -1,
+            "filename": "nas_bench_102-1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "534f733ab3dd177ceddea5026b653bd1",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12553,
+            "upload_time": "2020-01-10T11:01:17",
+            "upload_time_iso_8601": "2020-01-10T11:01:17.024042Z",
+            "url": "https://files.pythonhosted.org/packages/65/54/976955f774e4faf61f0d7cabcfee5fb63d3db7e1c2c81011f97bbf4bb810/nas_bench_102-1.0.tar.gz"
+        }
+    ]
+}

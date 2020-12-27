@@ -1,0 +1,257 @@
+{
+    "info": {
+        "author": "Brian Cappello",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Web Environment",
+            "Framework :: Flask",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "# Flask SQLAlchemy Bundle\n\nIntegrates SQLAlchemy into Flask Unchained applications by standing on the shoulders of giants:\n* [SQLAlchemy](http://www.sqlalchemy.org/) and [Flask-SQLAlchemy](http://flask-sqlalchemy.pocoo.org/)\n* [Alembic](http://alembic.zzzcomputing.com/en/latest/) and [Flask-Migrate](https://flask-migrate.readthedocs.io/en/latest/)\n\n## Quick Start\n\n### 1. Install:\n\n```bash\n$ pip install flask_sqlalchemy_bundle\n```\n\n### 2. Add it to your `BUNDLES`:\n\n```python\n# app/config.py\nfrom flask_unchained import AppConfig\n\nclass Config(AppConfig):\n    BUNDLES = [\n        'flask_sqlalchemy_bundle',\n        # ...\n    ]\n```\n\n### 3. Configure:\n\nFlask SQLAlchemy Bundle is configured to work out-of-the-box using an SQLite database. This is fine for getting started quickly, but it's probably not what you want for more serious work. This bundle supports all of the standard [Flask-SQLAlchemy settings](http://flask-sqlalchemy.pocoo.org/latest/config/):\n\n```python\n# app/config.py\nimport os\nfrom flask_unchained import AppConfig\n\nclass Config(AppConfig):\n    # ...\n    SQLALCHEMY_DATABASE_URI = '{engine}://{user}:{pw}@{host}:{port}/{db}'.format(\n        engine=os.getenv('FLASK_DATABASE_ENGINE', 'postgresql+psycopg2'),\n        user=os.getenv('FLASK_DATABASE_USER', 'flask_app'),\n        pw=os.getenv('FLASK_DATABASE_PASSWORD', 'flask_app'),\n        host=os.getenv('FLASK_DATABASE_HOST', '127.0.0.1'),\n        port=os.getenv('FLASK_DATABASE_PORT', 5432),\n        db=os.getenv('FLASK_DATABASE_NAME', 'flask_app'))\n\nclass DevConfig:\n    SQLALCHEMY_ECHO = True\n\nclass TestConfig:\n    SQLALCHEMY_DATABASE_URI = 'sqlite://'  # :memory:\n```\n\n### 4. Create some models\n\n```python\n# app/models/__init__.py\nfrom flask_sqlalchemy_bundle import db\n\n# by default, models have a primary key column named `id`, and they are also\n# timestamped, on columns `created_at` and `updated_at`. This is configurable:\nclass Basic(db.Model):\n    class Meta:\n        pk = 'identity'  # rename the primary key column to `identity`\n        created_at = 'created'  # rename created_at column to `created`\n        updated_at = None  # do not include the updated_at column\n\n    # generated columns:\n    # identity = db.Column(db.Integer, primary_key=True)\n    # created = db.Column(db.DateTime, server_default=sa_func.now())\n\nclass Parent(db.Model):\n    name = db.Column(db.String)\n    children = db.relationship('Child', back_populates='parent')\n\n# we include a foreign_key helper to make relationships a bit easier:\nclass Child(db.Model):\n    name = db.Column(db.String)\n    parent_id = db.foreign_key('Parent')\n    parent = db.relationship('Parent', back_populates='children')\n```\n\nFlask SQLAlchemy Bundle also includes a few more meta options to make your life easier, including nearly automatic support for [polymorphic models](http://docs.sqlalchemy.org/en/latest/orm/inheritance.html):\n\n```python\nfrom flask_sqlalchemy_bundle import db\n\nclass Person(db.Model):\n    class Meta:\n        # this is the only option required to enable polymorphic inheritance:\n        polymorphic = True  # 'joined' by default, or you can use 'single'\n        # its options are configurable:\n        polymorphic_on = 'discriminator'  # default discriminator column name\n        polymorphic_identity = 'Person'  # default identity is the class name\n    name = db.Column(db.String)\n\nclass Employee(Person):\n    # when using 'joined', the primary key column automatically gets set to a\n    # foreign key to the base class\n    # id = db.Column(db.Integer, db.ForeignKey('person.id'), primary_key=True)\n    badge_number = db.Column(db.Integer)\n\nclass Manager(Employee):\n    # multiple levels of inheritance are supported for the automatic primary key:\n    # id = db.Column(db.Integer, db.ForeignKey('employee.id'), primary_key=True)\n    rank = db.Column(db.String)\n```\n\n### 5. Run migrations\n\n```bash\n$ flask db migrate -m 'create example models'\n$ flask db upgrade\n```\n\n## Advanced: Customizing the base model class and/or meta options\n\nLet's look at how to do both, because they are closely related. In this example we're going to add a new meta option, as well as create an alias for the `query` attribute on model classes.\n\n### Start by extending `flask_sqlalchemy_bundle.BaseModel`:\n\n```python\n# app/extensions/sqlalchemy/base_model.py\nfrom flask_sqlalchemy_bundle import BaseModel\nfrom flask_sqlalchemy_bundle.meta import McsArgs, MetaOption, ModelMetaFactory\n\n\nclass ExtendExistingMetaOption(MetaOption):\n    def __init__(self):\n        super().__init__(name='extend_existing', default=False, inherit=False)\n\n    def check_value(self, value, mcs_args: McsArgs):\n        msg = f'{self.name} Meta option on {mcs_args.model_repr} ' \\\n              f'must be True or False'\n        assert isinstance(value, bool), msg\n\n    def contribute_to_class(self, mcs_args: McsArgs, value):\n        if not value:\n            return\n\n        table_args = mcs_args.clsdict.get('__table_args__', {})\n        table_args['extend_existing'] = True\n        mcs_args.clsdict['__table_args__'] = table_args\n\n\nclass CustomModelMetaFactory(ModelMetaFactory):\n    def _get_model_meta_options(self):\n        # it's very important to call super() here!\n        return super()._get_model_meta_options() + [\n            ExtendExistingMetaOption(),\n        ]\n\n\nclass QueryAliasDescriptor:\n    def __get__(self, instance, cls):\n        return cls.query\n\n\nclass CustomBaseModel(BaseModel):\n    # set the _meta_factory_class attribute to specify your custom factory.\n    _meta_factory_class = CustomModelMetaFactory\n    # You can also set this on subclasses of db.Model, but of course, normal\n    # Python inheritance rules apply. So it only has to be declared on the base\n    # model class passed to the SQLAlchemy extension constructor if you want\n    # *all* model classes to have your customized meta factory.\n\n    class Meta:\n        abstract = True  # tell SQLAlchemy not to map this class\n        extend_existing = True  # might as well use our custom meta option!\n\n        # disable automatic timestamps for all models (these particular options\n        # will get inherited by all subclasses, though they themselves can\n        # override the defaults we're defining here)\n        created_at = None\n        updated_at = None\n\n    # make SomeModel.q equivalent to using SomeModel.query\n    q = QueryAliasDescriptor()\n```\n\n### Next, override the `db` extension using your custom base model:\n\n```python\n# app/extensions/__init__.py\nfrom flask_sqlalchemy_bundle import SQLAlchemy\nfrom sqlalchemy import MetaData\n\nfrom .sqlalchemy.base_model import CustomBaseModel\n\ndb = SQLAlchemy(model_class=CustomBaseModel, metadata=MetaData(naming_convention={\n    'ix': 'ix_%(column_0_label)s',\n    'uq': 'uq_%(table_name)s_%(column_0_name)s',\n    'ck': 'ck_%(table_name)s_%(constraint_name)s',\n    'fk': 'fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s',\n    'pk': 'pk_%(table_name)s',\n}))\n\nEXTENSIONS = {\n    'db': db,\n}\n```\n\nNormally, that's all that would be required to override an extension instance from a vendor bundle. However, the `db` extension is special because code uses it at import-time to declare models, and thus we need to manually register our new instance with Flask Unchained (this must be done in the same file as your app bundle class, because that's the very first file the Unchained AppFactory will import/execute when it starts your app):\n\n```python\n# app/__init__.py\nfrom flask_unchained import AppBundle, unchained\n\nfrom .extensions import db\nunchained.extensions.db = db\n\nclass YourAppBundle(AppBundle):\n    pass\n```\n\nNow, there's a fair bit of magic happening behind the scenes to make this work. You can continue using `from flask_sqlalchemy_bundle import db` to declare all your models, and they will automatically use your custom base model (as will models from any vendor bundles you've included). However, if you need to use the `db` extension to do anything other than declare models, then you must use the correct instance (namely, the one you instantiated in your app bundle's extensions package). This means that you should always use Unchained's dependency injection to get access to extensions, because it will automatically make sure you're given the correct instance. (Within your app bundle, it's safe to directly import and use the instance you created, but any code meant to be distributed for use in other Unchained apps must use dependency injection.)\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/briancappello/flask-sqlalchemy-bundle",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "Flask-SQLAlchemy-Bundle",
+        "package_url": "https://pypi.org/project/Flask-SQLAlchemy-Bundle/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/Flask-SQLAlchemy-Bundle/",
+        "release_url": "https://pypi.org/project/Flask-SQLAlchemy-Bundle/0.3.1/",
+        "requires_dist": [
+            "tox; extra == 'dev'",
+            "psycopg2; extra == 'dev'",
+            "pytest-flask; extra == 'dev'",
+            "pytest; extra == 'dev'",
+            "factory-boy; extra == 'dev'",
+            "coverage; extra == 'dev'",
+            "py-yaml-fixtures (>=0.1.1)",
+            "flask-sqlalchemy (>=2.3)",
+            "flask-unchained (>=0.2.0)",
+            "flask-migrate (>=2.1.1)"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Adds SQLAlchemy and Alembic to Flask Unchained",
+        "version": "0.3.1"
+    },
+    "last_serial": 4067426,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b958a67203b6c345a65ee8da3cf094ab",
+                    "sha256": "7cd4601475a36224e1155596c5fe8e25c080241a65749b5199f2427f81f6a8ae"
+                },
+                "downloads": -1,
+                "filename": "Flask_SQLAlchemy_Bundle-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b958a67203b6c345a65ee8da3cf094ab",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 13885,
+                "upload_time": "2017-12-26T23:48:54",
+                "url": "https://files.pythonhosted.org/packages/c0/05/f19cd30e09a00ddff3437144f1bcc33470af1a8e7715031af46844f25c58/Flask_SQLAlchemy_Bundle-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "40a4b601d899e912c0d701b652c4bb12",
+                    "sha256": "0bdddb2e78d7156ad32d409ee7bcd930c9c82a3d85014a1aa851f0cc413254c1"
+                },
+                "downloads": -1,
+                "filename": "Flask SQLAlchemy Bundle-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "40a4b601d899e912c0d701b652c4bb12",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 9330,
+                "upload_time": "2017-12-26T23:48:55",
+                "url": "https://files.pythonhosted.org/packages/da/87/4cf64b05eb68577723ac108add1b8a16445cfd5e5a0205c14e678b6b7613/Flask%20SQLAlchemy%20Bundle-0.1.0.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "45b88e58c20ae9f9fb29f63842ec2557",
+                    "sha256": "303d34bdd58485c12133b726e70ada72c784e64f016362401dc57d3881639133"
+                },
+                "downloads": -1,
+                "filename": "Flask_SQLAlchemy_Bundle-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "45b88e58c20ae9f9fb29f63842ec2557",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 55759,
+                "upload_time": "2018-04-06T21:08:35",
+                "url": "https://files.pythonhosted.org/packages/4e/c2/462e3d7541d0eeac7e4e21ea8c205ef7eb2b230e3d835e91b10a8838a5f5/Flask_SQLAlchemy_Bundle-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc5310741a16db2f7ff567f760a388e4",
+                    "sha256": "578e3ab6d728a645d240245841078af074657fdf983f91d1383371d2df103fa4"
+                },
+                "downloads": -1,
+                "filename": "Flask SQLAlchemy Bundle-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dc5310741a16db2f7ff567f760a388e4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 41543,
+                "upload_time": "2018-04-06T21:08:36",
+                "url": "https://files.pythonhosted.org/packages/8a/df/840739c84077f76f41c28176336ddd1fa3c599292a551697c4684dd2884d/Flask%20SQLAlchemy%20Bundle-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "732264641975418e0f0d886c6a0858f9",
+                    "sha256": "20faeab2c11f134da39a90ce33ae6335fa4711007f9d92de545f167113e0065a"
+                },
+                "downloads": -1,
+                "filename": "Flask_SQLAlchemy_Bundle-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "732264641975418e0f0d886c6a0858f9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 55777,
+                "upload_time": "2018-04-09T00:41:21",
+                "url": "https://files.pythonhosted.org/packages/a5/0d/922a1f032580a4ace01431a0eb332f32218e0a00a0312aed666eb21da114/Flask_SQLAlchemy_Bundle-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ee310eed6a8a199c1001225b3f5cdab8",
+                    "sha256": "33d37f57df02a0b697903cac41850409672b925e269358cfc39b43a20b74c27a"
+                },
+                "downloads": -1,
+                "filename": "Flask SQLAlchemy Bundle-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ee310eed6a8a199c1001225b3f5cdab8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 41585,
+                "upload_time": "2018-04-09T00:41:22",
+                "url": "https://files.pythonhosted.org/packages/bd/d8/db29d349062683815489a8b9bc63714c5be798f8db322d7ebf4b04f1578e/Flask%20SQLAlchemy%20Bundle-0.2.1.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "be35f04e737433cd30a97a6a91cdac14",
+                    "sha256": "056c76c510d7f9d28a0e085de9d07ab63e527183612342fb8fa328ecd7811b66"
+                },
+                "downloads": -1,
+                "filename": "Flask_SQLAlchemy_Bundle-0.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "be35f04e737433cd30a97a6a91cdac14",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 54267,
+                "upload_time": "2018-07-15T02:02:52",
+                "url": "https://files.pythonhosted.org/packages/f5/63/d472c0d6d21f2b67132dcb5ed579e6b630d0e9fd8bdbe6cf0287f6bfb941/Flask_SQLAlchemy_Bundle-0.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a7b5118bfd71c5439fe6c8d34fdbc64f",
+                    "sha256": "590b622e894b1324c6ad8107dc068c87d9a88c60818715e2df5f402cf6eb74d7"
+                },
+                "downloads": -1,
+                "filename": "Flask SQLAlchemy Bundle-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a7b5118bfd71c5439fe6c8d34fdbc64f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 43528,
+                "upload_time": "2018-07-15T02:03:09",
+                "url": "https://files.pythonhosted.org/packages/30/f5/7021139de3cf41b3d6dd7e5d07bc1e9c8497929183aa9ebd6275b0bc569b/Flask%20SQLAlchemy%20Bundle-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5d218921ed9c6508ad112e4634ef051c",
+                    "sha256": "ecb8b907cb9b6dadcf85a1a5f32b88e18431f7ed597b3f5f5c48f85567ce5fdd"
+                },
+                "downloads": -1,
+                "filename": "Flask_SQLAlchemy_Bundle-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5d218921ed9c6508ad112e4634ef051c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 54518,
+                "upload_time": "2018-07-16T22:35:29",
+                "url": "https://files.pythonhosted.org/packages/81/a1/e9cc5a2c23f6c13f9ce634018c65ada476c86cc5510aa7e676a558b1aba9/Flask_SQLAlchemy_Bundle-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "df9fb5652d523a59091f33895233ecec",
+                    "sha256": "557f442e33175f0fe3f5569cc91fe6145cd4d0ff9c4afc788c74b0f8bef21408"
+                },
+                "downloads": -1,
+                "filename": "Flask SQLAlchemy Bundle-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "df9fb5652d523a59091f33895233ecec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 43854,
+                "upload_time": "2018-07-16T22:35:30",
+                "url": "https://files.pythonhosted.org/packages/08/2a/6f60c7dff2995d22e1085f3cbe547273506ea5f635ea3a9dfb67fc6e11db/Flask%20SQLAlchemy%20Bundle-0.3.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5d218921ed9c6508ad112e4634ef051c",
+                "sha256": "ecb8b907cb9b6dadcf85a1a5f32b88e18431f7ed597b3f5f5c48f85567ce5fdd"
+            },
+            "downloads": -1,
+            "filename": "Flask_SQLAlchemy_Bundle-0.3.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "5d218921ed9c6508ad112e4634ef051c",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "size": 54518,
+            "upload_time": "2018-07-16T22:35:29",
+            "url": "https://files.pythonhosted.org/packages/81/a1/e9cc5a2c23f6c13f9ce634018c65ada476c86cc5510aa7e676a558b1aba9/Flask_SQLAlchemy_Bundle-0.3.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "df9fb5652d523a59091f33895233ecec",
+                "sha256": "557f442e33175f0fe3f5569cc91fe6145cd4d0ff9c4afc788c74b0f8bef21408"
+            },
+            "downloads": -1,
+            "filename": "Flask SQLAlchemy Bundle-0.3.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "df9fb5652d523a59091f33895233ecec",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 43854,
+            "upload_time": "2018-07-16T22:35:30",
+            "url": "https://files.pythonhosted.org/packages/08/2a/6f60c7dff2995d22e1085f3cbe547273506ea5f635ea3a9dfb67fc6e11db/Flask%20SQLAlchemy%20Bundle-0.3.1.tar.gz"
+        }
+    ]
+}

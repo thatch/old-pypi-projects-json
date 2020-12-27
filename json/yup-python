@@ -1,0 +1,50 @@
+{
+    "info": {
+        "author": "Erik Soma",
+        "author_email": "stillusingirc@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: C",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Utilities"
+        ],
+        "description": "yup\n===\n\n[![Build Status](https://travis-ci.org/esoma/yup.svg?branch=master)](\n    https://travis-ci.org/esoma/yup\n)\n\nyup is a [library](#libyup) and [application](#yupify) for generating and using\nbitmap fonts from standard font formats.\n\nbuild\n-----\n\n[libyup](#libyup) and [yupify](#yupify) have been built and tested with gcc and\nclang on windows and linux for x86 and x64. \n\nTo build [library](#libyup) and [application](#yupify):\n```\nmake all\n```\n\nTo run tests:\n```\nmake test\n```\n\nThe resulting applications will be found in the /build directory.\n\n#### dependencies\n\n- [yupify](#yupify) depends on freetype (tested with 2.6.3)\n- [libyup](#libyup) has no dependencies\n\nyupify\n------\n\n**yupify** is an application that converts font files (.ttf, .otf, etc) into \na [format](#yup-format) that the [yup library](#libyup) can read.\n\n```\nUsage: yupify font_file_path font_size page_size padding < characters\n```\n\n- *font_file_path* is the path to the font file you want to convert\n- *font_size* is the pixel size that you want to render the font at\n- *page_size* is the the size of the textures to render the font to (both width\n\tand height)\n- *padding* is the number of pixels between rendered glyphs\n- *characters* is a string of utf8 encoded characters that you want to render\n\nFor convenience, the [utf](..utf) directory has some pre-defined\ncharacter lists that you can use, most commonly\n[utf/ascii-common.txt](../blob/master/utf/ascii-common.txt). Also, a python\nscript, [utf/generate.py](..utf/generate.py), is provided to easily\ngenerate new character lists.\n\nstdout yields the converted font so it is easiest to add\n```... > font-name.yup``` to save the file.\n\nlibyup\n------\n\n**libyup** is a shared library that provides a simple API for reading the\n[yup format](#yup-format).\n\nA short example that does nothing but read the contents of a file:\n```c\n#include <stdlib.h>\n#include <stdio.h>\n#include \"yup.h\"\nint main(int argc, const char* argv[])\n{\n\tFILE* file = fopen(\"font.yup\", \"rb\");\n\tif (!file){ return EXIT_FAILURE; }\n\tYupFont* font = yup_new();\n\tif (!font){ return EXIT_FAILURE; }\n\tYupPrResult yup_result = yup_parse(font, file);\n\tif (yup_result != YUP_PR_OKAY){ return EXIT_FAILURE; }\n\tfclose(file);\n\tyup_delete(font);\n\treturn EXIT_SUCCESS;\n}\n```\n\n### API\n\n```c\nYup* yup_new();\n```\n**yup_new** returns a pointer to a new **YupFont** object or *NULL* if it was\nunable to, like **malloc**.\n\n```c\nvoid yup_delete(YupFont* font);\n```\n**yup_delete** frees a **YupFont** object previously created by **yup_new**,\nlike **free**.\n\n```c\ntypedef int (*YupGetChar)(void*);\ntypedef int (*YupGetIsEnd)(void*);\nYupParseResult yup_parse(Yup*, void*, YupGetChar, YupGetIsEnd);\n```\n**yup_parse** reads a stream (*void**) using the supplied **YupGetChar** and\n**YupGetIsEnd** and parses that stream into a **YupFont** object. Note that the\n**YupFont** object should not have any previous data in it.\n\n**YupGetChar** is passed the stream and should return a single character. If\nthere is an error or no more characters it should return YUP_STREAM_ERROR.\n\n**YupGetIsEnd** is passed the stream and should return 0 if the stream still\nhas data and 1 if the stream is finished. If there are is an error it should\nreturn YUP_STREAM_ERROR.\n\n```c\nconst char* yup_parse_result_string(YupParseResult result)\n```\n**yup_parse_result_string** gets a human readable string for why a call to\n**yup_parse** failed.\n\n```c\nstruct YupFont\n{\n    uint32_t size;\n    uint32_t page_size;\n    YupGlyph* glyphs;\n    YupPage* pages;\n};\n```\nA **YupFont** object is created using the **yup_new** function and deleted using\nthe **yup_delete** function.\n\n- *size* is the size the font was rendered at\n- *page_size* is the size of the textures that the font was rendered too (both\n\twidth and height)\n- *glyphs* is a linked list of glyphs\n- *pages* is a linked list of pages\n\n```c\nstruct YupGlyph\n{\n    YupGlyph* next;\n    uint32_t index;\n    uint64_t dimensions[2];\n    int64_t offset[2];\n    int64_t advance;\n    size_t page_index;\n    float top_left_uv[2];\n    float bottom_right_uv[2];\n    YupKerning* kerning;\n};\n```\nA **YupGlyph** is an item in a linked list of glyphs and their properties.\n\n- *next* is the next **YupGlyph** in the linked list\n- *index* is the utf8 encoding of the character represented by the glyph\n- *dimensions* is the pixel width and height of the rendered glyph\n- *offset* is the number of pixels to render the glyph from the origin\n- *advance* is the number of pixels to advance the cursor when rendering the\n\tglyph\n- *page_index* is the index of the **YupPage** which the glyph has been rendered\n\tto\n- *top_left_uv* is the position of the top left corner of the glyph in the\n\tpage's texture represented in uv coordinates\n- *bottom_right_uv* is the position of the bottom right corner of the glyph in\n\tthe page's texture represented in uv coordinates\n- *kerning* is a linked list of kerning properties\n\n```c\nstruct YupKerning\n{\n    YupKerning* next;\n    uint32_t glyph_index;\n    int64_t offset[2];\n};\n```\nA **YupKerning** is an item in a linked list which describes the special kerning\nconditions between two glyphs.\n\n- *next* is the next **YupKerning** in the linked list\n- *glyph_index* is the utf8 encoding of the character to the left of the parent\n\twhen the *offset* should be applied to the parent glyph when rendering\n- *offset* is the number of additional pixels to render the glyph from the\n\torigin\n\n```c\nstruct YupPage\n{\n    YupPage* next;\n    size_t index;\n    unsigned char* texture;\n};\n```\nA **YupPage** is an item in al inked list of pages and their properties.\n\n- *next* is the next **YupPage** in the linked list\n- *index* is a unique id for the page which can match against a **YupGlyph**'s\n\t*page_index* property\n- *texture* is a bitmap texture in which each byte represents an alpha value,\n\tthe data is stored by row such that each row is a *page_size* in length and\n\tthere are *page_size* rows\n\nyup format\n----------\nThe format for yup files is a mix of text and binary data. Conceptually it's\nmore like instructions for a state machine, rather than a straight file format.\nIt's designed such that it is easy to open and inspect in a standard text\neditor.\n\npython\n------\nA python API can be found in the /py directory. You will need to generate a part\nof the API using:\n\n```c\nmake python\n```\n\nGenerating the API requires [toe](https://github.com/esoma/toe/) and for the\n*TOE* environment variable to be set to the toe executable script.\n\nThe [library](#libyup) will need to be on the path for the API to work. \n\nexamples\n--------\nAn [example](/py/yup/examples/gl.py) for rendering via OpenGL is provided in the\npython API.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/esoma/yup",
+        "keywords": null,
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "yup-python",
+        "package_url": "https://pypi.org/project/yup-python/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/yup-python/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/esoma/yup"
+        },
+        "release_url": "https://pypi.org/project/yup-python/0.1.0/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Bitmap Font Library",
+        "version": "0.1.0"
+    },
+    "last_serial": 2217828,
+    "releases": {
+        "0.1.0": []
+    },
+    "urls": []
+}

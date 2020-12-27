@@ -1,0 +1,126 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 5,
+        "author": "Theo Breuer-Weil",
+        "author_email": "theobreuerweil@gmail.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [],
+        "description": "bnfparsing\n==========\n\nA simple BNF parser generator for Python.\n\nCreating parsers\n----------------\n\nIt's recommended that you subclass the ``bnfparsing.ParserBase`` class\nwhenever you create a new parser. This makes clear the purpose of the\nparser.\n\nUsing a grammar\n~~~~~~~~~~~~~~~\n\nCreate a new parser using string-based grammar.\n\n.. code:: python\n\n    IF_STMT = \"\"\"\n    if_stmt     := \"if \" test\n    test        := name cmp name\n    cmp         := \"==\" | \"!=\" | \">\" | \"<\"\n    name        := alpha name | alpha\n    \"\"\"\n\n    class IfStmtParser(bnfparsing.ParserBase):\n\n        def __init__(self):\n        \n            super().__init__(ignore_whitespace=True)\n            self.grammar(IF_STMT)\n            \n    p = IfStmtParser()\n    p.parse('if x==y')   \n\nCreating individual rules, from strings\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nSubclass the ParserBase class to create a new parser. You can create\nrules with a simple BNF (Backus-Naur Form) syntax. The first argument is\nthe name of the rule, the second is the body of the rule.\n\nRules can call other rules or capture literals, in double or single\nquotes. Recursion is permitted. Use the ``ignore_whitespace`` parameter\nto instruct the parser to skip over any whitespace between tokens.\n\n.. code:: python\n\n    class IfStmtParser(bnfparsing.ParserBase):\n\n        def __init__(self):\n            \n            super().__init__()\n            \n            # add rules!\n            self.new_rule('if_stmt', ' \"if \" test ')\n            self.new_rule('test', 'name cmp name')\n            self.new_rule('cmp', ' \"==\" | \"!=\" | \">\" | \"<\" ')\n            self.new_rule('name', 'alpha name | alpha')\n            \n    p = IfStmtParser()\n    p.parse('if x==y')\n\nYou can also add rules by defining customised rules when subclassing, or\nlater on. Customised rules must accept an input string as an argument.\nIf successful, the custom rule must return a tuple containing the token\nit's created and any unconsumed characters from the input string. If it\nfails, it must return ``None`` and the original input string.\n\nUsing functions as rules\n~~~~~~~~~~~~~~~~~~~~~~~~\n\n.. code:: python\n\n    class CaseParser(bnfparsing.ParserBase):\n\n        # create rules as part of the class definition \n        # using the rule decorator\n        \n        @bnfparsing.rule\n        def upper(self, string):\n            \"\"\" Captures any upper-case letter. \"\"\"\n            char = string[0]\n            if char.isupper():\n                return Token('upper', char), string[1:]\n            else:\n                return None, string\n\n\n    # or create them later on...\n    def lowercase(string):\n        \"\"\" Captures any lower-case letter. \"\"\"\n        char = string[0] \n        if char.islower():\n            return Token('lower', char), string[1:]\n        else:\n            return None, string\n           \n\n    p = CaseParser()\n\n    # ... as long as you add them as follows\n    p.rule_from_function('lower', lowercase)\n\n    p.parse('a')\n    p.parse('A')\n\nThis can be useful when you don't want 26 options in a row, e.g.\n``\"A\" | \"B\" | \"C\"``.\n\nAlso see ``bnfparsing.common``. This module contains some useful\nfunctions that can be dropped in as rules. Most parsers will need one or\ntwo of the common functions, which include:\n\n-  ``alpha``, ``lower`` and ``upper``\n-  ``digit``\n-  Sequence versions of the above, e.g. ``alpha_run``. These capture\n   sequences of alpha characters.\n-  ``whitespace``\n\nWhitespace handling\n~~~~~~~~~~~~~~~~~~~\n\nWhen creating a parser, use the ``ws_handler`` option to specify a means\nby which the parse should handle whitespace between tokens. A whitespace\nhandler is a function that is called on the input string before each\nliteral token is parsed.\n\n``bnfparsing.whitespace`` defines three handlers for use.\n\n-  ``ignore`` removes all whitespace between tokens and requires none.\n-  ``ignore_specific`` removes all of the given types of whitespace\n   prior to parsing, much like the in-built ``str.lstrip``.\n-  ``require`` raises a ``DelimiterError`` if a specific whitespace\n   phrase *is not found* between tokens. Use the ``ignore`` option to\n   optionally remove other whitespace that is surplus to that required\n\n``ignore`` can be passed directly as a whitespace handler, whereas the\nother two must be passed with arguments, e.g. ``require(' ')``.\n\nYou are free to define your own handler - it must accept an input string\nand return a string. You can also specify whether custom rules should\nuse whitespace handling with the ``rule_with_option`` decorator.\n\nOutputs\n-------\n\nAs seen, you can run the parser on an input string using the ``parse``\nmethod. This raises an error if the given string does not fit the rule\nset or if there are any tokens remaining - unless you call ``parse``\nwith the optional ``allow_partial`` argument.\n\nOtherwise, the parser will consume the string and return an instance of\n``bnfparsing.Token``. This the top-most node of the syntax tree; any\nchild nodes represent the components of each node.\n\nUse the ``value`` method to generate the content of each node. For the\nnodes at the base of the tree this will return the value in the node.\nFor all others, ``value`` recursively combines the values of the tokens\nbeneath it.\n\n.. code:: python\n\n    # using the example above...\n    root = p.parse('if x==y')\n\n    assert(root.value() == 'if x==y')\n\n    for t in root.iter_under():\n        print(t.token_type, ':',  t.value())\n\nLeading to...\n\n::\n\n    >>> 'literal : if'\n    >>> 'test: x == y'\n\nTokens also come equipped with a range of methods for searching or\niterating over the tokens below them. These include:\n\n-  ``child``: returns the nth child\n-  ``series``: returns a lowest level tokens in a list.\n-  ``level``: recursively returns a list of the nth-deepest tokens\n-  ``find``: returns all tokens of a given token type\n-  ``flatten``: returns a new token with the same value, but collapsing\n   the repeatedly recursive tokens generated by recursive rules.\n\nThere are options for ensuring that some tokens are not broken down any\nfurther by ``series``, including\n\nSee documentation for more information. Some of these methods come with\nan ``as_str`` option, returning lists of strings instead of lists of\ntokens.\n\nFurther work\n------------\n\n-  Expanded set of common functions?\n-  EBNF syntax, without relying on recursion?S",
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://www.github.com/somemarspials/bnfparsing",
+        "keywords": "parsing,bnf",
+        "license": "GPL-3.0",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "bnfparsing",
+        "package_url": "http://pypi.python.org/pypi/bnfparsing",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/bnfparsing/0.1.4",
+        "requires_python": null,
+        "summary": "A BNF parser generator for Python",
+        "version": "0.1.4"
+    },
+    "releases": {
+        "0.1.0": [],
+        "0.1.0a0": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "bnfparsing-0.1.0a0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "83072b7553edc8400d75e1360fff19e1",
+                "packagetype": "sdist",
+                "path": "17/49/62b3e5f7c60178f31c9ecd449b41b0851172b6b1963f9224cdf3c02f8dc4/bnfparsing-0.1.0a0.tar.gz",
+                "python_version": "source",
+                "size": 8886,
+                "upload_time": "2017-05-26T22:14:46",
+                "url": "https://pypi.python.org/packages/17/49/62b3e5f7c60178f31c9ecd449b41b0851172b6b1963f9224cdf3c02f8dc4/bnfparsing-0.1.0a0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "bnfparsing-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "82933808bdc87b15684b90b47c92d809",
+                "packagetype": "sdist",
+                "path": "4d/b6/47ed48d542c2ab1a7ada51dc9df153b685454ce06a7575636f31cfd0d468/bnfparsing-0.1.1.tar.gz",
+                "python_version": "source",
+                "size": 8959,
+                "upload_time": "2017-05-27T08:30:34",
+                "url": "https://pypi.python.org/packages/4d/b6/47ed48d542c2ab1a7ada51dc9df153b685454ce06a7575636f31cfd0d468/bnfparsing-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "bnfparsing-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f56f4e35c2d475eb16e1a7e4523e3c62",
+                "packagetype": "sdist",
+                "path": "71/d5/38aa2e4d6db9af8e46b61d90f7d9d08e48d1ef50addb400226ffd00881f2/bnfparsing-0.1.2.tar.gz",
+                "python_version": "source",
+                "size": 12555,
+                "upload_time": "2017-06-08T17:25:50",
+                "url": "https://pypi.python.org/packages/71/d5/38aa2e4d6db9af8e46b61d90f7d9d08e48d1ef50addb400226ffd00881f2/bnfparsing-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "bnfparsing-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "141fd82ffc5b41841f317f878f965e02",
+                "packagetype": "sdist",
+                "path": "0f/dc/246e05ef43ee1dbde0502fe131d688d631d931f33b0a94f8889ad1bf7d53/bnfparsing-0.1.3.tar.gz",
+                "python_version": "source",
+                "size": 12667,
+                "upload_time": "2017-06-08T19:56:11",
+                "url": "https://pypi.python.org/packages/0f/dc/246e05ef43ee1dbde0502fe131d688d631d931f33b0a94f8889ad1bf7d53/bnfparsing-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "bnfparsing-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "426e11e8217728bbdf68b540012169f8",
+                "packagetype": "sdist",
+                "path": "54/bf/ed0fe893bc40df85ea719275628de4579a18eae88bdc4b4f7366664f962f/bnfparsing-0.1.4.tar.gz",
+                "python_version": "source",
+                "size": 13217,
+                "upload_time": "2017-06-14T22:30:18",
+                "url": "https://pypi.python.org/packages/54/bf/ed0fe893bc40df85ea719275628de4579a18eae88bdc4b4f7366664f962f/bnfparsing-0.1.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 0,
+            "filename": "bnfparsing-0.1.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "426e11e8217728bbdf68b540012169f8",
+            "packagetype": "sdist",
+            "path": "54/bf/ed0fe893bc40df85ea719275628de4579a18eae88bdc4b4f7366664f962f/bnfparsing-0.1.4.tar.gz",
+            "python_version": "source",
+            "size": 13217,
+            "upload_time": "2017-06-14T22:30:18",
+            "url": "https://pypi.python.org/packages/54/bf/ed0fe893bc40df85ea719275628de4579a18eae88bdc4b4f7366664f962f/bnfparsing-0.1.4.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,228 @@
+{
+    "info": {
+        "author": "Myria Solutions (PTY) Ltd",
+        "author_email": "project@tachyonic.org",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Other Environment",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Internet",
+            "Topic :: Software Development",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Libraries :: Application Frameworks",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: System :: Networking"
+        ],
+        "description": "PyIPCalc\n========\n\npyipcalc is module developed for doing simple ip calculations needed by some python applications. Python 3 has built-in 'ipaddress' module providing many of the desired functionality. However I needed a common interface and support within both Python 2.7 and 3.x. At the time there were many modules some which were complex and others that were broken at the time. pyipcalc is simple and contributions are welcome!\n\nProject Status: Production / Active\n\nInstallation\n------------\n\nPyIPCalc currently fully supports `CPython <https://www.python.org/downloads/>`__ 2.7 and 3.x\n\nA package is availible on PyPI.\nInstalling it is as simple as:\n\n.. code:: bash\n\n    $ pip install pyipcalc\n\nSource Code\n-----------\n\nCode is hosted on `GitHub <https://github.com/TachyonProject/pyipcalc>`_. Making the code easy to browse, download, fork, etc. Pull requests are always welcome!\n\nClone the project like this:\n\n.. code:: bash\n\n    $ git clone https://github.com/TachyonProject/pyipcalc.git\n\nOnce you have cloned the repo or downloaded a tarball from GitHub, you\ncan install pyipcalc like this:\n\n.. code:: bash\n\n    $ cd pyipcalc\n    $ pip install .\n\nOr, if you want to edit the code, first fork the main repo, clone the fork\nto your desktop, and then run the following to install it using symbolic\nlinking, so that when you change your code, the changes will be automagically\navailable to your app without having to reinstall the package:\n\n.. code:: bash\n\n    $ cd pyipcalc\n    $ pip install -e .\n\nYou can manually test changes to pyipcalc by switching to the\ndirectory of the cloned repo:\n\n.. code:: bash\n\n    $ cd pyipcalc/tests\n    $ python test.py\n\nUsing PyIPCalc\n--------------\n\n.. code:: bash\n\n\t$ pyipcalc 192.168.0.0/24\n\tPyIPCalc 2.0.0\n\n\t\tNetwork Prefix: 192.168.0.0/24\n\t\tNetwork Address: 192.168.0.0\n\t\tFirst IP Address: 192.168.0.1\n\t\tLast IP Address: 192.168.0.254\n\t\tBroadcast Address: 192.168.0.255\n\t\tNetmask: 255.255.255.0\n\nIPV6\n----\nIPV6 is supported, you can simply just provide an IPV6 prefix.\n\nDevelopment Module\n------------------\n.. code:: python\n\n\t$ python\n\t>>> import pyipcalc\n\t>>> net = pyipcalc.IPNetwork('192.168.0.0/24')\n\t>>> print net.prefix()\n\t>>> 192.168.0.0/24\n\t>>> print net.network()\n\t>>> 192.168.0.0\n\t>>> print net.first()\n\t>>> 192.168.0.1\n\t>>> print net.last()\n\t>>> 192.168.0.254\n\t>>> print net.broadcast()\n\t>>> 192.168.0.255\n\t>>> print net.mask()\n\t>>> 255.255.255.0\n\n\t>>> for ip in net:\n\t...     print ip\n\t... \n\t192.168.0.0/32\n\t192.168.0.2/32\n\t........\n\t........\n\t192.168.0.254/32\n\t192.168.0.255/32\n\t>>>  \n\n\t>>> test = pyipcalc.IPIter('10.10.10.0/24',26)\n\t>>> for net in test:\n\t...     print net\n\t... \n\t10.10.10.0/26\n\t10.10.10.64/26\n\t10.10.10.128/26\n\t10.10.10.192/26\n\t>>> \n\n\t>>> test = pyipcalc.IPIter('10.10.10.0/24',26)\n\t>>> for net in test:\n\t...     print net.first()\n\t...     print net.last()\n\t... \n\t10.10.10.1\n\t10.10.10.62\n\t10.10.10.65\n\t10.10.10.126\n\t10.10.10.129\n\t10.10.10.190\n\t10.10.10.193\n\t10.10.10.254\n\t>>> \n\nSlicing and indexing is also possible. With Slicing the start ant stop can either be integers or IPNetwork objects:\n\n.. code:: python\n\n    >>> pyipcalc.IPNetwork('192.0.2.0/24')[5]\n    192.0.2.5/32\n\n    >>> pyipcalc.IPNetwork('192.0.2.0/29')[1:-2]\n    [192.0.2.1/32, 192.0.2.2/32, 192.0.2.3/32, 192.0.2.4/32, 192.0.2.5/32, 192.0.2.6/32]\n\n    >>> pyipcalc.IPNetwork('192.0.2.0/29')[2:6:31]\n    [192.0.2.2/31, 192.0.2.4/31, 192.0.2.6/31]\n\n    >>> net1 = pyipcalc.IPNetwork('192.0.2.2')\n    >>> net2 = pyipcalc.IPNetwork('192.0.2.6')\n    >>> pyipcalc.IPNetwork('192.0.2.0/29')[net1:net2:31]\n    [192.0.2.2/31, 192.0.2.4/31, 192.0.2.6/31]\n\n\nConverting IPv4 to 32bit Decimal to store in database.\n\n.. code:: python\n\n\t>>> print pyipcalc.ip2dec('192.168.0.0',4)\n\t>>> 3232235520\n\t>>> print pyipcalc.dec2ip(3232235520,4)\n\t>>> 192.168.0.0\n\t>>> \n\nConverting IPv6 to 128bit Decimal to store in database.\n\n.. code:: python\n\n\t>>> print pyipcalc.ip_to_int('ffff:0000:0000:0000:0000:0000:0000:0000')\n\t>>> 340277174624079928635746076935438991360\n\t>>> print pyipcalc.int_to_ip(340277174624079928635746076935438991360,6)\n\t>>> ffff:0000:0000:0000:0000:0000:0000:0000\n\nTypically you will need two 64bit columns in a database to store 128bit IPv6 address.\n\n.. code:: python\n\n\t>>> print pyipcalc.int_128_to_64(340277174624079928635746076935438991360)\n\t>>> [18446462598732840960L, 0L]\n\t>>> print pyipcalc.int_64_to_128(18446462598732840960L,0L)\n\t>>> 340277174624079928635746076935438991360\n\nChecking wether one subnet contains another:\n\n.. code:: python\n\n\t>>> net = pyipcalc.IPNetwork('192.168.0.0/24')\n\t>>> net1 = pyipcalc.IPNetwork('192.168.0.1/32')\n\t>>> net2 = pyipcalc.IPNetwork('192.168.1.0/24')\n\t>>> net.contains(net1)\n\t>>> True\n\t>>> net.contains(net2)\n\t>>> False\n\n\t>>> if net1 in net: print (True)\n\t>>> \n\t... True\n\t>>> if net not in net2: print (False)\n\t>>> \n\t... False\n\nNote that if net == net1, contains() will return True\n\nFinding the smallest common supernet that contains two subnets:\n\n.. code:: python\n\n\t>>> pyipcalc.supernet(net1,net2)\n\t>>> 192.168.0.0/23\n\n\t>>> net1 = pyipcalc.IPNetwork('192.168.0.0/24')\n\t>>> net2 = pyipcalc.IPNetwork('192.168.1.0/24')\n\t>>> net3 = pyipcalc.IPNetwork('192.168.2.0/24')\n\t>>> net1 + net2 + net3\n\t>>> 192.168.0.0/22\n\nThe supernet() function also takes a third optional argument, which specifies the minimum prefix length to be searched. Consider for example the case where one searches for the common supernet of 128.0.0.1/32 and 10.0.0.1/32. Because the former has a 1 in the left most bit, while the latter has a 0, the only common supernet would be 0.0.0.0/0, which might not be the desirable outcome. For that reason, one could limit the search. If a common supernet is found within the search limits, it is returned, otherwise 'None' is returned. If this limit is not specified, the default for IPv4 is 8, and for IPv6 is 16.\n\n.. code:: python\n\n\t>>> net3 = pyipcalc.IPNetwork('10.0.0.1/32')\n\t>>> pyipcalc.supernet(net1,net3)\n\t>>> pyipcalc.supernet(net1,net3,0)\n\t>>> 0.0.0.0/0\n\t>>> net4 = pyipcalc.IPNetwork('127.0.0.1/32')\n\t>>> pyipcalc.supernet(net3,net4)\n\t>>> pyipcalc.supernet(net3,net4,1)\n\t>>> 0.0.0.0/1\n\t>>> net5 = pyipcalc.IPNetwork('172.16.0.0/8')\n\t>>> pyipcalc.supernet(net2,net5)\n\t>>> pyipcalc.supernet(net2,net5,0)\n\t>>> 128.0.0.0/1\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://www.tachyonic.org",
+        "keywords": "",
+        "license": "BSD3-Clause",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pyipcalc",
+        "package_url": "https://pypi.org/project/pyipcalc/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pyipcalc/",
+        "project_urls": {
+            "Homepage": "http://www.tachyonic.org"
+        },
+        "release_url": "https://pypi.org/project/pyipcalc/3.0.2/",
+        "requires_dist": [
+            "argparse"
+        ],
+        "requires_python": "",
+        "summary": "Python IP Calculator Module",
+        "version": "3.0.2"
+    },
+    "last_serial": 4236651,
+    "releases": {
+        "2.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7f652568267d0888432320591fee089f",
+                    "sha256": "3ff40a94e4e77bb7f72b07a725ce86049be323112f52dc22c4ee1658962771d3"
+                },
+                "downloads": -1,
+                "filename": "pyipcalc-2.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7f652568267d0888432320591fee089f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18734,
+                "upload_time": "2017-09-06T11:25:13",
+                "upload_time_iso_8601": "2017-09-06T11:25:13.054791Z",
+                "url": "https://files.pythonhosted.org/packages/b5/52/71696f6e4ba393dacae919772cb49eb9d2c20d104414c1748b41b5cdfdd1/pyipcalc-2.0.1.tar.gz"
+            }
+        ],
+        "2.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e740f805a79e9b464ff1b374053a0bc",
+                    "sha256": "e96863110ddeb16ba7130fc571857334b682a0af9049780c61cabc094e25c6d9"
+                },
+                "downloads": -1,
+                "filename": "pyipcalc-2.0.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4e740f805a79e9b464ff1b374053a0bc",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15804,
+                "upload_time": "2018-03-27T11:46:02",
+                "upload_time_iso_8601": "2018-03-27T11:46:02.903491Z",
+                "url": "https://files.pythonhosted.org/packages/2e/98/e68752ab161943fbee27c1c7e7cb3334cc007e44ba12c6e10359ad8675c6/pyipcalc-2.0.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca390620671d29eb7668bed25672b821",
+                    "sha256": "212e8035b90e74dbce795e8db6d3593df604f23d4526b64928b12829b136393d"
+                },
+                "downloads": -1,
+                "filename": "pyipcalc-2.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ca390620671d29eb7668bed25672b821",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19658,
+                "upload_time": "2018-03-27T11:46:04",
+                "upload_time_iso_8601": "2018-03-27T11:46:04.421151Z",
+                "url": "https://files.pythonhosted.org/packages/34/d0/ac08c6fdb1f77451494dbec9983bd695a1903d6c932550ee4ab5cefb60a5/pyipcalc-2.0.2.tar.gz"
+            }
+        ],
+        "3.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "92a2c9d2b89f5012e53f720aa5892b23",
+                    "sha256": "7ade5b578c3c8c8335c3f018fba608a57ca7a4b60ad617923d8636166b36d746"
+                },
+                "downloads": -1,
+                "filename": "pyipcalc-3.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "92a2c9d2b89f5012e53f720aa5892b23",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 16239,
+                "upload_time": "2018-08-22T10:28:38",
+                "upload_time_iso_8601": "2018-08-22T10:28:38.335695Z",
+                "url": "https://files.pythonhosted.org/packages/28/91/cb50efac12d16238dd1f64313ce216814faf1cc4a1e1b76d89b3bcd48f43/pyipcalc-3.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2b528189015413252a0efe64e7131147",
+                    "sha256": "5e73293679ec6e15bd1282dc68624d084054748cb060445bb9397afa6526ed59"
+                },
+                "downloads": -1,
+                "filename": "pyipcalc-3.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2b528189015413252a0efe64e7131147",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15927,
+                "upload_time": "2018-08-22T10:28:40",
+                "upload_time_iso_8601": "2018-08-22T10:28:40.208044Z",
+                "url": "https://files.pythonhosted.org/packages/4f/8f/2eb2efe91120c266157c1a36a97fbf31a4293b517874bbcef1154c5ea731/pyipcalc-3.0.1.tar.gz"
+            }
+        ],
+        "3.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ea5e1ba608e910bb91524cf635f31190",
+                    "sha256": "6e6656551caa69def43e2966a05d13f0bad647d7b022c4a808019f487eff9e1d"
+                },
+                "downloads": -1,
+                "filename": "pyipcalc-3.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ea5e1ba608e910bb91524cf635f31190",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 16242,
+                "upload_time": "2018-09-04T07:09:40",
+                "upload_time_iso_8601": "2018-09-04T07:09:40.210277Z",
+                "url": "https://files.pythonhosted.org/packages/5c/aa/50177bb7b65d778bfe307a805cba09263ff6f44f4765c528fa1a669b58c7/pyipcalc-3.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "24c03ebb4f4e203680982654fb88f94b",
+                    "sha256": "7fd4b7338eded7901220e6045f75d47dd49127358f5ba6d8cfcc6e3b59fba03e"
+                },
+                "downloads": -1,
+                "filename": "pyipcalc-3.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "24c03ebb4f4e203680982654fb88f94b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15954,
+                "upload_time": "2018-09-04T07:09:42",
+                "upload_time_iso_8601": "2018-09-04T07:09:42.359908Z",
+                "url": "https://files.pythonhosted.org/packages/60/e1/48d15e29d69b15f2996d3f508267cd3791faa9a356843bf55a53e72a71f9/pyipcalc-3.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ea5e1ba608e910bb91524cf635f31190",
+                "sha256": "6e6656551caa69def43e2966a05d13f0bad647d7b022c4a808019f487eff9e1d"
+            },
+            "downloads": -1,
+            "filename": "pyipcalc-3.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ea5e1ba608e910bb91524cf635f31190",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 16242,
+            "upload_time": "2018-09-04T07:09:40",
+            "upload_time_iso_8601": "2018-09-04T07:09:40.210277Z",
+            "url": "https://files.pythonhosted.org/packages/5c/aa/50177bb7b65d778bfe307a805cba09263ff6f44f4765c528fa1a669b58c7/pyipcalc-3.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "24c03ebb4f4e203680982654fb88f94b",
+                "sha256": "7fd4b7338eded7901220e6045f75d47dd49127358f5ba6d8cfcc6e3b59fba03e"
+            },
+            "downloads": -1,
+            "filename": "pyipcalc-3.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "24c03ebb4f4e203680982654fb88f94b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 15954,
+            "upload_time": "2018-09-04T07:09:42",
+            "upload_time_iso_8601": "2018-09-04T07:09:42.359908Z",
+            "url": "https://files.pythonhosted.org/packages/60/e1/48d15e29d69b15f2996d3f508267cd3791faa9a356843bf55a53e72a71f9/pyipcalc-3.0.2.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,284 @@
+{
+    "info": {
+        "author": "Lou Ferrand",
+        "author_email": "ferrand@ekino.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "ECS tools\n=========\n\n.. image:: https://img.shields.io/pypi/v/ecs-tools.svg\n    :target: https://pypi.python.org/pypi/ecs-tools\n\n.. image:: https://img.shields.io/pypi/l/ecs-tools.svg\n    :target: https://pypi.python.org/pypi/ecs-tools\n\n.. image:: https://img.shields.io/pypi/wheel/ecs-tools.svg\n    :target: https://pypi.python.org/pypi/ecs-tools\n\n.. image:: https://img.shields.io/pypi/pyversions/ecs-tools.svg\n    :target: https://pypi.python.org/pypi/ecs-tools\n\n-------------------------------------\n\nInstallation\n------------\n\n::\n\n    pip install ecs-tools\n\nUsage\n~~~~~\n\n::\n\n    Usage: ecs [OPTIONS] COMMAND [ARGS]...\n\n    Options:\n      -v, --version  Show the version and exit.\n      -h, --help     Show this message and exit.\n\n    Commands:\n      image          Return the image for a service.\n      monitor        List unhealthy services in your ECS clusters.\n      scale-service  Scale the service to a specific desiredCount.\n\n\nImage\n-----\n\nReturns the image(s) that are defined in the currently running TaskDefinition.\n\nUsage\n~~~~~\n\n::\n\n    Usage: ecs image [OPTIONS]\n\n      Return the image for a service.\n\n    Options:\n      --cluster TEXT  Name of the ECS cluster  [required]\n      --service TEXT  Name of the service  [required]\n      --help          Show this message and exit.\n\n::\n\n    $ ecs image --cluster ecs-mycluster-dev --service tools-deployment-dev-1\n    123456789012.dkr.ecr.us-east-1.amazonaws.com/acme/srv-deployment:1.0.3-dev\n\nMonitor\n----------\n\nECS monitor lists unhealthy services in your ECS clusters\n\nThe script will list the clusters and fetch details about services that are\nrunning in it.\n\nThen it determines if the service is healthy or not:\n\n* ``[OK]`` means that its ``desiredCount`` equals its ``runningCount`` and it has\n  reached a steady state\n* ``[WARN]`` means that its ``desiredCount`` and its ``runningCount`` equal 0 but it\n  still has reached a steady state\n* ``[KO]`` means that its ``desiredCount`` does not equal its ``runningCount``, or\n  that it has not reached a steady state\n\n\nUsage\n~~~~~\n\n::\n\n    Usage: ecs monitor [OPTIONS]\n\n      List unhealthy services in your ECS clusters.\n\n    Options:\n      -f, --filter TEXT     Filter by the name of the ECS cluster\n      -t, --threshold TEXT  Filter by the status of the service\n      -l, --long            Enable detailed output of containers parameters\n      -a, --all             Display status for all services in the cluster\n      --help                Show this message and exit.\n\n\nList unhealthy services in all ECS clusters::\n\n    $ ecs monitor\n    ---- ECS-MYCLUSTER-DEV : 5 services\n    [KO]    tools-hound-dev-1                            running 0/1 (hound-dev:75)\n    [WARN]  tools-jenkins-dev-1                          running 0/0 (jenkins-dev:247)\n    [WARN]  tools-kibana-dev-1                           running 0/0 (srv-kibana:55)\n    [KO]    tools-sonar-dev-1                            running 2/1 (srv-sonar:923)\n\n    ---- ECS-MYCLUSTER-PROD : 5 services\n    [WARN]  tools-jenkins-prod-1                         running 0/0 (jenkins-prod:247)\n\n\nBy default ``ecs monitor`` only shows services that are ``KO`` or ``WARN``, use\nthe ``-a/--all`` option to list all services.\n\nList all services in ECS clusters that contains 'dev' in their name::\n\n    $ ecs monitor --all --filter dev\n    ---- ECS-MYCLUSTER-DEV : 5 services\n    [OK]    tools-deployment-dev-1                       running 1/1 (srv-deployment-dev:3)\n    [KO]    tools-hound-dev-1                            running 0/1 (hound-dev:75)\n    [WARN]  tools-jenkins-dev-1                          running 0/0 (jenkins-dev:247)\n    [WARN]  tools-kibana-dev-1                           running 0/0 (srv-kibana:55)\n    [KO]    tools-sonar-dev-1                            running 2/1 (srv-sonar:923)\n\nYou can also get more information by using the ``-l/--long`` option::\n\n    $ ecs monitor --long --filter prod\n    ---- ECS-MYCLUSTER-PROD : 5 services\n    [WARN]  tools-jenkins-prod-1                         running 0/0 (jenkins-prod:142)\n    Name:         jenkins\n    Docker image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/acme/jenkins:2.77-custom\n    Memory:       1024\n    CPU:          512\n    Ports:        ->8080\n    Environment:\n        JAVA_OPTS: -Dhudson.footerURL=http://mycompany.com\n        JENKINS_OPTS: --prefix=/jenkins\n        JENKINS_SLAVE_AGENT_PORT: 50001\n        PLATFORM: prod\n        PROJECT: acme\n\nScale service\n-------------\n\nThe ``scale-service`` command allows you to quickly scale the ``desiredCount`` of\na service in your ECS cluster.\n\nIt takes three parameters: the name of the cluster (or its ARN), the name of the\nservice and the new desired count of tasks for this service.\n\nUsage\n~~~~~\n\n::\n\n    Usage: ecs scale-service [OPTIONS] COUNT\n\n      Scale the service to a specific desiredCount.\n\n    Options:\n      --cluster TEXT  Name of the ECS cluster  [required]\n      --service TEXT  Name of the service  [required]\n      --help          Show this message and exit.\n\n::\n\n    $ ecs scale-service --cluster ecs-mycluster-dev --service tools-deployment-dev-1 4\n    Updating tools-deployment-dev-1 / desiredCount[1 -> 4] running_count=1\n\n    Service tools-deployment-dev-1 successfully updated with desired_count=4\n\n\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "https://github.com/flou/ecs-tools/repository/archive.tar.gz?ref=0.0.6",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/flou/ecs-tools",
+        "keywords": "ECS,AWS",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ecs-tools",
+        "package_url": "https://pypi.org/project/ecs-tools/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ecs-tools/",
+        "release_url": "https://pypi.org/project/ecs-tools/0.0.6/",
+        "requires_dist": [
+            "boto3 (>=1.4.5)",
+            "click (>=6.7)",
+            "crayons (>=0.1.2)",
+            "pyyaml (>=3.12)"
+        ],
+        "requires_python": "",
+        "summary": "Command line tools to interact with your ECS clusters.",
+        "version": "0.0.6"
+    },
+    "last_serial": 3241366,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bc166a4d1e62566fcdef613ce67b24e2",
+                    "sha256": "f1cfe45d80226e4f41ff16b84772392506e6ae978cb8765adca8f69a79581621"
+                },
+                "downloads": -1,
+                "filename": "ecs_tools-0.0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bc166a4d1e62566fcdef613ce67b24e2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 8967,
+                "upload_time": "2017-09-19T17:20:50",
+                "url": "https://files.pythonhosted.org/packages/b0/27/c8c6b733ce47fc5c4f7ddd9e70c210857a5b6c65f8e2d17ad9bda0e7d51f/ecs_tools-0.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "52ebe6a3fb9a7003a0f13b706741bb6a",
+                    "sha256": "2541ba2478e09eb0bb7aa7d61af4fd306bbb2aa311be30f036b89222eb8f5292"
+                },
+                "downloads": -1,
+                "filename": "ecs-tools-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "52ebe6a3fb9a7003a0f13b706741bb6a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 6784,
+                "upload_time": "2017-09-19T17:20:51",
+                "url": "https://files.pythonhosted.org/packages/04/28/308e1b997b7d3c4c98d376599231962b452926df28987d27aa5c70dcc59a/ecs-tools-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "85c13099b557a9d7af0660d25949eb62",
+                    "sha256": "9ae8e7cfa8ee3bc48ba0b325d21fb142b88a7bfdea60599462a8da35e79a2b97"
+                },
+                "downloads": -1,
+                "filename": "ecs_tools-0.0.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "85c13099b557a9d7af0660d25949eb62",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 9866,
+                "upload_time": "2017-09-20T11:39:57",
+                "url": "https://files.pythonhosted.org/packages/f2/ca/374b92491c6326831f4d1e5e6bbef817b6f1000c4025b37698e419bdf002/ecs_tools-0.0.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a6a3966b081650dc4194ce5fa61c49ac",
+                    "sha256": "4684ce16e57b0c3373cdd51adcf147b420dfed43662fc4b00130756bfdaecf55"
+                },
+                "downloads": -1,
+                "filename": "ecs-tools-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a6a3966b081650dc4194ce5fa61c49ac",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7220,
+                "upload_time": "2017-09-20T11:39:59",
+                "url": "https://files.pythonhosted.org/packages/ff/f3/ed06832eafa79f7312aa95a6832b82e140676739beaa6c0dd85bdb61d92b/ecs-tools-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "755110e481303c9f68660525cae38dd9",
+                    "sha256": "e09086eb18164e2e157d117b1c2d108ac48dfac1b7eb46039320c6cb5f102a80"
+                },
+                "downloads": -1,
+                "filename": "ecs_tools-0.0.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "755110e481303c9f68660525cae38dd9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 9885,
+                "upload_time": "2017-09-29T12:40:25",
+                "url": "https://files.pythonhosted.org/packages/3a/81/250459cab420d784b262bb1eccf95365c7cc1db07f21c4c536b1820a1e79/ecs_tools-0.0.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d16b146297c205f91e12997f1bfcce08",
+                    "sha256": "d4e67f110a7cc2ca735d0d425f3543c278e3d3d7cbfba20be757b9ee0dcc692e"
+                },
+                "downloads": -1,
+                "filename": "ecs-tools-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d16b146297c205f91e12997f1bfcce08",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7248,
+                "upload_time": "2017-09-29T12:40:28",
+                "url": "https://files.pythonhosted.org/packages/07/6e/d694c78c59412de74ab976ba7dbf1ee34cabfab6c17466b947c182e76f5c/ecs-tools-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f20b0de1e300d9381a94fe6831b8ec9b",
+                    "sha256": "4edbaa8de36eebad02b66e302ac7cef8b124d41bee6e16fba831f2afff59ee2b"
+                },
+                "downloads": -1,
+                "filename": "ecs_tools-0.0.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f20b0de1e300d9381a94fe6831b8ec9b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 9888,
+                "upload_time": "2017-09-29T12:49:51",
+                "url": "https://files.pythonhosted.org/packages/be/59/c122927a4f71d51607a462673308af8f39268a349d918a44c758a42d5a47/ecs_tools-0.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fd249817c959292a548b4f724d42cc9d",
+                    "sha256": "a0bf7baf53dc7511ed612b7e7491fa1f0c4a3b06bdd3970d72e028df48c8e158"
+                },
+                "downloads": -1,
+                "filename": "ecs-tools-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fd249817c959292a548b4f724d42cc9d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7224,
+                "upload_time": "2017-09-29T12:49:54",
+                "url": "https://files.pythonhosted.org/packages/9c/e1/436ccfc29c44144e398f543bd339863b92f963dbd6e28e2f0f77d77436c9/ecs-tools-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e4987a4be56966aa44f8dea6490df8e8",
+                    "sha256": "2316d0f004ba1d80c45541eae5ad0c73875b08b67245da8536124522c483550c"
+                },
+                "downloads": -1,
+                "filename": "ecs_tools-0.0.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e4987a4be56966aa44f8dea6490df8e8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 9593,
+                "upload_time": "2017-09-29T12:55:22",
+                "url": "https://files.pythonhosted.org/packages/33/50/dbab171f70661d340952a45ff0a1fe17abaf48a92d925a47d9486352ac99/ecs_tools-0.0.5-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c4191fd9451f194b53550dcbdeb17659",
+                    "sha256": "e6d42961a90fb3da06de2091771ae2813ec6122290561ef6fd99e8c617e6900d"
+                },
+                "downloads": -1,
+                "filename": "ecs-tools-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c4191fd9451f194b53550dcbdeb17659",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7230,
+                "upload_time": "2017-09-29T12:55:24",
+                "url": "https://files.pythonhosted.org/packages/26/04/56c00e01c679118367989979cc166d62d5dd4abcc50fd2ee5772c988d5e4/ecs-tools-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d260bfd8ca1d0cf2bbefef370b3064d0",
+                    "sha256": "5f4961a77f7ba4be4354d9df1d251d365ac412e77bed832940c13d042e0626d8"
+                },
+                "downloads": -1,
+                "filename": "ecs_tools-0.0.6-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d260bfd8ca1d0cf2bbefef370b3064d0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 10315,
+                "upload_time": "2017-10-11T07:40:49",
+                "url": "https://files.pythonhosted.org/packages/1a/28/c2f1d44278a644b1cf895b6aba419984e87adcd82b8576281f8b6757e90f/ecs_tools-0.0.6-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6c5eceb992ee65536c85a6cda76c679c",
+                    "sha256": "85943e8f8c4dc056f8632ddc6565f7d78763ea2d5a74d42e3d719806b44aa9a7"
+                },
+                "downloads": -1,
+                "filename": "ecs-tools-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6c5eceb992ee65536c85a6cda76c679c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7400,
+                "upload_time": "2017-10-11T07:40:50",
+                "url": "https://files.pythonhosted.org/packages/75/c5/e578f8564bdfba8a8b1302ff7327c6b6e0d97e810446213cb8a158875683/ecs-tools-0.0.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d260bfd8ca1d0cf2bbefef370b3064d0",
+                "sha256": "5f4961a77f7ba4be4354d9df1d251d365ac412e77bed832940c13d042e0626d8"
+            },
+            "downloads": -1,
+            "filename": "ecs_tools-0.0.6-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d260bfd8ca1d0cf2bbefef370b3064d0",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "size": 10315,
+            "upload_time": "2017-10-11T07:40:49",
+            "url": "https://files.pythonhosted.org/packages/1a/28/c2f1d44278a644b1cf895b6aba419984e87adcd82b8576281f8b6757e90f/ecs_tools-0.0.6-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6c5eceb992ee65536c85a6cda76c679c",
+                "sha256": "85943e8f8c4dc056f8632ddc6565f7d78763ea2d5a74d42e3d719806b44aa9a7"
+            },
+            "downloads": -1,
+            "filename": "ecs-tools-0.0.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "6c5eceb992ee65536c85a6cda76c679c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 7400,
+            "upload_time": "2017-10-11T07:40:50",
+            "url": "https://files.pythonhosted.org/packages/75/c5/e578f8564bdfba8a8b1302ff7327c6b6e0d97e810446213cb8a158875683/ecs-tools-0.0.6.tar.gz"
+        }
+    ]
+}

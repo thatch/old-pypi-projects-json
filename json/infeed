@@ -1,0 +1,88 @@
+{
+    "info": {
+        "author": "Addvilz",
+        "author_email": "mrtreinis@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: POSIX",
+            "Operating System :: POSIX :: Linux",
+            "Operating System :: Unix",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Software Development",
+            "Topic :: Software Development :: Build Tools",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: System :: Software Distribution",
+            "Topic :: System :: Systems Administration"
+        ],
+        "description": "infeed\n==============\n\ninfeed is configuration management and remote automation tool.\n\nCurrent status is active work in progress. This tool is not production\nready.\n\nDefining features:\n------------------\n\n-  Agent-less, no locally persisted state\n-  Written in Python\n-  No abstractions or magic, no DSL's\n-  Modular by design (not yet by implementation :) ...)\n\nInstallation\n~~~~~~~~~~~~\n\n``pip install infeed``\n\nConcepts\n~~~~~~~~\n\nTarget\n~~~~~~\n\nTarget is remote resource to be managed, identified by network address.\nTarget is not strictly defined as machine or anything alike.\n\nIn fact, infeed is designed to be able to work with different\nremote resources, including databases and literally anything else you\ncould want to access over network or otherwise.\n\nApi\n~~~\n\nApi provides an interface to whatever remote interface you are looking\nto manage.\n\nApi's are defined per role, one role can access only one Api.\n\nCurrently defined API's, WIP:\n\n-  ``rhel`` - (wip) Access to RHEL-compat remote systems over SSH,\n   access ``yum``, ``systemctl``, manage files etc\n-  ``odbc`` - (wip) Access ODBC databases, run queries, create users.\n-  ``http`` - (planned) Do HTTP requests.\n-  ``void`` - (provided) For API's provided by user.\n\nAssets\n~~~~~~\n\nAsset is a logical group of targets and roles. Assets can be named and\nstate changes can be applied on per-asset basis. Same hosts and roles\ncan belong to more than one asset. All targets and roles that belong to\nsame asset must use the same api.\n\nContext\n~~~~~~~\n\nEach target can have one or more roles, and each role can have one or\nmore targets. Each unique combination of target and role forms a\nContext. For example, target ``srv.example.com`` with roles ``nginx``,\n``mariadb`` will form two contexts : ``srv.example.com:nginx`` and\n``srv.example.com:mariadb``.\n\nBoth facts and state changes are executed within context, that is,\noperations are applied against each individual context.\n\nFact\n~~~~\n\ninfeed does not persist state, instead before each run it\ngathers \"facts\" about target machines with given roles. Facts are\nuser-provided, meaning, you must yourself register state you are\ninterested in during fact gathering stage.\n\nCompliance\n~~~~~~~~~~\n\nEach context can have two factual states - compliant or non-compliant.\nCompliant context means that given context is entirely aligned with\nassertions made during fact gathering phase. No state changes will be\napplied against such contexts.\n\nIn addition, if all contexts indicate compliant state, no state changes\nwill be applied whatsoever.\n\nCompliance and parameters for compliance are entirely user defined,\nmeaning, all compliance assertions must be done during fact gathering\nstage.\n\nStages\n~~~~~~\n\nOn every run, infeed passes all defined contexts through 4\nstages:\n\n1. Context compliance verification\n2. Fact gathering\n3. State modification - for targets not compliant with asserted facts,\n   state is modified to bring the target in compliance to it's role\n4. Fact verification - essentially, a re-run of the first stage, to\n   provide information about whether or not state modification\n   succeeded.\n\nStages 3. and 4. are skipped if all contexts indicate compliant state\nduring fact gathering stage.\n\nContext compliance\n~~~~~~~~~~~~~~~~~~\n\nEach Api that can be used against any given context posses some basic\nrequirements that must be fulfilled for user to be able to use the Api.\n\nFor example, RHEL api requires ``yum`` and ``systemctl``. It can not\noperate if these requirements are not meta.\n\nIn addition, Api system supports optional auto-correction, meaning,\nwhere possible it will try to fix missing basic requirements.\n\nAny given time context does not meet any of the requirements set by Api,\nuser will be prompted whether or not to attempt auto-correction. If\nsuccessful, infeed will continue directly with next stages.\n\nFact gathering\n~~~~~~~~~~~~~~\n\nFacts are collected from targets and registered in collection of facts\nfor given host and role. Facts indicate whether or not given context is\ncompliant.\n\nState modification\n~~~~~~~~~~~~~~~~~~\n\nNon-compliant contexts will have their state modified to bring them in\ncompliance to facts. In practice, ``apply_ROLE`` will be invoked, and it\nis purpose of this handler to correct any compliance issues detected\nduring fact gathering.\n\nIf there is no non-compliant contexts after fact gathering, this and\nnext step will be skipped.\n\nFact verification\n~~~~~~~~~~~~~~~~~\n\nAfter state modification, if any, facts are gathered again for\nverification. Current compliance status is then output for confirmation.\n\nConfiguration\n-------------\n\ninfeed configuration is defined inside YAML configuration file,\nby default named ``infeed.yml``.\n\ninfeed will look for this file inside current working directory.\n\nYou can pass alternative location via command line parameter\n``-c,--config``.\n\nExample configuration\n~~~~~~~~~~~~~~~~~~~~~\n\n.. code:: yaml\n\n    # infeed.yml\n    entry: infeed # Optional. Defines entry module\n    assets:\n        web_servers_1:\n            hosts: [www01.example.com, www02.example.com, www03.example.com]\n            roles: [nginx, php_fpm]\n        db_servers_1:\n           hosts: [db01.example.com, db02.example.com, db03.example.com]\n           roles: [mariadb]\n        db_servers_2:\n           hosts: [db04.example.com]\n           roles: [mariadb_2]\n    roles:\n        nginx:\n            api: rhel\n            # Anything else you want to pass to handlers\n            # Available from `context.role_config` in any given situation\n            packages:\n                nginx: 1.0\n        php_fpm:\n            api: rhel\n        mariadb_1:\n            api: odbc\n            options: # API options\n                port: 3307\n                user: root\n                password: ~\n        mariadb_4:\n            api: odbc\n            options: # API options\n                port: 5432\n                user: root\n                password: ~\n\nDefining configuration, assertions etc.\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\ninfeed uses Python to define tasks, state, expectations etc.\nThere is no specific DSL or anything alike, just plain Python code and\napis.\n\ninfeed normally has only one yaml configuration file, with\n``!include`` support, all logic is defined in Python by accessing\ncontext specific Api's.\n\n.. code:: python\n\n    def facts_nginx(context, fact):\n        fact.mark(\n            'nginx_installed',\n            context.api.pkg.installed('nginx')\n        )\n\n    def apply_nginx(context, fact):\n        fact.ok('nginx_installed') or context.api.pkg.install('nginx', '1.11')\n\nDefining entry module\n---------------------\n\nEntry module is a python file that either imports or define handlers.\nEach role has two required handlers: ``facts`` and ``apply``, where\n``facts`` is responsible for gathering and setting facts, but ``apply``\nis invoked when state change is required.\n\nThe handlers are named like ``facts_ROLE`` and ``apply_ROLE`` where role\nis one of the roles defined in infeed configuration file.\n\nYou can use ``infeed init`` command to create entry file from\nall roles defined in configuration automatically.\n\nEach handler accepts two arguments: ``context`` and ``fact``.\n\nContext argument\n~~~~~~~~~~~~~~~~\n\nContext argument provided to each of the handlers is instance of\n``infeed.lib.ExecutionContext.ExecutionContext``.\n\nIt provides access to configurations, logger and api to be used inside\nthe module.\n\nFact argument\n~~~~~~~~~~~~~\n\nFact argument provided to each of the handlers is instance of\n``infeed.lib.Fact.Fact`` that allows you to both set and\nretrieve assertions in given context.\n\nExample entry module\n~~~~~~~~~~~~~~~~~~~~\n\nExample configuration file above would produce this entry module:\n\n.. code:: python\n\n    def facts_nginx(context, fact):\n        pass\n\n\n    def apply_nginx(context, fact):\n        pass\n\n\n    def facts_php_fpm(context, fact):\n        pass\n\n\n    def apply_php_fpm(context, fact):\n        pass\n\n\n    def facts_mariadb(context, fact):\n        pass\n\n\n    def apply_mariadb(context, fact):\n        pass\n\n\nLicense\n-------\n\nLicensed under terms and conditions of Apache 2.0 license.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "https://github.com/infeed/infeed",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/infeed/infeed",
+        "keywords": "",
+        "license": "Apache 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "infeed",
+        "package_url": "https://pypi.org/project/infeed/",
+        "platform": "UNIX",
+        "project_url": "https://pypi.org/project/infeed/",
+        "release_url": "https://pypi.org/project/infeed/0.1.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Configuration management tool",
+        "version": "0.1.0"
+    },
+    "last_serial": 3104981,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "57c9df3f53b9c456ccee76e9a0ceffe6",
+                    "sha256": "8c07f68beaef85288c2f6fe14ede8924b977ce937168a1b9c1072a6f76d99a56"
+                },
+                "downloads": -1,
+                "filename": "infeed-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "57c9df3f53b9c456ccee76e9a0ceffe6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 15682,
+                "upload_time": "2017-08-18T00:16:22",
+                "url": "https://files.pythonhosted.org/packages/6f/81/1b80c40a59b60036e0f20c2f7b686ee95754ff2c86892453a81a08848f00/infeed-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "57c9df3f53b9c456ccee76e9a0ceffe6",
+                "sha256": "8c07f68beaef85288c2f6fe14ede8924b977ce937168a1b9c1072a6f76d99a56"
+            },
+            "downloads": -1,
+            "filename": "infeed-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "57c9df3f53b9c456ccee76e9a0ceffe6",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 15682,
+            "upload_time": "2017-08-18T00:16:22",
+            "url": "https://files.pythonhosted.org/packages/6f/81/1b80c40a59b60036e0f20c2f7b686ee95754ff2c86892453a81a08848f00/infeed-0.1.0.tar.gz"
+        }
+    ]
+}

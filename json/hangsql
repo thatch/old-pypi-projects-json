@@ -1,0 +1,187 @@
+{
+    "info": {
+        "author": "jeanku",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "## Install\n\nVia pip\n\n``` bash\n pip install hangsql\n```\n\n\n## Initialization\nyou need to create a .env file at your project root path (/home/project/.env), and content as follows:\n``` bash\n[default]\nDB_HOST=127.0.0.1\nDB_PORT=3306\nDB_NAME=test_db1\nDB_USER=root\nDB_PASSWORD=123456\nDB_CHARSET=utf8mb4\nLOG_DIR=/home/logs/python/\n\n[test_db2]\nDB_HOST=127.0.0.1\nDB_PORT=3306\nDB_NAME=test_db2\nDB_USER=root\nDB_PASSWORD=123456\nDB_CHARSET=utf8mb4\nLOG_DIR=/home/logs/python/\n```\n\n## Create Model\nCreate your Model extend DBModel as follows:\n\n``` bash\n#!/usr/bin/python\n# -*- coding: UTF-8 -*-\nfrom hangsql.DBModel import DBModel\n\nclass ModelDemo(DBModel):\n    __basepath__ = '/home/project/'             # \u9879\u76ee\u6839\u76ee\u5f55 (.env\u6587\u4ef6\u8def\u5f84:/home/project/.env)\n    #__database__ = 'default'                   # \u5e93\u540d\n    __tablename__ = 'lh_test'                   # \u8868\u540d\n    __create_time__ = 'create_time'             # \u63d2\u5165\u65f6\u95f4\u5b57\u6bb5 \u5982\u679c\u8be5\u5b57\u6bb5\u4e3aNone create_time\u5219\u4e0d\u4f1a\u81ea\u52a8\u6dfb\u52a0 \u9ed8\u8ba4\u503c\u5f53\u524d\u65f6\u95f4\u6233(\u5355\u4f4d:\u79d2)\n    __update_time__ = 'update_time'             # \u66f4\u65b0\u65f6\u95f4\u5b57\u6bb5 \u5982\u679c\u8be5\u5b57\u6bb5\u4e3aNone update_time\u5219\u4e0d\u4f1a\u81ea\u52a8\u6dfb\u52a0 \u9ed8\u8ba4\u503c\u5f53\u524d\u65f6\u95f4\u6233(\u5355\u4f4d:\u79d2)\n    columns = [                                 # \u6570\u636e\u5e93\u5b57\u6bb5\n        'id',\n        'name',\n        'token_name',\n        'status',\n        'create_time',\n        'update_time',\n    ]\n\n    # \u83b7\u53d6\u65f6\u95f4\u683c\u5f0f(\u5982\u679c\u60f3\u4fee\u6539create_time, update_time \u65f6\u95f4\u683c\u5f0f\uff0c\u91cd\u5199\u8be5\u65b9\u6cd5\u5373\u53ef)\n    # def fresh_timestamp(self):\n    #     return datetime.datetime.now().strftime(\"%Y%m%d\")\n```\n\n## Usage\n# create\n``` bash\n#\u5355\u4e2a\u6dfb\u52a0\nModelDemo().create({'name': \"haha1\", 'token_name': 'haha124'})\n#\u591a\u4e2a\u6dfb\u52a0\nModelDemo().create([{'name': \"haha1\", 'token_name': 'haha124'}, {'name':\"haha2\", 'token_name': 'haha125'}])\n#\u83b7\u53d6\u6dfb\u52a0\u6570\u636e\u81ea\u589eID\nid = ModelDemo().create({'name': \"haha1\", 'token_name': 'haha124'}).lastid()\n```\n\n# update\n``` bash\n#\u5355\u4e2a\u66f4\u65b0\nModelDemo().where('id', 1).update({'name':\"hehe\", 'token_name': 'hehe123'})\n#\u8303\u56f4\u66f4\u65b0\nModelDemo().where('id', 'in', [1, 2, 3]).update({'name':\"hehe\", 'token_name': 'hehe123'})\n#\u81ea\u589e\u81ea\u589e\nModelDemo().where('id', 1).increment('status')        #status\u81ea\u589e1\nModelDemo().where('id', 1).increment('status', 5)     #status\u81ea\u589e5\n#\u81ea\u589e\u81ea\u51cf\nModelDemo().where('id', 1).decrement('status')        #status\u81ea\u51cf1\nModelDemo().where('id', 1).decrement('status', 5)     #status\u81ea\u51cf5\n```\n\n# delete\n``` bash\n#\u5355\u4e2a\u5220\u9664\nModelDemo().where('id', 4).delete()\n#\u8303\u56f4\u5220\u9664\nModelDemo().where('id', '<', 10).delete()\n```\n\n## select\n\n#\u5355\u4e2a\u67e5\u8be2\n``` bash\n# \u5bf9\u5e94sql: select * from lh_test where id = 4 limit 1\ndata = ModelDemo().where('id', 4).first()\ndata = ModelDemo().where('id', '=', 4).first()\n\n# \u5bf9\u5e94sql: select * from lh_test where id > 4 limit 1\ndata = ModelDemo().where('id', '>', 4).first()\n\n\u5355\u4e2a\u67e5\u8be2\u8fd4\u56de\u683c\u5f0f: {...}\n```\n\n#\u591a\u4e2a\u67e5\u8be2\n``` bash\n# \u5bf9\u5e94sql: select * from lh_test where id >= 4\ndata = ModelDemo().where('id', '>=', 4).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where id > 4\ndata = ModelDemo().where('id', '>', 4).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where id < 4\ndata = ModelDemo().where('id', '<', 4).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where id <= 4\ndata = ModelDemo().where('id', '<=', 4).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where id != 4\ndata = ModelDemo().where('id', '!=', 4).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where id in (1,2)\ndata = ModelDemo().where('id', 'in', [1, 2]).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where id not in (1,2)\ndata = ModelDemo().where('id', 'not in', [1, 2]).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where id between (1,2)\ndata = ModelDemo().where('id', 'between', [1, 2]).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where id not between (1,2)\ndata = ModelDemo().where('id', 'not between', [1, 2]).get()\n\n# \u5bf9\u5e94sql: select * from lh_test where name like '%Tether%'\ndata = ModelDemo().where('name', 'like', '%Tether%').get()\n\n# \u5bf9\u5e94sql: select * from lh_test where name not like '%Tether%'\ndata = ModelDemo().where('name', 'not like', '%Tether%').get()\n\n\u591a\u4e2a\u67e5\u8be2\u8fd4\u56de\u683c\u5f0f: [{...}, {...}, {...}...]\n```\n\n# \u591a\u6761\u4ef6\u67e5\u8be2\n``` bash\n#\u5bf9\u5e94sql:select * from lh_test where id=1 and name='hehe'\ndata = ModelDemo().where({'id': 1, 'name': 'hehe'}).get()\ndata = ModelDemo().where('id', 1).where('name', 'hehe').get()\n```\n# \u6392\u5e8f\n``` bash\n#\u6b63\u5e8f\n#\u5bf9\u5e94sql: select * from lh_test where id > 0 order by id\ndata = ModelDemo().where('id', '>', 0).orderby('id').get()\ndata = ModelDemo().where('id', '>', 0).orderby('id', 'asc').get()\n\n#\u5012\u5e8f\n#\u5bf9\u5e94sql: select * from lh_test where id > 0 order by id desc\ndata = ModelDemo().where('id', '>', 0).orderby('id', 'desc').get()\n\n#\u591a\u5b57\u6bb5\u6392\u5e8f\n#\u5bf9\u5e94sql: select * from lh_test where `id` > 0 order by `id` desc,`status`\ndata = ModelDemo().where('id', '>', 0).orderby('id', 'desc').orderby('status', 'asc').get()\n```\n\n# \u53d6\u6570\u91cf\n``` bash\n# \u5bf9\u5e94sql: select * from lh_test where id > 0 limit 1\ndata = ModelDemo().where('id', '>', 0).first()         #\u8fd4\u56de\u5b57\u5178\ndata = ModelDemo().where('id', '>', 0).take(1).get()   #\u8fd4\u56de\u5217\u8868\n\n# \u5bf9\u5e94sql: select * from lh_test where id > 0 limit 5\ndata = ModelDemo().where('id', '>', 0).take(5).get()\n```\n\n# \u504f\u79fb\u91cf\n``` bash\n# \u5bf9\u5e94sql: select * from lh_test where id > 100 limit 5 offset 10\ndata = ModelDemo().where('id', '>', 100).offset(10).take(5).get()\n```\n\n# \u68c0\u7d22\u5b57\u6bb5\n``` bash\n# \u5bf9\u5e94sql: select `id`,`name` from lh_test limit 5\ndata = ModelDemo().select('id', 'name').take(5).get()\n\n# \u5bf9\u5e94sql: select min(id) as minid from lh_test limit 1\ndata = ModelDemo().select('min(id) as minid').first()\n```\n\n# groupby\n``` bash\n# \u5bf9\u5e94sql: select count(*) as num,`name` from lh_test group by `name`\ndata = ModelDemo().select('count(*) as num', 'name').groupby('name').get()\n```\n\n# \u539f\u751fsql\n``` bash\nsql = 'select count(*) as num,name from lh_test group by name'\ndata = ModelDemo().execute(sql)\n```\n\n\n# \u8fd4\u56de\u7ed3\u679c\n``` bash\ndata = ModelDemo().where('id', 'in', [1,2,3]).select('id', 'name').lists('id')          # [1,2,3]\ndata = ModelDemo().where('id', 'in', [1,2]).select('id', 'name').lists(['id', 'name'])  # [[1,'name1'],[2,'name2']]\ndata = ModelDemo().select('id', 'name', 'status').data()                                # \u8fd4\u56depandas DataFrame\n```\n\n# \u4e8b\u52a1\n``` bash\ndef demo():       #\u4e8b\u52a1\u95ed\u5305\n    ModelDemo().where('id', 42).update({'name': \"44\", 'token_name': '444'})\n    ModelDemo().where('id', 43).update({'name': \"44\", 'token_name': '444'})\n    return True\ndata = ModelDemo().transaction(demo)\n```\n\n# \u5207\u6362\u6570\u636e\u5e93\n``` bash\n\u4f7f\u7528.env\u4e2d\u9ed8\u8ba4\u7684default\u6570\u636e\u5e93:\n    \u4e0d\u8bbe\u7f6eModelDemo\u7c7b\u4e2d\u7684__database__\u5c5e\u6027 \u6216\u8005 \u5728ModelDemo\u7c7b\u4e2d\u8bbe\u7f6e__database__='default'\n\u4f7f\u7528.env\u4e2dtest_db2\u6570\u636e\u5e93:\n    \u5728ModelDemo\u7c7b\u4e2d\u8bbe\u7f6e__database__='test_db2'\n\n\u4ee3\u7801\u4e2d\u52a8\u6001\u8bbe\u7f6e\u6570\u636e\u5e93:\nModelDemo().database('test_db2').where('id', '>', 40).first()\n```\n\n# \u6570\u636e\u5e93\u65e5\u5fd7\n``` bash\n\u5f00\u542f:\n    \u5728.env\u4e2d\u914d\u7f6eLOG_DIR:\n    LOG_DIR=\u4f60\u7684\u65e5\u5fd7\u8def\u5f84\n    \u4f8b\u5982LOG_DIR=/home/logs/python/  \u5c31\u662f\u628a\u65e5\u5fd7\u8bb0\u5f55\u5728/home/logs/python/20190520.log\u6587\u4ef6\u4e2d(\u6bcf\u5929\u4ea7\u751f\u4e00\u4e2a\u6587\u4ef6)\n\u5173\u95ed:\n    \u5728.env\u4e2d\u914d\u7f6e\u4e2d\u5220\u9664LOG_DIR\u914d\u7f6e\n    \u5728.env\u4e2d\u914d\u7f6e\u4e2d\u6ce8\u91ca\u6389LOG_DIR\u914d\u7f6e(\u524d\u52a0#\u53f7)\uff0c \u4f8b\u5982: #LOG_DIR=/home/logs/python/\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "MySQL ORM",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "hangsql",
+        "package_url": "https://pypi.org/project/hangsql/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/hangsql/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/hangsql/1.0.8/",
+        "requires_dist": [
+            "pymysql",
+            "pandas",
+            "configparser"
+        ],
+        "requires_python": ">=3",
+        "summary": "A simple mysql orm base on pymysql",
+        "version": "1.0.8"
+    },
+    "last_serial": 5280273,
+    "releases": {
+        "1.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "caf0dec214c33a665e45b0dc608ab466",
+                    "sha256": "c24bbb38876c15874bb7e546d2768ed09d69350c11c5138099ca1642aa8da8c3"
+                },
+                "downloads": -1,
+                "filename": "hangsql-1.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "caf0dec214c33a665e45b0dc608ab466",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 8491,
+                "upload_time": "2019-05-15T11:27:18",
+                "url": "https://files.pythonhosted.org/packages/64/9b/6d44e5f4d197d306908ff67013704abdf1b1510b4a8edd2363daf7913221/hangsql-1.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "65e70362d8337a2f5c06c0b820cd7954",
+                    "sha256": "89f5d3469fd6f6be5026129c2ef7894f7952f29bdf694242525513b2479b49c1"
+                },
+                "downloads": -1,
+                "filename": "hangsql-1.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "65e70362d8337a2f5c06c0b820cd7954",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3",
+                "size": 5146,
+                "upload_time": "2019-05-15T11:27:20",
+                "url": "https://files.pythonhosted.org/packages/10/32/89483e5eb298e2919ce1c1ed40f73942709d00e524f48934b7dcf86e0996/hangsql-1.0.6.tar.gz"
+            }
+        ],
+        "1.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fc8fdb59525d6e95e8edbe964f10543a",
+                    "sha256": "3cd8d1bb40e9c794cdbf4860a8ae758f8efcf3cb5654157beaf783682eed8dff"
+                },
+                "downloads": -1,
+                "filename": "hangsql-1.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fc8fdb59525d6e95e8edbe964f10543a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 10426,
+                "upload_time": "2019-05-16T09:06:25",
+                "url": "https://files.pythonhosted.org/packages/d2/d8/86b634f1d83da47107010525ecad237e7925fd3fecc5218aed7c24ee2007/hangsql-1.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "587312ff32c6a99fd532d309c8213ed5",
+                    "sha256": "44c05b9167b94dc85778213315357195d26b8d6c78e64231bf063ab39b297bd0"
+                },
+                "downloads": -1,
+                "filename": "hangsql-1.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "587312ff32c6a99fd532d309c8213ed5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3",
+                "size": 8975,
+                "upload_time": "2019-05-16T09:06:27",
+                "url": "https://files.pythonhosted.org/packages/01/8c/665eaa8500a442a906e48aef0e9c71278de9ed74ef2e56bed94f352f439c/hangsql-1.0.7.tar.gz"
+            }
+        ],
+        "1.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e82731cb25dcd4d4faaf9544bba50a50",
+                    "sha256": "ee8f71dad917f43fd65370e053a11f8d4923dc636b467b52e120c97a1fb8e849"
+                },
+                "downloads": -1,
+                "filename": "hangsql-1.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e82731cb25dcd4d4faaf9544bba50a50",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 10564,
+                "upload_time": "2019-05-17T03:26:15",
+                "url": "https://files.pythonhosted.org/packages/ef/69/afd81e4ec8c408cad8ff0af9e3cf386d32275200e1cdf8532b9f21a99efd/hangsql-1.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8223af39c3b06a938be1a6b9feb8a34c",
+                    "sha256": "f736e95f96e36218b403f23c12acc1431d2be4eabbc84792b8897a0459d5bdaa"
+                },
+                "downloads": -1,
+                "filename": "hangsql-1.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8223af39c3b06a938be1a6b9feb8a34c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3",
+                "size": 9764,
+                "upload_time": "2019-05-17T03:26:17",
+                "url": "https://files.pythonhosted.org/packages/8d/af/328b507845ae0138d20a12bd9e774814340822f4a017e8a8aecacbfd3e13/hangsql-1.0.8.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e82731cb25dcd4d4faaf9544bba50a50",
+                "sha256": "ee8f71dad917f43fd65370e053a11f8d4923dc636b467b52e120c97a1fb8e849"
+            },
+            "downloads": -1,
+            "filename": "hangsql-1.0.8-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "e82731cb25dcd4d4faaf9544bba50a50",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3",
+            "size": 10564,
+            "upload_time": "2019-05-17T03:26:15",
+            "url": "https://files.pythonhosted.org/packages/ef/69/afd81e4ec8c408cad8ff0af9e3cf386d32275200e1cdf8532b9f21a99efd/hangsql-1.0.8-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8223af39c3b06a938be1a6b9feb8a34c",
+                "sha256": "f736e95f96e36218b403f23c12acc1431d2be4eabbc84792b8897a0459d5bdaa"
+            },
+            "downloads": -1,
+            "filename": "hangsql-1.0.8.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8223af39c3b06a938be1a6b9feb8a34c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3",
+            "size": 9764,
+            "upload_time": "2019-05-17T03:26:17",
+            "url": "https://files.pythonhosted.org/packages/8d/af/328b507845ae0138d20a12bd9e774814340822f4a017e8a8aecacbfd3e13/hangsql-1.0.8.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,121 @@
+{
+    "info": {
+        "author": "Philipp Heinrich",
+        "author_email": "philipp.heinrich@fau.de",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Collocation and Concordance Computation #\n\n## Introduction ##\nThis module is a wrapper around the [IMS Open Corpus Workbench\n(CWB)]([http://cwb.sourceforge.net/]).  It requires CWB version 3.4.16\nor newer for anchored queries.  Main purpose of the module is to\nextract concordance lines and to calculate collocates, as well as to\nextract the results of queries with more than two anchors.\n\n## Installation ##\nThe recommended way to install the module is to clone the repository\nand use `setup.py`.\n\n    python3 setup.py install\n\nAlternatively, you can just install the requirements and make sure the\n`ccc` subfolder can be found by Python by including it in your\n`PYTHONPATH`.\n\n\n## Usage ##\n\n### CWBEngine\nAll methods rely on the `CWBEngine` from `ccc.cwb`, which you first\nhave to initialize with your system specific settings:\n\n```python\nfrom ccc.cwb import CWBEngine\n\nengine = CWBEngine(\n\tcorpus_name=\"EXAMPLE_CORPUS\"\n\tregistry_path=\"/path/to/your/cwb/registry\"\n)\n```\n\nNB: this will raise a KeyError if the named corpus is not in the\nspecified registry.\n\nYou can use the `cqp_bin` to point the engine to a specific version of\n`cqp` (this is also helpful if `cqp` is not in your `PATH`):\n\n```python\nengine = CWBEngine(\n\tcorpus_name=\"EXAMPLE_CORPUS\",\n\tregistry_path=\"/path/to/your/cwb/registry\", \n\tcqp_bin=\"/usr/local/cwb-3.4.16/bin/cqp\"\n)\n```\n\nIf you are using macros and wordlists, you have to store them in a\nseparate folder (with subfolders `wordlists` and `macros`).  Make sure\nyou specify this folder via `lib_path` when initializing the\nengine:\n\n```python\nengine = CWBEngine(\n\tcorpus_name=\"EXAMPLE_CORPUS\", \n\tregistry_path=\"/path/to/your/cwb/registry\",\n\tlib_path=\"/path/to/your/lib/\"\n)\n```\n\n\n### Concordancing ###\n\nYou can use the `Concordance` class from `ccc.concordances` for\nconcordancing. The concordancer has to be initialized with the engine\nand accepts valid CQP queries:\n\n```python\nfrom ccc.concordances import Concordance\n\n# initialize the concordancer with the engine\nconcordance = Concordance(engine)\n\n# extract concordance lines\nconcordance.query('[lemma=\"Angela\"] [lemma=\"Merkel\"]')\n```\n\nThe result will be a dictionary with the _cpos_ of the match as keys\nand the entries one concordance line each. Each concordance line is\nformatted as a `pandas.DataFrame` with the _cpos_ of each token as\nindex:\n\n| **cpos**  | word    | match | offset |\n|-----------|---------|-------|--------|\n| 188530363 | ,       | False | -5     |\n| 188530364 | dass    | False | -4     |\n| 188530365 | die     | False | -3     |\n| 188530366 | Tage    | False | -2     |\n| 188530367 | von     | False | -1     |\n| 188530368 | Angela  | True  | 0      |\n| 188530369 | Merkel  | True  | 0      |\n| 188530370 | gez\u00e4hlt | False | 1      |\n| 188530371 | sind    | False | 2      |\n| 188530372 | .       | False | 3      |\n\nThe queries _must not_ end on a \"within\" clause.  If you want to\nrestrict your concordance lines by a structural attribute, use the\n`s_break` parameter (defaults to \"text\"). The default context window\nis 20 tokens to the left and 20 tokens to the right of the query match\nand matchend, respectively.\n\n```python\nconcordance = Concordance(engine, context=50, s_break='s')\nconcordance.query('[lemma=\"Angela\"] [lemma=\"Merkel\"]')\n```\n\nFurther parameters for the `Concordance` class are `order` (one of\n\"random\", \"first\", or \"last\"), `cut_off` (for the number of\nconcordance lines to extract), and `p_show` (a `list` of additional\np-attributes besides the primary word layer to show, e.\\,g. \"lemma\" or\n\"pos\"; these will be added as additional columns).\n\n### Anchored Queries ###\n\n`Concordance` detects anchored queries by default. The following query\n```python\nconcordance.query(\n\t'@0[lemma=\"Angela\"]? @1[lemma=\"Merkel\"] '\n\t'[word=\"\\\\(\"] @2[lemma=\"CDU\"] [word=\"\\\\)\"]'\n)\n```\nwill thus return `DataFrame`s with an additional column indicating the\nanchor positions:\n\n| **cpos**  | word       | match | offset | anchor |\n|-----------|------------|-------|--------|--------|\n| 298906425 | auch       | False | -5     | None   |\n| 298906426 | das        | False | -4     | None   |\n| 298906427 | Handy      | False | -3     | None   |\n| 298906428 | von        | False | -2     | None   |\n| 298906429 | Kanzlerin  | False | -1     | None   |\n| 298906430 | Angela     | True  | 0      | 0      |\n| 298906431 | Merkel     | True  | 0      | 1      |\n| 298906432 | (          | True  | 0      | None   |\n| 298906433 | CDU        | True  | 0      | 2      |\n| 298906434 | )          | True  | 0      | None   |\n| 298906435 | sowie      | False | 1      | None   |\n| 298906436 | ihres      | False | 2      | None   |\n| 298906437 | Vorg\u00e4ngers | False | 3      | None   |\n| 298906438 | Gerhard    | False | 4      | None   |\n| 298906439 | Schr\u00f6der   | False | 5      | None   |\n\n\n### Argument Queries\nArgument queries are anchored queries with additional information. (1)\nEach anchor can be modified by an offset (usually used to capture\nunderspecified tokens near an anchor point). (2) Anchors can be mapped\nto external identifiers for further logical processing, and (3) be\ngiven a clear name:\n\n\n| anchor | offset | idx  | clear name |\n|--------|--------|------|------------|\n| 0      | 0      | None | None       |\n| 1      | -1     | None | None       |\n| 2      | 0      | None | None       |\n| 3      | -1     | None | None       |\n\n\nFurthermore, several anchor queries can be combined to form regions,\nwhich in turn can be mapped to identifiers and be given a clear name:\n\n| start | end | idx | clear name |\n|-------|-----|-----|------------|\n| 0     | 1   | \"0\" | \"person X\" |\n| 2     | 3   | \"1\" | \"person Y\" |\n\n\nExample: Given the definition of anchors and regions above, the\nfollwing complex query extracts corpus positions where there's some\ncorrelation between \"person X\" (the region from anchor 0 to anchor 1)\nand \"person Y\" (anchor 2 to 3):\n\n```python\nquery = (\n\t\"<np> []* /ap[]* [lemma = $nouns_similarity] \"\n\t\"[]*</np> \\\"between\\\" @0:[::](<np>[pos_simple=\\\"D|A\\\"]* \"\n\t\"([pos_simple=\\\"Z|P\\\" | lemma = $nouns_person_common | \"\n\t\"lemma = $nouns_person_origin | lemma = $nouns_person_support | \"\n\t\"lemma = $nouns_person_negative | \"\n\t\"lemma = $nouns_person_profession] |/region[ner])+ \"\n\t\"[]*</np>)+@1:[::] \\\"and\\\" @2:[::](<np>[pos_simple=\\\"D|A\\\"]* \"\n\t\"([pos_simple=\\\"Z|P\\\" | lemma = $nouns_person_common | \"\n\t\"lemma = $nouns_person_origin | lemma = $nouns_person_support | \"\n\t\"lemma = $nouns_person_negative | \"\n\t\"lemma = $nouns_person_profession] | /region[ner])+ \"\n\t\"[]*</np>) (/region[np] | <vp>[lemma!=\\\"be\\\"]</vp> | \"\n\t\"/region[pp] |/be_ap[])* @3:[::]\"\n)\n```\n\nNB: the set of identifiers defined in the table of anchors and in the\ntable of regions, respectively, should not overlap.\n\nIt is customary to store these queries in json query files such as the\n[example](tests/gold/query-example.json). You can directly process\nthese files using the `process_argmin_file` method from `ccc.anchors`:\n\n```python\nfrom ccc.argmin import process_argmin_file\n\n# process the query file\nquery_path = \"tests/gold/query-example.json\"\nresult = process_argmin_file(engine, query_path)\n```\n\nThe result is a `dict` with the same keys as specified in the query\nfile as well as an entry \"result\" with the following keys:\n\n- \"nr_matches\": the number of query matches in the corpus.\n- \"matches\": the actual concordance lines as returned from\n  `Concordance().query()` (see above) converted to a `dict`. An\n  additional entry \"holes\" contains a mapping from the idx specified\n  in the anchor and region tables to the tokens or token sequences,\n  respectively, for each concordance line (default: lemma layer).\n- \"holes\": a global list of all tokens of the entities specified in\n  the \"idx\" columns (default: lemma layer).\n\n\n## Acknowledgements ##\nThe module relies on several other python modules (see the\nrequirements).  Special thanks to Yannick Versley and Jorg Asmussen\nfor the implementation of\n[cwb-python](https://pypi.org/project/cwb-python/).\n\nThis work has been funded by the Deutsche Forschungsgemeinschaft (DFG)\nwithin the project \"Reconstructing Arguments from Noisy Text\", grant\nnumber 377333057, as part of the Priority Program \"Robust\nArgumentation Machines (RATIO)\" (SPP-1999).\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.cs.fau.de/pheinrich/ccc",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ccc-ausgerechnet",
+        "package_url": "https://pypi.org/project/ccc-ausgerechnet/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ccc-ausgerechnet/",
+        "project_urls": {
+            "Homepage": "https://gitlab.cs.fau.de/pheinrich/ccc"
+        },
+        "release_url": "https://pypi.org/project/ccc-ausgerechnet/0.9.2/",
+        "requires_dist": [
+            "pandas (>=0.25.3)",
+            "cwb-python (>=0.2.2)"
+        ],
+        "requires_python": ">=3.5",
+        "summary": "CWB wrapper to extract concordances and collocates",
+        "version": "0.9.2"
+    },
+    "last_serial": 6526602,
+    "releases": {
+        "0.9.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "493956d39647eed972d35cd2cf2d3f16",
+                    "sha256": "245bb1b7f5bba4e5ddf73f4889e9508888988230b9b39d5c6b31633b42f22284"
+                },
+                "downloads": -1,
+                "filename": "ccc_ausgerechnet-0.9.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "493956d39647eed972d35cd2cf2d3f16",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5",
+                "size": 28930,
+                "upload_time": "2020-01-27T14:07:57",
+                "upload_time_iso_8601": "2020-01-27T14:07:57.892169Z",
+                "url": "https://files.pythonhosted.org/packages/b1/f3/18ce5963b92f5aa60e0cd11ea1364ba150208f3ebd2eb5ccc4ecd57c9441/ccc_ausgerechnet-0.9.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4fbf9e46d26a7e47c641721755f7795c",
+                    "sha256": "0aa9a8ad5086f2f03509695197124945b690ea34e1645f8dea7e1fd5579d3220"
+                },
+                "downloads": -1,
+                "filename": "ccc-ausgerechnet-0.9.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4fbf9e46d26a7e47c641721755f7795c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5",
+                "size": 15640,
+                "upload_time": "2020-01-27T14:08:02",
+                "upload_time_iso_8601": "2020-01-27T14:08:02.859214Z",
+                "url": "https://files.pythonhosted.org/packages/0f/8c/b49af3e3c8eeae85b49752c1015d758d6e47ffa3e5f8a77cf423d94b78ae/ccc-ausgerechnet-0.9.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "493956d39647eed972d35cd2cf2d3f16",
+                "sha256": "245bb1b7f5bba4e5ddf73f4889e9508888988230b9b39d5c6b31633b42f22284"
+            },
+            "downloads": -1,
+            "filename": "ccc_ausgerechnet-0.9.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "493956d39647eed972d35cd2cf2d3f16",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.5",
+            "size": 28930,
+            "upload_time": "2020-01-27T14:07:57",
+            "upload_time_iso_8601": "2020-01-27T14:07:57.892169Z",
+            "url": "https://files.pythonhosted.org/packages/b1/f3/18ce5963b92f5aa60e0cd11ea1364ba150208f3ebd2eb5ccc4ecd57c9441/ccc_ausgerechnet-0.9.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4fbf9e46d26a7e47c641721755f7795c",
+                "sha256": "0aa9a8ad5086f2f03509695197124945b690ea34e1645f8dea7e1fd5579d3220"
+            },
+            "downloads": -1,
+            "filename": "ccc-ausgerechnet-0.9.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "4fbf9e46d26a7e47c641721755f7795c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5",
+            "size": 15640,
+            "upload_time": "2020-01-27T14:08:02",
+            "upload_time_iso_8601": "2020-01-27T14:08:02.859214Z",
+            "url": "https://files.pythonhosted.org/packages/0f/8c/b49af3e3c8eeae85b49752c1015d758d6e47ffa3e5f8a77cf423d94b78ae/ccc-ausgerechnet-0.9.2.tar.gz"
+        }
+    ]
+}

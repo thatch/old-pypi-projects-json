@@ -1,0 +1,324 @@
+{
+    "info": {
+        "author": "Bertrand Chenal",
+        "author_email": "bertrand@adimian.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "\nHiggins\n=======\n\nHiggins is a continuous integration software implemented in Python and\ninspired by Jenkins.\n\nIt allows to track several repositories and to launch test with\nrespect to dependencies between them.\n\nQuickstart\n==========\n\nAfter the installation with:\n\n.. code-block:: bash\n\n  pip install higgins\n\nthe ``hn`` command should be available. The first step is to go the the\ndirectory where your sources are located and launch:\n\n.. code-block:: bash\n\n  hn init\n\nThis will create ad ``.hn`` folder. You can then edit the\n``.hn/config.yaml`` file to configure your installation. This file\nshould look like this:\n\n.. code-block:: yaml\n\n  my_project:  # The name of your project\n    path: relative/path/to/project\n    repository:\n      repo_a: path/to/a  # Give a label for each repository path\n      repo_b: path/to/b  # Those path are relative to project path\n      repo_c: path/to/c\n\n    test:\n      true-test: /usr/bin/true\n      false-test: /usr/bin/false\n\n    triage:  # repo_a depends on repo_b ad repo_c\n      repo_a:\n      - repo_b\n      - repo_c\n\n    build:  # Define which commands must be launch for each repo\n      repo_a:\n      - true-test\n      - false-test\n\nThen you can launch:\n\n.. code-block:: bash\n\n   hn trigger\n\nThis command check every repository for new changesets. And then:\n\n.. code-block:: bash\n\n   hn build\n\nWhich will launch all needed test. To check the result you can start:\n\n.. code-block:: bash\n\n   hn serve\n\nand open http://localhost:5000 to see the results. To avoid to launch\nthe ``build`` and ``trigger`` commands manually you can pass the\n``--monitor`` flag to the ``serve`` command:\n\n.. code-block:: bash\n\n   hn serve --monitor  # check all repos every 10 minutes\n\n\nOther ways to define tests\n==========================\n\nYou can associate a list of tests to the same label:\n\n\n.. code-block:: yaml\n\n    test:\n      slow-test:\n      - bin/sleep 10\n      - bin/sleep 30\n      - bin/sleep 40\n      fast-test:\n      - bin/sleep 1\n      - bin/sleep 3\n      - bin/sleep 4\n\nYou can alos specify a test with a base command that will be called on\na list of files:\n\n.. code-block:: yaml\n\n    test:\n      wc-test:\n        command: /usr/bin/wc -l\n        path: \"data/*.txt\"\n        exclude: \"data/foo.*\"\n\nWhere the path will be understood as relative to the repository\nfolder. This definition will launch ``/usr/bin/wc -l`` on all files of\nthe 'data' sub-direcotry that ends with '.txt' and will exclude the\nones starting with 'foo.' (the wildcards are expanded with the glob_\nmethod)\n\n.. _glob: http://docs.python.org/2/library/glob.html?highlight=glob#glob.glob\n\n\nProject inheritance\n===================\n\nIf you want to track several projects that shares a similar\nconfiguration, you can define inherits a project from another one with\nthe ``extend`` key.\n\n.. code-block:: yaml\n\n   project:\n     repository: ...\n     test: ...\n     build: ...\n\n   project.dev:\n     extend: project\n     path: path/to/dev\n\n   project.prod:\n     extend: project\n     path: path/to/prod\n     build: ...   # override the default build config\n\n\nIn the above example ``project`` will be used as a template for\n``project.dev`` and ``project.prod``.  Only the project with a path\nwill be considered.\n\n\nOverride repositories synchronization\n=====================================\n\nBy default, higgins will update the repositories by calling ``hg pull\n-u`` inside each of them. The ``sync-all`` option allows to override\nthis behaviour. Please note that this command is called once per\nproject (at the root of the project) and not inside each repository.\n\n.. code-block:: yaml\n\n   project:\n     ...\n     sync-all: my_custom_command\n\n\n\nRoadmap\n=======\n\n- Run tests in parallel (across different projects)\n- Provide support for a ``sync-each`` method (that will be run inside\n  each repository)\n- Support for git\n- Allows to choose a default banch (per repository ? per project ?)\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/adimian/higgins",
+        "keywords": null,
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "Higgins",
+        "package_url": "https://pypi.org/project/Higgins/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/Higgins/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://bitbucket.org/adimian/higgins"
+        },
+        "release_url": "https://pypi.org/project/Higgins/0.4.3/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Higgins",
+        "version": "0.4.3"
+    },
+    "last_serial": 1062379,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "df001c3d088428304feb95c432526149",
+                    "sha256": "7e0cd4532a4d00c655d8f719269683bc1ee79eefc19ceb67301de774d9cd8897"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "df001c3d088428304feb95c432526149",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9637,
+                "upload_time": "2014-03-26T10:17:08",
+                "upload_time_iso_8601": "2014-03-26T10:17:08.335889Z",
+                "url": "https://files.pythonhosted.org/packages/d1/15/2f672a76c850532ec08f1570367ac287c12b9604100a7d1f588268b2ad85/Higgins-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d34e2025643ee8844ca878fea82a0c51",
+                    "sha256": "dce07433075101fb0ae98e0224fd9ed3338c71d3f49d44857d075f414b5cb8ea"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d34e2025643ee8844ca878fea82a0c51",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 155207,
+                "upload_time": "2014-03-27T13:07:14",
+                "upload_time_iso_8601": "2014-03-27T13:07:14.412369Z",
+                "url": "https://files.pythonhosted.org/packages/df/28/16e1c8ac7e70d53c058aef1594c7cbf601835f611692513711be82d57177/Higgins-0.2.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0d36854b82309e8fa9a1d7ca871f9b78",
+                    "sha256": "c57c53df0d5cfa398eff2d45f3e4abe0c248071e860d2bc8e8f21ff123add2b6"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0d36854b82309e8fa9a1d7ca871f9b78",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 155552,
+                "upload_time": "2014-03-27T14:59:17",
+                "upload_time_iso_8601": "2014-03-27T14:59:17.637383Z",
+                "url": "https://files.pythonhosted.org/packages/b1/dd/a7009977c4268ee6088b620dd1897c28e3660a38380ddfb27bf1278c717a/Higgins-0.3.tar.gz"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bf59c6fa0d94de7b1cbae604c0b06d22",
+                    "sha256": "6692a4d327ce9408b50f48cb65cdb4a08c3de6aaba534184d1ba6c303de24515"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.3.win32.exe",
+                "has_sig": false,
+                "md5_digest": "bf59c6fa0d94de7b1cbae604c0b06d22",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 354228,
+                "upload_time": "2014-03-28T16:18:16",
+                "upload_time_iso_8601": "2014-03-28T16:18:16.704954Z",
+                "url": "https://files.pythonhosted.org/packages/08/f5/b82000bc6a2af9a421905408e2b576b4d5affb0c05a66b41cae46e01a05f/Higgins-0.3.win32.exe"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "417bac7b050d1780a848d24e8b7bfd70",
+                    "sha256": "4716be1f42f7e0963f57e3c72033db04ea2c0dc5fc16ca6c3c3d9f688b8976c5"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.3.zip",
+                "has_sig": false,
+                "md5_digest": "417bac7b050d1780a848d24e8b7bfd70",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 158521,
+                "upload_time": "2014-03-28T16:18:02",
+                "upload_time_iso_8601": "2014-03-28T16:18:02.759890Z",
+                "url": "https://files.pythonhosted.org/packages/ef/f8/7599389f48aaa9ff61ddd9b7b5de33b86c959f9f3d20ddcb0fd0697f11e3/Higgins-0.3.zip"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a51b5dabce1d8e4543994941ffc9d83e",
+                    "sha256": "09cedc485875c334d82d41e9f7ff15ada9180dd01afd73ce573aba0d5f128dbe"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.4.win32.exe",
+                "has_sig": false,
+                "md5_digest": "a51b5dabce1d8e4543994941ffc9d83e",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 354340,
+                "upload_time": "2014-03-29T09:12:05",
+                "upload_time_iso_8601": "2014-03-29T09:12:05.934746Z",
+                "url": "https://files.pythonhosted.org/packages/a9/cb/bc0c6a6eda9ddb566dad08c7606b8b443a5c28bc00f4a1ae2df44beef7c0/Higgins-0.4.win32.exe"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "43a90d59431c1b87780c4b23eb049efd",
+                    "sha256": "c919136bd6e6d0bd1f57cfec6133931f4c6e883afe9429e1218bb5216eeb7f30"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.4.zip",
+                "has_sig": false,
+                "md5_digest": "43a90d59431c1b87780c4b23eb049efd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 160058,
+                "upload_time": "2014-03-29T09:11:52",
+                "upload_time_iso_8601": "2014-03-29T09:11:52.625807Z",
+                "url": "https://files.pythonhosted.org/packages/96/ba/ee23136ceb3290f5bfc9d87340a834859e4674d5edd36e1913133f130f01/Higgins-0.4.zip"
+            }
+        ],
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3f5c8fbe9854fbf15be74889333a731",
+                    "sha256": "5d74bc4901b56f4cb12c53fe4dc5dc4a212b2349ec3b71af9bb6a56c9fc6e2a2"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.4.1.win32.exe",
+                "has_sig": false,
+                "md5_digest": "f3f5c8fbe9854fbf15be74889333a731",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 354359,
+                "upload_time": "2014-04-14T15:38:12",
+                "upload_time_iso_8601": "2014-04-14T15:38:12.674529Z",
+                "url": "https://files.pythonhosted.org/packages/4a/29/6d2fc5006abc458f630c19bde82a3e2d3ce75cfa0a192de3810b9cec98a8/Higgins-0.4.1.win32.exe"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a7cf026891118a4bd1a89fc4d3ab09eb",
+                    "sha256": "91ffa496ab59a811f4ff6b33b20c01a0afaa3b514415051002b07e3d02ce12ff"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.4.1.zip",
+                "has_sig": false,
+                "md5_digest": "a7cf026891118a4bd1a89fc4d3ab09eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 160203,
+                "upload_time": "2014-04-14T15:37:12",
+                "upload_time_iso_8601": "2014-04-14T15:37:12.375928Z",
+                "url": "https://files.pythonhosted.org/packages/a3/3f/2746282fd1963c1dd3115eec9e60fcbdfe3edcfa236772cdda5eb2212aca/Higgins-0.4.1.zip"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "432d479bda6e275368c95d81dc61e16a",
+                    "sha256": "d02820bbb113e0e85fceb6cf2deb95bf554c4f7152dd98e19a19c2aaef1bd691"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.4.2.win32.exe",
+                "has_sig": false,
+                "md5_digest": "432d479bda6e275368c95d81dc61e16a",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 354367,
+                "upload_time": "2014-04-15T11:08:25",
+                "upload_time_iso_8601": "2014-04-15T11:08:25.779798Z",
+                "url": "https://files.pythonhosted.org/packages/d1/69/7db21738ff229987c4594c63196c531292037c9a9ae0dff43d8067a32407/Higgins-0.4.2.win32.exe"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eaf1c86b36a2d9acae09070037db518a",
+                    "sha256": "6f8074643a042721512f61e9fcab89f50cd4e0ea3a8277baa68e2ff2082e6c43"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.4.2.zip",
+                "has_sig": false,
+                "md5_digest": "eaf1c86b36a2d9acae09070037db518a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 160211,
+                "upload_time": "2014-04-15T11:08:11",
+                "upload_time_iso_8601": "2014-04-15T11:08:11.594714Z",
+                "url": "https://files.pythonhosted.org/packages/ed/4f/7bd2767a673e75fec253d574c33e7b102fad0b6cab0fa069e0b2ad5cb0e8/Higgins-0.4.2.zip"
+            }
+        ],
+        "0.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "59841793c24bdb8b1605cc9fac955160",
+                    "sha256": "2da581457d893fbd9b4beda2a2e085ea4903b0efc0a1115511e641a34e8f1713"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "59841793c24bdb8b1605cc9fac955160",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 158114,
+                "upload_time": "2014-04-16T14:57:08",
+                "upload_time_iso_8601": "2014-04-16T14:57:08.602659Z",
+                "url": "https://files.pythonhosted.org/packages/ee/62/59fb550d60871be2868d1d4c0c89ef9771ebecc029627a6cfaad1c85d891/Higgins-0.4.3.tar.gz"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "97025fc20f6be9df237f136fa9675341",
+                    "sha256": "6a3d0a5403b53d93d9c8d12feeb6468eef183cfe46f2c3db0235ffb7c25f0726"
+                },
+                "downloads": -1,
+                "filename": "Higgins-0.4.3.win32.exe",
+                "has_sig": false,
+                "md5_digest": "97025fc20f6be9df237f136fa9675341",
+                "packagetype": "bdist_wininst",
+                "python_version": "any",
+                "requires_python": null,
+                "size": 354710,
+                "upload_time": "2014-04-16T15:12:40",
+                "upload_time_iso_8601": "2014-04-16T15:12:40.508949Z",
+                "url": "https://files.pythonhosted.org/packages/51/aa/b88e32b7b836b8d9e306bffd7f67de3783d0f12126fe1d1029d989c57bbc/Higgins-0.4.3.win32.exe"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "59841793c24bdb8b1605cc9fac955160",
+                "sha256": "2da581457d893fbd9b4beda2a2e085ea4903b0efc0a1115511e641a34e8f1713"
+            },
+            "downloads": -1,
+            "filename": "Higgins-0.4.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "59841793c24bdb8b1605cc9fac955160",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 158114,
+            "upload_time": "2014-04-16T14:57:08",
+            "upload_time_iso_8601": "2014-04-16T14:57:08.602659Z",
+            "url": "https://files.pythonhosted.org/packages/ee/62/59fb550d60871be2868d1d4c0c89ef9771ebecc029627a6cfaad1c85d891/Higgins-0.4.3.tar.gz"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "97025fc20f6be9df237f136fa9675341",
+                "sha256": "6a3d0a5403b53d93d9c8d12feeb6468eef183cfe46f2c3db0235ffb7c25f0726"
+            },
+            "downloads": -1,
+            "filename": "Higgins-0.4.3.win32.exe",
+            "has_sig": false,
+            "md5_digest": "97025fc20f6be9df237f136fa9675341",
+            "packagetype": "bdist_wininst",
+            "python_version": "any",
+            "requires_python": null,
+            "size": 354710,
+            "upload_time": "2014-04-16T15:12:40",
+            "upload_time_iso_8601": "2014-04-16T15:12:40.508949Z",
+            "url": "https://files.pythonhosted.org/packages/51/aa/b88e32b7b836b8d9e306bffd7f67de3783d0f12126fe1d1029d989c57bbc/Higgins-0.4.3.win32.exe"
+        }
+    ]
+}

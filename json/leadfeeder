@@ -1,0 +1,155 @@
+{
+    "info": {
+        "author": "Luigi Gianni",
+        "author_email": "lcgianni@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "<!-- PROJECT SHIELDS -->\n[![Build Status][build-shield]]()\n[![Contributors][contributors-shield]]()\n[![MIT License][license-shield]][license-url]\n[![LinkedIn][linkedin-shield]][linkedin-url]\n\n<!-- PROJECT LOGO -->\n\n\n\n\n<!-- TABLE OF CONTENTS -->\n## Table of Contents\n\n* [About the Project](#about-the-project)\n* [Getting Started](#getting-started)\n  * [Prerequisites](#prerequisites)\n  * [Installation](#installation)\n* [Usage](#usage)\n* [Contributing](#contributing)\n* [Testing](#testing)\n* [License](#license)\n* [Contact](#contact)\n\n<!-- ABOUT THE PROJECT -->\n## About The Project\n\n[Leadfeeder](https://www.leadfeeder.com/) helps you discover companies that visited your website, by identifying visitors and tracking their behaviour. This Python package allows you to easily connect to Leadfeeder's API and build applications on top of it.\n\n<!-- GETTING STARTED -->\n## Getting Started\n\n### Prerequisites\n\nThis package only supports Python 3.\n\n### Installation\n\n1. Log in to your Leadfeeder account and [get a free API Token](https://app.leadfeeder.com/settings/api)\n2. Install the package\n```sh\npip3 install leadfeeder\n```\n\n<!-- USAGE EXAMPLES -->\n## Usage\n\nImport the package...\n\n```python\nfrom leadfeeder import Leadfeeder\n```\n\n... then create an instance of Leadfeeder using your API Token.\n\n```python\nAPI_TOKEN = '31kFml4zvl3cWDKoJwBplLoNRcc1PVRQP443sUnT'\nleadfeeder = Leadfeeder(API_TOKEN)\n```\n\n### Accounts\n#### Get accounts associated with token\n\n```python\nfrom pprint import pprint\n\naccounts = leadfeeder.accounts()\npprint(accounts)\n```\n\nAssuming a valid token, you should expect an output similar to:\n\n```sh\n[{'attributes': {'name': 'www.somedomain.com',\n                 'on_trial': False,\n                 'subscription': 'lite',\n                 'subscription_addons': [],\n                 'timezone': 'America/New_York'},\n  'id': '63229',\n  'type': 'accounts'},\n {'attributes': {'name': 'www.otherdomain.com',\n                 'on_trial': True,\n                 'subscription': 'premium',\n                 'subscription_addons': ['google_data_studio'],\n                 'timezone': 'America/New_York'},\n  'id': '66884',\n  'type': 'accounts'}]\n```\n\n#### Get specific account\n\n```python\naccount = leadfeeder.account(account_id=accounts[0]['id'])\n```\n\n### Custom Feeds\n#### Get custom feeds associated with account\n\n```python\ncustom_feeds = leadfeeder.custom_feeds(account_id=account['id'])\n```\n\n#### Get specific custom feed associated with account\n\n```python\ncustom_feed = leadfeeder.custom_feed(account_id=account['id'],\n                                     custom_feed_id=custom_feeds[0]['id'])\n```\n\n### Leads\n#### Get leads associated with account\n\n```python\nfrom datetime import datetime\n\nleads = leadfeeder.leads(account_id=account['id'],\n                         start_date=datetime(2019, 6, 11),\n                         end_date=datetime(2019, 6, 11),\n                         page_number=1,\n                         page_size=10)\n```\n\nBoth `page_number` and `page_size` are optional arguments, used to control the response's pagination. They default to 1 and 10, respectively.\n\n#### Get specific leads associated with account\n\n```python\nlead = leadfeeder.lead(account_id=account['id'],\n                       lead_id=custom_feed['id'])\n```\n\n### Visits\n#### Get visits of lead\n\n```python\nlead_visits = leadfeeder.lead_visits(account_id=account['id'],\n                                     lead_id=lead['id'],\n                                     start_date=datetime(2019, 6, 11),\n                                     end_date=datetime(2019, 6, 12),\n                                     page_number=1,\n                                     page_size=10)\n```\n\n#### Get visits of account\n\n```python\nvisits = leadfeeder.visits(account_id=account['id'],\n                           start_date=datetime(2019, 6, 11),\n                           end_date=datetime(2019, 6, 11),\n                           page_number=1,\n                           page_size=10)\n```\n\n#### Get visits of leads in a given custom feed\n\n```python\ncustom_feed_visits = leadfeeder.custom_feed_visits(account_id=account['id'],\n                                                   custom_feed_id=custom_feed['id'],\n                                                   start_date=datetime(2019, 6, 11),\n                                                   end_date=datetime(2019, 6, 11),\n                                                   page_number=1,\n                                                   page_size=10)\n```\n\n### Exports\n\nTo export leads in a custom feed, first request the export, then continuously check the status of the export until it is successfully processed.\n\n#### Request an export\n\n```python\ncustom_feed_export_request = leadfeeder.custom_feed_export_request(account_id=account['id'],\n                                                                   custom_feed_id=custom_feed['id'],\n                                                                   start_date=datetime(2019, 6, 11),\n                                                                   end_date=datetime(2019, 6, 11))\n```\n\n#### Get export status\n\n```python\ncustom_feed_export_status = leadfeeder.custom_feed_export_status(export_id=custom_feed_export_request['id'])\n```\n\nIf the export is successfully processed, you should expect a response such as:\n\n```sh\n{'attributes': {'created_at': '2019-06-12T10:10:54.186+00:00',\n                'download_url': 'https://api.leadfeeder.com/download/5c0f0a74-9acc-4094-a638-a639b253b14c.json',\n                'status': 'processed',\n                'status_url': 'https://api.leadfeeder.com/export-requests/5d05590e-8cfa-11e9-b8cc-6576fb85189c'},\n 'id': '5d05590e-8cfa-11e9-b8cc-6576fb85189c',\n 'type': 'export_requests'}\n```\n\nYou can then proceed to download the JSON available at `custom_feed_export_status['attributes']['download_url']`.\n\nFor additional information, please access the API's [official documentation](https://docs.leadfeeder.com/api/).\n\n<!-- CONTRIBUTING -->\n## Contributing\n\nAny contributions are greatly appreciated.\n\n1. Clone the repository\n2. Create a new feature branch (`git checkout -b feature/AmazingFeature`)\n3. Commit your changes (`git commit -m 'Add some AmazingFeature`)\n4. Push to the branch (`git push origin feature/AmazingFeature`)\n5. Open a Pull Request\n\n<!-- TESTING -->\n## Testing\n\nMake sure the requirements are satisfied then run `py.test` in the project's root.\n\n<!-- LICENSE -->\n## License\n\nDistributed under the MIT License. See `LICENSE` for more information.\n\n\n\n<!-- CONTACT -->\n## Contact\n\n[![LinkedIn][linkedin-shield]][linkedin-url]\n\n\n\n\n\n<!-- MARKDOWN LINKS & IMAGES -->\n[build-shield]: https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat-square\n[contributors-shield]: https://img.shields.io/badge/contributors-1-orange.svg?style=flat-square\n[license-shield]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square\n[license-url]: https://choosealicense.com/licenses/mit\n[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555\n[linkedin-url]: https://linkedin.com/in/luigigianni\n[product-screenshot]: https://raw.githubusercontent.com/othneildrew/Best-README-Template/master/screenshot.png\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/lcgianni/leadfeeder",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "leadfeeder",
+        "package_url": "https://pypi.org/project/leadfeeder/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/leadfeeder/",
+        "project_urls": {
+            "Homepage": "https://github.com/lcgianni/leadfeeder"
+        },
+        "release_url": "https://pypi.org/project/leadfeeder/0.0.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A Python Wrapper for Leadfeeder's API",
+        "version": "0.0.2"
+    },
+    "last_serial": 5391987,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3a1f9b39df7b3bb3e96ec548dc7e3cff",
+                    "sha256": "7ae0b0f015fb1fd820f97e9172d23bd2ed2084b4755593a66c8a8b654b3086cb"
+                },
+                "downloads": -1,
+                "filename": "leadfeeder-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3a1f9b39df7b3bb3e96ec548dc7e3cff",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6904,
+                "upload_time": "2019-06-12T16:20:45",
+                "upload_time_iso_8601": "2019-06-12T16:20:45.061527Z",
+                "url": "https://files.pythonhosted.org/packages/6f/42/76009245ca9cdf846a694db7937b567493dd96faa5e553e099970a1563d7/leadfeeder-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "850777cca92328a978c2c66188084c41",
+                    "sha256": "57209cdc05792fa9ca32e6f1bcc779410cb44c9874798ab5b372d8b2f6cab87b"
+                },
+                "downloads": -1,
+                "filename": "leadfeeder-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "850777cca92328a978c2c66188084c41",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5124,
+                "upload_time": "2019-06-12T16:20:47",
+                "upload_time_iso_8601": "2019-06-12T16:20:47.596220Z",
+                "url": "https://files.pythonhosted.org/packages/27/86/c6d74812953ae2ee759274a338293f5f89e7607f43043fc75d6b07199bc5/leadfeeder-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78f32eff290ae528c812d17e5ba45259",
+                    "sha256": "14b2e61ce2f7644ccd50e6079bfadc1fef3b80c9e52b27b15aad8678efee1892"
+                },
+                "downloads": -1,
+                "filename": "leadfeeder-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "78f32eff290ae528c812d17e5ba45259",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6668,
+                "upload_time": "2019-06-12T16:29:22",
+                "upload_time_iso_8601": "2019-06-12T16:29:22.380313Z",
+                "url": "https://files.pythonhosted.org/packages/02/92/7136e05a60f5137041f230340116d927f31deadd8f1d6447d57694da778f/leadfeeder-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e749cbf29fec561074c2a01297167f8f",
+                    "sha256": "e3378e1e764466fac5124fb798ba20e410c2585adee6f09a2e6a75949a96d51b"
+                },
+                "downloads": -1,
+                "filename": "leadfeeder-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e749cbf29fec561074c2a01297167f8f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4877,
+                "upload_time": "2019-06-12T16:29:24",
+                "upload_time_iso_8601": "2019-06-12T16:29:24.714569Z",
+                "url": "https://files.pythonhosted.org/packages/a9/a7/ec580b552c2f8a280a1c8d8100d49fdec0e3b466a8858f1e5a9b4bb44e6e/leadfeeder-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "78f32eff290ae528c812d17e5ba45259",
+                "sha256": "14b2e61ce2f7644ccd50e6079bfadc1fef3b80c9e52b27b15aad8678efee1892"
+            },
+            "downloads": -1,
+            "filename": "leadfeeder-0.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "78f32eff290ae528c812d17e5ba45259",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 6668,
+            "upload_time": "2019-06-12T16:29:22",
+            "upload_time_iso_8601": "2019-06-12T16:29:22.380313Z",
+            "url": "https://files.pythonhosted.org/packages/02/92/7136e05a60f5137041f230340116d927f31deadd8f1d6447d57694da778f/leadfeeder-0.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e749cbf29fec561074c2a01297167f8f",
+                "sha256": "e3378e1e764466fac5124fb798ba20e410c2585adee6f09a2e6a75949a96d51b"
+            },
+            "downloads": -1,
+            "filename": "leadfeeder-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e749cbf29fec561074c2a01297167f8f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 4877,
+            "upload_time": "2019-06-12T16:29:24",
+            "upload_time_iso_8601": "2019-06-12T16:29:24.714569Z",
+            "url": "https://files.pythonhosted.org/packages/a9/a7/ec580b552c2f8a280a1c8d8100d49fdec0e3b466a8858f1e5a9b4bb44e6e/leadfeeder-0.0.2.tar.gz"
+        }
+    ]
+}

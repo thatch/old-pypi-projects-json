@@ -1,0 +1,700 @@
+{
+    "info": {
+        "author": "Michael Hirsch, Ph.D.",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Intended Audience :: Science/Research",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Scientific/Engineering :: Atmospheric Science"
+        ],
+        "description": "[![Travis CI](https://travis-ci.org/scivision/pyrinex.svg?branch=master)](https://travis-ci.org/scivision/pyrinex)\n[![coverage](https://coveralls.io/repos/scivision/pyrinex/badge.svg?branch=master&service=github)](https://coveralls.io/github/scivision/pyrinex?branch=master)\n[![AppVeyor](https://ci.appveyor.com/api/projects/status/sxxqc77q7l3669dd?svg=true)](https://ci.appveyor.com/project/scivision/pyrinex)\n[![PyPi versions](https://img.shields.io/pypi/pyversions/pyrinex.svg)](https://pypi.python.org/pypi/pyrinex)\n[![PyPi wheels](https://img.shields.io/pypi/format/pyrinex.svg)](https://pypi.python.org/pypi/pyrinex)\n[![Maintainability](https://api.codeclimate.com/v1/badges/69ce95c25db88777ed63/maintainability)](https://codeclimate.com/github/scivision/pyrinex/maintainability)\n[![PyPi Download stats](http://pepy.tech/badge/pyrinex)](http://pepy.tech/project/pyrinex)\n[![Xarray badge](https://img.shields.io/badge/powered%20by-xarray-orange.svg?style=flat)](http://xarray.pydata.org/en/stable/why-xarray.html)\n\n# PyRinex\n\nRINEX 3 and RINEX 2 reader in Python -- reads NAV and OBS GPS RINEX data\ninto\n[xarray.Dataset](http://xarray.pydata.org/en/stable/api.html#dataset)\nfor easy use in analysis and plotting. This gives remarkable speed vs.\nlegacy iterative methods, and allows for HPC / out-of-core operations on\nmassive amounts of GNSS data.\n\nWrites to NetCDF4 (subset of HDF5), with `zlib` compression. This is a\ncouple order of magnitude speedup in reading/converting RINEX data and\nallows filtering/processing of gigantic files too large to fit into RAM.\n\nAnother key advantage of PyRinex is the Xarray base class, that allows\nall the database-like indexing power of Pandas to be unleashed.\n\nPyRinex works in Python &gt;= 3.6.\n\n![RINEX plot](tests/example_plot.png)\n\n## Install\n\n    python -m pip install -e .\n\n## Usage\n\nThe simplest command-line use is through the top-level `ReadRinex.py` script.\n\n-   Read RINEX3 or RINEX 2 Obs or Nav file: `python ReadRinex.py myrinex.XXx`\n-   Read NetCDF converted RINEX data: `python ReadRinex.py myrinex.nc`\n\nIt's suggested to save the GNSS data to NetCDF4 (a subset of HDF5) with the `-o`option,\nas NetCDF4 is also human-readable, yet say 1000x faster to load than RINEX.\n\nYou can also of course use the package as a python imported module as in\nthe following examples. Each example assumes you have first done:\n\n```python\nimport pyrinex as pr\n```\n\n### read Rinex\n\nThis convenience function reads any possible Rinex 2/3 OBS/NAV or .nc\nfile:\n\n```python\nobs,nav = pr.readrinex('tests/demo.10o')\n```\n\n### read Obs\n\nIf you desire to specifically read a RINEX 2 or 3 OBS file:\n\n```python\nobs = pr.rinexobs('tests/demo_MO.rnx')\n```\n\nThis returns an\n[xarray.Dataset](http://xarray.pydata.org/en/stable/api.html#dataset) of\ndata within the .XXo observation file.\n\nNaN is used as a filler value, so the commands typically end with\n.dropna(dim='time',how='all') to eliminate the non-observable data vs\ntime. As per pg. 15-20 of RINEX 3.03\n[specification](ftp://igs.org/pub/data/format/rinex303.pdf), \nonly certain fields are valid for particular satellite systems. \nNot every receiver receives every type of GNSS system. \nMost Android devices in the Americas receive at least GPS and GLONASS.\n\n#### Index OBS data\n\nassume the OBS data from a file is loaded in variable `obs`.\n\nSelect satellite(s) (here, `G13`) by\n```python\nobs.sel(sv='G13').dropna(dim='time',how='all')\n```\n\nPick any parameter (say, `L1`) across all satellites and time (or index via `.sel()` by time and/or satellite too) by:\n```python\nobs['L1'].dropna(dim='time',how='all')\n```\n\nIndexing only a particular satellite system (here, Galileo) using Boolean indexing.\n```python\nimport pyrinex as pr\nobs = pr.rinexobs('myfile.o', use='E')\n```\nwould load only Galileo data by the parameter E.\nReadRinex.py allow this to be specified as the -use command line parameter.\n\nIf however you want to do this after loading all the data anyway, you can make a Boolean indexer\n```python\nEind = obs.sv.to_index().str.startswith('E')  # returns a simple Numpy boolean 1-D array\nEdata = obs.isel(sv=Eind)  # any combination of other indices at same time or before/after also possible\n```\n\n####  Plot OBS data\n\nPlot for all satellites L1C:\n```python\nfrom matplotlib.pyplot import figure, show\nax = figure().gca()\nax.plot(obs.time, obs['L1C'])\nshow()\n```\n\nSuppose L1C psuedorange plot is desired for `G13`:\n```python\nobs['L1C'].sel(sv='G13').dropna(dim='time',how='all').plot()\n```\n\n### read Nav\n\n\nIf you desire to specifically read a RINEX 2 or 3 NAV file:\n```python\nnav = pr.rinexnav('tests/demo_MN.rnx')\n```\n\nThis returns an `xarray.Dataset` of the data within the RINEX 3 or RINEX 2 Navigation file.\nIndexed by time x quantity\n\n\n#### Index NAV data\n\nassume the NAV data from a file is loaded in variable `nav`.\nSelect satellite(s) (here, `G13`) by\n```python\nnav.sel(sv='G13')\n```\n\nPick any parameter (say, `M0`) across all satellites and time (or index by that first) by:\n```python\nnav['M0']\n```\n\n## Analysis \nA significant reason for using `xarray` as the base class of PyRinex is that big data operations are fast, easy and efficient. \nIt's suggested to load the original RINEX files with the `-use` or `use=` option to greatly speed loading and convserve memory.\n\nA copy of the processed data can be saved to NetCDF4 for fast reloading and out-of-core processing by:\n```python\nobs.to_netcdf('process.nc', group='OBS')\n```\n`pyrinex.__init.py__` shows examples of using compression and other options if desired.\n\n### Join data from multiple files\nPlease see documentation for `xarray.concat` and `xarray.merge` for more details.\nAssuming you loaded OBS data from one file into `obs1` and data from another file into `obs2`, and the data needs to be concatenated in time:\n```python\nobs = xarray.concat((obs1, obs2), dim='time')\n```\nThe `xarray.concat`operation may fail if there are different SV observation types in the files. \nyou can try the more general:\n```python\nobs = xarray.merge((obs1, obs2))\n```\n\n## Converting to Pandas Dataframes\nAlthough Pandas DataFrames are 2-D, using say `df = nav.to_dataframe()` will result in a reshaped 2-D DataFrame.\nSatellites can be selected like `df.loc['G12'].dropna(0, 'all')` using the usual \n[Pandas Multiindexing methods](http://pandas.pydata.org/pandas-docs/stable/advanced.html).\n\n## Notes\n\nRINEX 3.03 [specification](ftp://igs.org/pub/data/format/rinex303.pdf)\n\n-   GPS satellite position is given for each time in the NAV file as\n    Keplerian parameters, which can be \n    [converted to ECEF](https://ascelibrary.org/doi/pdf/10.1061/9780784411506.ap03).\n-   <https://downloads.rene-schwarz.com/download/M001-Keplerian_Orbit_Elements_to_Cartesian_State_Vectors.pdf>\n-   <http://www.gage.es/gFD>\n\n### RINEX OBS reader algorithm\n\n1.  read overall OBS header (so we know what to expect in the rest of the OBS file)\n2.  fill the xarray.Dataset with the data by reading in blocks --\n    another key difference from other programs out there, instead of\n    reading character by character, I ingest a whole time step of text\n    at once, helping keep the processing closer to CPU cache making it\n    much faster.\n\n### Data\n\nFor \n[capable Android devices](https://developer.android.com/guide/topics/sensors/gnss.html),\nyou can \n[log RINEX 3](https://play.google.com/store/apps/details?id=de.geopp.rinexlogger)\nusing the built-in GPS receiver.\n\nHere is a lot of RINEX 3 data to work with:\n\n-   [OBS data](ftp://data-out.unavco.org/pub/rinex3/obs/)\n-   [NAV data](ftp://data-out.unavco.org/pub/rinex3/nav)\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/scivision/pyrinex",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pyrinex",
+        "package_url": "https://pypi.org/project/pyrinex/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pyrinex/",
+        "release_url": "https://pypi.org/project/pyrinex/1.4.1/",
+        "requires_dist": [
+            "mypy; extra == 'tests'",
+            "flake8; extra == 'tests'",
+            "coveralls; extra == 'tests'",
+            "nose; extra == 'tests'",
+            "pytest; extra == 'tests'",
+            "pymap3d; extra == 'plot'",
+            "seaborn; extra == 'plot'",
+            "matplotlib; extra == 'plot'",
+            "netcdf4",
+            "xarray",
+            "numpy"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Python RINEX 2/3 NAV/OBS reader that is very fast",
+        "version": "1.4.1"
+    },
+    "last_serial": 3986421,
+    "releases": {
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a033e762e69857ea0ecfa336db387a46",
+                    "sha256": "d6ba69e849b88666fc398ad67de44a41037875c9ef28209402daca334fb136fd"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a033e762e69857ea0ecfa336db387a46",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "size": 9430,
+                "upload_time": "2017-11-15T22:53:51",
+                "url": "https://files.pythonhosted.org/packages/cc/84/20577ebc40ef249c45535b79944ab8bde351b2b1e55398817c0425d582cc/pyrinex-1.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ceaa06c2659536f61d627b4831e27740",
+                    "sha256": "902063e00e22beefd27e1c23de9a0671f721ec161d165d905254415434df8ba3"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ceaa06c2659536f61d627b4831e27740",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 6006,
+                "upload_time": "2017-11-15T22:53:50",
+                "url": "https://files.pythonhosted.org/packages/02/2f/cd59c097a62166e52da5978255d9739f3db090a462c06c7bb34639ecaa3c/pyrinex-1.1.0.tar.gz"
+            }
+        ],
+        "1.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "149d2104905a1c2d85ff7dec999d790a",
+                    "sha256": "d583a29a06f513f726f9b61ddbb0297c5a7844963e158e15b3174985af871031"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "149d2104905a1c2d85ff7dec999d790a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 13481,
+                "upload_time": "2018-03-21T21:17:33",
+                "url": "https://files.pythonhosted.org/packages/b0/7a/236e64a5730eb0a47b72a69af41fdb06b8ea7abaa353d3e6a69bb225666c/pyrinex-1.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "32d39afb2e25725f85575dc83deb8753",
+                    "sha256": "15e2d6130c8e0cd2cbbfd22cee82778b3b2644f416708eae702144364e500251"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "32d39afb2e25725f85575dc83deb8753",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8791,
+                "upload_time": "2018-03-21T21:17:35",
+                "url": "https://files.pythonhosted.org/packages/d7/a7/6271aa911521bdc7ecda6b8ab0a781b48859974306b188f092e8d4a92708/pyrinex-1.2.0.tar.gz"
+            }
+        ],
+        "1.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aabe5a54dc42077fc844e7019ad72cc5",
+                    "sha256": "a511f778685be3fe0a82cc716c930857d4e92f261b53df4232c888304b4ed657"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "aabe5a54dc42077fc844e7019ad72cc5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 14948,
+                "upload_time": "2018-03-22T01:37:54",
+                "url": "https://files.pythonhosted.org/packages/38/01/23134a992821f63fe7884a04a79f16e7a3ecd6bb714a4aa2896d2c447eea/pyrinex-1.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a595e84f42f6c12aabaff4e5075f5cb2",
+                    "sha256": "b8ee6974d65c2af05d362ff96a066fbbfe9c9db0887c9e22f5e8382d96abeacd"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a595e84f42f6c12aabaff4e5075f5cb2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8800,
+                "upload_time": "2018-03-22T01:37:55",
+                "url": "https://files.pythonhosted.org/packages/06/61/be6262ba552c634293c6a6815d64b2462dcabdb73cdbdc0974e3d19f15c2/pyrinex-1.2.1.tar.gz"
+            }
+        ],
+        "1.2.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3e32b4fd49716492aadceb30be6010f",
+                    "sha256": "15bf26a07210a5535b9c8584ff6c1fcbe54123b2b6a4b8f0413b277a03f77c51"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c3e32b4fd49716492aadceb30be6010f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 17791,
+                "upload_time": "2018-05-13T16:58:16",
+                "url": "https://files.pythonhosted.org/packages/24/f1/547392ca48280164ed3d7fac0d600e36080a7237d51f107419fe5d4670f0/pyrinex-1.2.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "15812e47cb38a9c68c0171f6f8ba2066",
+                    "sha256": "6d5827a671644df375f18d5b6ebe95e069d761c79b710a9e3de839b835ea63e2"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "15812e47cb38a9c68c0171f6f8ba2066",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13304,
+                "upload_time": "2018-05-13T16:58:17",
+                "url": "https://files.pythonhosted.org/packages/53/84/e2a1b0c8e99e5a7e9f6a25be3c0faf980f87217c9975f79213ca86ffb7a4/pyrinex-1.2.10.tar.gz"
+            }
+        ],
+        "1.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d918cbc7d418850c060eac8b5143011a",
+                    "sha256": "5743b576affb3f8f728091bc3ca2c52491577ac75944c0b5c21225651d034a3f"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d918cbc7d418850c060eac8b5143011a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 14217,
+                "upload_time": "2018-03-22T04:45:39",
+                "url": "https://files.pythonhosted.org/packages/76/9f/966f78e25b67d852eb9d362ba8389eb5d778294570f9579622f1931ff6d7/pyrinex-1.2.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e6f2951f22eaa00c2571465b1b19c75",
+                    "sha256": "7b1d5ba9f3829fed326ec07969db25e897b419fa98480dc0932089eeef0f586d"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2e6f2951f22eaa00c2571465b1b19c75",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 6539,
+                "upload_time": "2018-03-22T04:45:41",
+                "url": "https://files.pythonhosted.org/packages/11/dd/9dadf8e4ee4101d91424e4a59a2d6baad91fdbb90e7f584153f93d9afb4c/pyrinex-1.2.2.tar.gz"
+            }
+        ],
+        "1.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1a160eee1d56c089470a76ccab69aef7",
+                    "sha256": "771e4a1796c7c3edb2880c3d41a7d74d52b65d7bf0010655f8571b1e20cd19b4"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1a160eee1d56c089470a76ccab69aef7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 15311,
+                "upload_time": "2018-03-22T19:28:05",
+                "url": "https://files.pythonhosted.org/packages/2f/a6/004db54b1093e3fa88c1a8fd91a3eb1f01821ac09e228f2e2940cf1a5964/pyrinex-1.2.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4718ba792731d32283d067ed6c904a09",
+                    "sha256": "a62454deebe50ae34d5fb4858a8326dfd3ba33f2ccf2efa160af68c53bc91e85"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4718ba792731d32283d067ed6c904a09",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7512,
+                "upload_time": "2018-03-22T19:28:08",
+                "url": "https://files.pythonhosted.org/packages/96/0f/18872cc57ceec11c51c8e3e4406df5e30e7f7b0f944342af11c256418f3c/pyrinex-1.2.3.tar.gz"
+            }
+        ],
+        "1.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6046d82edb751897a54e0d79ded580ae",
+                    "sha256": "644ee95cb083a0d96e2517a5c4ab235f7ebb8d4cbb1fd49606be4771f300fbcd"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6046d82edb751897a54e0d79ded580ae",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 15778,
+                "upload_time": "2018-03-22T21:36:17",
+                "url": "https://files.pythonhosted.org/packages/d2/81/398cc744f510f2f023a6960641db626b9cceef35e986c97af64e6daa8cd1/pyrinex-1.2.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6de79aee2089fe50345475037a092711",
+                    "sha256": "85000b65276e9fff939ded997cd91edec22f7610aaf135cdb9cb0ac407d15216"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6de79aee2089fe50345475037a092711",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7754,
+                "upload_time": "2018-03-22T21:36:19",
+                "url": "https://files.pythonhosted.org/packages/13/1a/9eea3c6ae13b8f28e2807d430aa9f21fa78bbabc82db25f9b5ca7b5e4636/pyrinex-1.2.4.tar.gz"
+            }
+        ],
+        "1.2.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a75f0b407dd23504e849237954f1601b",
+                    "sha256": "55cf7bb3a07651cb4c468d45f53136e8e8ed9e7aa1446913ae0a402be4d30723"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a75f0b407dd23504e849237954f1601b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 16310,
+                "upload_time": "2018-03-23T19:56:28",
+                "url": "https://files.pythonhosted.org/packages/37/f6/b70abcbf5735f31a2c8f956ab88510db2164d6ced9bfc0dad0b2662a74e3/pyrinex-1.2.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9522947fcc227a3575dc8c0fc15fed0b",
+                    "sha256": "cfd3ca02456313c24dd8ced2d087e090f92ce9cc5e08d0886a0d17858351a058"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9522947fcc227a3575dc8c0fc15fed0b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8136,
+                "upload_time": "2018-03-23T19:56:29",
+                "url": "https://files.pythonhosted.org/packages/ea/ab/70916dfb20df84b1786d82d9954aac7b07789944ed3d97f4b72108226d78/pyrinex-1.2.5.tar.gz"
+            }
+        ],
+        "1.2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "01c3999c171f2fd101e00bb0a7b68167",
+                    "sha256": "69e2ebbcac3f03ac95e129004321e5bef9ceef517b5ef3d075a728be30c065a4"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "01c3999c171f2fd101e00bb0a7b68167",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 16859,
+                "upload_time": "2018-03-25T10:39:50",
+                "url": "https://files.pythonhosted.org/packages/07/a0/b4351e83a4ddf5e2b73be6d13bec0a771ce6330ba9da03d82f610c9baf9f/pyrinex-1.2.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3450b8364e347d1d6e0d5b954c12d335",
+                    "sha256": "cff7dc1769380866fd9aaaa8ae6b22dc8b58ca6fe5c84ef43ed32d88ec4e2f15"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3450b8364e347d1d6e0d5b954c12d335",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 9393,
+                "upload_time": "2018-03-25T10:39:51",
+                "url": "https://files.pythonhosted.org/packages/e3/1d/9457c69345fe97cd2bc6f37542a3579de78996f1af941036283ac3e50f28/pyrinex-1.2.6.tar.gz"
+            }
+        ],
+        "1.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e382043aeca72d101e520d3d7d247e21",
+                    "sha256": "ec0133b7fe0e95945a2a13522ce0d1b01ceeb418c64d6058a8d1b54217f3b875"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e382043aeca72d101e520d3d7d247e21",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 13930,
+                "upload_time": "2018-05-09T19:56:03",
+                "url": "https://files.pythonhosted.org/packages/f2/21/dd31a6a8135b2c5320b88cdbdacdfefc25e806ca15e91789e7228a212839/pyrinex-1.2.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6372e2a06d917c7df02b845303e4dcd1",
+                    "sha256": "6108461c82b65bc33e7060de0fc374aaccae78ac67ce26adeb3bb3f9c58eab8f"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6372e2a06d917c7df02b845303e4dcd1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 9737,
+                "upload_time": "2018-05-09T19:56:04",
+                "url": "https://files.pythonhosted.org/packages/3f/26/a68e28f74e951b1eec71e90f6737a48848d52f7989cac5007646f5a307e5/pyrinex-1.2.7.tar.gz"
+            }
+        ],
+        "1.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "201fd0d827f56091c58910584a6fbdf4",
+                    "sha256": "af0d5122b1ce27fb7b90863ac7b36e8e5e0a4310ac342ecb7dde664378b9b51c"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "201fd0d827f56091c58910584a6fbdf4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 13980,
+                "upload_time": "2018-05-09T21:00:33",
+                "url": "https://files.pythonhosted.org/packages/0f/1b/11b22f27d0caa71e76df8367f11d6b10ac894bed02c16a3fb2525716f9f5/pyrinex-1.2.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cc2deb2a5a91d347d53f5266656bb89f",
+                    "sha256": "9a356825a97234eec5a6e0c3105814c53d308ba219c3dffebfcd674f0db023e7"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cc2deb2a5a91d347d53f5266656bb89f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 10008,
+                "upload_time": "2018-05-09T21:00:34",
+                "url": "https://files.pythonhosted.org/packages/e9/32/07092cf41f6f12a26c19cf9a43b2f9040cc5230d3dba279f1b6d9e7dd958/pyrinex-1.2.8.tar.gz"
+            }
+        ],
+        "1.2.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1fddc336d057ee06f32c942d41617efe",
+                    "sha256": "387cd35fe1d786c73092a7c844bdf0559ccb1d81551829d458dd89ff46c690b2"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1fddc336d057ee06f32c942d41617efe",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 17186,
+                "upload_time": "2018-05-10T22:30:04",
+                "url": "https://files.pythonhosted.org/packages/a4/0f/840217d39552296692dd98aa8e1b522635b83c778f1ee072abad3c00e215/pyrinex-1.2.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48472c6b5b51243ea181a272e0e87014",
+                    "sha256": "7e384b9e81db6405f4e92bbf1f532b6921de9305d615b3f1d685529d7f8f4950"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.2.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "48472c6b5b51243ea181a272e0e87014",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 12716,
+                "upload_time": "2018-05-10T22:30:06",
+                "url": "https://files.pythonhosted.org/packages/91/21/b879cf2f4583abec0c0cb6a29341a578d94affe480bd0d14d5304fb45b50/pyrinex-1.2.9.tar.gz"
+            }
+        ],
+        "1.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "684ea5b2b52975d280fc4c14fd8c5cff",
+                    "sha256": "0b757c7a205596f926997e0edb7b1f76b68f4ecf34c99afd8f62d5dc8f6ead61"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "684ea5b2b52975d280fc4c14fd8c5cff",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 18904,
+                "upload_time": "2018-06-05T20:03:01",
+                "url": "https://files.pythonhosted.org/packages/2d/63/07e701e64d7c4bcfd19aa99b890c973e488146c207fdf63a67a3c377709a/pyrinex-1.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3381a1fb3d73a88984ec2f2cbedeb923",
+                    "sha256": "635d850638bf1050e2842dfb2a750b246caf5b91e6650b04c27e6ac3952480b2"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3381a1fb3d73a88984ec2f2cbedeb923",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 14376,
+                "upload_time": "2018-06-05T20:03:02",
+                "url": "https://files.pythonhosted.org/packages/ad/1d/0acb230bf4b7d64762184a4c76429e74454a5110efeb9584d2b5abbdd66c/pyrinex-1.3.0.tar.gz"
+            }
+        ],
+        "1.3.0.post0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5d39305a45c7dbeb4d13ca3ad96b9fbc",
+                    "sha256": "0b31e258ff81f1ca5cce92c1e46a469c120f37d0590c905c2c09610bb4de9362"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.3.0.post0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5d39305a45c7dbeb4d13ca3ad96b9fbc",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 18876,
+                "upload_time": "2018-06-05T20:29:21",
+                "url": "https://files.pythonhosted.org/packages/57/1e/999851c86df023ef45a6001b342c351dad59d70a8478450862430726f0fb/pyrinex-1.3.0.post0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0739b41132dbab5a7e430b3349ec190f",
+                    "sha256": "3ee44a77141a7b28a501660f5678bdeb6aa5b0d154b2d372326218a96d8d4365"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.3.0.post0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0739b41132dbab5a7e430b3349ec190f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 12487,
+                "upload_time": "2018-06-05T20:29:23",
+                "url": "https://files.pythonhosted.org/packages/80/6f/f5e78454cd895b191e5b6b0dd31b6fd90ecdf104c4f07814e45010e2dbd2/pyrinex-1.3.0.post0.tar.gz"
+            }
+        ],
+        "1.3.0.post1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42007928d59b05469622d897f64eead0",
+                    "sha256": "095ecb039360e1c99c115bb48fb8467fd626813729a1302ae8fd43e2d0a5d784"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.3.0.post1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "42007928d59b05469622d897f64eead0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 18873,
+                "upload_time": "2018-06-05T20:32:16",
+                "url": "https://files.pythonhosted.org/packages/fb/01/b29b81d0e6e75f196afa71231effb06c764bcc658481630134f6a076bba1/pyrinex-1.3.0.post1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7f95e1d518eb84e0f54cda5c2227b891",
+                    "sha256": "3cbfa77a881bbacf2878e9689da20c425a545a96f46bf5e4dd5913320f937ae6"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.3.0.post1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7f95e1d518eb84e0f54cda5c2227b891",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 12502,
+                "upload_time": "2018-06-05T20:32:18",
+                "url": "https://files.pythonhosted.org/packages/1c/b2/19bfa21dcfdda5f5e19819f05c5dfd41717b4b90ee8f32b055a3aea7da68/pyrinex-1.3.0.post1.tar.gz"
+            }
+        ],
+        "1.3.0.post2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95583127633ef16ee7ec55fe0e18fb92",
+                    "sha256": "95bca7d1be17b6a5a635525654b64ff54021ecec67ea699528de738612619ed8"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.3.0.post2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "95583127633ef16ee7ec55fe0e18fb92",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 15317,
+                "upload_time": "2018-06-05T21:11:50",
+                "url": "https://files.pythonhosted.org/packages/8b/97/fa9d47da4835ba7f611e554ac1e1f62377a91964f842621914e2e71befbc/pyrinex-1.3.0.post2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1a5acce049f0872de158ae5a7140abbd",
+                    "sha256": "c818a3fc48d5652c902fa4ac8fa0658bf299796b8f7e1e4665cff3b8cc23bf99"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.3.0.post2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1a5acce049f0872de158ae5a7140abbd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 12530,
+                "upload_time": "2018-06-05T21:11:50",
+                "url": "https://files.pythonhosted.org/packages/0f/bd/9b9bfdf0af53cec745384d805010b30f86b9e6612152d57985a50db71f27/pyrinex-1.3.0.post2.tar.gz"
+            }
+        ],
+        "1.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e419078e3362b93e6ffc8e5c3d40c868",
+                    "sha256": "e65f0908adeb95919b5c108efce9ac81f78228d6a24f638684e5175761b1c26b"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.4.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e419078e3362b93e6ffc8e5c3d40c868",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 17364,
+                "upload_time": "2018-06-21T07:08:33",
+                "url": "https://files.pythonhosted.org/packages/16/fd/1aca6621adec1ec5a05aee2f0e335cc930657b7195bcf02475af746433f2/pyrinex-1.4.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec30e68f61240fdd08b67cbd51a0305e",
+                    "sha256": "caf532c6ef597d5c91a5e9ed9327218fcb5b39ac1d4a98a810b87fd9e58c464a"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ec30e68f61240fdd08b67cbd51a0305e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 14237,
+                "upload_time": "2018-06-21T07:08:35",
+                "url": "https://files.pythonhosted.org/packages/2f/62/bd312218ca90667d2a8ca58805c736056297195d8a55397de01f13178a77/pyrinex-1.4.0.tar.gz"
+            }
+        ],
+        "1.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e7417b7d63bc2ac41580d0120721c439",
+                    "sha256": "58b27516ce50bdb43286179503a26791d4332a0e316697cb737d935f72a1c1ef"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.4.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e7417b7d63bc2ac41580d0120721c439",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 17767,
+                "upload_time": "2018-06-21T17:30:20",
+                "url": "https://files.pythonhosted.org/packages/bd/be/f8912208fb5a48c280513a4a46c9bc8dd72635d92a4562b9b688abaccd8c/pyrinex-1.4.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "70fb151d27d0a516bbbb150642a72e8a",
+                    "sha256": "61ae449b8ca10a6cfac64015078236c4b530263092abf8f9a0ac2e97490fce87"
+                },
+                "downloads": -1,
+                "filename": "pyrinex-1.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "70fb151d27d0a516bbbb150642a72e8a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 14704,
+                "upload_time": "2018-06-21T17:30:21",
+                "url": "https://files.pythonhosted.org/packages/07/b8/685982fdb2ac2eb0de6b1f82fff012207ea5ff6886740b067d58f1a89b9d/pyrinex-1.4.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e7417b7d63bc2ac41580d0120721c439",
+                "sha256": "58b27516ce50bdb43286179503a26791d4332a0e316697cb737d935f72a1c1ef"
+            },
+            "downloads": -1,
+            "filename": "pyrinex-1.4.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "e7417b7d63bc2ac41580d0120721c439",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "size": 17767,
+            "upload_time": "2018-06-21T17:30:20",
+            "url": "https://files.pythonhosted.org/packages/bd/be/f8912208fb5a48c280513a4a46c9bc8dd72635d92a4562b9b688abaccd8c/pyrinex-1.4.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "70fb151d27d0a516bbbb150642a72e8a",
+                "sha256": "61ae449b8ca10a6cfac64015078236c4b530263092abf8f9a0ac2e97490fce87"
+            },
+            "downloads": -1,
+            "filename": "pyrinex-1.4.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "70fb151d27d0a516bbbb150642a72e8a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 14704,
+            "upload_time": "2018-06-21T17:30:21",
+            "url": "https://files.pythonhosted.org/packages/07/b8/685982fdb2ac2eb0de6b1f82fff012207ea5ff6886740b067d58f1a89b9d/pyrinex-1.4.1.tar.gz"
+        }
+    ]
+}

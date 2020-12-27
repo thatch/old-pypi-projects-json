@@ -1,0 +1,117 @@
+{
+    "info": {
+        "author": "Alexandre Gattiker",
+        "author_email": "algattik@microsoft.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# databrickstest\n\n## About\n\nAn experimental unit test framework for Databricks notebooks.\n\n_This open-source project is not developed by nor affiliated with Databricks._\n\n## Installing\n\n```\npip install databrickstest\n```\n\n## Usage\n\nAdd a cell at the beginning of your Databricks notebook:\n\n```python\n# Instrument for unit tests. This is only executed in local unit tests, not in Databricks.\nif 'dbutils' not in locals():\n    import databrickstest\n    databrickstest.inject_variables()\n```\n\nThe `if` clause causes the inner code to be skipped when run in Databricks.\nTherefore there is no need to install the `databrickstest` module on your Databricks environment.\n\nAdd your notebook into a code project, for example using [GitHub version control in Azure Databricks](https://docs.microsoft.com/en-us/azure/databricks/notebooks/azure-devops-services-version-control).\n\nSet up pytest in your code project (outside of Databricks).\n\nCreate a test case with the following structure:\n\n```python\nimport databrickstest\n\ndef test_method():\n    with databrickstest.session() as dbrickstest:\n\n        # Set up mocks on dbrickstest\n        # ...\n\n        # Run notebook\n        dbrickstest.run_notebook(\"notebook_dir\", \"notebook_name_without_py_suffix\")\n\n        # Test assertions\n        # ...\n```\n\nYou can set up [mocks](https://docs.python.org/dev/library/unittest.mock.html) on\n`dbrickstest.dbutils` and `dbrickstest.display`, for example:\n\n```python\ndbrickstest.dbutils.widgets.get.return_value = \"myvalue\"\n```\n\nSee samples below for more examples.\n\n## Supported features\n\n* Spark context injected into Databricks notebooks: `spark`, `table`\n* PySpark including all Spark features including reading and writing to disk, UDFs and Pandas UDFs\n* Databricks Utilities (`dbutils`, `display`) with user-configurable mocks\n* Mocking connectors such as Azure Storage, S3 and SQL Data Warehouse\n\n## Unsupported features\n\n* Notebook formats other than `.py` (`.ipynb`, `.dbc`) are not supported\n* Non-python cells such as `%scala` and `%sql` (those cells are skipped, as they are stored in `.py` notebooks as comments)\n\n## Sample test\n\nSample test case for an ETL notebook reading CSV and writing Parquet.\n\n```python\nimport pandas as pd\nimport databrickstest\nfrom tempfile import TemporaryDirectory\n\nfrom pandas.testing import assert_frame_equal\n\ndef test_etl():\n    with databrickstest.session() as dbrickstest:\n        with TemporaryDirectory() as tmp_dir:\n            out_dir = f\"{tmp_dir}/out\"\n\n            # Provide input and output location as widgets to notebook\n            switch = {\n                \"input\": \"tests/etl_input.csv\",\n                \"output\": out_dir,\n            }\n            dbrickstest.dbutils.widgets.get.side_effect = lambda x: switch.get(\n                x, \"\")\n\n            # Run notebook\n            dbrickstest.run_notebook(\".\", \"etl_notebook\")\n\n            # Notebook produces a Parquet file (directory)\n            resultDF = pd.read_parquet(out_dir)\n\n        # Compare produced Parquet file and expected CSV file\n        expectedDF = pd.read_csv(\"tests/etl_expected.csv\")\n        assert_frame_equal(expectedDF, resultDF, check_dtype=False)\n```\n\nIn the notebook, we pass parameters using widgets.\nThis makes it easy to pass\na local file location in tests, and a remote URL (such as Azure Storage or S3)\nin production.\n\n```python\n# Databricks notebook source\n# This notebook processed the training dataset (imported by Data Factory)\n# and computes a cleaned dataset with additional features such as city.\nfrom pyspark.sql.types import StructType, StructField\nfrom pyspark.sql.types import DoubleType, IntegerType\nfrom pyspark.sql.functions import col, pandas_udf, PandasUDFType\n\n# COMMAND ----------\n\n# Instrument for unit tests. This is only executed in local unit tests, not in Databricks.\nif 'dbutils' not in locals():\n    import databrickstest\n    databrickstest.inject_variables()\n\n# COMMAND ----------\n\n# Widgets for interactive development.\ndbutils.widgets.text(\"input\", \"\")\ndbutils.widgets.text(\"output\", \"\")\ndbutils.widgets.text(\"secretscope\", \"\")\ndbutils.widgets.text(\"secretname\", \"\")\ndbutils.widgets.text(\"keyname\", \"\")\n\n# COMMAND ----------\n\n# Set up storage credentials\n\nspark.conf.set(\n    dbutils.widgets.get(\"keyname\"),\n    dbutils.secrets.get(\n        scope=dbutils.widgets.get(\"secretscope\"),\n        key=dbutils.widgets.get(\"secretname\")\n    ),\n)\n\n# COMMAND ----------\n\n# Import CSV files\nschema = StructType(\n    [\n        StructField(\"aDouble\", DoubleType(), nullable=False),\n        StructField(\"anInteger\", IntegerType(), nullable=False),\n    ]\n)\n\ndf = (\n    spark.read.format(\"csv\")\n    .options(header=\"true\", mode=\"FAILFAST\")\n    .schema(schema)\n    .load(dbutils.widgets.get('input'))\n)\ndisplay(df)\n\n# COMMAND ----------\n\ndf.count()\n\n# COMMAND ----------\n\n# Inputs and output are pandas.Series of doubles\n@pandas_udf('integer', PandasUDFType.SCALAR)\ndef square(x):\n    return x * x\n\n\n# COMMAND ----------\n\n# Write out Parquet data\n(df\n    .withColumn(\"aSquaredInteger\", square(col(\"anInteger\")))\n    .write\n    .parquet(dbutils.widgets.get('output'))\n )\n```\n\n\n## Advanced mocking\n\nSample test case mocking PySpark classes for a notebook connecting to Azure SQL Data Warehouse.\n\n```python\nimport databrickstest\nimport pyspark\nimport pyspark.sql.functions as F\nfrom tempfile import TemporaryDirectory\nfrom pandas.testing import assert_frame_equal\nimport pandas as pd\n\n\ndef test_sqldw(monkeypatch):\n    with databrickstest.session() as dbrickstest, TemporaryDirectory() as tmp:\n\n        out_dir = f\"{tmp}/out\"\n\n        # Mock SQL DW loader, creating a Spark DataFrame instead\n        def mock_load(reader):\n            return (\n                dbrickstest.spark\n                .range(10)\n                .withColumn(\"age\", F.col(\"id\") * 6)\n                .withColumn(\"salary\", F.col(\"id\") * 10000)\n            )\n\n        monkeypatch.setattr(\n            pyspark.sql.readwriter.DataFrameReader, \"load\", mock_load)\n\n        # Mock SQL DW writer, writing to a local Parquet file instead\n        def mock_save(writer):\n            monkeypatch.undo()\n            writer.format(\"parquet\")\n            writer.save(out_dir)\n\n        monkeypatch.setattr(\n            pyspark.sql.readwriter.DataFrameWriter, \"save\", mock_save)\n\n        # Run notebook\n        dbrickstest.run_notebook(\".\", \"sqldw_notebook\")\n\n        # Notebook produces a Parquet file (directory)\n        resultDF = pd.read_parquet(out_dir)\n\n        # Compare produced Parquet file and expected CSV file\n        expectedDF = pd.read_csv(\"tests/sqldw_expected.csv\")\n        assert_frame_equal(expectedDF, resultDF, check_dtype=False)\n```\n\n## Issues\n\nPlease report issues at [http://github.com/algattik/databrickstest](http://github.com/algattik/databrickstest).\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/algattik/databrickstest",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "databrickstest",
+        "package_url": "https://pypi.org/project/databrickstest/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/databrickstest/",
+        "project_urls": {
+            "Homepage": "https://github.com/algattik/databrickstest"
+        },
+        "release_url": "https://pypi.org/project/databrickstest/0.0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Unit testing and mocking for Databricks",
+        "version": "0.0.1"
+    },
+    "last_serial": 6346990,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1a574724cfb4f2770be3cdeb72c6b42e",
+                    "sha256": "ef1ca81535a094cb4ed3ba59c1199a558e9133cbd672e6c7e0f91e4b11f12f40"
+                },
+                "downloads": -1,
+                "filename": "databrickstest-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1a574724cfb4f2770be3cdeb72c6b42e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5596,
+                "upload_time": "2019-12-22T09:18:39",
+                "upload_time_iso_8601": "2019-12-22T09:18:39.827787Z",
+                "url": "https://files.pythonhosted.org/packages/40/49/6413ea7974cde75a7c67df93dfb870e2587e6f4cd7e93f9eb0d56cb8c07e/databrickstest-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "23308dabd13bee3959583670888de060",
+                    "sha256": "13ef89af521bc2fe3153a622ad5e4871e7797cb65397c717a304f6cbddf9c8de"
+                },
+                "downloads": -1,
+                "filename": "databrickstest-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "23308dabd13bee3959583670888de060",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5262,
+                "upload_time": "2019-12-22T09:18:41",
+                "upload_time_iso_8601": "2019-12-22T09:18:41.841391Z",
+                "url": "https://files.pythonhosted.org/packages/b5/ab/63c198363670837b42046bdc536899468b7f1ec8143f65448883ed7435d2/databrickstest-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1a574724cfb4f2770be3cdeb72c6b42e",
+                "sha256": "ef1ca81535a094cb4ed3ba59c1199a558e9133cbd672e6c7e0f91e4b11f12f40"
+            },
+            "downloads": -1,
+            "filename": "databrickstest-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "1a574724cfb4f2770be3cdeb72c6b42e",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 5596,
+            "upload_time": "2019-12-22T09:18:39",
+            "upload_time_iso_8601": "2019-12-22T09:18:39.827787Z",
+            "url": "https://files.pythonhosted.org/packages/40/49/6413ea7974cde75a7c67df93dfb870e2587e6f4cd7e93f9eb0d56cb8c07e/databrickstest-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "23308dabd13bee3959583670888de060",
+                "sha256": "13ef89af521bc2fe3153a622ad5e4871e7797cb65397c717a304f6cbddf9c8de"
+            },
+            "downloads": -1,
+            "filename": "databrickstest-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "23308dabd13bee3959583670888de060",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5262,
+            "upload_time": "2019-12-22T09:18:41",
+            "upload_time_iso_8601": "2019-12-22T09:18:41.841391Z",
+            "url": "https://files.pythonhosted.org/packages/b5/ab/63c198363670837b42046bdc536899468b7f1ec8143f65448883ed7435d2/databrickstest-0.0.1.tar.gz"
+        }
+    ]
+}

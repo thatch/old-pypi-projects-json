@@ -1,0 +1,132 @@
+{
+    "info": {
+        "author": "dhsavell",
+        "author_email": "dhsavell05@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "sparkplug\n=========\n\n.. image:: https://readthedocs.org/projects/sparkplug/badge/?version=latest\n   :target: http://sparkplug.readthedocs.io/en/latest/?badge=latest\n   :alt: Documentation Status\n\n.. image:: https://travis-ci.org/dhsavell/sparkplug.svg?branch=master\n   :target: https://travis-ci.org/dhsavell/sparkplug\n\n.. image:: https://badge.fury.io/py/sparkplug-commands.svg\n   :target: https://badge.fury.io/py/sparkplug-commands\n\nSparkplug is a simple command framework designed with chat bots in mind. It supports both synchronous and asynchronous\ncommand execution.\n\nQuickstart Guide\n----------------\n\nCommands are modularized into units, like the one below. A unit can be anything with callable attributes.\nAny callable attribute that doesn't begin with an underscore is assumed to be a user-facing command.\n\nThe parameters of commands should be annotated in order to tell the command host how to fill them in based on the user\ninput.\n\n>>> class SomeCommands:\n...     def add_one(self, number: int):\n...         return number + 1\n...     def say_hello(self, person: 'word', times: int):\n...         return ' '.join(['Hello ' + person] * times)\n...     def repeat(self, text: 'my_text_getter'):\n...         return text\n...     def repeat_context(self, text: 'context_text'):\n...         return text\n\n\nIf, for some reason, type annotations cannot be used, a decorator is available. The following will produce the same\nresult as above when given processed by a command host:\n\n>>> class SomeCommands:\n...     @parameter_types(number=int)\n...     def add_one(self, number):\n...         return number + 1\n...     @parameter_types(person='word', times=int)\n...     def say_hello(self, person: 'word', times: int):\n...         return ' '.join(['Hello ' + person] * times)\n...     @parameter_types(text='my_text_getter')\n...     def repeat(self, text):\n...         return text\n...     @parameter_types(text='repeat_context')\n...     def repeat_context(self, text):\n...         return text\n\nA command host contains units like this in which it calls commands from.\n\n>>> host = CommandHost()\n\nAn async variant is available, but just note that it will ``await`` both commands and strategies.\n\n>>> host = AsyncCommandHost()\n\nWe'll stick with the synchronous command host for this example.\n\nUnits can be added in a few different ways:\n\n>>> host += 'foo', SomeCommands()     # Name specified explicitly\n>>> host['foo'] = SomeCommands()      # Name specified explicitly\n>>> host += SomeCommands()            # __name__ of type used to guess name\n\nA command host also contains strategies, which are used to fill in the annotated types of commands. They are functions\nthat should accept parameters in string form, and return a tuple of the object interpreted from the string *and* the\nremaining parameters that were not used.\n\nStrategies can also accept an arbitrary context parameter passed to them by the host. If a strategy that needs context\nis called without a context parameter given to the host, then it defaults to None.\n\nIf invalid input is given, a strategy can handle this however it wants (i.e. raising an error, using a default value).\n\n>>> host.add_strategy(int, strategies.int_getter) # Default strategies for common types are available\n>>> host.add_strategy('word', strategies.word_getter)\n>>> host.add_strategy('text', lambda s: (s, '')) # Returns the entire input. Everything is consumed, so '' is returned\n>>> host.add_strategy('context_text', lambda s, c: (c, s)) # Returns the context without consuming any text\n\nOnce all of the desired commands and strategies are set up, ``call`` can be used with a command string to parse and\nexecute it.\n\n>>> host.call('add_one 41')\n42\n>>> host.call('say_hello John 3')\n'Hello John Hello John Hello John'\n>>> host_call('repeat after me')\n'after me'\n>>> host_call('repeat_context', context='some context')\n'some context'\n\nIn the event of a command clash (suppose we had a unit ``'bar'`` that also had a command named ``repeat``), unit names\ncan explicitly be specified.\n\n>>> host.call('foo:repeat after me')\n'after me'\n\nFinally, if for some reason a unit needs to be unloaded, it can be done by subtracting its name from the host.\n\n>>> host -= 'foo'",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/dhsavell/sparkplug",
+        "keywords": "chatbot bot text-processing commands cli",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sparkplug-commands",
+        "package_url": "https://pypi.org/project/sparkplug-commands/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/sparkplug-commands/",
+        "project_urls": {
+            "Documentation": "http://sparkplug.readthedocs.io/en/latest/",
+            "GitHub Repository": "https://github.com/dhsavell/sparkplug",
+            "Homepage": "https://github.com/dhsavell/sparkplug"
+        },
+        "release_url": "https://pypi.org/project/sparkplug-commands/1.2.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "A simple command framework designed with chat bots in mind.",
+        "version": "1.2.0"
+    },
+    "last_serial": 3681438,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a0be6a5a237eeaa1f4113dfc5fa23779",
+                    "sha256": "e57283d9821507d225144cd4551811c6357bb20ad31d7649d47d217322f408a7"
+                },
+                "downloads": -1,
+                "filename": "sparkplug_commands-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a0be6a5a237eeaa1f4113dfc5fa23779",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 7899,
+                "upload_time": "2018-03-05T22:35:38",
+                "url": "https://files.pythonhosted.org/packages/05/33/7cad275b8d292f820c406bfc2a22ae938851469c81be63ac03e23267634b/sparkplug_commands-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "edc16d258d0ea4a2324b98ae8dba03b2",
+                    "sha256": "7c6cef46b9b2f59c167df3ca7cf51ddf094df5aa5811f2ae9c5cd9aa19bdc8bd"
+                },
+                "downloads": -1,
+                "filename": "sparkplug-commands-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "edc16d258d0ea4a2324b98ae8dba03b2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 5212,
+                "upload_time": "2018-03-05T22:35:39",
+                "url": "https://files.pythonhosted.org/packages/0f/be/f68aa75c2ab80d4bcf7b87dcb5acbdd91f94ad7c0d6e1f9dbe4268338c6a/sparkplug-commands-1.0.0.tar.gz"
+            }
+        ],
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e28f1d36551c729756762801ff8673b",
+                    "sha256": "a63b20c98e3356347840c4e2054e1d1db166332a6f8b95c25940db1710b54927"
+                },
+                "downloads": -1,
+                "filename": "sparkplug-commands-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9e28f1d36551c729756762801ff8673b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 5306,
+                "upload_time": "2018-03-17T17:54:39",
+                "url": "https://files.pythonhosted.org/packages/56/40/ce627e063e99147e3801765bd477ac37dacb923620bfdfb3db9bde2648e4/sparkplug-commands-1.1.0.tar.gz"
+            }
+        ],
+        "1.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc026772c5960a9b7948d8b207d743b0",
+                    "sha256": "c66790ab0c1c32a42e1c3f81fe4474bd33f709997688ab7fbba3e3259b88681f"
+                },
+                "downloads": -1,
+                "filename": "sparkplug-commands-1.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dc026772c5960a9b7948d8b207d743b0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 5779,
+                "upload_time": "2018-03-18T18:12:35",
+                "url": "https://files.pythonhosted.org/packages/d3/f9/feaba4786c87aac38b8c3d29978352eeb218b4726a7084e576f24409dac2/sparkplug-commands-1.2.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "dc026772c5960a9b7948d8b207d743b0",
+                "sha256": "c66790ab0c1c32a42e1c3f81fe4474bd33f709997688ab7fbba3e3259b88681f"
+            },
+            "downloads": -1,
+            "filename": "sparkplug-commands-1.2.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "dc026772c5960a9b7948d8b207d743b0",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 5779,
+            "upload_time": "2018-03-18T18:12:35",
+            "url": "https://files.pythonhosted.org/packages/d3/f9/feaba4786c87aac38b8c3d29978352eeb218b4726a7084e576f24409dac2/sparkplug-commands-1.2.0.tar.gz"
+        }
+    ]
+}

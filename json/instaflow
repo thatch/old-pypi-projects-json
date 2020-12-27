@@ -1,0 +1,209 @@
+{
+    "info": {
+        "author": "AlphaXenon",
+        "author_email": "tony.chan2342@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy"
+        ],
+        "description": "\n<h1 align=\"center\">InstaFlow</h1>\n<p align=\"center\"><img src=\"./demo.gif\"></p>\n\n> **InstaFlow** is a fast and lightweight command-line program for downloading photos and videos from Instagram.\n\nIf you like my project, don't forget to give it a \u2b50\ufe0f ! A little help is a big encouragement to me !\n\n## Table of Contents\n\n- [Features](#features)\n- [Installation](#installation)\n  - [from source](#from-source)\n  - [via PyPI](#via-pypi)\n- [Requirements](#requirements)\n- [Usage](#usage)\n  - [Download a User's Posts](#download-a-users-posts)\n    - [Types of Media](#types-of-media)\n    - [Options](#options)\n  - [Debug Mode](#debug-mode)\n- [API](#api)\n- [Examples](#examples)\n- [License](#license)\n\n## Features\n\n* Fast and Simple\n* Use multithreads to scrape data\n* Download all types of media of a user\n* Like / Unlike all posts of a user with a single command\n* Use multiple accounts and manage cookies\n\n## Installation\n\n### from source\n\n```shell\n$ git clone https://github.com/AlphaXenon/InstaFlow.git\n$ cd InstaFlow\n$ [sudo] python3 setup.py install\n```\n\n### via PyPI\n\n`pip3 install instaflow`\n\n**NOTE:** Always remove the whole `~/.instaflow` directory everytime before installing a different version of **instaflow** to avoid conflicts.\n\n## Requirements\n\nPython >= 3.6\n\n1. requests\n2. tqdm\n3. colorama\n\n## Usage\n\n```text\npositional arguments:\n  {whoami,accounts,login,logout,get,like,unlike,down}\n    whoami              prints out your name and id\n    accounts            manage accounts and cookies\n    login               choose account and login to Instagram\n    logout              logout from current account\n    get                 get information of a target\n    like                like post\n    unlike              unlike posts\n    down                download media of a target\n\noptional arguments:\n  -h, --help            show this help message and exit\n  --version             show program's version number and exit\n  --debug               show debug logging messages\n```\n\n**You do not need to login evry time you use instaflow.**\n\nAll account cookies are saved in *~/.instaflow/accounts* .\n\nYou can remove and manage cookies by using `instaflow account` command.\n\nYou can check which account you have logged in by using `instaflow whoami`.\n\n### Download a User's Posts\n\n`instaflow down [media type] [options]...`\n\n#### Types of Media\n\n* `-p/--post <post id>` : a post\n* `-u/--user <username>` : a user's posts\n* `-sa/--saved` [flag] : your saved posts\n* `-t/--tag <hashtag>` : posts with a given tag\n* `-tt/--top-tag <hashtag>` : top posts with a given tag\n* `-st/--story <username>` : a user's stories\n* `-pp/--profile-pic` [flag] : a user's profile picture\n* `-f/--file <path>` : posts from an external file that contains a list of post ids\n\n#### Options\n\n* `-o/--only {video,image,sidecar}` (default: None) : filter out other types of media, only download the given type of media\n\n*NOTE: `sidecar` means posts with multiple photos/videos.*\n\n* `-md/--metadata` [flag] : download including the information (metadata) of the posts such as caption, owner, time etc.\n* `--dest` (default: .) : set the path of download destination\n* `-l/--limit` (default: 12) : set the max limit of **posts** to download\n\n### Debug Mode\n\n`instaflow --debug [action]`\n\nWhen using `down` action in debug mode, it will show download details (mime type, size) of each item instead of displaying progress bar.\n\nIf there is a exception caught, it will show detail traceback of that error.\n\n## API\n\nOther than the fancy CLI, InstaFlow also provides an easy to use API. It uses a context manager, which will login to Instagram when enter and logout when exit.\n\nLogin with username and password and do something.\n```python\nfrom instaflow import InstaFlow\n\nwith InstaFlow(username, password, logout=True) as insta:\n    insta.do_something()\n```\n\nLogin with cookie file and do something.\n```python\nfrom instaflow import InstaFlow\n\nf = open(\"cookie.json\", \"r\")    # open the cookie file (must be a valid JSON file)\n\nwith InstaFlow(cookie=f) as insta:  # login with the cookie file\n    insta.do_something()\n```\n\nwhile `do_something` can be:\n\n* Get\n  * `get_post(id)`\n  * `get_user(**kwargs)`\n  * `get_story(**kwargs)`\n  * `get_posts_from_file(filename)`\n  * `get_user_posts(name, limit=12, only=None)`\n  * `get_my_saved_posts(limit=12, only=None)`\n  * `get_hashtag_posts(tag, limit=12, only=None, top=False)`\n\n* Download\n  * `download_post_media_from_file(filename, dest=\"\", include_metadata=False)`\n  * `download_user_media(name, limit=12, only=None, dest=\"\", include_metadata=False)`\n  * `download_my_saved_media(limit=12, only=None, dest=\"\", include_metadata=False)`\n  * `download_hashtag_media(tag, limit=12, only=None, dest=\"\", top=False, include_metadata=False)`\n  * `download_post_media(id, dest=\"\", include_metadata=False)`\n  * `download_story_media(name, dest=\"\")`\n  * `download_profile_pic(name, dest=\"\")`\n\n* Like / Unlike\n  * `like_post(id)`\n  * `unlike_post(id)`\n  * `like_all_user_posts(name, limit=12)`\n  * `unlike_all_user_posts(name, limit=12)`\n  * `like_hashtag_posts(tag, limit=12, only=None)`\n\n## Examples\n\nLike & Download all my saved posts\n\n```python\nfrom instaflow import InstaFlow\n\nwith InstaFlow(username, password, logout=True) as insta:\n    posts = insta.get_my_saved_posts(limit=999)    # get all (999) my saved posts\n    for p in posts:\n        insta.like_post(p.post_id)\n        insta.download_post_media(p.post_id)\n```\n\nA list of post ids in a text file\n\n```python\nfrom instaflow import InstaFlow\n\nwith InstaFlow(username, password, logout=True) as insta:\n    # get all posts you desired\n    posts = insta.get_hashtag_posts(\"cat\", limit=50, only=\"video\")\n    post.extend(insta.get_user_posts(\"9gag\", limit=10, only=\"image\"))\n\nwith open(\"post_ids.txt\", \"w+\") as f:   # open a new text file\n    for p in posts:    # write all ids into file\n        f.write(p.post_id + \"\\n\")\n\n# Now, retrieve the ids from the file and download them at once\nwith InstaFlow(username, password, logout=True) as insta:\n    insta.download_post_media_from_file(\"post_ids.txt\")\n```\n\n## License\n\n[MIT License](./LICENSE.txt)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/AlphaXenon/InstaFlow",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "instaflow",
+        "package_url": "https://pypi.org/project/instaflow/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/instaflow/",
+        "project_urls": {
+            "Homepage": "https://github.com/AlphaXenon/InstaFlow"
+        },
+        "release_url": "https://pypi.org/project/instaflow/1.0.2/",
+        "requires_dist": [
+            "requests",
+            "tqdm",
+            "colorama"
+        ],
+        "requires_python": ">=3.6.0",
+        "summary": "A fast and lightweight Instagram media downloader",
+        "version": "1.0.2"
+    },
+    "last_serial": 4646359,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3022e427399d0297871d1055f1796b2",
+                    "sha256": "630d2e60abcce3a79e494def37e28cf014f48de0b3581855d090eebf7e6b2dec"
+                },
+                "downloads": -1,
+                "filename": "instaflow-1.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "f3022e427399d0297871d1055f1796b2",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": ">=3.6.0",
+                "size": 42512,
+                "upload_time": "2018-12-09T08:13:21",
+                "url": "https://files.pythonhosted.org/packages/1b/5a/bdda6274a20209c4be7372c2fc9fa6497fac34c3a5319705714d8bb243ee/instaflow-1.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1080a26481c8c09f17ee1e8f4592cf87",
+                    "sha256": "eea7d732f0addcd6ccacd7da7d748255c8ce1ccb197edf70816da2ad918cae6b"
+                },
+                "downloads": -1,
+                "filename": "instaflow-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1080a26481c8c09f17ee1e8f4592cf87",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 18997,
+                "upload_time": "2018-12-09T08:13:18",
+                "url": "https://files.pythonhosted.org/packages/70/ae/78986dcaee4898321cb5f771e3adeffad446078fb322b272a802adeb914a/instaflow-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0990e2ac43193a075203544c0410ce22",
+                    "sha256": "eb14595b0a81bc3ab582dd8a7a49b97e9b907b51a6d910bb480a9665967dfb8a"
+                },
+                "downloads": -1,
+                "filename": "instaflow-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0990e2ac43193a075203544c0410ce22",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 16720,
+                "upload_time": "2018-12-09T08:13:23",
+                "url": "https://files.pythonhosted.org/packages/9d/4b/64e5e1e7146dd918cb8f00b3fd6b4f95126eb0ebbd7f1f823abb97efa904/instaflow-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1462fc5c72d0211975104e84c534d4ab",
+                    "sha256": "b31182aea55bc5a18bff0fd339b3e9efe292da7d9d19574c12406f6bc353885d"
+                },
+                "downloads": -1,
+                "filename": "instaflow-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1462fc5c72d0211975104e84c534d4ab",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 20770,
+                "upload_time": "2018-12-28T16:55:25",
+                "url": "https://files.pythonhosted.org/packages/c0/e4/a00b8f213e4f7175ad57e5d3f9768683d610da98bbbe0ef393e31acc94c3/instaflow-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "abe82cd176853a40e9c971311b2796eb",
+                    "sha256": "17c2393641934029d2dbdd097e361989243ca05401fe793c12904bd54cea21be"
+                },
+                "downloads": -1,
+                "filename": "instaflow-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "abe82cd176853a40e9c971311b2796eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 19593,
+                "upload_time": "2018-12-28T16:55:27",
+                "url": "https://files.pythonhosted.org/packages/83/e8/4a4f725f8fed08e9aad812b8679546f4b0a4ed491fcedfff21f60d245c03/instaflow-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d3df94d8abe9dd7834b2a4dc208ff5df",
+                    "sha256": "dd6b416af711e1dcfe3afb960cbc6baaf12e0b6594c665a210d7e6a6cf476c4d"
+                },
+                "downloads": -1,
+                "filename": "instaflow-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d3df94d8abe9dd7834b2a4dc208ff5df",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 21671,
+                "upload_time": "2018-12-30T14:57:30",
+                "url": "https://files.pythonhosted.org/packages/86/35/d160a521a8c842e893684dad562c47ead0014f0c82ee636c4c7db75dbd6b/instaflow-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3191f75069a3af684c2372c97b7ad6a0",
+                    "sha256": "571b248b79a51df1cffc572eb621cd5036626a54bd93b259d8e3edb7de067d92"
+                },
+                "downloads": -1,
+                "filename": "instaflow-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3191f75069a3af684c2372c97b7ad6a0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 20779,
+                "upload_time": "2018-12-30T14:57:33",
+                "url": "https://files.pythonhosted.org/packages/78/af/9bfe377bf7d3bfb7066c06771c3f7edea79b3d6267b5cce59a21d223fcfe/instaflow-1.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d3df94d8abe9dd7834b2a4dc208ff5df",
+                "sha256": "dd6b416af711e1dcfe3afb960cbc6baaf12e0b6594c665a210d7e6a6cf476c4d"
+            },
+            "downloads": -1,
+            "filename": "instaflow-1.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d3df94d8abe9dd7834b2a4dc208ff5df",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6.0",
+            "size": 21671,
+            "upload_time": "2018-12-30T14:57:30",
+            "url": "https://files.pythonhosted.org/packages/86/35/d160a521a8c842e893684dad562c47ead0014f0c82ee636c4c7db75dbd6b/instaflow-1.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3191f75069a3af684c2372c97b7ad6a0",
+                "sha256": "571b248b79a51df1cffc572eb621cd5036626a54bd93b259d8e3edb7de067d92"
+            },
+            "downloads": -1,
+            "filename": "instaflow-1.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3191f75069a3af684c2372c97b7ad6a0",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6.0",
+            "size": 20779,
+            "upload_time": "2018-12-30T14:57:33",
+            "url": "https://files.pythonhosted.org/packages/78/af/9bfe377bf7d3bfb7066c06771c3f7edea79b3d6267b5cce59a21d223fcfe/instaflow-1.0.2.tar.gz"
+        }
+    ]
+}

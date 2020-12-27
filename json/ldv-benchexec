@@ -1,0 +1,259 @@
+{
+    "info": {
+        "author": "Dirk Beyer",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: System :: Benchmark"
+        ],
+        "description": "BenchExec\n=========\n\nA Framework for Reliable Benchmarking and Resource Measurement\n--------------------------------------------------------------\n\n|Build Status| |Code Quality| |Test Coverage| |Issue Stats| |Apache 2.0\nLicense| |PyPI version| |DOI|\n\n**News**:\n\n-  BenchExec 1.16 adds `energy\n   measurements <https://github.com/sosy-lab/benchexec/blob/master/doc/resources.md#energy>`__\n   if the tool\n   `cpu-energy-meter <https://github.com/sosy-lab/cpu-energy-meter>`__\n   is installed on the system.\n-  An extended version of our paper on BenchExec and its background gets\n   published in\n   `STTT <https://link.springer.com/article/10.1007/s10009-017-0469-y>`__,\n   you can now read the preprint of `Reliable Benchmarking: Requirements\n   and\n   Solutions <https://www.sosy-lab.org/~dbeyer/Publications/2017-STTT.Reliable_Benchmarking_Requirements_and_Solutions.pdf>`__.\n   In addition to the `previous version from\n   SPIN'15 <https://www.sosy-lab.org/~dbeyer/Publications/2015-SPIN.Benchmarking_and_Resource_Measurement.pdf>`__,\n   it also describes the container mode and how to present result data.\n-  BenchExec 1.9 adds a `container\n   mode <https://github.com/sosy-lab/benchexec/blob/master/doc/container.md>`__\n   that isolates each run from the host system and from other runs\n   (disabled by now, will become default in BenchExec 2.0).\n\nBenchExec provides three major features:\n\n-  execution of arbitrary commands with precise and reliable measurement\n   and limitation of resource usage (e.g., CPU time and memory), and\n   isolation against other running processes\n-  an easy way to define benchmarks with specific tool configurations\n   and resource limits, and automatically executing them on large sets\n   of input files\n-  generation of interactive tables and plots for the results\n\nContrary to other benchmarking frameworks, it is able to reliably\nmeasure and limit resource usage of the benchmarked tool even if it\nspawns subprocesses. In order to achieve this, it uses the `cgroups\nfeature <https://www.kernel.org/doc/Documentation/cgroup-v1/cgroups.txt>`__\nof the Linux kernel to correctly handle groups of processes. For proper\nisolation of the benchmarks, it uses (if available) Linux `user\nnamespaces <http://man7.org/linux/man-pages/man7/namespaces.7.html>`__\nand an `overlay\nfilesystem <https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt>`__\nto create a\n`container <https://github.com/sosy-lab/benchexec/blob/master/doc/container.md>`__\nthat restricts interference of the executed tool with the benchmarking\nhost. BenchExec is intended for benchmarking non-interactive tools on\nLinux systems. It measures CPU time, wall time, and memory usage of a\ntool, and allows to specify limits for these resources. It also allows\nto limit the CPU cores and (on NUMA systems) memory regions, and the\ncontainer mode allows to restrict filesystem and network access. In\naddition to measuring resource usage, BenchExec can verify that the\nresult of the tool was as expected, and extract further statistical data\nfrom the output. Results from multiple runs can be combined into CSV and\ninteractive HTML tables, of which the latter provide scatter and\nquantile plots (have a look at our `demo\ntable <https://sosy-lab.github.io/benchexec/example-table/svcomp-simple-cbmc-cpachecker.table.html>`__).\n\nBenchExec works only on Linux and needs a one-time setup of cgroups by\nthe machine's administrator. The actual benchmarking can be done by any\nuser and does not need root access.\n\nBenchExec was originally developed for use with the software\nverification framework `CPAchecker <https://cpachecker.sosy-lab.org>`__\nand is now developed as an independent project at the `Software Systems\nLab <https://www.sosy-lab.org>`__ of the `Ludwig-Maximilians-Universit\u00e4t\nM\u00fcnchen (LMU Munich) <https://www.uni-muenchen.de>`__.\n\nLinks\n~~~~~\n\n-  `Documentation <https://github.com/sosy-lab/benchexec/tree/master/doc/INDEX.md>`__\n-  `Demo <https://sosy-lab.github.io/benchexec/example-table/svcomp-simple-cbmc-cpachecker.table.html>`__\n   of a result table\n-  `Downloads <https://github.com/sosy-lab/benchexec/releases>`__\n-  `Changelog <https://github.com/sosy-lab/benchexec/tree/master/CHANGELOG.md>`__\n-  `BenchExec GitHub\n   Repository <https://github.com/sosy-lab/benchexec>`__, use this for\n   `reporting issues and asking\n   questions <https://github.com/sosy-lab/benchexec/issues>`__\n-  `BenchExec at PyPI <https://pypi.python.org/pypi/BenchExec>`__\n-  *New*: Paper `Reliable Benchmarking: Requirements and\n   Solutions <https://www.sosy-lab.org/~dbeyer/Publications/2017-STTT.Reliable_Benchmarking_Requirements_and_Solutions.pdf>`__\n   about BenchExec (`supplementary\n   webpage <https://www.sosy-lab.org/research/benchmarking/>`__)\n\nAuthors\n~~~~~~~\n\nMaintainer: `Philipp Wendler <https://www.philippwendler.de>`__\n\nContributors:\n\n-  `Dirk Beyer <https://www.sosy-lab.org/people/beyer/>`__\n-  `Montgomery Carter <https://github.com/MontyCarter>`__\n-  `Andreas Donig <https://github.com/adonig>`__\n-  `Karlheinz\n   Friedberger <https://www.sosy-lab.org/people/friedberger>`__\n-  Peter H\u00e4ring\n-  `George Karpenkov <http://metaworld.me/>`__\n-  `Mike Kazantsev <http://fraggod.net/>`__\n-  Thomas Lemberger\n-  Sebastian Ott\n-  Stefan L\u00f6we\n-  Stephan Lukasczyk\n-  `Alexander von\n   Rhein <http://www.infosun.fim.uni-passau.de/se/people-rhein.php>`__\n-  `Alexander\n   Schremmer <https://www.xing.com/profile/Alexander_Schremmer>`__\n-  `Andreas Stahlbauer <http://stahlbauer.net/>`__\n-  `Thomas Stieglmaier <https://stieglmaier.me/>`__\n-  and `lots of more people who integrated tools into\n   BenchExec <https://github.com/sosy-lab/benchexec/graphs/contributors>`__\n\nUsers of BenchExec\n~~~~~~~~~~~~~~~~~~\n\nBenchExec was successfully used for benchmarking in all seven instances\nof the `International Competition on Software\nVerification <https://sv-comp.sosy-lab.org>`__ (2012-2018) with a wide\nvariety of benchmarked tools and hundreds of thousands benchmark runs.\n\nThe developers of the following tools use BenchExec:\n\n-  `CPAchecker <https://cpachecker.sosy-lab.org>`__, also for regression\n   testing\n-  `SMACK <https://github.com/smackers/smack>`__\n-  `StarExec <https://www.starexec.org/starexec/public/about.jsp>`__\n   (`GitHub <https://github.com/StarExec/StarExec>`__)\n\nIf you would like to be listed here, `contact\nus <https://github.com/sosy-lab/benchexec/issues/new>`__.\n\n.. |Build Status| image:: https://travis-ci.org/sosy-lab/benchexec.svg?branch=master\n   :target: https://travis-ci.org/sosy-lab/benchexec\n.. |Code Quality| image:: https://api.codacy.com/project/badge/grade/d9926a7a5cb04bcaa8d43caae38a9c36\n   :target: https://www.codacy.com/app/PhilippWendler/benchexec\n.. |Test Coverage| image:: https://api.codacy.com/project/badge/coverage/d9926a7a5cb04bcaa8d43caae38a9c36\n   :target: https://www.codacy.com/app/PhilippWendler/benchexec\n.. |Issue Stats| image:: https://img.shields.io/issuestats/p/github/sosy-lab/benchexec.svg\n   :target: http://issuestats.com/github/sosy-lab/benchexec\n.. |Apache 2.0 License| image:: https://img.shields.io/badge/license-Apache--2-brightgreen.svg\n   :target: https://www.apache.org/licenses/LICENSE-2.0\n.. |PyPI version| image:: https://img.shields.io/pypi/v/BenchExec.svg\n   :target: https://pypi.python.org/pypi/BenchExec\n.. |DOI| image:: https://zenodo.org/badge/30758422.svg\n   :target: https://zenodo.org/badge/latestdoi/30758422\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/sosy-lab/benchexec/",
+        "keywords": "benchmarking resource measurement",
+        "license": "Apache 2.0 License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "LDV-BenchExec",
+        "package_url": "https://pypi.org/project/LDV-BenchExec/",
+        "platform": "Linux",
+        "project_url": "https://pypi.org/project/LDV-BenchExec/",
+        "project_urls": {
+            "Homepage": "https://github.com/sosy-lab/benchexec/"
+        },
+        "release_url": "https://pypi.org/project/LDV-BenchExec/1.16.post3/",
+        "requires_dist": [
+            "tempita (==0.5.2)"
+        ],
+        "requires_python": "",
+        "summary": "A Framework for Reliable Benchmarking and Resource Measurement.",
+        "version": "1.16.post3"
+    },
+    "last_serial": 4410347,
+    "releases": {
+        "1.16.post1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4711b33c1fe274a6ee50369bb9cd285a",
+                    "sha256": "0420a744208105c12451567e8e45622ab716b46988e0b2fe89467b5f252f836f"
+                },
+                "downloads": -1,
+                "filename": "LDV_BenchExec-1.16.post1-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "4711b33c1fe274a6ee50369bb9cd285a",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 557219,
+                "upload_time": "2018-10-24T09:38:54",
+                "url": "https://files.pythonhosted.org/packages/04/53/7dc5d7fa00756e1745a7782037df20304c95f7f8f64dc8636ea66c8e7745/LDV_BenchExec-1.16.post1-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71dda690bc378577d69a7627674ced16",
+                    "sha256": "e47a2a4a58993fbb9b3d3b98781e054d742f7fb313a41791fe9927e6b99ad4df"
+                },
+                "downloads": -1,
+                "filename": "LDV_BenchExec-1.16.post1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "71dda690bc378577d69a7627674ced16",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 265166,
+                "upload_time": "2018-10-24T09:38:51",
+                "url": "https://files.pythonhosted.org/packages/b5/6e/5c9e76f8fa86ccb36de6124ce67c16a66ff166c767a2a460e7ba7618071a/LDV_BenchExec-1.16.post1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed492a70539d74201a3f5f3f264bf682",
+                    "sha256": "5b2c64ecc4e1b7627abc42823cbf5a8bc6ebf01805115c4d0434ea8c53e4e622"
+                },
+                "downloads": -1,
+                "filename": "LDV-BenchExec-1.16.post1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ed492a70539d74201a3f5f3f264bf682",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 890306,
+                "upload_time": "2018-10-24T09:12:05",
+                "url": "https://files.pythonhosted.org/packages/e6/6e/f800ca992fc230c779160f5a214b1450afa6bb2f9dc38c440008ab92ca12/LDV-BenchExec-1.16.post1.tar.gz"
+            }
+        ],
+        "1.16.post2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b4b46d20d90ec43f76870bde15eeb7c5",
+                    "sha256": "22a5846a382864898e63702d963db7ac74442ec6416bfacffb30c9392125b603"
+                },
+                "downloads": -1,
+                "filename": "LDV_BenchExec-1.16.post2-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "b4b46d20d90ec43f76870bde15eeb7c5",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 557219,
+                "upload_time": "2018-10-24T09:40:19",
+                "url": "https://files.pythonhosted.org/packages/42/cd/0de09eac356fe0bdfa6db8899580cfd9aedfc54f71aa9d6828f776eda161/LDV_BenchExec-1.16.post2-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e969f83d01ff394f8d59e4286648d39b",
+                    "sha256": "7295057a96c0728b036d4f71e4adf040b33210cedbc4384e5012f5cc69420cb7"
+                },
+                "downloads": -1,
+                "filename": "LDV_BenchExec-1.16.post2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e969f83d01ff394f8d59e4286648d39b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 265164,
+                "upload_time": "2018-10-24T09:40:17",
+                "url": "https://files.pythonhosted.org/packages/01/cd/8a2551085bd0a5b8861e952240bb6f6cbebf0544b11f498a71166f19c29c/LDV_BenchExec-1.16.post2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2e2237cc0a56fe24833f94e03320e3c",
+                    "sha256": "64617470634eca86349fd16c7b1473f0ae96a3c141e719633fc52cd1f5921fb4"
+                },
+                "downloads": -1,
+                "filename": "LDV-BenchExec-1.16.post2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f2e2237cc0a56fe24833f94e03320e3c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 890304,
+                "upload_time": "2018-10-24T09:40:22",
+                "url": "https://files.pythonhosted.org/packages/c2/5a/7da03d91b10fbe3dd6ed8e776327e204deb42719663b254a3f96959cc21f/LDV-BenchExec-1.16.post2.tar.gz"
+            }
+        ],
+        "1.16.post3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d11be6a545c7a5c4a6c8b7ef4c01e579",
+                    "sha256": "afe8699afd89284782be58c7ac524cd7fba70f267afa44fe5bb46a9dc5bfbf81"
+                },
+                "downloads": -1,
+                "filename": "LDV_BenchExec-1.16.post3-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "d11be6a545c7a5c4a6c8b7ef4c01e579",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 557362,
+                "upload_time": "2018-10-24T09:42:03",
+                "url": "https://files.pythonhosted.org/packages/d9/d7/ca0d04bde33d72f222755ead50ce1f01544fa732d96bc24636a21243f2ee/LDV_BenchExec-1.16.post3-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7b7200d1d78d907282a48ba3ea2af053",
+                    "sha256": "8a299c64da967f9a221792a394b1fe64d7decac0cbe65406b0fa1d1534747b9f"
+                },
+                "downloads": -1,
+                "filename": "LDV_BenchExec-1.16.post3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7b7200d1d78d907282a48ba3ea2af053",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 265291,
+                "upload_time": "2018-10-24T09:42:01",
+                "url": "https://files.pythonhosted.org/packages/03/d5/ee70b09f5ba8b2be48bd7257b8db6a0f3def96f863a2707f5b25ccaf5719/LDV_BenchExec-1.16.post3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "88c542f607bffcc0a00fdee4105f4adc",
+                    "sha256": "ae53b592de94d5b9942b76ed139df29711c12f8b602cf84a3f794de1f53fdb92"
+                },
+                "downloads": -1,
+                "filename": "LDV-BenchExec-1.16.post3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "88c542f607bffcc0a00fdee4105f4adc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 891042,
+                "upload_time": "2018-10-24T09:42:05",
+                "url": "https://files.pythonhosted.org/packages/19/35/338fa41cc292bc03ffc470efb07d43a785392451cf8c93b3dbd016643a85/LDV-BenchExec-1.16.post3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d11be6a545c7a5c4a6c8b7ef4c01e579",
+                "sha256": "afe8699afd89284782be58c7ac524cd7fba70f267afa44fe5bb46a9dc5bfbf81"
+            },
+            "downloads": -1,
+            "filename": "LDV_BenchExec-1.16.post3-py3.6.egg",
+            "has_sig": false,
+            "md5_digest": "d11be6a545c7a5c4a6c8b7ef4c01e579",
+            "packagetype": "bdist_egg",
+            "python_version": "3.6",
+            "requires_python": null,
+            "size": 557362,
+            "upload_time": "2018-10-24T09:42:03",
+            "url": "https://files.pythonhosted.org/packages/d9/d7/ca0d04bde33d72f222755ead50ce1f01544fa732d96bc24636a21243f2ee/LDV_BenchExec-1.16.post3-py3.6.egg"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7b7200d1d78d907282a48ba3ea2af053",
+                "sha256": "8a299c64da967f9a221792a394b1fe64d7decac0cbe65406b0fa1d1534747b9f"
+            },
+            "downloads": -1,
+            "filename": "LDV_BenchExec-1.16.post3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "7b7200d1d78d907282a48ba3ea2af053",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 265291,
+            "upload_time": "2018-10-24T09:42:01",
+            "url": "https://files.pythonhosted.org/packages/03/d5/ee70b09f5ba8b2be48bd7257b8db6a0f3def96f863a2707f5b25ccaf5719/LDV_BenchExec-1.16.post3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "88c542f607bffcc0a00fdee4105f4adc",
+                "sha256": "ae53b592de94d5b9942b76ed139df29711c12f8b602cf84a3f794de1f53fdb92"
+            },
+            "downloads": -1,
+            "filename": "LDV-BenchExec-1.16.post3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "88c542f607bffcc0a00fdee4105f4adc",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 891042,
+            "upload_time": "2018-10-24T09:42:05",
+            "url": "https://files.pythonhosted.org/packages/19/35/338fa41cc292bc03ffc470efb07d43a785392451cf8c93b3dbd016643a85/LDV-BenchExec-1.16.post3.tar.gz"
+        }
+    ]
+}

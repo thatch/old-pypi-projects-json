@@ -1,0 +1,152 @@
+{
+    "info": {
+        "author": "Bryant Chhun",
+        "author_email": "bchhun@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Operating System :: Unix",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Scientific/Engineering :: Bio-Informatics",
+            "Topic :: Scientific/Engineering :: Information Analysis",
+            "Topic :: Scientific/Engineering :: Visualization",
+            "Topic :: Utilities"
+        ],
+        "description": "# recOrder\n\nrecord Order (recOrder): A framework for live-processing birefringence data \n\n# dependencies\n* numpy\n* py4j\n* opencv\n* pyqt5\n* napari\n* ReconstructOrder\n\npypi install coming soon!\n\n# this repo\nrecOrder is a framework to enable microscopy acquisition, analysis, and visualization pipelines.  In particular\nit is developed to accelerate computational microscopy workflows.\n\nrecOrder is an abstraction on top of the pyqt5 backend that simplifies pyqt5's signal/slot mechanism.  recOrder enables \na traditional 'publish-subscribe' pattern through simple function decorations.  It does not use QtDBus, and thus does not\nrequire installation of D-bus for your OS.\n\nplease see the examples for a sense of how to construct a program.\nIn particular, look at \"example_reconstruct_order\"\n\n## Installation\n\n### Create a new conda environment (optional, but recommended)\n>Install conda package management system by installing anaconda or miniconda (https://conda.io/). \n>Creating a conda environment dedicated to ReconstructOrder will avoid version conflicts among packages required by ReconstructOrder and packages required by other python software.\n>\n>```buildoutcfg\n>conda create -n <your-environment-name> python=3.7\n>conda activate <your-environment-name>\n>```\n### pip install via pypi\n> (COMING SOON)\n\n## Usage\nThere are three primary modules in this framework\n- acquisition\n- analysis\n- visualization\n\nAnd one program construction module:\n- program\n\nAcquisition, analysis and visualization contain one base class named  \nAcquisitionBase,  \nAnalysisBase,  \nVisualizationBase, respectively.\n\nProgram contains one class that connects any number of the earlier three modules together.\n\nThe typical pattern of usage is to define a class that inherits any of the above bases:\n\n>   ```buildoutcfg\n>   class MyTestClass(AcquisitionBase):\n>         def __init__(self):\n>                super().__init__()\n>   ```\n\nNext, to have a class's method broadcast or receive on a channel, simply decorate it:\n\n>   ```buildoutcfg\n>   class MyAcquisitionClass(AcquisitionBase):\n>          def __init__(self):\n>                super().__init__()\n>\n>           @AcquisitionBase.emitter(channel=0)\n>           def broadcast_to_channel():\n>                pass\n>\n>            @AcquisitionBase.receiver(channel=1)\n>            der receive_from_channel(from_signal):\n>                 pass\n>\n>   ```\n\nIf you want the same method to both receive and broadcast on a channel, use bidirectional:\n\n>   ```buildoutcfg\n>   class MyVisualizationClass(VisualizeBase):\n>          def __init__(self):\n>                super().__init__()\n>\n>           @VisualizeBase.bidirectional(emitter_channel=1, receiver_channel=0):\n>            def emit_and_receive_from_channels(from_signal):\n>                pass\n>\n>   ```\n\n####Note, a method does not need to return a value to emit a signal.  However, a method needs to declare parameter in order to receive a signal.\n\nFinally, to build and run an entire program, use the program class:\n\n>   ```buildoutcfg\n>     acq = MyAcquisitionClass()\n>     vis = MyVisualizationClass()\n>     program = Program(acquire=acq, visualize=vis)\n>     program.build()\n>   ```\n\nAny number of primary modules can be instantiated and passed to the \"program\" builder:\nprogram = Program(acquire=<acquisition_module>, analyze=<analysis_module>, visualize=<visualization_module>)\nUpon calling \"program.build()\", signals will be connected and the program is run.\n\n\n##\nFor computational microscopy workflows, there are additionally four datastructures and some microscope control utilities:\n\nFour datastructures:\n- Intensity\n- Stokes\n- Physical\n- Background\n\n## LICENSE\n\nChan Zuckerberg Biohub Software License\n\nThis software license is the 2-clause BSD license plus clause a third clause\nthat prohibits redistribution and use for commercial purposes without further\npermission.\n\nCopyright \u00a9 2019. Chan Zuckerberg Biohub.\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n1.\tRedistributions of source code must retain the above copyright notice,\nthis list of conditions and the following disclaimer.\n\n2.\tRedistributions in binary form must reproduce the above copyright notice,\nthis list of conditions and the following disclaimer in the documentation\nand/or other materials provided with the distribution.\n\n3.\tRedistributions and use for commercial purposes are not permitted without\nthe Chan Zuckerberg Biohub's written permission. For purposes of this license,\ncommercial purposes are the incorporation of the Chan Zuckerberg Biohub's\nsoftware into anything for which you will charge fees or other compensation or\nuse of the software to perform a commercial service for a third party.\nContact ip@czbiohub.org for commercial licensing opportunities.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\nAND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\nIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\nDISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE\nFOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\nDAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\nSERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER\nCAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\nOR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "https://github.com/czbiohub/recOrder",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "Chan Zuckerberg Biohub Software License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "recOrder-polscope-pypitest",
+        "package_url": "https://pypi.org/project/recOrder-polscope-pypitest/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/recOrder-polscope-pypitest/",
+        "project_urls": {
+            "Download": "https://github.com/czbiohub/recOrder"
+        },
+        "release_url": "https://pypi.org/project/recOrder-polscope-pypitest/0.0.4/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "Framework to enable acquisition, analysis, visualization of computational microscopy workflows",
+        "version": "0.0.4"
+    },
+    "last_serial": 6388687,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "37a95394f945ba5e53293005f2d65a05",
+                    "sha256": "8f2d7e6246eb0a7c7294fd3e6abc24bb94fa2827876fa3450bf1f6588a29ef90"
+                },
+                "downloads": -1,
+                "filename": "recOrder_polscope_pypitest-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "37a95394f945ba5e53293005f2d65a05",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 43179,
+                "upload_time": "2020-01-02T23:09:29",
+                "upload_time_iso_8601": "2020-01-02T23:09:29.048913Z",
+                "url": "https://files.pythonhosted.org/packages/4f/b7/ec048ee9ccdd8aff23adf945caf5ba4d5efc87b73c2d5a07c7095cc5c21e/recOrder_polscope_pypitest-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cd77b663843027b31fa4ae7320fb0bd7",
+                    "sha256": "6a79cd0980960385cdddbbc54d05c2bd0cf7cdb69bcc13a27b561d63774b4a87"
+                },
+                "downloads": -1,
+                "filename": "recOrder_polscope_pypitest-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cd77b663843027b31fa4ae7320fb0bd7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 43176,
+                "upload_time": "2020-01-02T23:11:36",
+                "upload_time_iso_8601": "2020-01-02T23:11:36.442649Z",
+                "url": "https://files.pythonhosted.org/packages/7e/2f/48b02cb930c46640dc6f2b20cd541a9f43385700ae06d76fe58cd779faed/recOrder_polscope_pypitest-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8d8112ce0e44fe358b6be4885f66a38d",
+                    "sha256": "15092c243b22c1a34afdb251e8c6241b7d76982075061b207b14502089dd6e0a"
+                },
+                "downloads": -1,
+                "filename": "recOrder_polscope_pypitest-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8d8112ce0e44fe358b6be4885f66a38d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 43171,
+                "upload_time": "2020-01-02T23:13:20",
+                "upload_time_iso_8601": "2020-01-02T23:13:20.231096Z",
+                "url": "https://files.pythonhosted.org/packages/42/82/609f5a79d2feb24e68dd43900a6b9ca2e42ebce7655bfe4ef3ed1aa5901b/recOrder_polscope_pypitest-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ae5676a7751cb1792a4bbdc0b11b37a5",
+                    "sha256": "303852beaf2fbeed9d21db1f65570af836771f165c1c99de876d50725c086e72"
+                },
+                "downloads": -1,
+                "filename": "recOrder_polscope_pypitest-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ae5676a7751cb1792a4bbdc0b11b37a5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 43171,
+                "upload_time": "2020-01-02T23:14:54",
+                "upload_time_iso_8601": "2020-01-02T23:14:54.117618Z",
+                "url": "https://files.pythonhosted.org/packages/4c/33/ed3aaf460fbd68852ba6650046f4807a72f984aadb4f0c3d8d075648fd0e/recOrder_polscope_pypitest-0.0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ae5676a7751cb1792a4bbdc0b11b37a5",
+                "sha256": "303852beaf2fbeed9d21db1f65570af836771f165c1c99de876d50725c086e72"
+            },
+            "downloads": -1,
+            "filename": "recOrder_polscope_pypitest-0.0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "ae5676a7751cb1792a4bbdc0b11b37a5",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 43171,
+            "upload_time": "2020-01-02T23:14:54",
+            "upload_time_iso_8601": "2020-01-02T23:14:54.117618Z",
+            "url": "https://files.pythonhosted.org/packages/4c/33/ed3aaf460fbd68852ba6650046f4807a72f984aadb4f0c3d8d075648fd0e/recOrder_polscope_pypitest-0.0.4.tar.gz"
+        }
+    ]
+}

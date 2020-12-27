@@ -1,0 +1,72 @@
+{
+    "info": {
+        "author": "Mozilla Release Engineering",
+        "author_email": "release+python@mozilla.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3.5"
+        ],
+        "description": "Pushapkworker\n=============\n\n|Build Status| |Coverage Status|\n\nMain script that is aimed to be run with\n`scriptworker <https://github.com/mozilla-releng/scriptworker>`__ (but\nruns perfectly fine as a standalone script). This project is a fork of\n`signingscript <https://github.com/mozilla-releng/signingscript>`__.\nMost of the documentation from signing script applies to this project.\n\nGet the code\n------------\n\nFirst, you need ``python>=3.5.0``.\n\n::\n\n    # create the virtualenv in ./venv3\n    virtualenv3 venv3\n    # activate it\n    . venv3/bin/activate\n    git clone https://github.com/mozilla-releng/pushapkworker\n    cd pushapkworker\n    pip install pushapkworker\n\nConfigure\n~~~~~~~~~\n\n::\n\n    cp config_example.json config.json\n    # edit it with your favorite text editor\n\nThere are many values to edit. Example values should give you a hint\nabout what to provide. If not, please see `signingscript's\nREADME <https://github.com/mozilla-releng/signingscript#config-json>`__\nfor more details about allowing URLs, or contact the author for other\nunclear areas.\n\ndirectories and file naming\n^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nIf you aren't running through scriptworker, you need to manually create\nthe directories that ``work_dir`` and ``artifact_dir`` point to. It's\nbetter to use new directories for these rather than cluttering and\npotentially overwriting an existing directory. Once you set up\nscriptworker, the ``work_dir`` and ``artifact_dir`` will be regularly\nwiped and recreated.\n\ntask.json\n~~~~~~~~~\n\n::\n\n    cp task_example.json /path/to/work_dir\n    # edit it with your favorite text editor\n\nOrdinarily, scriptworker would get the task definition from TaskCluster,\nand write it to a ``task.json`` in the ``work_dir``. Since you're\ninitially not going to run through scriptworker, you need to put this\nfile on disk yourself.\n\nThe important entries to edit are the: \\* ``apks``: point to the file(s)\nto publish to Google Play \\* ``dependencies``: need to match the\n``taskId``\\ s of the URLs unless you modify the ``valid_artifact_*``\nconfig items as specified above \\* ``scopes``: the first and only scope,\n``project:releng:googleplay:*``, tells which product in Google Play\nstore should be updated (either\n`aurora <https://play.google.com/store/apps/details?id=org.mozilla.fennec_aurora>`__,\n`beta <https://play.google.com/store/apps/details?id=org.mozilla.firefox_beta>`__,\nor\n`release <https://play.google.com/store/apps/details?id=org.mozilla.firefox>`__)\n\\* ``google_play_track``: refers to which Google Play track (either\nproduction, beta, or alpha) the APK will be uploaded\n\n(aurora, beta, release) vs (alpha, beta, production)?\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nGoogle Play allows a product to have 3 different tracks (``alpha``,\n``beta``, ``production``). Tracks are used by end-users when they want\nto enroll in a beta-testing program.\n\nHowever, this feature wasn't out when we started publishing Fennec. This\nis why Fennec is registred as 3 different product: one for each regular\nFirefox channel (aurora, beta, release). As a consequence, here's how\nproducts/tracks should be used.\n\n+----------+--------------------------+---------------+--------+\n| Product  | Brand name               | Track         | Notes  |\n+==========+==========================+===============+========+\n| release  | Firefox                  | ``production` |        |\n|          |                          | `             |        |\n+----------+--------------------------+---------------+--------+\n| beta     | Firefox Beta             | ``production` |        |\n|          |                          | `             |        |\n+----------+--------------------------+---------------+--------+\n| aurora   | Firefox Aurora for       | ``beta``      | produc |\n|          | Developers               |               | tion   |\n|          |                          |               | is not |\n|          |                          |               | used   |\n|          |                          |               | to     |\n|          |                          |               | show   |\n|          |                          |               | the    |\n|          |                          |               | produc |\n|          |                          |               | t      |\n|          |                          |               | is not |\n|          |                          |               | aimed  |\n|          |                          |               | at     |\n|          |                          |               | regula |\n|          |                          |               | r      |\n|          |                          |               | users  |\n+----------+--------------------------+---------------+--------+\n\nNote: For development purpose, aurora on the ``alpha`` track can also be\nused.\n\nrun\n~~~\n\nYou're ready to run pushapkworker!\n\n::\n\n    pushapkworker CONFIG_FILE\n\nwhere ``CONFIG_FILE`` is the config json you created above.\n\nThis should download the file(s) specified in the payload, check their\nsignatures with jarsigner and publish them to Google Play Store.\n\nrunning through scriptworker\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nFollow the `scriptworker\nreadme <https://github.com/mozilla-releng/scriptworker/blob/master/README.rst>`__\nto set up scriptworker, and use\n``[\"path/to/pushapkworker\", \"path/to/script_config.json\"]`` as your\n``task_script``.\n\n+---------------------------------------------------------------------------+\n| Docs                                                                      |\n+===========================================================================+\n| ``README.md`` is the master readme, and ``README.rst`` is generated via   |\n+---------------------------------------------------------------------------+\n\nTable: warning: Make sure your ``work_dir`` and ``artifact_dir`` point\nto the same directories between the scriptworker config and the\npushapkworker config!\n\n::\n\n    pandoc --from=markdown --to=rst README.md > README.rst\n\nThis is purely because\n\n1. @escapewindow prefers writing markdown, and\n2. pypi appears to deal with rst better than markdown.\n\n.. |Build Status| image:: https://travis-ci.org/mozilla-releng/pushapkworker.svg?branch=master\n   :target: https://travis-ci.org/mozilla-releng/pushapkworker\n.. |Coverage Status| image:: https://coveralls.io/repos/github/mozilla-releng/pushapkworker/badge.svg?branch=master\n   :target: https://coveralls.io/github/mozilla-releng/pushapkworker?branch=master\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mozilla-releng/push-apk-worker",
+        "keywords": "",
+        "license": "MPL2",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pushapkworker",
+        "package_url": "https://pypi.org/project/pushapkworker/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/pushapkworker/",
+        "release_url": "https://pypi.org/project/pushapkworker/0.1.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "TaskCluster Push APK Worker",
+        "version": "0.1.1"
+    },
+    "last_serial": 2421691,
+    "releases": {
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1cf0b761519e8742e45ba18e749a7d8b",
+                    "sha256": "08b1fb515ce7d32eb84b446342ddb0370dbd9833d15c92289201c7393b025e80"
+                },
+                "downloads": -1,
+                "filename": "pushapkworker-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1cf0b761519e8742e45ba18e749a7d8b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 16243,
+                "upload_time": "2016-10-06T15:27:37",
+                "url": "https://files.pythonhosted.org/packages/63/5c/c482d0963157f8d47946a69dcfd4037a63b18d2b28622a9c0cc284ac7568/pushapkworker-0.1.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1cf0b761519e8742e45ba18e749a7d8b",
+                "sha256": "08b1fb515ce7d32eb84b446342ddb0370dbd9833d15c92289201c7393b025e80"
+            },
+            "downloads": -1,
+            "filename": "pushapkworker-0.1.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1cf0b761519e8742e45ba18e749a7d8b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 16243,
+            "upload_time": "2016-10-06T15:27:37",
+            "url": "https://files.pythonhosted.org/packages/63/5c/c482d0963157f8d47946a69dcfd4037a63b18d2b28622a9c0cc284ac7568/pushapkworker-0.1.1.tar.gz"
+        }
+    ]
+}

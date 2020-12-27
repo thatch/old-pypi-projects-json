@@ -1,0 +1,368 @@
+{
+    "info": {
+        "author": "Jeff Levensailor",
+        "author_email": "jeff@levensailor.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Python SDK for Cisco CUCM AXL API\n\n## AXL API Documentation\n - https://developer.cisco.com/docs/axl-schema-reference/\n\n## Installation\n```bash\npip install ciscoaxlsdk\n```\n\n## Example Usage\n```python\nfrom ciscoaxlsdk import AXL\ncucm = os.getenv('cucm', '10.10.20.1')\nusername = os.getenv('username', 'administrator')\npassword = os.getenv('password', 'ciscopsdt')\nversion = os.getenv('version', '11.5')\n```\n\n## Users\n\n#### Get All Users\n```python\nfor user in ucm.get_users():\n    print(user.firstName)\n```\n\n#### Get Specific User\n```python\nthis_user = ucm.get_user(user_id='mscott')\nif this_user['success']:\n    print(this_user['response'])\n```\n\n#### Add User\n```python\nthis_add_user = ucm.add_user(user_id='jlevensailor', last_name='Levensailor', first_name='Jeff')\nif this_add_user['success']:\n    print(this_add_user['response'])\n```\n\n#### Delete User\n```python\nthis_delete_user = ucm.delete_user(user_id='jlevensailor')\nif this_delete_user['success']:\n    print(this_delete_user['response'])\n```\n\n#### Update User\n```python\nthis_update_user = ucm.update_user(user_id='jlevensailor', password='Lagavulin16', pin='5432')\nif this_update_user['success']:\n    print(this_update_user['response'])\n```\n\n## Phones\n\n#### Get Phones\n\n```python\nfor phone in ucm.get_phones():\n    print(phone.name)\n```\n\n#### Get Specific Phone\n\n```python\nthis_phone = ucm.get_user(user_id='lsimpson')\nif this_phone['success']:\n    print(this_phone['response'])\n```\n\n#### Add Phone\n\n```python\nthis_add_phone = ucm.add_phone(\n    name='SEP0023AF482340',\n    description='Robert - 1102',\n    product='Cisco 8861',\n    device_pool='RTP_DP',\n    location='RTP_LOC',\n    phone_template='Standard 8861 SIP',\n    protocol='SIP',\n    css='AVST-CSS',\n    subscribe_css='AVST-CSS',\n    lines=[\n        ('1102', 'ABQ_PT', 'Robert Smith', 'Robert Smith', 'Robert Smith - 1102', '+1408202XXXX')\n    ]\n)\nif this_add_phone['success']:\n    print(this_add_phone['response'])\n```\n\n#### Delete Phone\n\n```python\nthis_delete_phone = ucm.delete_phone('SEP004433220043')\nif this_delete_phone['success']:\n    print(this_delete_phone['response'])\n```\n\n## Translations and Transformations\n\n\n#### Get Translation Patterns\n\n```python\nfor trans in ucm.get_translations():\n        this_trans = ucm.get_translation(uuid=trans._uuid)\n        if this_trans['success']:\n            mask = this_trans['response'].calledPartyTransformationMask\n            if mask == \"3001\":\n                print(this_trans['response'].pattern)\n```\n\n#### Get Specific Translation Pattern\n\n```python\nthis_trans = ucm.get_translation(pattern='2XXX', partition='xlates-pt')\nif this_trans['success']:\n    print(this_trans['response'].description)\n```\n\n#### Add Translation Pattern\n\n```python\nported = ['12324625544', '12324625545', '12324625546']\n\nfor num in ported:\n    this_add_trans = ucm.add_translation(pattern=num, partition='pstn_pt',calledPartyTransformationMask='1102', callingSearchSpaceName='GW_CSS')\n    if this_add_trans['success']:\n        print(this_add_trans['response'])\n```\n\n#### Delete Translation Pattern\n\n```python\nthis_delete_trans = ucm.delete_translation(pattern='34567', partition='xlates-pt')\nif this_delete_trans['success']:\n    print(this_delete_trans['response'])\n```\n\n#### Update Translation Pattern\n\n```python\nthis_update_trans = ucm.update_translation(pattern='1234', partition='xlates-pt', newPattern='4567')\nif this_update_trans['success']:\n    print(this_update_trans['response'])\n```\n\n## Device Pools\n\n\n#### Get Device Pools\n\n```python\nfor dp in ucm.get_device_pools():\n    print(dp)\n```\n\n#### Get Specific Device Pool\n\n```python\nthis_dp = ucm.get_device_pool(name='RTP_DP')\nif this_dp['success']:\n    print(this_dp['response'])\n```\n\n#### Add Device Pool\n\n```python\nthis_add_dp = ucm.add_device_pool(device_pool='Hollywood_DP')\nif this_add_dp['success']:\n    print(this_add_dp['response'])\n```\n\n#### Delete Device Pool\n\n```python\nthis_delete_dp = ucm.delete_device_pool(device_pool='Hollywood_DP')\nif this_delete_dp['success']:\n    print(this_delete_dp['response'])\n```\n\n#### Update Device Pool\n\n```python\nthis_update_dp = ucm.update_device_pool(name='RTP_DP', regionName='G711_RGN')\nif this_update_dp['success']:\n    print(this_update_dp['response'])\n```\n\n## CSS and Partitions\n\n\n#### Get Calling Search Spaces\n\n```python\nfor css in ucm.get_calling_search_spaces():\n    print(css.name)\n```\n\n#### Get Specific Calling Search Space\n\n```python\nthis_css = ucm.get_calling_search_space(calling_search_space='pstn-css')\nif this_css['success']:\n    print(this_css['response']._uuid)\n```\n\n#### Add Calling Search Space\n\n```python\nthis_add_css = ucm.add_calling_search_space(\n    calling_search_space='VIP_CSS',\n    description='Very Important Stuff'\n    members=['losfeliz-pt','silverlake-pt','pstn-pt']\n    )\nif this_add_css['success']:\n    print(this_add_css['response'])\n```\n\n#### Delete Calling Search Space\n\n```python\nthis_update_css = ucm.update_calling_search_space(calling_search_space='VIP_CSS')\nif this_update_css['success']:\n    print(this_update_css['response'])\n```\n\n#### Delete Calling Search Space\n\n```python\nthis_delete_css = ucm.delete_calling_search_space(calling_search_space='VIP_CSS')\nif this_delete_css['success']:\n    print(this_delete_css['response'])\n```\n\n#### Get Partitions\n\n```python\nfor pt in ucm.get_partitions():\n    print(pt.name)\n```\n\n#### Get Specific Partition\n\n```python\nthis_pt = ucm.get_partition(partition='pstn-pt')\nif this_pt['success']:\n    print(this_pt['response']._uuid)\n```\n\n#### Add Partition\n\n```python\nthis_add_pt = ucm.add_partition(partition='VIP_PT', description='Very Important Peep')\nif this_add_pt['success']:\n    print(this_add_pt['response'])\n```\n\n#### Delete Partition\n\n```python\nthis_delete_pt = ucm.delete_partition(name='VIP_PT')\nif this_delete_pt['success']:\n    print(this_delete_pt['response'])\n```\n\n## Regions and Locations\n\n#### Get Regions\n\n```python\nfor reg in ucm.get_regions():\n    print(reg._uuid)\n```\n\n#### Get Specific Region\n\n```python\nthis_reg = ucm.get_region(region='losfeliz_reg')\nif this_reg['success']:\n    print(this_reg['response']._uuid)\n```\n\n#### Add Region\n\n```python\nthis_add_reg = ucm.add_region(region='Hollywood-REG')\nif this_add_reg['success']:\n    print(this_add_reg['response'])\n```\n\n#### Delete Region\n\n```python\nthis_delete_reg = ucm.delete_region(region='Hollywood-REG')\nif this_delete_reg['success']:\n    print(this_delete_reg['response'])\n```\n\n#### Get Locations\n\n```python\nfor loc in ucm.get_locations():\n    print(loc.name)\n```\n\n#### Get Specific Location\n\n```python\nthis_loc = ucm.get_location(name='Shadow')\nif this_loc['success']:\n    print(this_loc['response'])\n```\n\n#### Add Location\n\n```python\nthis_add_location = ucm.add_location(location='Hollywood-LOC')\nif this_add_location['success']:\n    print(this_add_location['response'])\n```\n\n#### Delete Location\n\n```python\nthis_delete_location = ucm.delete_location(location='Hollywood-LOC')\nif this_delete_location['success']:\n    print(this_delete_location['response'])\n```\n\n## Directory Numbers\n\n#### Get Directory Numbers\n\n```python\nfor dn in ucm.get_directory_numbers():\n    print(dn)\n```\n\n#### Get Specific Directory Number\n\n```python\nthis_dn = ucm.get_directory_number(directory_number='2888',partition='losfeliz-pt')\nif this_dn['success']:\n    print(this_dn['response']._uuid)\n```\n\n#### Add Directory Number\n\n```python\nthis_add_dn = ucm.add_directory_number(\n    pattern='1102',\n    partition='ABQ_PT'\n    )\nif this_add_dn['success']:\n    print(this_add_dn['response'])\n```\n\n#### Delete Directory Number\n\n```python\nthis_delete_dn = ucm.delete_directory_number(uuid='{0B0CDC93-EC9C-7255-1B09-40A3CE727D5A}')\nif this_delete_dn['success']:\n    print(this_delete_dn['response'])\n```\n\n## Device Profiles\n\n#### Get User Device Profiles\n\n```python\nfor udp in ucm.get_device_profiles():\n    print(udp.name)\n```\n\n#### Get Specific User Device Profile\n\n```python\nthis_udp = ucm.get_device_profile(profile='udp-bsimpson')\nif this_udp['success']:\n    print(this_udp['response']._uuid)\n```\n\n#### Add User Device Profile\n\n```python\nthis_add_udp = ucm.add_device_profile(\n    profile='UDP_MScott',\n    description='Michael Scott - 2901',\n    product='Cisco 8861',\n    phone_template='Standard 8861 SIP',\n    protocol='SIP',\n    lines=[\n        ('2901', 'losfeliz-pt', 'Michael Scott', 'Michael Scott', 'Michael Scott - 2901', '+1408202XXXX'),\n        ('2902', 'losfeliz-pt', 'Pam Beesley', 'Pam Beesley', 'Pam Beesley - 2902', '+1408202XXXX')\n    ]\n)\nif this_add_udp['success']:\n    print(this_add_udp['response'])\n```\n\n#### Delete User Device Profile\n\n```python\nthis_delete_udp = ucm.delete_device_profile('UDP_Mscott')\nif this_delete_udp['success']:\n    print(this_delete_udp['response'])\n```\n\n## CTI Route Points\n\n#### Get CTI Route Points\n\n```python\nfor cti in ucm.get_cti_route_points():\n    print(cti.name)\n```\n\n#### Get Specific CTI Route Point\n\n```python\nthis_cti = ucm.get_cti_route_point(cti_route_point='AutoAttendant')\nif this_cti['success']:\n    print(this_cti['response'])\n```\n\n#### Add CTI Route Point\n\n```python\nthis_add_cti = ucm.add_cti_route_point(\n    cti_route_point='aa-pilot',\n    description='pilot to unity',\n    device_pool='LosFeliz_DP',\n    css='allphone-css',\n    lines=[\n        ('2908', 'losfeliz-pt'), \n        ('2909', 'losfeliz-pt')\n    ]\n)\nif this_add_cti['success']:\n    print(this_add_cti['response'])\n```\n\n#### Delete CTI Route Point\n\n```python\nthis_delete_cti = ucm.delete_cti_route_point(name='OneArch')\nif this_delete_cti['success']:\n    print(this_delete_cti['response'])\n```\n\n## Route Groups, Lists, and Patterns\n\n#### List Route Plan\n\n```python\nnums = ['19197016707', '19197016712', '19197016713', '19197016706', '191970167016']\n\nfor num in nums:\n    for route in ucm.list_route_plan(num):\n        print(route.dnOrPattern)\nfor route in ucm.list_route_plan('2901'):\n    print(route._uuid)\n```\n\n#### Get Route Groups\n\n```python\nfor rg in ucm.get_route_groups():\n    print(rg.name)\n```\n\n#### Get Specific Route Group\n\n```python\nthis_rg = ucm.get_route_group(route_group='losfeliz-rg')\nif this_rg['success']:\n    print(this_rg['response']._uuid)\n```\n\n#### Add Route Group\n\n```python\nthis_add_rg = ucm.add_route_group(\n    route_group='hollywood-rg', \n    distribution_algorithm='Circular', \n    members=[('america-online-sip'), ('h323')])\nif this_add_rg['success']:\n    print(this_add_rg['response'])\n```\n\n#### Delete Route Group\n\n```python\nthis_delete_rg = ucm.delete_route_group(route_group='hollywood-rg')\nif this_delete_rg['success']:\n    print(this_delete_rg['response'])\n```\n\n#### Get Route Lists\n\n```python\nfor rl in ucm.get_route_lists():\n    print(rl.name)\n```\n\n#### Get Specific Route List\n\n```python\nthis_rl = ucm.get_route_list(route_list='stdloc-rl')\nif this_rl['success']:\n    print(this_rl['response'].description)\n```\n\n#### Add Route List\n\n```python\nthis_add_rl = ucm.add_route_list(\n    route_list='hollywood-rl', \n    description='hollywood', \n    run_on_all_nodes='true', \n    cm_group_name='Default', \n    members=[\n        ('losfeliz-rg'), \n        ('silverlake-rg')\n    ])\nif this_add_rl['success']:\n    print(this_add_rl['response'])\n```\n\n#### Delete Route List\n\n```python\nthis_delete_rl = ucm.delete_route_list(route_list='hollywood-rl')\nif this_delete_rl['success']:\n    print(this_delete_rl['response'])\n```\n\n#### Get Route Patterns\n\n```python\nfor rp in ucm.get_route_patterns():\n    print(rp.pattern)\n```\n\n#### Get Specific Route Pattern\n\n```python\nthis_rp = ucm.get_route_pattern(pattern='911')\nif this_rp['success']:\n    print(this_rp['response'].description)\n```\n\n#### Add Route Pattern\n\n```python\nthis_add_rp = ucm.add_route_pattern(\n    pattern='999', \n    partition='losfeliz-pt', \n    description='Movie Times', \n    route_list='stdloc-rl'\n    )\nif this_add_rp['success']:\n    print(this_add_rp['response'])\n```\n\n#### Delete Route Pattern\n\n```python\nthis_delete_rp = ucm.delete_route_pattern(pattern='999', partition='losfeliz-pt')\nif this_delete_rp['success']:\n    print(this_delete_rp['response'])\n```\n\n## Runs and Dos\n\n#### Execute SQL Query\n\n```sh\nfor sql in ucm.execute_sql_query('select * from device where description like \"Bart%\"'):\n    print(sql.name)\n```\n\n#### Do LDAP Sync on all agreements\n\n```sh\nfor ldap in ucm.get_ldap_dir():\n    this_sync = ucm.do_ldap_sync(uuid=ldap._uuid)\n    if this_sync['success']:\n            print(this_sync['response'])\n```\n\n#### Reset Device\n\n```python\nthis_reset = ucm.do_device_reset(device='SEP001100220033')\nif this_reset['success']:\n    print(this_reset['response'])\n```\n\n#### Extension Mobility Login\n\n```python\nthis_device_login = ucm.do_device_login(device='SEP001100220033', userId='bsimpson')\nif this_device_login['success']:\n    print(this_device_login['response'])\n```\n\n#### Extension Mobility Logout\n\n```python\nthis_device_logout = ucm.do_device_logout(device='SEP001100220033', userId='bsimpson')\nif this_device_logout['success']:\n    print(this_device_logout['response'])\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/levensailor/ciscoaxlsdk",
+        "keywords": "Cisco,Call Manager,CUCM,AXL,VoIP",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ciscoaxlsdk",
+        "package_url": "https://pypi.org/project/ciscoaxlsdk/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ciscoaxlsdk/",
+        "project_urls": {
+            "Homepage": "https://github.com/levensailor/ciscoaxlsdk"
+        },
+        "release_url": "https://pypi.org/project/ciscoaxlsdk/1.0.7/",
+        "requires_dist": [
+            "suds-jurko (==0.6)",
+            "urllib3 (==1.23)"
+        ],
+        "requires_python": "",
+        "summary": "Cisco AXL library with with a goal of simple use.",
+        "version": "1.0.7"
+    },
+    "last_serial": 4984356,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "39e07b158cfb641754ef349402a155dd",
+                    "sha256": "c577858ef13c491d2ea062ce810e3428bef311a3eabf82b6a9935e7764b42a74"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "39e07b158cfb641754ef349402a155dd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4117,
+                "upload_time": "2019-03-23T19:34:54",
+                "url": "https://files.pythonhosted.org/packages/ee/91/0c987c295b165731319350489ae026bd946eb6b62dc1d61a642a4d90833e/ciscoaxlsdk-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e0888880ee08a64ef257d7db5c943b5e",
+                    "sha256": "767c61484ab5eb32b471282f27c5531c1c5c28b1d8db08be90bff2c74b6414c0"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e0888880ee08a64ef257d7db5c943b5e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6948,
+                "upload_time": "2019-03-23T19:34:56",
+                "url": "https://files.pythonhosted.org/packages/61/90/21ccd89af3a87a3d287e3bb2b0abce3b195ad7df24e3c0d60531bd580b88/ciscoaxlsdk-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7297152e496807cf564e739899975c77",
+                    "sha256": "d606bcccf752616ef1732ce09fc8d6fffdee8403efacf8b4bbd8da0075d4748d"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7297152e496807cf564e739899975c77",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4320,
+                "upload_time": "2019-03-23T19:52:12",
+                "url": "https://files.pythonhosted.org/packages/b4/4e/5069a12ab16dcda46f76ab80e2af9fb5f3306b9b0248c4c8feccf5422f51/ciscoaxlsdk-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9822e2e44c6595829f352a930c5c65de",
+                    "sha256": "f7f7cf0521020bac55812d46f03c2d954d890943b74f5380319c723fbe8c1d00"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9822e2e44c6595829f352a930c5c65de",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6993,
+                "upload_time": "2019-03-23T19:53:13",
+                "url": "https://files.pythonhosted.org/packages/a8/10/6faa98b57a65a907693c13217aa6f444e77931fe2766499b08359082bd69/ciscoaxlsdk-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "57fd2990479766fb774be83d4ac9d275",
+                    "sha256": "8b03832408dabf08a08c03c9d1c496f16f347f3c0898c5fa6e73bdc611b6ebf6"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "57fd2990479766fb774be83d4ac9d275",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4341,
+                "upload_time": "2019-03-23T20:04:52",
+                "url": "https://files.pythonhosted.org/packages/ed/e8/8a75caa18fa538e6b83b430b576ee2f0195df2caa3d6e680a9a91595dc17/ciscoaxlsdk-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f4aff60ac1054044c8711b630c163e1",
+                    "sha256": "38ec01fce63c64dc413d8681ce58b7a6681020d7385c97b9d8323a10f0b04b88"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8f4aff60ac1054044c8711b630c163e1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7005,
+                "upload_time": "2019-03-23T20:05:54",
+                "url": "https://files.pythonhosted.org/packages/58/e5/586951ffa0fd56de8a7e7b1fb8178bd26a80806af625325e8cf06df34382/ciscoaxlsdk-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2c7c0fd786b6e354fc5906e80c3bfdc7",
+                    "sha256": "47ffdf057363bed34238b7d05ce158c70febad2078c151e3ccb87c55af962834"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2c7c0fd786b6e354fc5906e80c3bfdc7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18874,
+                "upload_time": "2019-03-24T06:13:00",
+                "url": "https://files.pythonhosted.org/packages/bf/0d/2fa2b1dddd95e74a6c395093fd89457c9d4c0fcc03cf6f5b739bd2449856/ciscoaxlsdk-1.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5456874b1c741089a3880cb6580f2123",
+                    "sha256": "a5369c8bb409cae5373b6dcd1ef4f64bd5bf08a53ba1bf5860d778d1ae4044fa"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5456874b1c741089a3880cb6580f2123",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22743,
+                "upload_time": "2019-03-24T06:13:02",
+                "url": "https://files.pythonhosted.org/packages/c4/fb/ac846e820f0fd502b16fb44be2becb36bdeca6cc30819842a14a33378628/ciscoaxlsdk-1.0.3.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6ba66a3c4beada1193dfa0ae52c1d322",
+                    "sha256": "4da3c047569db7708bfce1dd43fadfaa4e94f5de416e0148efc12cebbdc8f7d1"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6ba66a3c4beada1193dfa0ae52c1d322",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18943,
+                "upload_time": "2019-03-24T18:09:22",
+                "url": "https://files.pythonhosted.org/packages/88/7f/0d8cdb5f1e591478158d5e7c107c425753a50819646122c7a88261b0e74c/ciscoaxlsdk-1.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "da0f75fe1dcba4e6eb121c0d47fac4ae",
+                    "sha256": "b72fd06521f09037e6c4cb7c0f5d072df5ce9f0a607769151a2b01f4111e4e8b"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "da0f75fe1dcba4e6eb121c0d47fac4ae",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22956,
+                "upload_time": "2019-03-24T18:09:24",
+                "url": "https://files.pythonhosted.org/packages/29/f5/e082ac8a0f6eff94cb92d0b9d84a5ca31cab13ffd17c0fcdd96364cb0290/ciscoaxlsdk-1.0.4.tar.gz"
+            }
+        ],
+        "1.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "32b56d6da25ade6a04047100ffd37e1e",
+                    "sha256": "0757181d8ea84721fbe22ef53aca04b6dad16f4cadba3ffbb770bd9122de9b44"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.5-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "32b56d6da25ade6a04047100ffd37e1e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 22723,
+                "upload_time": "2019-03-24T18:44:04",
+                "url": "https://files.pythonhosted.org/packages/a7/8d/85915a479cb1c767b238e7c528b5fc893c942b6bede00513f785f6844842/ciscoaxlsdk-1.0.5-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "67a9950b2da7842397a3d95dec9e2364",
+                    "sha256": "915aea6af4e8c8fc485c620b55ce66e2d496fd01d59843d54b66541fe6370ad3"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "67a9950b2da7842397a3d95dec9e2364",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22894,
+                "upload_time": "2019-03-24T18:44:08",
+                "url": "https://files.pythonhosted.org/packages/9e/a5/759d44f11dc00affa704472e8711ce7e35a28029ba65d8aa337824371f30/ciscoaxlsdk-1.0.5.tar.gz"
+            }
+        ],
+        "1.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "036ea7c5c0df594570ce1e73400f78e9",
+                    "sha256": "dd6e2c5d8cb2c0d26aa71c5d1b1fa898757ed556fd0d4098240b8c4f3a7899f2"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "036ea7c5c0df594570ce1e73400f78e9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18904,
+                "upload_time": "2019-03-25T02:42:16",
+                "url": "https://files.pythonhosted.org/packages/38/82/ece86719dac95f28d5f0103a44f8904fc4dda0ee79f3acccbaa4f317b0a5/ciscoaxlsdk-1.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "79bd3de6e36c70dab7b62a4f49e9a2e9",
+                    "sha256": "e9b33bb1248c24f68628d0076730d80973de14ef2a4859543e2f1d877f893280"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "79bd3de6e36c70dab7b62a4f49e9a2e9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22919,
+                "upload_time": "2019-03-25T02:42:20",
+                "url": "https://files.pythonhosted.org/packages/97/ee/e0d4220494924b215f82108ca761da1f85692b924971714cdd518a30527a/ciscoaxlsdk-1.0.6.tar.gz"
+            }
+        ],
+        "1.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "891bf34e99c5b9cc824ab8eae1b6aac9",
+                    "sha256": "6b4397ddfbaa8fe035c8b78167d5c246d274a716f4ea8632664275e1ab36145e"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "891bf34e99c5b9cc824ab8eae1b6aac9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18924,
+                "upload_time": "2019-03-25T19:58:13",
+                "url": "https://files.pythonhosted.org/packages/bc/40/feff29773eaf65775264f2db80bfb9934ad00402911e44f673ac70a538d3/ciscoaxlsdk-1.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "89ae644747c0782e0994c130441e74d4",
+                    "sha256": "2a1ccc7cd2b79fa986b208f869547354816563a5da958b909090b5e3609d3442"
+                },
+                "downloads": -1,
+                "filename": "ciscoaxlsdk-1.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "89ae644747c0782e0994c130441e74d4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22926,
+                "upload_time": "2019-03-25T19:58:17",
+                "url": "https://files.pythonhosted.org/packages/1b/6d/f09b7b43e7bd07df2a5a95926ccd3a7d72a7703d0085e0c40d3248606f39/ciscoaxlsdk-1.0.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "891bf34e99c5b9cc824ab8eae1b6aac9",
+                "sha256": "6b4397ddfbaa8fe035c8b78167d5c246d274a716f4ea8632664275e1ab36145e"
+            },
+            "downloads": -1,
+            "filename": "ciscoaxlsdk-1.0.7-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "891bf34e99c5b9cc824ab8eae1b6aac9",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 18924,
+            "upload_time": "2019-03-25T19:58:13",
+            "url": "https://files.pythonhosted.org/packages/bc/40/feff29773eaf65775264f2db80bfb9934ad00402911e44f673ac70a538d3/ciscoaxlsdk-1.0.7-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "89ae644747c0782e0994c130441e74d4",
+                "sha256": "2a1ccc7cd2b79fa986b208f869547354816563a5da958b909090b5e3609d3442"
+            },
+            "downloads": -1,
+            "filename": "ciscoaxlsdk-1.0.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "89ae644747c0782e0994c130441e74d4",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 22926,
+            "upload_time": "2019-03-25T19:58:17",
+            "url": "https://files.pythonhosted.org/packages/1b/6d/f09b7b43e7bd07df2a5a95926ccd3a7d72a7703d0085e0c40d3248606f39/ciscoaxlsdk-1.0.7.tar.gz"
+        }
+    ]
+}

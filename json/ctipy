@@ -1,0 +1,415 @@
+{
+    "info": {
+        "author": "Yuriy Volkov",
+        "author_email": "yurijvolkov1@yandex.ru",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# CTIPY (Confluence Tables and Images for PYthon)\n\n+ [Introduction](#Intro)\n+ [Installation](#Installation)\n+ [Usage](#Usage)\n\n  1.[Uploading regular file](#Uploading-regular-file)\n\n  2.[Uploading image](#Uploading-image)\n\n  3.[Uploading tables](#Uploading-tables)\n\n  4.[Additions](#Confluence-API-additions)\n    * [Clearing page](#Clearing-page)\n\n## Intro\nTiny lib which allows you to automatically upload images and tables (and tables with images!) onto Confluence page. \n\nSo you can:\n1. Do not copy files from server to your local machine for uploading it to Confluence page via browser.\n2. You can run set of time-consuming experiments and automatically send results and logs onto Confluence page. So that report for your experiment would be compiled right after your computations.\n3. You can analyze results (right on Clonfluence page) of experiments that were already finished.\n\n## Installation\n\nLibrary distributed via PyPi, so you can run:\n```\npip install ctipy\n```\n\nAlso you can install it manually from github repos with:\n```\npython setup.py install\n```\n\n## Usage\n\nFirstly you have to create `CTIConfluence` object with:\n```\nfrom ctipy import CTIConfluence\n\ncti = CTIConfluence(url='https://yourcompany.atlassian.net/wiki',\n                    username='youremail@yourcompany.com',\n                    password='yourpassword',\n                    page_id=pageid)\n```\n\nNotes:\n* Format of URL of your company's Confluence can be different from 'https://yourcompany.atlassian.net/wiki'\n* **BE CAREFULL: page_id must be provided to functions as a string, but not int**\n* page_id - ID of page that you want to interact with. It is ~9 digit number which can be found in URL of confluence page\npreceding its name. E.G.: https://yourcompany.atlassian.net/wiki/spaces/SOME_SPACE/pages/PAGE_ID/PAGE_NAME\n\nMost contribution of this library is correct uploading and displaying pandas DataFrames on Confluence pages.\nHowever `CTIConfluence` directly inherits `Confluence` class from https://github.com/atlassian-api/atlassian-python-api which provides big amount of low-level functions. Some usefule examples that you can use listed [here](#Confluence-API-additions).\n\n### Uploading regular file\nTo upload file you can run:\n```\ncti.upload_file('path_to_the_file_on_you_local_fs')\n```\nAfter this command, file will be attached to your page and you can find it in `Attachments` section of your page. After that you can manually put it onto the page via browser.\n\nIf you want to put file onto the page automatically, you can run:\n```\ncti.upload_file('path_to_the_file_on_you_local_fs', append_to_page=True)\n```\nAfter this command, file will be attached to your page and placed at the bottom.\n\n### Uploading image\nSupported types: png, jpg, jpeg\n\nIdea of uploading images is the same as uploading files.\n\nYou can run:\n```cti.upload_image()``` with or without argument `append_to_page`.\n\n### Uploading tables\nTo represent tables CTIPY supports only pandas DataFrames.\nUploaded tables are always placed in the bottom of the page.\nThe most interesting feature of CTIPY is that it can upload tables with images inside.\nTo upload table you have to create arbitrary pandas DataFrame. To 'put' files in columns you have to put path to the file( or list of pathes).\nE.g.:\n```\ndf = pd.DataFrame()\ndf['text'] = [1, 2, 3]\ndf['file'] = ['/path/to/file1', ['/path/to/file2', 'path/to/file3'], '/path/to/file4']\ndf['image'] = [['/path/to/image1', 'path/to/image2'], '/path/to/image3', '/path/to/image4']\n```\nThen you call:\n```\ncti.upload_table(df, columns_with_files=['file'], columns_with_images=['image'])\n```\nAnd (after 30 seconds - several minutes) your table will be appended to your page.\nIn `columns_with_files` you have to provide list of DataFrame columns which consists of paths to files.\nIn `columns_with_images` - paths to images.\nAll other columns will be treated as plain text.\n\n### Confluence API additions\n#### Clearing page\nCTIPY can only append file/image/table to the end of the page. However if you want to update your report after each\nexperiment you don't want to see huge amount of tables on the page. So to totally clean the page you can run:\n```\ncti.update_page(None, ID_OF_YOUR_PAGE, TITLE_OF_YOUR_PAGE, '')\n```\nSo after each experiment finish, you can update DataFrame with results, clean the page and upload new version of report.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/yurijvolkov/ctipy",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ctipy",
+        "package_url": "https://pypi.org/project/ctipy/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ctipy/",
+        "project_urls": {
+            "Homepage": "https://github.com/yurijvolkov/ctipy"
+        },
+        "release_url": "https://pypi.org/project/ctipy/0.1.6/",
+        "requires_dist": [
+            "atlassian-python-api-cti",
+            "pandas"
+        ],
+        "requires_python": "",
+        "summary": "Small package for easily uploading data to Confluence.",
+        "version": "0.1.6"
+    },
+    "last_serial": 4828240,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0bb88b9242b66713a373fed68bb81b57",
+                    "sha256": "7479fa78f6255317c2ba8eb843836e2ec136e3cee484dfd8239d8fc11c107276"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.0.1-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "0bb88b9242b66713a373fed68bb81b57",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 5875,
+                "upload_time": "2019-02-01T20:37:33",
+                "url": "https://files.pythonhosted.org/packages/f2/c5/3f68ba56779924ff792050dbb55e6a385c484e0b4ef1d34a4403e982d3ba/ctipy-0.0.1-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "76e435cd28f980677dfd54f40cafe264",
+                    "sha256": "491865cf0e42e2ab6de4fd18278dffffb990f1854d1a9fe1fac434dde3afaeee"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "76e435cd28f980677dfd54f40cafe264",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3807,
+                "upload_time": "2019-02-01T20:37:31",
+                "url": "https://files.pythonhosted.org/packages/27/0a/9f9d2a7a32f0fc0692d8cf688c4677e799caf1dbac91997b219f2fe4ef28/ctipy-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a0e3e5580b67ad70bffcde340bbda60",
+                    "sha256": "464049bc736343e00bff5ad21c60b351150081533c7ef5e91b580c9a1d2b9945"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8a0e3e5580b67ad70bffcde340bbda60",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1901,
+                "upload_time": "2019-02-01T20:37:34",
+                "url": "https://files.pythonhosted.org/packages/ec/aa/dacf5d78e31e06328479716395de73af617cd11083f822ddf046b671a35c/ctipy-0.0.1.tar.gz"
+            }
+        ],
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18c9fb47c039a7cc0031b5bc285ae5fd",
+                    "sha256": "d7c091d9dc3b606bc6cbd75d879923f60eaf14f4e87c4caa0d345abb11b8d89a"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "18c9fb47c039a7cc0031b5bc285ae5fd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3012,
+                "upload_time": "2019-02-15T19:13:28",
+                "url": "https://files.pythonhosted.org/packages/67/df/f5c4600c7201014a0ecef32b132065ef3ad0f41d6eb30faf4d38984623c1/ctipy-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "939ee370a0e5a1e29e48bd5e4dd5e0ea",
+                    "sha256": "9c429ba4e6ec402c11a4af73f6425fd970f2be79372b8565f9cc18481ff17ef8"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "939ee370a0e5a1e29e48bd5e4dd5e0ea",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1900,
+                "upload_time": "2019-02-15T19:13:30",
+                "url": "https://files.pythonhosted.org/packages/be/4b/0b0ccd2a79db7de9ea188ee4f0af211449081d4b55b21ebeec3f276ad453/ctipy-0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "51519784eaaea3e877c4ce7661016de4",
+                    "sha256": "380b8ba9f449b1c32285e9964f7ff8725ae9f6ec5899be5776466b6e3bb77f44"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.1-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "51519784eaaea3e877c4ce7661016de4",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 6158,
+                "upload_time": "2019-02-16T08:01:01",
+                "url": "https://files.pythonhosted.org/packages/37/37/721d91f8c28becfcbfe1f9c7e87c901fdc3b7a6395b02bbf9a51933a169f/ctipy-0.1.1-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bb0812cacb805abc8fa26ed9155cf46b",
+                    "sha256": "8ae81c0606d83c1261c4b284c64effe451987045fc5e7bc478f5260241dd664d"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bb0812cacb805abc8fa26ed9155cf46b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3055,
+                "upload_time": "2019-02-15T20:47:03",
+                "url": "https://files.pythonhosted.org/packages/19/75/380c716503916b6c48121008e0ec24caf0f7edee36461da7be66480347ff/ctipy-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "447e53a42c1879126e81504471c27578",
+                    "sha256": "f86a5834cb47aba576b59dbaef233aea31d48386ca03a0227c20791683832220"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "447e53a42c1879126e81504471c27578",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1972,
+                "upload_time": "2019-02-15T20:47:04",
+                "url": "https://files.pythonhosted.org/packages/0d/d9/bb0a37a290325ce1296e971411970d5647301616e7c4eceb2926d65ce7d9/ctipy-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5d81484289fb0557b7f336a6241ffc98",
+                    "sha256": "ba29c611ad41d826813d34a8b081980140ad88d73a74304d92b27c1ceb2e9803"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5d81484289fb0557b7f336a6241ffc98",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3581,
+                "upload_time": "2019-02-16T08:01:00",
+                "url": "https://files.pythonhosted.org/packages/ed/56/dc2ba35e02a8db98e9330ae469c02e55cfbfe167687574f895d4fa737560/ctipy-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d8c3d248c9684051a6320f8d52a95a4f",
+                    "sha256": "06bdc6dfe04755bdec7a24f5bb16244e49762f4cdbaaf3c3f910d2b82135cbc7"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d8c3d248c9684051a6320f8d52a95a4f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4095,
+                "upload_time": "2019-02-16T08:01:03",
+                "url": "https://files.pythonhosted.org/packages/e5/4f/a6c8b1d57ac5aa8045bbb861464aa8d6dc59f7fcdb9ebd43329d31d38ab4/ctipy-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e85a5b490cd35034474c8868cc2d351",
+                    "sha256": "3a67eeda5eb3bb8511f4583f589c8a71857a206d53824ed3a87e553600341eab"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.3-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "0e85a5b490cd35034474c8868cc2d351",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 7676,
+                "upload_time": "2019-02-16T08:13:56",
+                "url": "https://files.pythonhosted.org/packages/72/0c/0c23fa480bd553b469af443f919d5c150f0793706f5df283f39eea25ebdd/ctipy-0.1.3-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b0a64b9a544ce7901f71ef0731aaf570",
+                    "sha256": "387cc868c7aad6d31e2371661fe2f9999d1a400106fae2f8935bf65740b7c354"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b0a64b9a544ce7901f71ef0731aaf570",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5347,
+                "upload_time": "2019-02-16T08:05:05",
+                "url": "https://files.pythonhosted.org/packages/ea/cd/3d413e1d52f497c91fbae2b45edb841f7a2c386d7c61ac269ce412cea1c4/ctipy-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e721dfe02b7e42836243ce3d350e3c34",
+                    "sha256": "654bf296ca338a105a4121dc2bfbcf1332e00d9b30fd6534a75fb674f3ddee04"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e721dfe02b7e42836243ce3d350e3c34",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4567,
+                "upload_time": "2019-02-16T08:05:06",
+                "url": "https://files.pythonhosted.org/packages/ab/e4/aa74af2c62b19b79448b4795ba34f0699ec681025957bce9c75885fe4e15/ctipy-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5518ee033ae68822febdba082d8283c",
+                    "sha256": "f5f6d96fd410f7ca25a86f893586786df7bb1c2329c7435dc62c777747e886cc"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a5518ee033ae68822febdba082d8283c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5341,
+                "upload_time": "2019-02-16T08:13:55",
+                "url": "https://files.pythonhosted.org/packages/26/db/2f235b015ad62e51f9894783ef987557f3364faa4d891f2da900c6711209/ctipy-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "40c7204c3d7e2e69cebccbdb037666ae",
+                    "sha256": "25ab782a2437fd93195b36af9f6c8a8eafb7cd21024711295149ec7e5c438509"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "40c7204c3d7e2e69cebccbdb037666ae",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4564,
+                "upload_time": "2019-02-16T08:13:58",
+                "url": "https://files.pythonhosted.org/packages/02/c4/2935beb15a0aa357cb39c0cfd3d717a95df9bee6095a82dd1b8dddbecf00/ctipy-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3a8546ffc999b33d5297736f350a1c2",
+                    "sha256": "2ccdcfd74811c8cf330473a6d780f175747f97965c08fccbeca2a93188b7a0e1"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c3a8546ffc999b33d5297736f350a1c2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5349,
+                "upload_time": "2019-02-16T08:17:06",
+                "url": "https://files.pythonhosted.org/packages/0a/58/0d7997665e84641c9bbb5e8d051b8e7d82e2073c651870bba417aaf47014/ctipy-0.1.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6131c67e99a6a5c3f61cd16892aad432",
+                    "sha256": "b858725ed67ca15fc3b88d36c63a71e170e4012e4bd1926d310db0b08569c4d7"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6131c67e99a6a5c3f61cd16892aad432",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4569,
+                "upload_time": "2019-02-16T08:17:10",
+                "url": "https://files.pythonhosted.org/packages/a5/88/58b0b1c13627b181534264f639ea90dd3aaa0c168b531aca3e60f732b4f6/ctipy-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "108b3bc34a190f1375fcc463bdc74024",
+                    "sha256": "251c3265462f3f76ce2e4dfa2c24ee80b909e1741dcd259b2d7fd629f1c46d8e"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "108b3bc34a190f1375fcc463bdc74024",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5350,
+                "upload_time": "2019-02-16T08:40:48",
+                "url": "https://files.pythonhosted.org/packages/c5/81/daa7367d7a6c447228b5f403810724b34feebe731687b6355a8d167170fd/ctipy-0.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d5444809d93df41269c8f9456ef2dd6e",
+                    "sha256": "0f2a4e7f74fab047b7f6bd03588587f6feb248a7aa79cd84aad768cae2f8f50f"
+                },
+                "downloads": -1,
+                "filename": "ctipy-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d5444809d93df41269c8f9456ef2dd6e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4570,
+                "upload_time": "2019-02-16T08:40:52",
+                "url": "https://files.pythonhosted.org/packages/74/58/9aa4f627ca961b665598a0d1f1beb6c587a5592f1d3cd38773487d065485/ctipy-0.1.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "108b3bc34a190f1375fcc463bdc74024",
+                "sha256": "251c3265462f3f76ce2e4dfa2c24ee80b909e1741dcd259b2d7fd629f1c46d8e"
+            },
+            "downloads": -1,
+            "filename": "ctipy-0.1.6-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "108b3bc34a190f1375fcc463bdc74024",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 5350,
+            "upload_time": "2019-02-16T08:40:48",
+            "url": "https://files.pythonhosted.org/packages/c5/81/daa7367d7a6c447228b5f403810724b34feebe731687b6355a8d167170fd/ctipy-0.1.6-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d5444809d93df41269c8f9456ef2dd6e",
+                "sha256": "0f2a4e7f74fab047b7f6bd03588587f6feb248a7aa79cd84aad768cae2f8f50f"
+            },
+            "downloads": -1,
+            "filename": "ctipy-0.1.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d5444809d93df41269c8f9456ef2dd6e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 4570,
+            "upload_time": "2019-02-16T08:40:52",
+            "url": "https://files.pythonhosted.org/packages/74/58/9aa4f627ca961b665598a0d1f1beb6c587a5592f1d3cd38773487d065485/ctipy-0.1.6.tar.gz"
+        }
+    ]
+}

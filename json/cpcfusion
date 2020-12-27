@@ -1,0 +1,83 @@
+{
+    "info": {
+        "author": "CPChain",
+        "author_email": "wujj@cpchain.io",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "# Web3.py\n\n[![Join the chat at https://gitter.im/ethereum/web3.py](https://badges.gitter.im/ethereum/web3.py.svg)](https://gitter.im/ethereum/web3.py?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)\n\n[![Build Status](https://circleci.com/gh/ethereum/web3.py.svg?style=shield)](https://circleci.com/gh/ethereum/web3.py.svg?style=shield)\n\n\nA Python implementation of [web3.js](https://github.com/ethereum/web3.js)\n\n* Python 3.5+ support\n\nRead more in the [documentation on ReadTheDocs](http://web3py.readthedocs.io/). [View the change log on Github](docs/releases.rst).\n\n## Quickstart\n\n```python\nimport json\nimport web3\n\nfrom web3 import Web3, HTTPProvider, TestRPCProvider\nfrom solc import compile_source\nfrom web3.contract import ConciseContract\n\n# Solidity source code\ncontract_source_code = '''\npragma solidity ^0.4.0;\n\ncontract Greeter {\n    string public greeting;\n\n    function Greeter() {\n        greeting = 'Hello';\n    }\n\n    function setGreeting(string _greeting) public {\n        greeting = _greeting;\n    }\n\n    function greet() constant returns (string) {\n        return greeting;\n    }\n}\n'''\n\ncompiled_sol = compile_source(contract_source_code) # Compiled source code\ncontract_interface = compiled_sol['<stdin>:Greeter']\n\n# web3.py instance\nw3 = Web3(TestRPCProvider())\n\n# Instantiate and deploy contract\ncontract = w3.eth.contract(abi=contract_interface['abi'], bytecode=contract_interface['bin'])\n\n# Get transaction hash from deployed contract\ntx_hash = contract.deploy(transaction={'from': w3.eth.accounts[0], 'gas': 410000})\n\n# Get tx receipt to get contract address\ntx_receipt = w3.eth.getTransactionReceipt(tx_hash)\ncontract_address = tx_receipt['contractAddress']\n\n# Contract instance in concise mode\nabi = contract_interface['abi']\ncontract_instance = w3.eth.contract(address=contract_address, abi=abi,ContractFactoryClass=ConciseContract)\n\n# Getters + Setters for web3.eth.contract object\nprint('Contract value: {}'.format(contract_instance.greet()))\ncontract_instance.setGreeting('Nihao', transact={'from': w3.eth.accounts[0]})\nprint('Setting value to: Nihao')\nprint('Contract value: {}'.format(contract_instance.greet()))\n```\n\n## Developer Setup\n\n```sh\ngit clone git@github.com:ethereum/web3.py.git\ncd web3.py\n```\n\nPlease see OS-specific instructions for:\n\n- [Linux](docs/README-linux.md#Developer-Setup)\n- [Mac](docs/README-osx.md#Developer-Setup)\n- [Windows](docs/README-windows.md#Developer-Setup)\n- [FreeBSD](docs/README-freebsd.md#Developer-Setup)\n\nThen run these install commands:\n\n```sh\nvirtualenv venv\n. venv/bin/activate\npip install -e .[dev]\n```\n\nFor different environments, you can set up multiple `virtualenv`. For example, if you want to create a `venvdocs`, then you do the following:\n\n```sh\nvirtualenv venvdocs\n. venvdocs/bin/activate\npip install -e .[docs]\npip install -e .\n```\n\n## Using Docker\n\nIf you would like to develop and test inside a Docker environment, use the *sandbox* container provided in the **docker-compose.yml** file.\n\nTo start up the test environment, run:\n\n```\ndocker-compose up -d\n```\n\nThis will build a Docker container set up with an environment to run the Python test code.  \n\n**Note: This container does not have `go-ethereum` installed, so you cannot run the go-ethereum test suite.**\n\nTo run the Python tests from your local machine:\n\n```\ndocker-compose exec sandbox bash -c 'pytest -n 4 -f -k \"not goethereum\"'\n```\n\nYou can run arbitrary commands inside the Docker container by using the `bash -c` prefix.\n\n```\ndocker-compose exec sandbox bash -c ''\n```\n\nOr, if you would like to just open a session to the container, run:\n\n```\ndocker-compose exec sandbox bash\n```\n\n### Testing Setup\n\nDuring development, you might like to have tests run on every file save.\n\nShow flake8 errors on file change:\n\n```sh\n# Test flake8\nwhen-changed -v -s -r -1 web3/ tests/ ens/ -c \"clear; flake8 web3 tests ens && echo 'flake8 success' || echo 'error'\"\n```\n\nYou can use `pytest-watch`, running one for every Python environment:\n\n```sh\npip install pytest-watch\n\ncd venv\nptw --onfail \"notify-send -t 5000 'Test failure \u26a0\u26a0\u26a0\u26a0\u26a0' 'python 3 test on web3.py failed'\" ../tests ../web3\n```\n\nOr, you can run multi-process tests in one command, but without color:\n\n```sh\n# in the project root:\npytest --numprocesses=4 --looponfail --maxfail=1\n# the same thing, succinctly:\npytest -n 4 -f --maxfail=1\n```\n\n#### How to Execute the Tests?\n\n1. [Setup your development environment](https://github.com/ethereum/web3.py/#developer-setup).\n\n2. Execute `tox` for the tests\n\nThere are multiple [components](https://github.com/ethereum/web3.py/blob/master/.travis.yml#L53) of the tests. You can run test to against specific component. For example:\n\n```sh\n# Run Tests for the Core component (for Python 3.5):\ntox -e py35-core\n\n# Run Tests for the Core component (for Python 3.6):\ntox -e py36-core\n```\n\nIf for some reason it is not working, add `--recreate` params.\n\n`tox` is good for testing against the full set of build targets. But if you want to run the tests individually, `py.test` is better for development workflow. For example, to run only the tests in one file:\n\n```sh\npy.test tests/core/gas-strategies/test_time_based_gas_price_strategy.py\n```\n\n### Release setup\n\nFor Debian-like systems:\n```\napt install pandoc\n```\n\nTo release a new version:\n\n```sh\nmake release bump=$$VERSION_PART_TO_BUMP$$\n```\n\n#### How to bumpversion\n\nThe version format for this repo is `{major}.{minor}.{patch}` for stable, and\n`{major}.{minor}.{patch}-{stage}.{devnum}` for unstable (`stage` can be alpha or beta).\n\nTo issue the next version in line, specify which part to bump,\nlike `make release bump=minor` or `make release bump=devnum`.\n\nIf you are in a beta version, `make release bump=stage` will switch to a stable.\n\nTo issue an unstable version when the current version is stable, specify the\nnew version explicitly, like `make release bump=\"--new-version 4.0.0-alpha.1 devnum\"`",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ethereum/web3.py",
+        "keywords": "ethereum",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "cpcfusion",
+        "package_url": "https://pypi.org/project/cpcfusion/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/cpcfusion/",
+        "project_urls": {
+            "Homepage": "https://github.com/ethereum/web3.py"
+        },
+        "release_url": "https://pypi.org/project/cpcfusion/0.0.1/",
+        "requires_dist": null,
+        "requires_python": ">=3.5.3,<4",
+        "summary": "CPC Fusion",
+        "version": "0.0.1"
+    },
+    "last_serial": 4519601,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7fe98d5eb6abeff0395863999b891c1e",
+                    "sha256": "e648eec953851e47a76b0a7b09ec661b2f3c4c4f3a17a2fc891c4b5dd3b884f5"
+                },
+                "downloads": -1,
+                "filename": "cpcfusion-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7fe98d5eb6abeff0395863999b891c1e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5.3,<4",
+                "size": 102922,
+                "upload_time": "2018-11-23T08:19:16",
+                "url": "https://files.pythonhosted.org/packages/49/1d/dc0876d8f3f5aeabef05dca2f7eb55584a062f446fecc474ceccc4c46aae/cpcfusion-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7fe98d5eb6abeff0395863999b891c1e",
+                "sha256": "e648eec953851e47a76b0a7b09ec661b2f3c4c4f3a17a2fc891c4b5dd3b884f5"
+            },
+            "downloads": -1,
+            "filename": "cpcfusion-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7fe98d5eb6abeff0395863999b891c1e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5.3,<4",
+            "size": 102922,
+            "upload_time": "2018-11-23T08:19:16",
+            "url": "https://files.pythonhosted.org/packages/49/1d/dc0876d8f3f5aeabef05dca2f7eb55584a062f446fecc474ceccc4c46aae/cpcfusion-0.0.1.tar.gz"
+        }
+    ]
+}

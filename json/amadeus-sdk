@@ -1,0 +1,85 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 0,
+        "author": "Amadeus",
+        "author_email": "developer@amadeus.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "Amadeus Python SDK\n==================\n\n|Module Version| |Build Status| |Maintainability| |Dependencies|\n|Contact Support|\n\nAmadeus provides a set of APIs for the travel industry. Flights, Hotels,\nLocations and more.\n\nFor more details see the `Python\ndocumentation <https://developer.amadeus.com/docs/python>`__ on\n`Amadeus.com <https://developer.amadeus.com>`__ and the `class\nreference <https://amadeus4dev.github.io/amadeus-python>`__ here on\nGitHub.\n\nInstallation\n------------\n\nThis SDK requires Python 2.7+ or 3.3+. You can install install it\ndirectly with pip.\n\n.. code:: sh\n\n    pip install amadeus-sdk\n\n**Next**: `Get Started with the Python\nSDK. <https://developer.amadeus.com/docs/python/get_started/initialize>`__\n\nGetting Started\n---------------\n\nTo send make your first API call you will need to `register for an\nAmadeus Developer Account <https://developer.amadeus.com/register>`__\nand `set up your first\napplication <https://dashboard.developer.amadeus.com/applications>`__.\n\n.. code:: py\n\n    from amadeus_sdk import Client, ResponseError\n\n    amadeus = Client(\n        client_id='[YOUR_CLIENT_ID]',\n        client_secret='[YOUR_CLIENT_SECRET]'\n    )\n\n    try:\n        response = amadeus.reference_data.urls.checkin_links.get(airline='1X')\n        print(response.data)\n        # => [{'type': 'checkin-link', 'id': '1XEN-GBWeb', 'href': 'https://www....\n    except ResponseError as error:\n        print(error)\n\n**Next**: `Learn more about checkin\nlinks <https://developer.amadeus.com/docs/python/get_started/checkin_links>`__\nwith our Python SDK.\n\nInitialization\n--------------\n\nThe client can be initialized directly.\n\n.. code:: py\n\n    # Initialize using parameters\n    amadeus = Client(client_id='...', client_secret='...')\n\nAlternatively it can be initialized without any paramters if the\nenvironment variables ``AMADEUS_CLIENT_ID`` and\n``AMADEUS_CLIENT_SECRET`` are present.\n\n.. code:: py\n\n    amadeus = Client()\n\nYour credentials can be found on the `Amadeus\ndashboard <https://dashboard.developer.amadeus.com/client_ids>`__. `Sign\nup <https://developer.amadeus.com/register>`__ for an account today.\n\nBy default the environment for the SDK is the ``test`` environment. To\nswitch to a production (paid-for) environment please switch the hostname\nas follows:\n\n.. code:: py\n\n    amadeus = Client(hostname='production')\n\n**Next**: `Learn more about our initializing the Python\nSDK <https://developer.amadeus.com/docs/python/get_started_initialize>`__\nin our documentation.\n\nDocumentation\n-------------\n\nAmadeus has a large set of APIs, and our documentation is here to get\nyou started today.\n\n-  `Get\n   Started <https://developer.amadeus.com/docs/python/get_started>`__\n   documentation\n\n   -  `Initialize the\n      SDK <https://developer.amadeus.com/docs/python/get_started/initialize>`__\n   -  `Find an\n      Airport <https://developer.amadeus.com/docs/python/get_started/find_an_airport>`__\n   -  `Book a\n      Flight <https://developer.amadeus.com/docs/python/get_started/book_a_flight>`__\n   -  `Get Flight\n      Inspiration <https://developer.amadeus.com/docs/python/get_started/get_flight_inspiration>`__\n\nAlternatively, head over to our\n`Reference <https://developer.amadeus.com/docs/python/reference>`__\ndocumentation for in-depth information about every SDK method, it\u2019s\narguments and return types.\n\nAdditionally, this SDK has extensive documentation of itself available\non `GitHub <https://amadeus4dev.github.io/amadeus-python/>`__.\n\nMaking API calls\n----------------\n\nThis library conveniently maps every API path to a similar path.\n\nFor example, ``GET /v2/reference-data/urls/checkin-links?airline=1X``\nwould be:\n\n.. code:: py\n\n    amadeus.reference_data.urls.checkin_links.get(airline='1X')\n\nSimilarly, to select a resource by ID, you can pass in the ID to the\nsingular path.\n\nFor example, ``GET /v1/shopping/hotels/123/hotel-offers`` would be:\n\n.. code:: py\n\n    amadeus.hotel(123).hotel_offers.get(...)\n\nYou can make any arbitrary API call as well directly with the ``.get``\nmethod:\n\n.. code:: py\n\n    amadeus.get('/v2/reference-data/urls/checkin-links', airline='1X')\n\nResponse\n--------\n\nEvery API call returns a ``Response`` object. If the API call contained\na JSON response it will parse the JSON into the ``.result`` attribute.\nIf this data also contains a ``data`` key, it will make that available\nas the ``.data`` attribute. The raw body of the response is always\navaulable as the ``.body`` attribute.\n\n.. code:: py\n\n    from amadeus_sdk import Location\n\n    response = amadeus.reference_data.locations.get(\n        keyword='LON',\n        subType=Location.ANY\n    )\n\n    print(reponse.body) #=> The raw response, as a string\n    print(reponse.result) #=> The body parsed as JSON, if the result was parsable\n    print(response.data) #=> The list of locations, extracted from the JSON\n\nPagination\n----------\n\nIf an API endpoint supports pagination, the other pages are available\nunder the ``.next``, ``.previous``, ``.last`` and ``.first`` methods.\n\n.. code:: py\n\n    from amadeus_sdk import Location\n\n    response = amadeus.reference_data.locations.get(\n        keyword='LON',\n        subType=Location.ANY\n    )\n\n    amadeus.next(response) #=> returns a new response for the next page\n\nIf a page is not available, the method will return ``None``.\n\nLogging & Debugging\n-------------------\n\nThe SDK makes it easy to add your own logger.\n\n.. code:: py\n\n    import logging\n\n    logger = logging.getLogger('your_logger')\n    logger.setLevel(logging.DEBUG)\n\n    amadeus = Client(\n        client_id='...',\n        client_secret='...',\n        logger=logger\n    )\n\nAdditionally, to enable more verbose logging, you can set the\nappropriate level on your own logger, though the easiest way would be to\nenable debugging via a parameter on initialization, or using the\n``AMADEUS_LOG_LEVEL`` environment variable.\n\n.. code:: py\n\n    amadeus = Client(\n        client_id='...',\n        client_secret='...',\n        log_level='debug'\n    )\n\nDevelopment & Contributing\n--------------------------\n\nWant to contribute? Read our `Contributors\nGuide <.github/CONTRIBUTING.md>`__ for guidance on installing and\nrunning this code in a development environment.\n\nLicense\n-------\n\nThis library is released under the `MIT License <LICENSE>`__.\n\nHelp\n----\n\nOur `developer support\nteam <https://developer.amadeus.com/developers>`__ is here to help you.\nYou can find us on `Twitter <#>`__, `StackOverflow <#>`__, and\n`email <#>`__.\n\n.. |Module Version| image:: https://badge.fury.io/py/amadeus-sdk.svg\n   :target: https://badge.fury.io/py/amadeus-sdk\n.. |Build Status| image:: http://img.shields.io/travis/amadeus4dev/amadeus-python.svg\n   :target: http://travis-ci.org/amadeus4dev/amadeus-python\n.. |Maintainability| image:: https://api.codeclimate.com/v1/badges/c2e19cf9628d6f4aece2/maintainability\n   :target: https://codeclimate.com/github/amadeus4dev/amadeus-python/maintainability\n.. |Dependencies| image:: .github/images/dependencies.svg\n   :target: ttps://badge.fury.io/py/amadeus\n.. |Contact Support| image:: .github/images/support.svg\n   :target: http://developer.amadeus.com/support",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/amadeus4dev/amadeus-python",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "amadeus-sdk",
+        "package_url": "http://pypi.python.org/pypi/amadeus-sdk",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/amadeus-sdk/1.0.0b2",
+        "requires_python": ">=2.7.0",
+        "summary": "Python module for the Amadeus travel APIs",
+        "version": "1.0.0b2"
+    },
+    "releases": {
+        "1.0.0b2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1d3bdc8dd27daf2a62ef56aacdafcb83",
+                    "sha256": "f089cb1c173b9c515439f26f567b791b61c6303d28666cf13fdba89046c7bdfa"
+                },
+                "downloads": 0,
+                "filename": "amadeus-sdk-1.0.0b2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1d3bdc8dd27daf2a62ef56aacdafcb83",
+                "packagetype": "sdist",
+                "path": "c1/14/3548aa2d2ed88288ccd5a503741264ca1aba472653433e48af2d9ddcc0a0/amadeus-sdk-1.0.0b2.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "f089cb1c173b9c515439f26f567b791b61c6303d28666cf13fdba89046c7bdfa",
+                "size": 15785,
+                "upload_time": "2018-04-05T14:46:20",
+                "url": "https://pypi.python.org/packages/c1/14/3548aa2d2ed88288ccd5a503741264ca1aba472653433e48af2d9ddcc0a0/amadeus-sdk-1.0.0b2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1d3bdc8dd27daf2a62ef56aacdafcb83",
+                "sha256": "f089cb1c173b9c515439f26f567b791b61c6303d28666cf13fdba89046c7bdfa"
+            },
+            "downloads": 0,
+            "filename": "amadeus-sdk-1.0.0b2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1d3bdc8dd27daf2a62ef56aacdafcb83",
+            "packagetype": "sdist",
+            "path": "c1/14/3548aa2d2ed88288ccd5a503741264ca1aba472653433e48af2d9ddcc0a0/amadeus-sdk-1.0.0b2.tar.gz",
+            "python_version": "source",
+            "sha256_digest": "f089cb1c173b9c515439f26f567b791b61c6303d28666cf13fdba89046c7bdfa",
+            "size": 15785,
+            "upload_time": "2018-04-05T14:46:20",
+            "url": "https://pypi.python.org/packages/c1/14/3548aa2d2ed88288ccd5a503741264ca1aba472653433e48af2d9ddcc0a0/amadeus-sdk-1.0.0b2.tar.gz"
+        }
+    ]
+}

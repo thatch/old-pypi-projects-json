@@ -1,0 +1,337 @@
+{
+    "info": {
+        "author": "jinyang",
+        "author_email": "jinyang.zhou@guokr.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# YAST: Yet Another Short Text classification toolkit\n\n[![Build Status](https://travis-ci.org/ailurus1991/YAST.svg?branch=master)](https://travis-ci.org/ailurus1991/YAST)\n[![Documentation Status](https://readthedocs.org/projects/yast-doc/badge/?version=latest)](http://yast-doc.readthedocs.io/en/latest/?badge=latest)\n[![PyPI version](https://badge.fury.io/py/yast.svg)](https://badge.fury.io/py/yast)\n[![Coverage Status](https://coveralls.io/repos/github/ailurus1991/YAST/badge.svg?branch=master)](https://coveralls.io/github/ailurus1991/YAST?branch=master)\n\nYAST \u662f\u4e00\u4e2a\u7b80\u6613\u7684\u6587\u672c\u5206\u7c7b\u9879\u76ee\uff0c\u57fa\u4e8e [LibLinear](http://www.csie.ntu.edu.tw/~cjlin/liblinear/)\uff0c\u4f7f\u7528 [jieba](https://github.com/fxsjy/jieba) \u4f5c\u4e3a\u4e2d\u6587\u5206\u8bcd\u3002\n\n## Getting started\n\n```python\n#!/usr/bin/env python\n# encoding: utf-8\n\nfrom yast import Yast\n\nsample = Yast('sample')\n\nsample.train([\n    ('stock','\u82f1\u56fd\u8131\u6b27\u4e0e\u5fb7\u94f6\u5371\u673a\u65bd\u538b\u7f8e\u80a1\u6536\u8dcc'),\n    ('stock','\u6e2f\u80a1\u7f3a\u8d44\u91d1\u96be\u95ef24000\u70b9 \u7f8e\u5927\u9009\u56f0\u6270\u540e\u5e02'),\n    ('f1', '2016\u4e1d\u7ef8\u4e4b\u8def\u62c9\u529b\u8d5b\u6536\u5b98 \u6807\u81f4\u9053\u8fbe\u5c14\u6c7d\u8f66\u7ec4\u593a\u51a0'),\n    ('f1','\u4fdd\u65f6\u6377\u8d85\u7ea7\u676f\u970d\u6839\u6d77\u59c6\u7ad9 \u4e2d\u56fd\u8f66\u624b\u5f20\u5927\u80dc\u518d\u51fa\u51fb'),\n    ('basketball','\u6797\u4e66\u8c6a\u900f\u9732\u751f\u6daf\u4e24\u4f4e\u8c37\uff1a\u6548\u529b\u6e56\u4eba\u52c7\u58eb\u4ee4\u4eba\u5931\u671b'),\n    ('basketball','\u540e\u573a\u53cc\u661f\u5408\u780d27\u520610\u52a9 \u5f00\u62d3\u8005\u5168\u961f\u53d1\u6325\u6218\u80dc\u7235\u58eb')])\n\nprint sample_2.predict_single('\u961f\u5185\u5bf9\u6297\u66dd\u5149\u6e56\u4eba\u65b0\u9635\u5bb9 \u963f\u8054\u6216\u4efb\u5185\u7ebf\u4e3b\u529b\u66ff\u8865').predicted_y\n# basketball\nprint sample_2.predict_single('\u518d\u51fa\u60b2\u5267\uff01 \u8fbe\u5580\u5c14\u62c9\u529b\u8d5b\u540e\u52e4\u8f66\u8087\u4e8b\u81f41\u6b7b10\u4f24').predicted_y\n# f1\n\n# customize configuration\nconfigs = {\n    'grid': 0, # \u7f51\u683c\u641c\u7d22\u5f00\u5173\u30020 \u4e3a\u5173\u95ed\u7f51\u683c\u641c\u7d22\uff0c1 \u4e3a\u5f00\u542f\u3002\u9ed8\u8ba4\u5173\u95ed\u3002\n    'feature': 3, # \u7279\u5f81\u8868\u8fbe\u30020 \u4e3a Binary feature\uff0c1 \u4e3a word count\uff0c2 \u4e3a\u8bcd\u9891\uff0c3 \u4e3aTF-IDF\u3002\n    'classifier': 0 # \u5206\u7c7b\u5668\u9009\u62e9\u30020 \u4e3a Crammer and Singer SVM multiclass\uff0c1 \u4e3a L1 \u635f\u5931\u5206\u7c7b one-vs-rest\uff0c2 \u4e3a L2\u635f\u5931\u5206\u7c7b one-vs-rest\uff0c3 \u4e3a\u903b\u8f91\u56de\u5f52 one-vs-rest\u3002\n}\n\nanother_sample = Yast('another_sample', configs)\n# \u53ef\u4ee5\u81ea\u5b9a\u4e49\u914d\u7f6e\u6587\u4ef6\nanother_sample.train('./train_file.txt')\n#\u8bad\u7ec3\u6587\u4ef6\u683c\u5f0f\u4e3a\uff1alabel \u548c text\uff0c\u4ee5\u5206\u9694\u7b26\u5206\u5f00\uff0c\u6d4b\u8bd5\u6587\u4ef6\u540c\u3002\n#label1  text\n#label2  text\n\nanother_sample.test('./test_file.txt')\n\nprint another_sample.analyze('\u90fd\u8bf4\u82f9\u679c\u7684\u521b\u65b0\u529b\u8d8a\u6765\u8d8a\u5dee\u4e86\uff0c\u6839\u636e\u60a8\u7684\u4e86\u89e3\uff0c\u82f9\u679c\u6709\u54ea\u4e9b\u5916\u884c\u770b\u4e0d\u5230\u5185\u884c\u5374\u6df1\u611f\u632f\u594b\u7684\u9ed1\u79d1\u6280\uff1f')\n# \u6253\u5370 query \u7684\u6bcf\u4e2a\u5411\u91cf\u7684\u6743\u91cd\uff0c\u7528\u4f5c\u5206\u6790\n```\n\n## Features\n\n- [x] \u652f\u6301\u591a\u79cd\u5206\u7c7b\u5668\n- [x] \u652f\u6301\u591a\u79cd\u7279\u5f81\u8868\u8fbe\n- [x] \u652f\u6301\u7ed3\u679c\u5206\u6790\n- [x] \u652f\u6301 grid-search \u5e76\u884c\u641c\u7d22 RBF \u6838\u51fd\u6570\u5168\u5c40\u6700\u4f73\u53c2\u6570 ![equation](http://latex.codecogs.com/gif.latex? \\gamma) \u548c ![equation](http://latex.codecogs.com/gif.latex? C)\n- [x] \u81ea\u52a8\u83b7\u53d6\u6807\u7b7e\n\n## How to get\n\n```python\npip install yast\n```\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ailurus1991/YAST",
+        "keywords": "text classification svm liblinear libshorttext",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "yast",
+        "package_url": "https://pypi.org/project/yast/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/yast/",
+        "project_urls": {
+            "Homepage": "https://github.com/ailurus1991/YAST"
+        },
+        "release_url": "https://pypi.org/project/yast/0.3.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Yet Another short text (toolkit based on LibLinear)",
+        "version": "0.3.1"
+    },
+    "last_serial": 2904477,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e5c74337413e3f10e3647553af4bb85",
+                    "sha256": "f6f8a2073fa58e0cb3c52a048f5b5efb0ee0f2f2fcd33b83a65564250b3730f7"
+                },
+                "downloads": -1,
+                "filename": "yast-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9e5c74337413e3f10e3647553af4bb85",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25946,
+                "upload_time": "2016-09-25T19:19:54",
+                "upload_time_iso_8601": "2016-09-25T19:19:54.292701Z",
+                "url": "https://files.pythonhosted.org/packages/c0/f6/58ca8987e1c1155f4fe64c76ba244cd2198e2aad53539f5b167853d8d1ca/yast-0.0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "654ec97eacbefd6b4d23801b2522d2a9",
+                    "sha256": "8ca93146401f1fcd9ac2e47803c4517615557cf5f3e7d53263b3d7aa91df11a4"
+                },
+                "downloads": -1,
+                "filename": "yast-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "654ec97eacbefd6b4d23801b2522d2a9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25944,
+                "upload_time": "2016-09-25T19:38:32",
+                "upload_time_iso_8601": "2016-09-25T19:38:32.701582Z",
+                "url": "https://files.pythonhosted.org/packages/7c/7c/c673d266c190dbc6f11c9201e5855598e4002f38d76d6096af2470ff78bb/yast-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e01fa11ff1d9d2514606ef7356f501eb",
+                    "sha256": "b4aea0c8d9999af24b254a3ab0ad7b2e2f19c2b4f81dbb2c1888f93bd69c1687"
+                },
+                "downloads": -1,
+                "filename": "yast-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e01fa11ff1d9d2514606ef7356f501eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 51481,
+                "upload_time": "2016-09-25T21:12:27",
+                "upload_time_iso_8601": "2016-09-25T21:12:27.090978Z",
+                "url": "https://files.pythonhosted.org/packages/56/59/2955dcd5868c55fbbb48d6ab0f78862a56a0ec63f054fe2fa302cacf4035/yast-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "513ea8c944a0cf00d034300859fabf98",
+                    "sha256": "8c976214ba9464a6df57a86705d5e912ff017d17e952e015e4ec84620f375978"
+                },
+                "downloads": -1,
+                "filename": "yast-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "513ea8c944a0cf00d034300859fabf98",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 34016,
+                "upload_time": "2016-09-25T21:22:36",
+                "upload_time_iso_8601": "2016-09-25T21:22:36.272346Z",
+                "url": "https://files.pythonhosted.org/packages/99/8b/a5d961da12c0407080805497d9fb21039c83d880a9943e664d4305d83d9e/yast-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d3d87e179a04f745b5d423170c047c38",
+                    "sha256": "80910a4fe65eacd9c250fe30fb4e3ce827614c4e09fa2a841fad13384e226fd7"
+                },
+                "downloads": -1,
+                "filename": "yast-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d3d87e179a04f745b5d423170c047c38",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 34007,
+                "upload_time": "2016-09-25T21:37:50",
+                "upload_time_iso_8601": "2016-09-25T21:37:50.282478Z",
+                "url": "https://files.pythonhosted.org/packages/66/1e/dda6c57c4047f0140171a09574b505d5c812469ce42d6c1632a802755677/yast-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f546891843fb377da027e6c8a3f37b61",
+                    "sha256": "e86abb7bf20a03cf25d0c65d167d5ae85c168e650984cdc598fad3eb7a0085af"
+                },
+                "downloads": -1,
+                "filename": "yast-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f546891843fb377da027e6c8a3f37b61",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 66360,
+                "upload_time": "2016-09-25T22:28:06",
+                "upload_time_iso_8601": "2016-09-25T22:28:06.027588Z",
+                "url": "https://files.pythonhosted.org/packages/8e/3b/62d9d064ea1591c62f61c7154fda92acfc305e24221af7dd63175188a070/yast-0.1.5.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dcc07c764755820d3fb8745c9ce2f34c",
+                    "sha256": "c4053e9d49b1baeb6a12dd0f5d8f7f3b7c6074b1cadae2c2ba91110321083149"
+                },
+                "downloads": -1,
+                "filename": "yast-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dcc07c764755820d3fb8745c9ce2f34c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 64876,
+                "upload_time": "2016-09-26T21:08:31",
+                "upload_time_iso_8601": "2016-09-26T21:08:31.073447Z",
+                "url": "https://files.pythonhosted.org/packages/50/3c/77928f828b3e455e543997c8099185befc939b154cfe771ced69968b7313/yast-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61928b30b09b809ecbbc546089a3f1c7",
+                    "sha256": "0b6909f9165ec51e7bc186c9edb1614aba80892769367d91d1b2114242e671bd"
+                },
+                "downloads": -1,
+                "filename": "yast-0.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "61928b30b09b809ecbbc546089a3f1c7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2066388,
+                "upload_time": "2016-09-27T07:34:18",
+                "upload_time_iso_8601": "2016-09-27T07:34:18.597892Z",
+                "url": "https://files.pythonhosted.org/packages/f9/b2/a87d0aa4af40ef76de96abed109b635d65a6de6adadc751e6409d411335a/yast-0.2.4.tar.gz"
+            }
+        ],
+        "0.2.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0b7873b86bcab670cc0fe9ae533d56e7",
+                    "sha256": "9f781803303888390fbdb89d33be964a9e3e9f3393b835f3c04766ed205cbfbb"
+                },
+                "downloads": -1,
+                "filename": "yast-0.2.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0b7873b86bcab670cc0fe9ae533d56e7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2066369,
+                "upload_time": "2016-09-27T08:03:16",
+                "upload_time_iso_8601": "2016-09-27T08:03:16.557477Z",
+                "url": "https://files.pythonhosted.org/packages/2d/a3/4a7c58beefca76a851972f1473097eb0cd8d7d798655a39a1d74fd4dbd09/yast-0.2.5.tar.gz"
+            }
+        ],
+        "0.2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed693b12e2c680cefd9420e84b1a962c",
+                    "sha256": "050605e13e49cc6a4f1e1075e73ce2b1de3671bd7b5dd95e3fc8d882813904e9"
+                },
+                "downloads": -1,
+                "filename": "yast-0.2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ed693b12e2c680cefd9420e84b1a962c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 60193,
+                "upload_time": "2016-09-27T08:08:56",
+                "upload_time_iso_8601": "2016-09-27T08:08:56.847228Z",
+                "url": "https://files.pythonhosted.org/packages/d7/f7/eb341fa6d0299de500d171fdda1243b61d54e1aa87cdad25ff106dad3fd3/yast-0.2.6.tar.gz"
+            }
+        ],
+        "0.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1dd83331c5df08552049432f26ef2a2",
+                    "sha256": "4ee24fa7abf3f2dce1b607d30d060779e6455edae1442c7f0485e6423477c919"
+                },
+                "downloads": -1,
+                "filename": "yast-0.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d1dd83331c5df08552049432f26ef2a2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 59002,
+                "upload_time": "2016-09-28T08:37:54",
+                "upload_time_iso_8601": "2016-09-28T08:37:54.259743Z",
+                "url": "https://files.pythonhosted.org/packages/4a/6d/a885ec29cf50598e934e574420d5a4d474e8fac42ab9e8c59fa6f3c393ac/yast-0.2.7.tar.gz"
+            }
+        ],
+        "0.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c3116fc50435b2d01ffe410bf9537ff",
+                    "sha256": "f31aa2ef131d7e922f47371da64233491806d1fdadff0e11d6dd4933521313d2"
+                },
+                "downloads": -1,
+                "filename": "yast-0.2.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7c3116fc50435b2d01ffe410bf9537ff",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 59891,
+                "upload_time": "2016-10-04T23:30:27",
+                "upload_time_iso_8601": "2016-10-04T23:30:27.625323Z",
+                "url": "https://files.pythonhosted.org/packages/0b/95/5c78874293e5e6798d37a480c183679c550d77d855978fd82536396b8a45/yast-0.2.8.tar.gz"
+            }
+        ],
+        "0.2.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "87a4206d4bebf1c766eda6d5dde3bafe",
+                    "sha256": "45f07d19c976d46fac52de1c93c7760a752e9b913159fbc0dc58574402ed122c"
+                },
+                "downloads": -1,
+                "filename": "yast-0.2.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "87a4206d4bebf1c766eda6d5dde3bafe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 60203,
+                "upload_time": "2016-10-09T18:40:10",
+                "upload_time_iso_8601": "2016-10-09T18:40:10.863563Z",
+                "url": "https://files.pythonhosted.org/packages/2d/86/d69850b25412e377ea3b7a3f715aa6072795903e553231f427dbfe51b0f6/yast-0.2.9.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5210e025f049ed4b4fba98e320a27897",
+                    "sha256": "cecd564807974e8d2039fee3be4f63539a09f8af4ae88b6b19ecf7923aebc511"
+                },
+                "downloads": -1,
+                "filename": "yast-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5210e025f049ed4b4fba98e320a27897",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 60183,
+                "upload_time": "2017-05-28T11:03:48",
+                "upload_time_iso_8601": "2017-05-28T11:03:48.349547Z",
+                "url": "https://files.pythonhosted.org/packages/0d/df/a96025cbb920e340cce385be757e4e8f259ad04c358d02042e72cdfe67f5/yast-0.3.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5210e025f049ed4b4fba98e320a27897",
+                "sha256": "cecd564807974e8d2039fee3be4f63539a09f8af4ae88b6b19ecf7923aebc511"
+            },
+            "downloads": -1,
+            "filename": "yast-0.3.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "5210e025f049ed4b4fba98e320a27897",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 60183,
+            "upload_time": "2017-05-28T11:03:48",
+            "upload_time_iso_8601": "2017-05-28T11:03:48.349547Z",
+            "url": "https://files.pythonhosted.org/packages/0d/df/a96025cbb920e340cce385be757e4e8f259ad04c358d02042e72cdfe67f5/yast-0.3.1.tar.gz"
+        }
+    ]
+}

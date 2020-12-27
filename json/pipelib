@@ -1,0 +1,477 @@
+{
+    "info": {
+        "author": "Yasufumi Taniguchi",
+        "author_email": "yasufumi.taniguchi@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# pipelib: Minimal Data Pipeline Library for Python\n[![Build Status](https://travis-ci.org/yasufumy/pipelib.svg?branch=master)](https://travis-ci.org/yasufumy/pipelib)\n\npipelib is a minimal data pipeline library. It supports parallel computation and lazy evaluation.\n\nYou can manipulate any kind of iterable data. Heavily inspired by [tf.data](https://www.tensorflow.org/api_docs/python/tf/data/Dataset), [pyspark.RDD](http://spark.apache.org/docs/2.1.0/api/python/pyspark.html#pyspark.RDD), [cgarciae/pypeln](https://github.com/cgarciae/pypeln), and [kennethreitz/tablib](https://github.com/kennethreitz/tablib)\n\n## Overview\n\n**_pipelib.Dataset()_**\n\nA Dataset is a set of items which can be `dict`, `list`, or `tuple`. It implements `apply`, `map`, `filter`, `flat_map` to manipulate items, and these methods are only evaluated as needed (lazy evaluation). Lazy evaluation allows for more straightforward programming. Also it implements some eager evaluation methods to peek items.\n\n**_pipelib.TextDataset()_**\n\nA TextDataset is a special class for handling a text file. It loads a text line by line. In other words, the items are each line of text.\n\n## Usage\n\nHandle a simple and small data:\n\n```py\nfrom pipelib import Dataset\n\ndata = Dataset(range(20))\n```\n\nTake a look at the first item:\n\n```py\n>>> data.first()\n0\n```\n\nTake the whole item:\n\n```py\n>>> data.all()\n[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]\n```\n\nTake the first five items:\n\n```py\n>>> data.take(5)\n[0, 1, 2, 3, 4]\n```\n\nRun for-loop:\n\n```py\n>>> for x in data:\n...     print(x, end=', ')\n0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, \n```\n\nSquare only even numbers:\n\n```py\n>>> data.filter(lambda x: x % 2 == 0).map(lambda x: x ** 2).take(5)\n[0, 4, 16, 36, 64]\n```\n\nApply also works:\n\n```py\ndef square_only_even(dataset):\n    for x in dataset:\n        if x % 2 == 0:\n            yield x ** 2\n```\n\n```py\n>>> data.apply(square_only_even).take(5)\n[0, 4, 16, 36, 64]\n```\n\nZip datasets:\n\n```py\n>>> other = Dataset(range(20)).map(lambda x: x * 2)\n>>> data.map(lambda x: x / 2).zip(other).take(5)\n[(0.0, 0), (0.5, 2), (1.0, 4), (1.5, 6), (2.0, 8)]\n```\n\nConcatenate datasets:\n\n```py\n>>> other = Dataset(range(3)).map(lambda x: 1 + x ** 2)\n>>> other.concat(data).take(5)\n[1, 2, 5, 0, 1]\n```\n\n## Text Processing\n\nFirst of all, download Penn Tree Bank dataset:\n\n```bash\n$ curl -sO https://raw.githubusercontent.com/wojzaremba/lstm/master/data/ptb.train.txt\n```\n\nLoad Penn Tree Bank dataset:\n\n```py\nfrom pipelib import TextDataset\n\ndata = TextDataset('ptb.train.txt')\n```\n\nSplit by space and drop the items which include more than 10 words:\n\n```py\n>>> data.map(lambda x: x.strip().split()).filter(lambda x: len(x) < 10).take(5)\n[['a', '<unk>', '<unk>', 'said', 'this', 'is', 'an', 'old', 'story'],\n ['there', 'is', 'no', 'asbestos', 'in', 'our', 'products', 'now'],\n ['it', 'has', 'no', 'bearing', 'on', 'our', 'work', 'force', 'today'],\n ['not', 'this', 'year'],\n ['champagne', 'and', '<unk>', 'followed']]\n```\n\nBuild vocabulary:\n\n```py\n>>> from collections import Counter\n>>> data = data.map(lambda x: x.strip().split()).filter(lambda x: len(x) < 10)\n>>> words, _ = zip(*Counter(data.flat_map(lambda x: x)).most_common())\n>>> token_to_index = dict(zip(words, range(len(words))))\n>>> data.map(lambda x: [token_to_index[token] for token in x]).take(3)\n[[5, 0, 0, 29, 22, 4, 48, 483, 629],\n [36, 4, 39, 2567, 6, 143, 314, 54],\n [7, 19, 39, 2568, 24, 143, 162, 1168, 153]]\n```\n\n## Parallel Computation\n\nPrepare a small data and a slow function:\n\n```py\nimport time\nimport os\n\nfrom pipelib import Dataset\n\n\ndef slow(x):\n    print(f'[{os.getpid()}]: processing...')\n    time.sleep(0.5)\n    return x\n\ndata = Dataset(range(20))\n```\n\nParallel computation for a slow function:\n\n```py\n>>> data.map_parallel(slow).take(5)\n[26382]: processing...\n[26383]: processing...\n[26384]: processing...\n[26382]: processing...\n[26385]: processing...\n[26383]: processing...\n[26384]: processing...\n[26382]: processing...\n[26385]: processing...\n[26383]: processing...\n[26384]: processing...\n[26382]: processing...\n[26385]: processing...\n[26383]: processing...\n[26384]: processing...\n[26382]: processing...\n[26385]: processing...\n[26383]: processing...\n[26384]: processing...\n[26382]: processing...\n[0, 1, 2, 3, 4]\n>>> data.map_parallel(slow, unordered=True).take(5)\n[27493]: processing...\n[27494]: processing...\n[27493]: processing...\n[27495]: processing...\n[27494]: processing...\n[27496]: processing...\n[27493]: processing...\n[27494]: processing...\n[27495]: processing...\n[27493]: processing...\n[27496]: processing...\n[27494]: processing...\n[27495]: processing...\n[27493]: processing...\n[27496]: processing...\n[27494]: processing...\n[27495]: processing...\n[27493]: processing...\n[27496]: processing...\n[27494]: processing...\n[0, 1, 4, 5, 2]\n```\n\nIt supports order and unorder computation.\nAlso, you can do parallel computation for `map`, `flat_map` and `filter`.\n\npipelib has an iterator to prefetch items from dataset in a worker thread.\nYou can use it as follows:\n\n```py\n>>> data = data.map_parallel(slow)  # not evaluated (lazy evaluation)\n>>> it = data.get_prefetch_iterator(n_prefetch=5)  # evaluating in a worker thread\n[39072]: processing...\n[39073]: processing...\n[39072]: processing...\n[39074]: processing...\n[39073]: processing...\n[39072]: processing...\n[39073]: processing...\n[39072]: processing...\n[39074]: processing...\n[39073]: processing...\n[39072]: processing...\n[39074]: processing...\n[39073]: processing...\n[39072]: processing...\n[39074]: processing...\n[39073]: processing...\n[39072]: processing...\n[39074]: processing...\n[39073]: processing...\n>>> next(it)\n0\n```\n\n## Installation\n\nTo install pipelib, simply:\n\n```bash\n$ pip install pipelib\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/yasufumy/pipelib",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pipelib",
+        "package_url": "https://pypi.org/project/pipelib/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pipelib/",
+        "project_urls": {
+            "Homepage": "https://github.com/yasufumy/pipelib"
+        },
+        "release_url": "https://pypi.org/project/pipelib/0.2.4/",
+        "requires_dist": [
+            "cloudpickle",
+            "multiprocess"
+        ],
+        "requires_python": "",
+        "summary": "minimal data pipeline library for Python",
+        "version": "0.2.4"
+    },
+    "last_serial": 4832925,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e38464e4156477351cab76b2c40ed0e",
+                    "sha256": "d03a8f927d3f3582b4128c90ea801d99c59349c5edbb6f205ade2a12ecc72713"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8e38464e4156477351cab76b2c40ed0e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1622,
+                "upload_time": "2018-12-26T03:28:14",
+                "url": "https://files.pythonhosted.org/packages/e7/c3/b04bc63d38c7cfcbac17bad9c48dfc052a8c264a280e2e67a77b79dd073d/pipelib-0.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e1538727c1a00b26b996c88452d67768",
+                    "sha256": "70b90618d21fa8aac8e9d061f0480b016361b5f2f4b218247f1c91c5e75e50d7"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e1538727c1a00b26b996c88452d67768",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3895,
+                "upload_time": "2018-12-26T14:38:51",
+                "url": "https://files.pythonhosted.org/packages/63/fd/8b705f25051acb49f35974b3dae95d466930b90cba71532a4fe1a292e823/pipelib-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9abc24a9e5f3bd72b21c68f7a985f852",
+                    "sha256": "a9115c6d53550a82a4d8e9433ed0c33ea01cf4bdb13ca2ae2d3ba3d2596afdb1"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9abc24a9e5f3bd72b21c68f7a985f852",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 3229,
+                "upload_time": "2018-12-28T10:21:07",
+                "url": "https://files.pythonhosted.org/packages/a3/9d/b2afb9858489960cac92662315adffa9c432e21c538718b54d829ad80bcd/pipelib-0.1.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4775d23244976a839df1d3665967fb66",
+                    "sha256": "e4c1a53d1fac1ece67d89bc11ab53d7a9255d0808c61193a88af403b361cd309"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4775d23244976a839df1d3665967fb66",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4081,
+                "upload_time": "2018-12-28T10:21:08",
+                "url": "https://files.pythonhosted.org/packages/27/8b/c187a8955f9cdea18d86287687a1e870398932dabc2fb3c89d39ca471bed/pipelib-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0ee4f73295b599e0bb20823d0180946e",
+                    "sha256": "53fb2a44c4a6ac47ebecadfdfb50478c0d5cb7f6a41fc6ccd2d95d7cd121a6a7"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0ee4f73295b599e0bb20823d0180946e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3325,
+                "upload_time": "2018-12-30T15:38:34",
+                "url": "https://files.pythonhosted.org/packages/ec/3b/e42ee6fafeef2190b05c83dbe0ecedd26c45fc28a3cbb0bbf4bc610a6403/pipelib-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c2cd7054a6b6cf6de3fa3f163ca7389f",
+                    "sha256": "b586ea43bc62db98a28fe7e8be6f31127f266234a9cafbcd768fc73ebeca21ba"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c2cd7054a6b6cf6de3fa3f163ca7389f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4178,
+                "upload_time": "2018-12-30T15:38:35",
+                "url": "https://files.pythonhosted.org/packages/42/c8/92058e80a73851471a235c6e69d3d306c475812cbb60919cb15affa0f299/pipelib-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "695cf5f03ca7c6083fb3507c0fe94f96",
+                    "sha256": "5e310243736701bc5f7aa3754e893790cff42efd4eba0ee11870988aa3937ace"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "695cf5f03ca7c6083fb3507c0fe94f96",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5533,
+                "upload_time": "2018-12-30T15:56:00",
+                "url": "https://files.pythonhosted.org/packages/8c/3d/6bb7c5c9453dcfbe5ace72e168aae0cf08cd6896411b4153947099828637/pipelib-0.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9c36dd79a1e2278c8691598bf947c79",
+                    "sha256": "9322e59ae61260a9cd722f3a1498523845d16420dcf6ecb026e448be92e806ed"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d9c36dd79a1e2278c8691598bf947c79",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4876,
+                "upload_time": "2018-12-30T15:56:01",
+                "url": "https://files.pythonhosted.org/packages/9d/de/0b4c78966857ae9bb89332388ece725ab58c602389dd6e011e443a40100a/pipelib-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ebc26451fdfdfde4f8a84a896a80235a",
+                    "sha256": "77aaeef694eb4f6a0e7092518ff3db0956323e8940065964fc2c58a84e496e42"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ebc26451fdfdfde4f8a84a896a80235a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5567,
+                "upload_time": "2018-12-31T10:46:42",
+                "url": "https://files.pythonhosted.org/packages/75/77/1988d08d2b06de8746e70760f27f9cd7261632c47ebb49871c5536bc6efa/pipelib-0.1.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f293479b430b3d130fb27d1e67b9ccd3",
+                    "sha256": "1c7b7841f8f0c5f0944f1a139482efc23d1e3ea1416c28c1121fa772cb270d98"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f293479b430b3d130fb27d1e67b9ccd3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4906,
+                "upload_time": "2018-12-31T10:46:43",
+                "url": "https://files.pythonhosted.org/packages/b0/26/5a75f230d45601f075834d0934cb3cdac63e2775875a229bc948a4a9ad5e/pipelib-0.1.7.tar.gz"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "424831d56f86b0d97885741f32ea1ce1",
+                    "sha256": "f8e68ef6a61f1e6c1ef0353f7320da40fdb8197efdbeaab0e91744cf680087ca"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "424831d56f86b0d97885741f32ea1ce1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5586,
+                "upload_time": "2019-01-01T12:21:43",
+                "url": "https://files.pythonhosted.org/packages/85/5e/098c99e3d863cc91524f6fa42aad6c1ceb8cfb67d7b27b604ec3ea1e23ed/pipelib-0.1.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1541e4837415d4fd5826883ddbe4439a",
+                    "sha256": "e6387a0fc54e39b769d4eb794bb4923d41004b7c0436cb3e2e24d731867dc928"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1541e4837415d4fd5826883ddbe4439a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4932,
+                "upload_time": "2019-01-01T12:21:45",
+                "url": "https://files.pythonhosted.org/packages/f2/21/91efa1ecae1c848bc9b42c23073f3bb250a527c0ee3ce0d513b1d0eb4ff2/pipelib-0.1.8.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "35e90c6ade37a9f1cae1d051a5803bb9",
+                    "sha256": "881d7d67532220673901fe7b76ffb2c92482ebdc7ca3ffdc9c8c6177c37e0b46"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "35e90c6ade37a9f1cae1d051a5803bb9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5236,
+                "upload_time": "2019-01-03T07:57:27",
+                "url": "https://files.pythonhosted.org/packages/98/ee/ad7f20321ccee4dd3fe70e3fb8741972a1cd4d1572d3d9cda1574fdb0c7f/pipelib-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2c2e2baa44402010f5c888048d9214ff",
+                    "sha256": "6d52d0cca326f28a408b220f277b927910fd2ed821f064d22f753976400db36f"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2c2e2baa44402010f5c888048d9214ff",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4130,
+                "upload_time": "2019-01-03T07:57:29",
+                "url": "https://files.pythonhosted.org/packages/78/41/d016d34ef4a664504774e87908d46b4aebcd93fcd8f1ed3ae4f08bf15cde/pipelib-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0d747a9b7a000ae73d2dedb6e37471be",
+                    "sha256": "7a28f53021a193e10d6892e9d522e43718441fd9320c7a388dba9c89182b8bcd"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0d747a9b7a000ae73d2dedb6e37471be",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5876,
+                "upload_time": "2019-02-10T09:02:51",
+                "url": "https://files.pythonhosted.org/packages/37/b9/ee60ff55c401875139973b4a6d2f378b7e21cf5afa1f98beb67f8c176ac7/pipelib-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5fb8fc9a1da9c5e657fcd0c39be21831",
+                    "sha256": "d4ea5170712f16d89b0e22f95926f6a44e0bd2112144b8fe923170236bb0dd22"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5fb8fc9a1da9c5e657fcd0c39be21831",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4481,
+                "upload_time": "2019-02-10T09:02:53",
+                "url": "https://files.pythonhosted.org/packages/cf/4b/fbccdf694160bb105e9cc6b5d288d54ae192cc6fbed7652f07b487296f7b/pipelib-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ece842819f64c8a62a35411bbd5f9b62",
+                    "sha256": "4dd230f3bf8fd8f640c4092fbe5bafc2b3d7a1fe7afe54ae19f2e67ef257a865"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ece842819f64c8a62a35411bbd5f9b62",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6396,
+                "upload_time": "2019-02-10T11:47:01",
+                "url": "https://files.pythonhosted.org/packages/9e/9c/e12965c103e9e3e039e4ceae72c31f80f13ee40e8d7104f189c98952da50/pipelib-0.2.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f04741684ed125e071b7457467c0e7eb",
+                    "sha256": "9ff9fd3beadae4642fc175f3b6743a915b782367231e769700645dcdd1dea1d5"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f04741684ed125e071b7457467c0e7eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4767,
+                "upload_time": "2019-02-10T11:47:02",
+                "url": "https://files.pythonhosted.org/packages/74/71/9582474c275810bad0c6e8b5cf3450f551d3c4a09740d1e3d2470c6f5aa5/pipelib-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e23c28cfba20e429b7c3c8b6bf450684",
+                    "sha256": "eeb7c56daeada32390b669ae3984c5548f5579f065f743f462c334394d26fae6"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e23c28cfba20e429b7c3c8b6bf450684",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6462,
+                "upload_time": "2019-02-12T04:34:23",
+                "url": "https://files.pythonhosted.org/packages/65/e1/539af856c9100fd1fa7df59d01281d019b133414c84054d82a19aaefdcd6/pipelib-0.2.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4eaf6f4901dd4933ffbdd4ad1a6a9ba7",
+                    "sha256": "48aef9d40e9966dcc0a941d9c457c9786861cbafae1164d58cca933a081a381e"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4eaf6f4901dd4933ffbdd4ad1a6a9ba7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4849,
+                "upload_time": "2019-02-12T04:34:24",
+                "url": "https://files.pythonhosted.org/packages/0c/f9/113ca6bee3256d243f65770f1f63412563cc2185c79a8c996cf7e472c53b/pipelib-0.2.3.tar.gz"
+            }
+        ],
+        "0.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "05e68ee3d354a65c6e194f4dc194559d",
+                    "sha256": "55bfb76cdfa85ecc6d5cb0bfa12749388d0c8c16a00d51e4d3b3b544f998eba4"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "05e68ee3d354a65c6e194f4dc194559d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6901,
+                "upload_time": "2019-02-18T01:42:05",
+                "url": "https://files.pythonhosted.org/packages/0f/1f/2def80fb35d4905e574544714ddf9411c80dd1a37cf5caaba07d832fb201/pipelib-0.2.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "75315e158dc6635d971a5f57daa6d568",
+                    "sha256": "b8c82542e8cdcad6fa4ed9ac706a86a5549cf5780c149fc4c7226846fa562728"
+                },
+                "downloads": -1,
+                "filename": "pipelib-0.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "75315e158dc6635d971a5f57daa6d568",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5478,
+                "upload_time": "2019-02-18T01:42:07",
+                "url": "https://files.pythonhosted.org/packages/dd/48/1c37997fd0c2b30c2494eaa2ebc88ab218d41f72ea1b406c122703e84927/pipelib-0.2.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "05e68ee3d354a65c6e194f4dc194559d",
+                "sha256": "55bfb76cdfa85ecc6d5cb0bfa12749388d0c8c16a00d51e4d3b3b544f998eba4"
+            },
+            "downloads": -1,
+            "filename": "pipelib-0.2.4-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "05e68ee3d354a65c6e194f4dc194559d",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 6901,
+            "upload_time": "2019-02-18T01:42:05",
+            "url": "https://files.pythonhosted.org/packages/0f/1f/2def80fb35d4905e574544714ddf9411c80dd1a37cf5caaba07d832fb201/pipelib-0.2.4-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "75315e158dc6635d971a5f57daa6d568",
+                "sha256": "b8c82542e8cdcad6fa4ed9ac706a86a5549cf5780c149fc4c7226846fa562728"
+            },
+            "downloads": -1,
+            "filename": "pipelib-0.2.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "75315e158dc6635d971a5f57daa6d568",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5478,
+            "upload_time": "2019-02-18T01:42:07",
+            "url": "https://files.pythonhosted.org/packages/dd/48/1c37997fd0c2b30c2494eaa2ebc88ab218d41f72ea1b406c122703e84927/pipelib-0.2.4.tar.gz"
+        }
+    ]
+}

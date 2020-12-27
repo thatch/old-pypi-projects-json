@@ -1,0 +1,586 @@
+{
+    "info": {
+        "author": "gk",
+        "author_email": "gk@axiros.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: POSIX",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Topic :: Text Processing :: Markup"
+        ],
+        "description": "# Small tools to generate markdown - while testing contained claims.\n\n[![Build Status](https://travis-ci.org/axiros/pytest_to_md.svg?branch=master)](https://travis-ci.org/axiros/pytest_to_md) [![codecov](https://codecov.io/gh/axiros/pytest_to_md/branch/master/graph/badge.svg)](https://codecov.io/gh/axiros/pytest_to_md)[![PyPI    version][pypisvg]][pypi] [![][blacksvg]][black]\n\n[blacksvg]: https://img.shields.io/badge/code%20style-black-000000.svg\n[black]: https://github.com/ambv/black\n[pypisvg]: https://img.shields.io/pypi/v/pytest_to_md.svg\n[pypi]: https://badge.fury.io/py/pytest_to_md\n\n<!-- badges: http://thomas-cokelaer.info/blog/2014/08/1013/ -->\n\n<!-- only hoster for this repo is github, so we fix the links: -->\n<!-- md_links_for: github -->\n\nFew things are more annoying than stuff which does not work as announced,\nespecially when you find out only after an invest of time and energy.\n\nDocumentation is often prone to produce such situations, since hard to keep\n100% in sync with the code evolution.\n\n<!-- autogen tutorial -->\n\n\nThis is a set of tools, *generating* documentation, while verifying the documented\nclaims about code behaviour - without the need to adapt the source code, e.g. by modifying\ndoc strings.\n\nExample: This \"README.md\" was built into [this](./README.tmpl.md) template,\nwhere [html comment style placeholders][README.tmpl.md]\nhad been replaced while running pytest on this testfile:\n\n```python\n\"\"\"\nCreates Readme - while testing functions of ptm.\n\n\nWhile pytest is running we simply assemble from scratch an intermediate .md file\nin append only mode, located within the tests folder.\nThis we insert between two seperators in the target markdown file, as the last\ntest function, done.\n\"\"\"\nimport pytest_to_md as ptm\nimport pytest, json, os, time\nfrom functools import partial\nfrom uuid import uuid4\nimport json\n\n# py2.7 compat:\nbreakpoint = ptm.breakpoint\n\nhere, fn = ptm.setup(__file__, fn_target_md='../README.md')\n\n# parametrizing the shell run results:\nrun = partial(ptm.bash_run, no_cmd_path=True)\n\n\nclass TestChapter1:\n    def test_one(self):\n        t = \"\"\"\n\n        This is a set of tools, *generating* documentation, while verifying the documented\n        claims about code behaviour - without the need to adapt the source code, e.g. by modifying\n        doc strings.\n\n        Example: This \"README.md\" was built into [this](./README.tmpl.md) template,\n        where [title:html comment style placeholders,fmatch:README.tmpl.md,show_raw:True]<SRC>\n        had been replaced while running pytest on this testfile:\n\n        <from_file: %s>\n\n        \"\"\" % (\n            __file__,\n        )\n\n        ptm.md(t)\n        ptm.md(\n            \"\"\"\n        Lets run a bash command and assert on its results.\n        Note that the command is shown in the readme, incl. result and the result\n        can be asserted upon.\n        \"\"\"\n        )\n\n        res = run('cat \"/etc/hosts\" | grep localhost')\n        assert '127.0.0.1' in res[0]['res']\n\n    def test_two(self):\n        res = run(['ls \"%(fn_md)s\"' % ptm.cfg, 'ls -lta /etc/hosts'])\n        assert 'tutorial' in res[0]['res']\n        assert 'hosts' in res[1]['res']\n\n    def test_file_create_show(self):\n        ptm.md(\n            \"\"\"When working with files, the `sh_file` function is helpful,\n                producing output like this one:\"\"\"\n        )\n        ts = time.ctime()\n        c = json.dumps({'a': [{'testfile': 'created'}, 'at', ts]}, indent=4)\n        # if content is given it will create it:\n        fn = '/tmp/' + str(uuid4())\n        ptm.sh_file(fn, lang='javascript', content=c)\n\n        # check existance:\n        with open(fn) as fd:\n            assert fd.read() == c\n        os.unlink(fn)\n\n    def test_mdtool(self):\n        md = \"\"\"\n        # Link Replacements\n\n        Technical markdown content wants to link to source code often.\n        How to get those links working and that convenient?\n\n        The module does offer also some source finding / link replacement feature,\n        via the [mdtool]<SRC> module. The latter link was built simply by this:\n\n        ```\n        [mdtool]<SRC>\n        ```\n\n        Other example: This [pytest_to_md]<SRC> link was created by replacing \"SRC\" with the path\n        to a file matching, under a given directory, prefixed by an arbitrary base URL.\n\n        ## Code Repo Hoster Specific Source Links\n\n        Github, Gitlab, Bitbucked or Plain directory based static content servers\n        all have their conventional URLs regarding those links.\n\n        Since all of these are just serving static content w/o js possibilities,\n        you have to parametrize the intended hoster in your environment, before\n        running a pytest / push cycle. That way the links will be working on the hoster.\n\n        Currently we understand the following namespaces for links:\n\n\n        ```javascript\n        _link_names_\n        ```\n\n        ### Setting a link template\n\n        - `export MD_LINKS_FOR=github   ` # before running pytest / push\n        - `<!-- md_links_for: github -->` # in the markdown template, static\n\n        The latter can be overwritten by environ, should you want to push from time to time\n        to a different code hoster.\n\n        ### Link Refs\n\n        We minimize the problem of varying generated target markdown, dependent on the hoster.\n        How? Like [any problem in IT is solved](https://en.wikipedia.org/wiki/Fundamental_theorem_of_software_engineering).\n\n\n        By building [reference links](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#links)\n        the differences of e.g. a README.md for github vs. gitlab is\n        restricted to the links section on the end of the generated markdown.\n        In the markdown bodies you'll just see link names, which remain the same.\n\n        > Check the end of the [title:rendering result,fmatch:README.md,show_raw:True]<SRC> at the end of this README.md,\n        in order to see the results for the hoster you are reading this markdown file currently.\n\n        ## Summary\n\n        - At normal runs of pytest, the link base URL is just a local `file://` link,\n\n        - Before pushes one can set via environ (e.g. `export\n          MD_LINKS_FOR=github`)  these e.g. to the github base URL or the repo.\n\n        - `[key-values]` constructs are supported as well, extending to beyond\n          just the base url. Example following:\n\n        \"\"\".replace(\n            '_link_names_',\n            json.dumps(ptm.mdtool.known_src_links, indent=4, sort_keys=2),\n        )\n        ptm.md(md)\n\n    def test_sh_code(self):\n        ptm.md('Source code showing is done like this:')\n        ptm.sh_code(self.test_sh_code)\n        ptm.md(\n            '> Is [title:this,fmatch:test_tutorial,lmatch:exotic]<SRC> an exotic form of a recursion? ;-)  '\n        )\n\n    def test_write(self):\n        \"\"\"has to be the last 'test'\"\"\"\n        # default is ../README.md\n        ptm.write_readme()\n```\n\n\nLets run a bash command and assert on its results.\nNote that the command is shown in the readme, incl. result and the result\ncan be asserted upon.\n```bash\n$ cat \"/etc/hosts\" | grep localhost\n127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4 axcentos\n::1         localhost localhost.localdomain localhost6 localhost6.localdomain6\n```\n```bash\n$ ls \"/data/root/pytest_to_md/tests/tutorial.md\"\n/data/root/pytest_to_md/tests/tutorial.md\n\n$ ls -lta /etc/hosts\n-rw-r--r--. 1 root root 237 Apr 16 11:42 /etc/hosts\n```\nWhen working with files, the `sh_file` function is helpful,\n                producing output like this one:\n```javascript\n$ cat \"df5fd4c5-11d5-4546-8413-e2aa2f75a93b\"\n{\n    \"a\": [\n        {\n            \"testfile\": \"created\"\n        },\n        \"at\",\n        \"Wed Apr 17 22:11:09 2019\"\n    ]\n}\n```\n\n# Link Replacements\n\nTechnical markdown content wants to link to source code often.\nHow to get those links working and that convenient?\n\nThe module does offer also some source finding / link replacement feature,\nvia the [mdtool][mdtool.py] module. The latter link was built simply by this:\n\n```\n[mdtool]<SRC>\n```\n\nOther example: This [pytest_to_md][pytest_to_md.py] link was created by replacing \"SRC\" with the path\nto a file matching, under a given directory, prefixed by an arbitrary base URL.\n\n## Code Repo Hoster Specific Source Links\n\nGithub, Gitlab, Bitbucked or Plain directory based static content servers\nall have their conventional URLs regarding those links.\n\nSince all of these are just serving static content w/o js possibilities,\nyou have to parametrize the intended hoster in your environment, before\nrunning a pytest / push cycle. That way the links will be working on the hoster.\n\nCurrently we understand the following namespaces for links:\n\n\n```javascript\n{\n    \"github\": \"https://github.com/%(gh_repo_name)s/blob/%(git_rev)s/%(path)s%(line:#L%s)s\",\n    \"github_raw\": \"https://raw.githubusercontent.com/%(gh_repo_name)s/%(git_rev)s/%(path)s%(line:#L%s)s\",\n    \"static\": \"file://%(src_base_dir)s/%(path)s\",\n    \"static_raw\": \"file://%(src_base_dir)s/%(path)s\"\n}\n```\n\n### Setting a link template\n\n- `export MD_LINKS_FOR=github   ` # before running pytest / push\n- `<!-- md_links_for: github -->` # in the markdown template, static\n\nThe latter can be overwritten by environ, should you want to push from time to time\nto a different code hoster.\n\n### Link Refs\n\nWe minimize the problem of varying generated target markdown, dependent on the hoster.\nHow? Like [any problem in IT is solved](https://en.wikipedia.org/wiki/Fundamental_theorem_of_software_engineering).\n\n\nBy building [reference links](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#links)\nthe differences of e.g. a README.md for github vs. gitlab is\nrestricted to the links section on the end of the generated markdown.\nIn the markdown bodies you'll just see link names, which remain the same.\n\n> Check the end of the [rendering result][README.md] at the end of this README.md,\nin order to see the results for the hoster you are reading this markdown file currently.\n\n## Summary\n\n- At normal runs of pytest, the link base URL is just a local `file://` link,\n\n- Before pushes one can set via environ (e.g. `export\n  MD_LINKS_FOR=github`)  these e.g. to the github base URL or the repo.\n\n- `[key-values]` constructs are supported as well, extending to beyond\n  just the base url. Example following:\n\nSource code showing is done like this:\n```python\n    def test_sh_code(self):\n        ptm.md('Source code showing is done like this:')\n        ptm.sh_code(self.test_sh_code)\n        ptm.md(\n            '> Is [title:this,fmatch:test_tutorial,lmatch:exotic]<SRC> an exotic form of a recursion? ;-)  '\n        )\n\n```\n> Is [this][test_tutorial.py] an exotic form of a recursion? ;-)  \n<!-- autogen tutorial -->\n\n# Isolation\n\nNone. If you would screw up your host running pytest normally, then you will\nget the same result, when running markdown generating tests.\n\n\n[Here](https://github.com/axiros/pycond) is a bigger tutorial,\n[created][dasrc] from `pytest_to_md`. There you'll learn in addition to shell\nrunners how to generate markdown from running inline python functions...\n\n[dasrc]: https://github.com/axiros/DevApps/blob/master/tests/test_tutorial.py\n\n\n<!-- autogenlinks -->\n[README.md]: https://raw.githubusercontent.com/axiros/pytest_to_md/2ac7edfb6987d8cd8326707f4099c121a2d9d6c1/README.md\n[README.tmpl.md]: https://raw.githubusercontent.com/axiros/pytest_to_md/2ac7edfb6987d8cd8326707f4099c121a2d9d6c1/README.tmpl.md\n[mdtool.py]: https://github.com/axiros/pytest_to_md/blob/2ac7edfb6987d8cd8326707f4099c121a2d9d6c1/src/mdtool.py\n[pytest_to_md.py]: https://github.com/axiros/pytest_to_md/blob/2ac7edfb6987d8cd8326707f4099c121a2d9d6c1/src/pytest_to_md.py\n[test_tutorial.py]: https://github.com/axiros/pytest_to_md/blob/2ac7edfb6987d8cd8326707f4099c121a2d9d6c1/tests/test_tutorial.py#L150\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/axiros/pytest_to_md",
+        "keywords": "markdown,markup,testing,pytest",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pytest-to-md",
+        "package_url": "https://pypi.org/project/pytest-to-md/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pytest-to-md/",
+        "project_urls": {
+            "Homepage": "https://github.com/axiros/pytest_to_md"
+        },
+        "release_url": "https://pypi.org/project/pytest-to-md/20190422/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Create and run markdown Readmes from within pytest",
+        "version": "20190422"
+    },
+    "last_serial": 5156905,
+    "releases": {
+        "18.10.22": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6df08f6eb7d008cbf4eda8743f25ede4",
+                    "sha256": "588047092fb525717704d5c645067882dcdb8d4da460e4e90d032f0340ceea5f"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-18.10.22-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6df08f6eb7d008cbf4eda8743f25ede4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4288,
+                "upload_time": "2018-10-30T18:39:17",
+                "url": "https://files.pythonhosted.org/packages/a6/87/052523863545d492643d179ab5e5ad8c1dfcf0875ec7b70f3a4009bfcb9d/pytest_to_md-18.10.22-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1f18351956af42f6e510d68a6ed1e917",
+                    "sha256": "82ad3f5feedeb8687af903ad3197c290879b2bde9b5e08b7597015c54152d21a"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-18.10.22.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1f18351956af42f6e510d68a6ed1e917",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5323,
+                "upload_time": "2018-10-30T18:39:19",
+                "url": "https://files.pythonhosted.org/packages/df/ef/9d01d9a612d9ffc60412deab98097d25b11cb36462e1d6221968a1b174f2/pytest_to_md-18.10.22.tar.gz"
+            }
+        ],
+        "20181023": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ede5eb1719f95deecb3c555d19b60ec5",
+                    "sha256": "ebb1ff8225896b941eb7efc8aaf4694e6ea48332d15fdef7f168276651a9829f"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181023-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ede5eb1719f95deecb3c555d19b60ec5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4285,
+                "upload_time": "2018-10-30T18:43:28",
+                "url": "https://files.pythonhosted.org/packages/06/51/36a82fd7f67f1e828338ec2d654bee2737cd7c5052dc06124474313f8ee1/pytest_to_md-20181023-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "022fa0be4b3b7ac5813495a35be31b73",
+                    "sha256": "50c8a8bec9f29b9dbe7b11ec2b1fa86fc36a66d719b9979e0a71a407a18fec3e"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181023.tar.gz",
+                "has_sig": false,
+                "md5_digest": "022fa0be4b3b7ac5813495a35be31b73",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5322,
+                "upload_time": "2018-10-30T18:43:30",
+                "url": "https://files.pythonhosted.org/packages/0e/df/d29de4b8fa1d5422102d962b08738772048a4e91d1917c3602a30d31809a/pytest_to_md-20181023.tar.gz"
+            }
+        ],
+        "20181024": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "99f19cc58bd5f696134f731679570e33",
+                    "sha256": "8c780b07580b34d45a883838f6a5c1bb96776ffbafea0ec92da88bc8f3a3152a"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181024-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "99f19cc58bd5f696134f731679570e33",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4292,
+                "upload_time": "2018-10-30T18:45:35",
+                "url": "https://files.pythonhosted.org/packages/43/6b/ccfcee11974ea87c7634897312306a38d215b8e2de569ba57b2d134bc44d/pytest_to_md-20181024-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c07a333c4faab5dbb79222696a92d3e",
+                    "sha256": "e4a0c76bb97f46bffd9ccc04e7d4f6a4aeadf189c73aa91f9986e7c412723c1b"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181024.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8c07a333c4faab5dbb79222696a92d3e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5332,
+                "upload_time": "2018-10-30T18:45:37",
+                "url": "https://files.pythonhosted.org/packages/ca/6b/5a5db412b8692f03a8127a8e2a3e65a6c4e8032f3ff283570686a955ead4/pytest_to_md-20181024.tar.gz"
+            }
+        ],
+        "20181025": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6732aa5d00eb3787a7e2657ca09c1f6d",
+                    "sha256": "dc3d1a0d928b0720184992d46775ce085b664b601a5e561390d50d54c4d2a8ba"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181025-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6732aa5d00eb3787a7e2657ca09c1f6d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4409,
+                "upload_time": "2018-10-30T18:50:49",
+                "url": "https://files.pythonhosted.org/packages/19/25/12367c169b34ddfde44cc8865d9d0165e43c2621b40c0bb4f00ff616113c/pytest_to_md-20181025-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bfe49c5048165648f228f583f07c8a0f",
+                    "sha256": "7fe19577e51e67ea0e97f7044f87e4972e97e6fffa00b954e68f25898dad2ac2"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181025.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bfe49c5048165648f228f583f07c8a0f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5475,
+                "upload_time": "2018-10-30T18:50:50",
+                "url": "https://files.pythonhosted.org/packages/29/89/8c93ffa74ae47b3e6c4aac6ff7ec4038d72d4c791a168ea16e5d99563ac1/pytest_to_md-20181025.tar.gz"
+            }
+        ],
+        "20181026": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "495fc2e2314e7d3e7b375fcf4dcaa1ab",
+                    "sha256": "5bc3d423a482fe89733ecc2bf37e0be9ac506ef65dddd4db1d50f2145d7dfd6a"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181026-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "495fc2e2314e7d3e7b375fcf4dcaa1ab",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4481,
+                "upload_time": "2018-10-30T22:14:51",
+                "url": "https://files.pythonhosted.org/packages/6a/e3/4f38cc2c358ef0787920bf3398d3388fa7c2b7810a0cf542db911b432aec/pytest_to_md-20181026-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94d4409ac97be2dfb550b853db81eff9",
+                    "sha256": "a9278e7ab880406d9eb6d8f9c4efe2288905204791234e7a00d82023a6c58bef"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181026.tar.gz",
+                "has_sig": false,
+                "md5_digest": "94d4409ac97be2dfb550b853db81eff9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5559,
+                "upload_time": "2018-10-30T22:14:53",
+                "url": "https://files.pythonhosted.org/packages/1a/2d/4b3aadb7163ab1923ab4f6c1b2095de25cfd1ecac7809d6489b0af25481b/pytest_to_md-20181026.tar.gz"
+            }
+        ],
+        "20181101": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3a9fb1b60292966723829e740ba5e448",
+                    "sha256": "fb5c7fa298a3d51f3f03083aa17b0ed44ecd49be7737db30167f93a8ce1109fa"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181101-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3a9fb1b60292966723829e740ba5e448",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4983,
+                "upload_time": "2018-11-10T20:17:18",
+                "url": "https://files.pythonhosted.org/packages/ef/3f/35b2ef78d3820b00301f60baf1c9e56e44b04883a69ba613426be8a6c32b/pytest_to_md-20181101-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "33d2ca71552f38ba02cd300f45b34482",
+                    "sha256": "2216289162fd6f9a0b1a8f17ea9211fec83975989325f3b16ca0f4fb53b9a6af"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181101.tar.gz",
+                "has_sig": false,
+                "md5_digest": "33d2ca71552f38ba02cd300f45b34482",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6112,
+                "upload_time": "2018-11-10T20:17:20",
+                "url": "https://files.pythonhosted.org/packages/a5/36/ad19d641b449c2069a4a7bbb82f7962c49ba1c463cfa4a95b78e10ff5e32/pytest_to_md-20181101.tar.gz"
+            }
+        ],
+        "20181103": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "69ac1226ae4558e929cfbc2f44effc29",
+                    "sha256": "db0b2eab5be3adc132f8a8fe20badd4e27a5eb887209f521c6bf97b9196db244"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181103-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "69ac1226ae4558e929cfbc2f44effc29",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5094,
+                "upload_time": "2018-11-16T23:56:34",
+                "url": "https://files.pythonhosted.org/packages/83/a9/6dfc82d675965efc8955ac3324d45708d2133376b91b98f6a51ccb2655a8/pytest_to_md-20181103-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8ad57f5847c3a3296b5eb81e93c44d42",
+                    "sha256": "493c65ee6e6ded6ee90f54b82efde767d938919daf786bac4801b205998f0cab"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181103.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8ad57f5847c3a3296b5eb81e93c44d42",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6248,
+                "upload_time": "2018-11-16T23:56:36",
+                "url": "https://files.pythonhosted.org/packages/2d/56/e97dd8c26702ab10a2cfc23ba5d106924b894916453338160b3330acce5b/pytest_to_md-20181103.tar.gz"
+            }
+        ],
+        "20181104": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2662d5ea2dccf62f1a33720075582354",
+                    "sha256": "cdf482e148380747c81bb8506f288d64cf0d25636feb0b73a473c990c74b6568"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181104-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2662d5ea2dccf62f1a33720075582354",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6578,
+                "upload_time": "2018-11-20T22:16:27",
+                "url": "https://files.pythonhosted.org/packages/e5/6f/992a21a70e77c104722bf84883e6ecde803c67666757d6f8c023d90f7aee/pytest_to_md-20181104-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3bd3f45bd53ebbfd95752983ae61247",
+                    "sha256": "b5ab77e012cd6e5f5f160df49980948f8368a87314924170a424fa5380053dac"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181104.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f3bd3f45bd53ebbfd95752983ae61247",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7648,
+                "upload_time": "2018-11-20T22:16:29",
+                "url": "https://files.pythonhosted.org/packages/8b/34/f660746bcd6f838f0e5714ce151f7651e7ee912b385af33480e9778d4cc0/pytest_to_md-20181104.tar.gz"
+            }
+        ],
+        "20181105": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d33c9b54d6c3b6da1bec0ae27ec986a8",
+                    "sha256": "e2ebf588f269847de08c66610e0fa6bfd5881ea24cbb47747d9e5ea45383d227"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181105-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d33c9b54d6c3b6da1bec0ae27ec986a8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6566,
+                "upload_time": "2018-11-20T22:27:56",
+                "url": "https://files.pythonhosted.org/packages/db/ee/18b36b72984725ccf27f21f072f640f897563a20b78303c6fd937da7889d/pytest_to_md-20181105-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c1a107e160e11782c9a5588990fcc89f",
+                    "sha256": "28066f8c64b5366a3b26e2322dcd1a69b7c9ba49109b134c7cccf9af3e1f0c68"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181105.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c1a107e160e11782c9a5588990fcc89f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7631,
+                "upload_time": "2018-11-20T22:27:58",
+                "url": "https://files.pythonhosted.org/packages/09/66/02e1767730356f0441da5ab77060e0960770aeb81d18364ca87ced4070e0/pytest_to_md-20181105.tar.gz"
+            }
+        ],
+        "20181106": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "80d9ede5c37757e120567d0c6720d3c4",
+                    "sha256": "f6c127050148a204c598ee43dad48b3765536065152476b770ac19aa64362a6e"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181106-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "80d9ede5c37757e120567d0c6720d3c4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6583,
+                "upload_time": "2018-11-20T22:42:07",
+                "url": "https://files.pythonhosted.org/packages/b5/ae/4931f6ebd1faa08ef2261dfbde92a6a24df21b8debfe45b5a0501c708b3b/pytest_to_md-20181106-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e8db266fc58ce2b0e74ba24e089ce537",
+                    "sha256": "460047accb4e2a5a661c27fcb2ece77bf1bd468c3c59c7aac43d4fac1bc986db"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181106.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e8db266fc58ce2b0e74ba24e089ce537",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7682,
+                "upload_time": "2018-11-20T22:42:09",
+                "url": "https://files.pythonhosted.org/packages/ed/37/d168e2c927500abb7f5d7aed51be29a80a62333991082164f77f2e42cbf6/pytest_to_md-20181106.tar.gz"
+            }
+        ],
+        "20181107": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2978feeceff4db93b92d08053061cb53",
+                    "sha256": "0d5adc19b4150f83f7c2ffc94be768a61ada92612866d079a127ecb97b25a2c0"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181107-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2978feeceff4db93b92d08053061cb53",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6594,
+                "upload_time": "2018-11-20T22:42:45",
+                "url": "https://files.pythonhosted.org/packages/7c/43/886f3a169e7cd35ebe14813967b1750344ec62a0527790fb613c33c60c62/pytest_to_md-20181107-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b69320c320b706190bcade82de6df7a1",
+                    "sha256": "07ba6cb81d67d7cb2bb50231df6008046a1a4f4ee7c7a92ee440956021359a4e"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20181107.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b69320c320b706190bcade82de6df7a1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7701,
+                "upload_time": "2018-11-20T22:42:46",
+                "url": "https://files.pythonhosted.org/packages/5d/c5/cc2f5cbc7e7df21caace2f656903bfb639e5ac807de0e7c7da5d06043128/pytest_to_md-20181107.tar.gz"
+            }
+        ],
+        "20190420": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "37e03edb614198e0fed8a96d4410865a",
+                    "sha256": "b0efe71f1d65b660f9a4f8ea85ae4797f8928550e698ec9065fc2ad3728f9b20"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20190420-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "37e03edb614198e0fed8a96d4410865a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9422,
+                "upload_time": "2019-04-17T14:01:19",
+                "url": "https://files.pythonhosted.org/packages/07/92/90709b3b836d9320f3fb273172c8f7521e95158958fd1a819120765ae4fb/pytest_to_md-20190420-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5291e11b7eea95fb0a245d4260ea4713",
+                    "sha256": "c8a1cc9b1699863a5ef282952612659315876966e2870ec9588e4e9be062a6f2"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20190420.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5291e11b7eea95fb0a245d4260ea4713",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9957,
+                "upload_time": "2019-04-17T14:01:21",
+                "url": "https://files.pythonhosted.org/packages/6a/81/efa58255c708e7afa31fe92a3b5ebd6cb77d98c070144f38d3fe5674c1d0/pytest_to_md-20190420.tar.gz"
+            }
+        ],
+        "20190421": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ccd641702b714e6599e457f4d82a35b5",
+                    "sha256": "ec4e728aefb565ead90809e45a463aa6345961f495623343e74102d648826c5a"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20190421-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ccd641702b714e6599e457f4d82a35b5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8107,
+                "upload_time": "2019-04-17T12:46:03",
+                "url": "https://files.pythonhosted.org/packages/e2/3c/eb81fe8b809ae429c7f73df32cc4a69f5b4e81f8ec3bd48550f3912a1906/pytest_to_md-20190421-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "23326ae4f11dec3b7a04ef97903cd839",
+                    "sha256": "5e9e75255f6f219f3f428f179a4294ef0c5f143fb0287a2b336fda6e725c343f"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20190421.tar.gz",
+                "has_sig": false,
+                "md5_digest": "23326ae4f11dec3b7a04ef97903cd839",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8534,
+                "upload_time": "2019-04-17T12:46:05",
+                "url": "https://files.pythonhosted.org/packages/94/44/0eb4e2ebd73295aefb608a60f12c1e380db1e3a80514ab5c5fdeb575bede/pytest_to_md-20190421.tar.gz"
+            }
+        ],
+        "20190422": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bafedb8e723febdd0e29decadc5b8c09",
+                    "sha256": "68543e2a5f9d4cf3cc824290ed5411fb7e951211d78aa2df2537811dc7e3c087"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20190422-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bafedb8e723febdd0e29decadc5b8c09",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10063,
+                "upload_time": "2019-04-17T20:11:44",
+                "url": "https://files.pythonhosted.org/packages/81/01/991fc170310a81367fc16d4267f2dadab351d86ca5b60ae74036f340d064/pytest_to_md-20190422-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af9d2ed17d3607ce1b2a8d1efffab337",
+                    "sha256": "615d4511f95b8c909860518e80a72f3504ba81509edb223ab994651816653591"
+                },
+                "downloads": -1,
+                "filename": "pytest_to_md-20190422.tar.gz",
+                "has_sig": false,
+                "md5_digest": "af9d2ed17d3607ce1b2a8d1efffab337",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11683,
+                "upload_time": "2019-04-17T20:11:46",
+                "url": "https://files.pythonhosted.org/packages/4e/4a/0c767192579e9a532cfeedfd10a9474fb54a853930dc5ff6489f304fb0fe/pytest_to_md-20190422.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "bafedb8e723febdd0e29decadc5b8c09",
+                "sha256": "68543e2a5f9d4cf3cc824290ed5411fb7e951211d78aa2df2537811dc7e3c087"
+            },
+            "downloads": -1,
+            "filename": "pytest_to_md-20190422-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "bafedb8e723febdd0e29decadc5b8c09",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 10063,
+            "upload_time": "2019-04-17T20:11:44",
+            "url": "https://files.pythonhosted.org/packages/81/01/991fc170310a81367fc16d4267f2dadab351d86ca5b60ae74036f340d064/pytest_to_md-20190422-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "af9d2ed17d3607ce1b2a8d1efffab337",
+                "sha256": "615d4511f95b8c909860518e80a72f3504ba81509edb223ab994651816653591"
+            },
+            "downloads": -1,
+            "filename": "pytest_to_md-20190422.tar.gz",
+            "has_sig": false,
+            "md5_digest": "af9d2ed17d3607ce1b2a8d1efffab337",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11683,
+            "upload_time": "2019-04-17T20:11:46",
+            "url": "https://files.pythonhosted.org/packages/4e/4a/0c767192579e9a532cfeedfd10a9474fb54a853930dc5ff6489f304fb0fe/pytest_to_md-20190422.tar.gz"
+        }
+    ]
+}

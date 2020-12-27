@@ -1,0 +1,167 @@
+{
+    "info": {
+        "author": "Diogo Dutra",
+        "author_email": "diogodutradamata@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 1 - Planning",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Software Development :: Libraries"
+        ],
+        "description": "# typingjson\n\n<p align=\"center\" style=\"margin: 3em\">\n  <a href=\"https://github.com/dutradda/typingjson\">\n    <img src=\"https://dutradda.github.io/typingjson/typingjson.svg\" alt=\"typingjson\" width=\"300\"/>\n  </a>\n</p>\n\n<p align=\"center\">\n    <em>Interoperates <b>dataclasses</b> and <b>TypedDict</b> with <b>json objects</b></em>\n</p>\n\n---\n\n**Documentation**: <a href=\"https://dutradda.github.io/typingjson\" target=\"_blank\">https://dutradda.github.io/typingjson</a>\n\n**Source Code**: <a href=\"https://github.com/dutradda/typingjson\" target=\"_blank\">https://github.com/dutradda/typingjson</a>\n\n---\n\n\n## Key Features\n\n- Full compatibility with [dataclasses](https://docs.python.org/3/library/dataclasses.html) module and [TypedDict](https://www.python.org/dev/peps/pep-0589/) annotation\n- Deserialize values from dict\n- Deserialize values from bytes*\n- Deserialization/serialization of choosen fields\n- Dict serialization\n- Direct json serialization with [orjson](https://github.com/ijl/orjson) (don't convert to dict before serialization)\n- Optional validation according with the [json-schema](https://json-schema.org/) specification*\n\n*\\* feature in development.*\n\n\n## Requirements\n\n - Python 3.8+\n - [orjson](https://github.com/ijl/orjson) for json serialization\n\n\n## Instalation\n```\n$ pip install typingjson\n```\n\n\n## Basic example\n\n```python\nfrom dataclasses import dataclass\nfrom typing import List, TypedDict\n\nfrom typingjson import (\n    as_typed_dict,\n    asdataclass,\n    dataclass_asjson,\n    typed_dict_asjson,\n    typingjson,\n)\n\n\n# dataclass\n\n\n@dataclass\nclass Music:\n    name: str\n\n\n# if 'Person' is not a dataclass the\n# 'typingjson' decorator will call the\n# 'dataclass' decorator\n@typingjson\nclass Person:\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name=b'John', age='40', musics=[dict(name='Imagine')])\nperson = asdataclass(jsondict, Person)\n\nprint('dataclass:')\nprint(person)\nprint(dataclass_asjson(person))\nprint()\n\n\n# TypedDict\n\n\n@typingjson\nclass Music(TypedDict):\n    name: str\n\n\n# This decorator is required because\n# we need to track the annotations\n@typingjson\nclass Person(TypedDict):\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name=b'John', age='40', musics=[dict(name='Imagine')])\nperson = as_typed_dict(jsondict, Person)\n\nprint('TypedDict:')\nprint(person)\nprint(typed_dict_asjson(person, Person))\n\n```\n\n```\ndataclass:\nPerson(name='John', age=40, musics=[Music(name='Imagine')])\nb'{\"name\":\"John\",\"age\":40,\"musics\":[{\"name\":\"Imagine\"}]}'\n\nTypedDict:\n{'name': 'John', 'age': 40, 'musics': [{'name': 'Imagine'}]}\nb'{\"name\":\"John\",\"age\":40,\"musics\":[{\"name\":\"Imagine\"}]}'\n\n```\n\n\n## Example for choose fields to deserialize\n\n```python\nfrom dataclasses import dataclass\nfrom typing import List, TypedDict\n\nfrom typingjson import (\n    as_typed_dict,\n    asdataclass,\n    dataclass_asjson,\n    typed_dict_asjson,\n    typingjson,\n)\n\n\n@dataclass\nclass Music:\n    name: str\n\n\n@typingjson(deserialize_fields=('name'))\nclass Person:\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name=b'John', age='40', musics=[dict(name='Imagine')])\nperson = asdataclass(jsondict, Person)\n\nprint('dataclass:')\nprint(person)\nprint(dataclass_asjson(person))\nprint()\n\n\n# TypedDict\n\n\n@typingjson\nclass Music(TypedDict):\n    name: str\n\n\n@typingjson(deserialize_fields=('name'))\nclass Person(TypedDict):\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name=b'John', age='40', musics=[dict(name='Imagine')])\nperson = as_typed_dict(jsondict, Person)\n\nprint('TypedDict:')\nprint(person)\nprint(typed_dict_asjson(person, Person))\n\n```\n\n```\ndataclass:\nPerson(name='John', age='40', musics=[{'name': 'Imagine'}])\nb'{\"name\":\"John\",\"age\":\"40\",\"musics\":[{\"name\":\"Imagine\"}]}'\n\nTypedDict:\n{'name': 'John', 'musics': [{'name': 'Imagine'}], 'age': '40'}\nb'{\"name\":\"John\",\"musics\":[{\"name\":\"Imagine\"}],\"age\":\"40\"}'\n\n```\n\n\n## Example for choose fields to serialize\n\n```python\nfrom dataclasses import dataclass\nfrom typing import List, TypedDict\n\nfrom typingjson import (\n    as_typed_dict,\n    asdataclass,\n    dataclass_asjson,\n    typed_dict_asjson,\n    typingjson,\n)\n\n\n@dataclass\nclass Music:\n    name: str\n\n\n@typingjson(serialize_fields=('name', 'age'))\n@dataclass\nclass Person:\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name='John', age=40, musics=[dict(name='Imagine')])\nperson = asdataclass(jsondict, Person)\n\nprint('dataclass:')\nprint(person)\nprint(dataclass_asjson(person))\nprint()\n\n\n# TypedDict\n\n\n@typingjson\nclass Music(TypedDict):\n    name: str\n\n\n@typingjson(serialize_fields=('age'))\nclass Person(TypedDict):\n    name: str\n    age: int\n    musics: List[Music]\n\n\njsondict = dict(name=b'John', age='40', musics=[dict(name='Imagine')])\nperson = as_typed_dict(jsondict, Person)\n\nprint('TypedDict:')\nprint(person)\nprint(typed_dict_asjson(person, Person))\n\n```\n\n```\ndataclass:\nPerson(name='John', age=40, musics=[Music(name='Imagine')])\nb'{\"age\":40,\"name\":\"John\"}'\n\nTypedDict:\n{'name': 'John', 'age': 40, 'musics': [{'name': 'Imagine'}]}\nb'{\"age\":40}'\n\n```\n\n\n## Wins [Pydantic](https://github.com/samuelcolvin/pydantic) Benchmark\n\n`typingjson` is up to *5.6 times* faster than pydantic on it's benchmark\n\n![pydantic benchmark](https://dutradda.github.io/typingjson/benchmark.png \"Pydantic Benchmark\")\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/dutradda/typingjson",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "typingjson",
+        "package_url": "https://pypi.org/project/typingjson/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/typingjson/",
+        "project_urls": {
+            "Documentation": "https://dutradda.github.io/typingjson/",
+            "Homepage": "https://github.com/dutradda/typingjson"
+        },
+        "release_url": "https://pypi.org/project/typingjson/0.3.1/",
+        "requires_dist": [
+            "orjson",
+            "mkdocs; extra == \"doc\"",
+            "mkdocs-material; extra == \"doc\"",
+            "markdown-include; extra == \"doc\"",
+            "black; extra == \"test\"",
+            "flake8; extra == \"test\"",
+            "isort; extra == \"test\"",
+            "ipython; extra == \"test\"",
+            "mypy; extra == \"test\"",
+            "pytest-cov; extra == \"test\"",
+            "pytest-mock; extra == \"test\"",
+            "pytest>=5.1.1; extra == \"test\"",
+            "tox; extra == \"test\""
+        ],
+        "requires_python": ">=3.8",
+        "summary": "Interoperates @dataclass with json objects",
+        "version": "0.3.1"
+    },
+    "last_serial": 5856525,
+    "releases": {
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1864beaa3cf7951cd75149793d4c93ea",
+                    "sha256": "f13cc9863898aa2ca38488fd06d8e353d69a5df0ec5215ff088c684bdba9794a"
+                },
+                "downloads": -1,
+                "filename": "typingjson-0.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1864beaa3cf7951cd75149793d4c93ea",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.8",
+                "size": 32030,
+                "upload_time": "2019-09-19T01:07:28",
+                "url": "https://files.pythonhosted.org/packages/0f/ee/ec8dda576e368ee593193403463185877be854835f87f0c97f731eeb9398/typingjson-0.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "622d7d9f77995d02f9045e816ce00b11",
+                    "sha256": "72de912d13f5e208aa6c5d379479051da468834330d632869b00c87c6f4bbf4c"
+                },
+                "downloads": -1,
+                "filename": "typingjson-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "622d7d9f77995d02f9045e816ce00b11",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.8",
+                "size": 96226,
+                "upload_time": "2019-09-19T01:07:32",
+                "url": "https://files.pythonhosted.org/packages/0d/c5/4b0e96f167e9a08bad5e3c820c3f12ca0003b01f9b851b20c87b287631ff/typingjson-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5602732e538fb43df6000e94119b09a9",
+                    "sha256": "244e62500f1a7d752293394ae3ac868c8d192b73a9e3f84bf35890dace05faac"
+                },
+                "downloads": -1,
+                "filename": "typingjson-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5602732e538fb43df6000e94119b09a9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.8",
+                "size": 32804,
+                "upload_time": "2019-09-19T13:51:45",
+                "url": "https://files.pythonhosted.org/packages/c1/9a/4e0b49974bae9f26d5badef65886e7d59e4cb7c419811eaba0171ede2708/typingjson-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "80a83a86f41770aadada2c53ee40a81e",
+                    "sha256": "2f66cdc887c001aa503a8b55ff39e78b1d25b04ae87554de6ab8d799d76cdd82"
+                },
+                "downloads": -1,
+                "filename": "typingjson-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "80a83a86f41770aadada2c53ee40a81e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.8",
+                "size": 96406,
+                "upload_time": "2019-09-19T13:51:48",
+                "url": "https://files.pythonhosted.org/packages/70/b2/645525f056089bb0ee4eb31b465216c9649b1071a0c2f8cb58ffa3590682/typingjson-0.3.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5602732e538fb43df6000e94119b09a9",
+                "sha256": "244e62500f1a7d752293394ae3ac868c8d192b73a9e3f84bf35890dace05faac"
+            },
+            "downloads": -1,
+            "filename": "typingjson-0.3.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "5602732e538fb43df6000e94119b09a9",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.8",
+            "size": 32804,
+            "upload_time": "2019-09-19T13:51:45",
+            "url": "https://files.pythonhosted.org/packages/c1/9a/4e0b49974bae9f26d5badef65886e7d59e4cb7c419811eaba0171ede2708/typingjson-0.3.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "80a83a86f41770aadada2c53ee40a81e",
+                "sha256": "2f66cdc887c001aa503a8b55ff39e78b1d25b04ae87554de6ab8d799d76cdd82"
+            },
+            "downloads": -1,
+            "filename": "typingjson-0.3.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "80a83a86f41770aadada2c53ee40a81e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.8",
+            "size": 96406,
+            "upload_time": "2019-09-19T13:51:48",
+            "url": "https://files.pythonhosted.org/packages/70/b2/645525f056089bb0ee4eb31b465216c9649b1071a0c2f8cb58ffa3590682/typingjson-0.3.1.tar.gz"
+        }
+    ]
+}

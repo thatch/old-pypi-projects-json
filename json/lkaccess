@@ -1,0 +1,160 @@
+{
+    "info": {
+        "author": "AICS",
+        "author_email": "mattb@alleninstitute.org",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# LabKey Access Tools\n\nThis library is mostly a wrapper around the [LabKey python API](https://github.com/LabKey/labkey-api-python),\nwith a few notable additions:\n\n* Built in back-off on all requests. This allows the code to retry a request if LabKey is down \nfor maintenance or deployments.\n* A `LabKey` class that keeps track of server context and other query defaults for you (rather than\nhaving to hand these to all query functions every time they are used). This class can also improve testing\nas all LabKey server responses can be mocked.\n* A more robust set of access methods, specifically `select_first`, and `select_rows_as_list`.\n\n## Examples\n\n```python\nfrom lkaccess import LabKey, QueryFilter\nimport lkaccess.contexts\n\n# Create our accessor class\nlk = LabKey(server_context=lkaccess.contexts.PROD)\n\n# Query on a given table using the base function\nresponse = lk.select_rows(schema_name='processing',\n                          query_name='AnnotationType')\n\ndata = response['rows']\n\n# Grab just the first result, useful if we have a primary key\n# or only care about getting the first match\nalgorithm = lk.select_first(schema_name='processing',\n                            query_name='ContentGenerationAlgorithm',\n                            filter_array=[\n                                QueryFilter('ContentGenerationAlgorithmId', 14)\n                            ])\n\n# Grab results in a form that's consumable by Pandas\nresponse = lk.select_rows_as_list(schema_name='processing',\n                                  query_name='Cell')\n# Hand this result directly to pandas\nimport pandas as pd\ndf = pd.DataFrame(response)\n\n# There are also representational classes for different entities in LabKey.\n# At this time, there are accessors for FOVs and Cells\ncell = lk.get_cell(2222)\n# Method access to fields on the Cell table\nif cell.content_generation_algorithm_id == algorithm['ContentGenerationAlgorithmId']:\n    print(cell.cell_index)\nfov = lk.get_fov(1414)\nif fov.fov_id == cell.fov_id:\n    print(fov.well_id)\n```\n\n## Testing\nThis library comes with a `MockLabKey` class (in `lkaccess.mock`) that allows responses from `LabKey` to be mocked\nfor unit testing. An example might be like this:\n\n```python\nfrom lkaccess import LabKey\nfrom lkaccess.mock import MockLabKey\n\n# The \"production\" function where we use lkaccess\ndef my_access_function(lk: LabKey):\n    rows = lk.select_rows_as_list('myschema', 'mytable')\n    sum_entries = 0\n    for row in rows:\n        sum_entries += row['value']\n    return sum_entries\n\n\n# The testing function\ndef test_my_access_function():\n    with MockLabKey({'select_rows_as_list': [{'value': 2}]}) as lk:\n        result = my_access_function(lk)\n        assert result == 2\n\n    with MockLabKey({'select_rows_as_list': [{'value': 2}, \n                                             {'value': 4}]}) as lk:\n        result = my_access_function(lk)\n        assert result == 6\n\n    with MockLabKey({'select_rows_as_list': [{'value': 2}, \n                                             {'value': 4},\n                                             {'value': 4.5}]}) as lk:\n        result = my_access_function(lk)\n        assert result == 10.5\n\n    # etc...\n```\n\n## How to Build\n\nThe default project layout and build steps are discussed in [BUILD.md](BUILD.md). Some of the information\nis related to the AICS build process.\n\n## Legal documents\n\n- [License](LICENSE.txt) _(Before you release the project publicly please check with your manager to ensure the license is appropriate and has been run through legal review as necessary.)_\n- [Contribution Agreement](CONTRIBUTING.md) _(Additionally update the contribution agreement to reflect\nthe level of contribution you are expecting, and the level of support you intend to provide.)_\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "Allen Institute Software License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "lkaccess",
+        "package_url": "https://pypi.org/project/lkaccess/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/lkaccess/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/lkaccess/1.2.4/",
+        "requires_dist": [
+            "labkey",
+            "backoff",
+            "pytest ; extra == 'all'",
+            "pytest-cov ; extra == 'all'",
+            "pytest-raises ; extra == 'all'",
+            "flake8 ; extra == 'all'",
+            "flake8 ; extra == 'lint_group'",
+            "pytest ; extra == 'test_group'",
+            "pytest-cov ; extra == 'test_group'",
+            "pytest-raises ; extra == 'test_group'"
+        ],
+        "requires_python": "",
+        "summary": "Tools for making accessing Labkey data from python easier.",
+        "version": "1.2.4"
+    },
+    "last_serial": 4657704,
+    "releases": {
+        "1.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9dbd05b1acd744eed1b85f9a0ae75fcc",
+                    "sha256": "6148c09e898f57e1068e65735922702d5cbbf094f03bfba4c7a5229b8b1b8d08"
+                },
+                "downloads": -1,
+                "filename": "lkaccess-1.2.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9dbd05b1acd744eed1b85f9a0ae75fcc",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 16240,
+                "upload_time": "2018-11-20T22:51:06",
+                "url": "https://files.pythonhosted.org/packages/38/9e/41c20c682bfec64bfdd3becfdd13fe1813fceb06bc3ea09eaf043f824fe4/lkaccess-1.2.0-py2.py3-none-any.whl"
+            }
+        ],
+        "1.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b1ddf75642b1477060602ea98dadcf88",
+                    "sha256": "9e46907589001ed067872d9f2d4343667b0ae35c31ac79ea8c93842883f757a0"
+                },
+                "downloads": -1,
+                "filename": "lkaccess-1.2.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b1ddf75642b1477060602ea98dadcf88",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 17064,
+                "upload_time": "2018-11-21T20:13:07",
+                "url": "https://files.pythonhosted.org/packages/3f/6f/16bf9e7dfb237772decbb1482c04c9cd7f717035add9c9ee58b5db8455b5/lkaccess-1.2.1-py2.py3-none-any.whl"
+            }
+        ],
+        "1.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc441cc06785cb942f15d69ca897b265",
+                    "sha256": "cc51a18757817d1ca8a241010d2734be22c82df595f1bd1069b05a1c2c13cc04"
+                },
+                "downloads": -1,
+                "filename": "lkaccess-1.2.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dc441cc06785cb942f15d69ca897b265",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 18846,
+                "upload_time": "2018-11-27T21:04:21",
+                "url": "https://files.pythonhosted.org/packages/09/d3/100a3dcde917578a260d22b496cac211bb8faf01b52497c644252386fcdf/lkaccess-1.2.2-py2.py3-none-any.whl"
+            }
+        ],
+        "1.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "320738c00ae2605e99e8fe852d593ae1",
+                    "sha256": "f0402ce7ebd85034bebc8c8ac4c92c38d344d702b5737f649c8ed752e6cb4662"
+                },
+                "downloads": -1,
+                "filename": "lkaccess-1.2.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "320738c00ae2605e99e8fe852d593ae1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 18933,
+                "upload_time": "2018-12-19T19:26:42",
+                "url": "https://files.pythonhosted.org/packages/a5/d4/d51fd8639506456cffc0ab45f4c0b2a4429326a1fdc8f4149ad7296e4634/lkaccess-1.2.3-py2.py3-none-any.whl"
+            }
+        ],
+        "1.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "54d992315d33b9e3af928d7790d91e4e",
+                    "sha256": "b4b1127c5f780722265d69ed096fe3983528c1a25a2690c87ed70718858b0f12"
+                },
+                "downloads": -1,
+                "filename": "lkaccess-1.2.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "54d992315d33b9e3af928d7790d91e4e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 19037,
+                "upload_time": "2019-01-03T20:59:51",
+                "url": "https://files.pythonhosted.org/packages/e7/a8/e8b2fdb3a34c377e71bec1f7149966814c59b3ee4f84df197ff91dc4954e/lkaccess-1.2.4-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "54d992315d33b9e3af928d7790d91e4e",
+                "sha256": "b4b1127c5f780722265d69ed096fe3983528c1a25a2690c87ed70718858b0f12"
+            },
+            "downloads": -1,
+            "filename": "lkaccess-1.2.4-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "54d992315d33b9e3af928d7790d91e4e",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 19037,
+            "upload_time": "2019-01-03T20:59:51",
+            "url": "https://files.pythonhosted.org/packages/e7/a8/e8b2fdb3a34c377e71bec1f7149966814c59b3ee4f84df197ff91dc4954e/lkaccess-1.2.4-py2.py3-none-any.whl"
+        }
+    ]
+}

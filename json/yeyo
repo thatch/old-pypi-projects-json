@@ -1,0 +1,610 @@
+{
+    "info": {
+        "author": "Trent Hauck",
+        "author_email": "trent@trenthauck.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# yeyo\n\n> yeyo is a command line tool for managing versions across file types within a repo.\n\n[![](https://img.shields.io/pypi/v/yeyo.svg)](https://pypi.python.org/pypi/yeyo)\n[![](https://img.shields.io/docker/pulls/thauck/yeyo.svg)](https://hub.docker.com/r/thauck/yeyo)\n\n<!-- vim-markdown-toc GFM -->\n\n* [Installation](#installation)\n  * [Python Package](#python-package)\n  * [Use with Docker](#use-with-docker)\n* [Usage](#usage)\n  * [Command: init](#command-init)\n  * [Command: version](#command-version)\n  * [Group: files](#group-files)\n    * [Command: ls](#command-ls)\n    * [Command: rm](#command-rm)\n    * [Command: add](#command-add)\n  * [Group: bump](#group-bump)\n    * [Command: major](#command-major)\n    * [Command: minor](#command-minor)\n    * [Command: patch](#command-patch)\n    * [Command: prerelease](#command-prerelease)\n    * [Command: finalize](#command-finalize)\n  * [Group: git](#group-git)\n    * [Command: render-tag-string](#command-render-tag-string)\n    * [Command: render-commit-string](#command-render-commit-string)\n    * [Command: tag](#command-tag)\n\n<!-- vim-markdown-toc -->\n\n## Installation\n\n### Python Package\n\n```console\n$ pip install yeyo\n```\n\n### Use with Docker\n\nIf you'd like to use yeyo through docker, you can do so by first pulling the image:\n\n```console\n# In practice, you should pin to a particular version.\n$ docker pull thauck/yeyo:latest\n```\n\nThen, run a container and mount the project directory to `/project`. For example,\n\n```console\n$ docker run -it -v $(pwd):/project thauck/yeyo:latest init\n```\n\nwill initialize the host directory from the docker container.\n\n## Usage\n\nHow to (mis)use yeyo.\n\n### Command: init\n\n```console\nUsage: init [OPTIONS]\n\n  Initialize a project with a yeyo config.\n\n  $ yeyo init\n  $ cat .yeyo.json | jq\n  {\n    \"files\": [],\n    \"version\": \"0.0.0-dev.1\",\n    \"tag_template\": \"{{ yeyo_version }}\",\n    \"commit_template\": \"{{ yeyo_version }}\"\n  }\n\n  There are two modes of operation after this:\n\n  * Adding or removing files, see: $ yeyo files --help\n  * Version bumping, see: $ yeyo bump --help\n\nOptions:\n  --starting-version TEXT     The version to start with.\n  -t, --tag-template TEXT     A jinja2 templated string that will be used for\n                              git tags.\n  -c, --commit-template TEXT  A jinja2 templated string that will be used for\n                              git commits.\n  --default / --no-default    If True, add a VERSION file as a default file,\n                              default value is False.\n  --help                      Show this message and exit.\n```\n\n### Command: version\n\n```console\nUsage: version [OPTIONS]\n\n  Print yeyo's version and exit.\n\nOptions:\n  --help  Show this message and exit.\n```\n\n### Group: files\n\n```console\nUsage: files [OPTIONS] COMMAND [ARGS]...\n\n  Entrypoint for adding or removing files.\n\nOptions:\n  --help  Show this message and exit.\n\nCommands:\n  add  Add a file path and, optionally, an associated search string.\n  ls   List of the files present in yeyo's config.\n  rm   Remove a file from yeyo's config.\n```\n\n#### Command: ls\n\n```console\nUsage: ls [OPTIONS]\n\n  List of the files present in yeyo's config.\n\nOptions:\n  --dryrun / --no-dryrun  If True, do not actually write files, just log the\n                          output. Defaults to False.\n  --help                  Show this message and exit.\n```\n\n#### Command: rm\n\n```console\nUsage: rm [OPTIONS] PATH\n\n  Remove a file from yeyo's config.\n\nOptions:\n  --help  Show this message and exit.\n```\n\n#### Command: add\n\n```console\nUsage: add [OPTIONS] PATH\n\n  Add a file path and, optionally, an associated search string.\n\n  Imagine we were starting with the same .yeyo.json as the init example --\n  so we've just run `yeyo init`. Now we want to add a python module to\n  yeyo's tracking, and only replace cases where __version__ = \"0.0.1\":\n\n  $ yeyo files add __init__.py -t \"__version__ = \\\"yeyo_version\\\"\"\n\n  `yeyo_version` will be replace with the current version and updated when\n  bumping version.\n\n  $ cat .yeyo.json | jq\n  {\n    \"files\": [\n      {\n        \"file_path\": \"__init__.py\",\n        \"match_template\": \"__version__ = \\\"yeyo_version\\\"\"\n      }\n    ],\n    \"version\": \"0.0.0-dev.1\",\n    \"tag_template\": \"{{ yeyo_version }}\",\n    \"commit_template\": \"{{ yeyo_version }}\"\n  }\n\n  You might run a version bump in dryrun mode now to see which files would\n  change and how.\n\n  $ yeyo bump minor --dryrun\n  Replacing line: __version__ = \"0.0.0-dev.1\" with __version__ = \"0.1.0\" in file __init__.py.\n  ...\n\nOptions:\n  -t, --template_string TEXT  The template string to find and replace with.\n  --help                      Show this message and exit.\n```\n\n### Group: bump\n\n```console\nUsage: bump [OPTIONS] COMMAND [ARGS]...\n\n  Entrypoint for version bumping.\n\n  Running these commands will modify the files which are tracked by yeyo\n  (see the command `yeyo files ls`) by updating the contents and replacing\n  the version with the bumped version.\n\n  Most commands support a `--dryrun` option which if invoked will not make\n  any changes to the project, but will print out the expected changes.\n\n  $ yeyo bump major --dryrun\n\n  The \"holy trinity\" of major, minor, and patch commands also support a\n  `--prerel` option which if invoked will bump version and add a prerelease\n  tag.\n\n  $ yeyo bump minor --prerel --dryrun\n\nOptions:\n  --help  Show this message and exit.\n\nCommands:\n  finalize    Finalize the current version by dropping any prerelease...\n  major       Bump the major part of the version: X.0.0.\n  minor       Bump the minor part of the version: 0.X.0.\n  patch       Bump the patch part of the version: 0.0.X.\n  prerelease  Bump the prerelease part of the version.\n```\n\n#### Command: major\n\n```console\nUsage: major [OPTIONS]\n\n  Bump the major part of the version: X.0.0.\n\nOptions:\n  --prerel / --no-prerel          If True, also make the version a prerelease\n                                  version.\n  --dryrun / --no-dryrun          If True, do not actually write files, just\n                                  log the output. Defaults to False.\n  --git-tag-before / --no-git-tag-before\n                                  If True, tag the repo, then version bump.\n  --git-tag-after / --no-git-tag-after\n                                  If True, bump, then commit the changed files\n                                  and tag the repo.\n  --help                          Show this message and exit.\n```\n\n#### Command: minor\n\n```console\nUsage: minor [OPTIONS]\n\n  Bump the minor part of the version: 0.X.0.\n\nOptions:\n  --prerel / --no-prerel          If True, also make the version a prerelease\n                                  version.\n  --dryrun / --no-dryrun          If True, do not actually write files, just\n                                  log the output. Defaults to False.\n  --git-tag-before / --no-git-tag-before\n                                  If True, tag the repo, then version bump.\n  --git-tag-after / --no-git-tag-after\n                                  If True, bump, then commit the changed files\n                                  and tag the repo.\n  --help                          Show this message and exit.\n```\n\n#### Command: patch\n\n```console\nUsage: patch [OPTIONS]\n\n  Bump the patch part of the version: 0.0.X.\n\nOptions:\n  --prerel / --no-prerel          If True, also make the version a prerelease\n                                  version.\n  --dryrun / --no-dryrun          If True, do not actually write files, just\n                                  log the output. Defaults to False.\n  --git-tag-before / --no-git-tag-before\n                                  If True, tag the repo, then version bump.\n  --git-tag-after / --no-git-tag-after\n                                  If True, bump, then commit the changed files\n                                  and tag the repo.\n  --help                          Show this message and exit.\n```\n\n#### Command: prerelease\n\n```console\nUsage: prerelease [OPTIONS]\n\n  Bump the prerelease part of the version.\n\nOptions:\n  -p, --prerelease_token [dev|a|b|rc]\n  --prerel / --no-prerel          If True, also make the version a prerelease\n                                  version.\n  --dryrun / --no-dryrun          If True, do not actually write files, just\n                                  log the output. Defaults to False.\n  --git-tag-before / --no-git-tag-before\n                                  If True, tag the repo, then version bump.\n  --git-tag-after / --no-git-tag-after\n                                  If True, bump, then commit the changed files\n                                  and tag the repo.\n  --help                          Show this message and exit.\n```\n\n#### Command: finalize\n\n```console\nUsage: finalize [OPTIONS]\n\n  Finalize the current version by dropping any prerelease information.\n\nOptions:\n  --dryrun / --no-dryrun          If True, do not actually write files, just\n                                  log the output. Defaults to False.\n  --git-tag-before / --no-git-tag-before\n                                  If True, tag the repo, then version bump.\n  --git-tag-after / --no-git-tag-after\n                                  If True, bump, then commit the changed files\n                                  and tag the repo.\n  --help                          Show this message and exit.\n```\n\n### Group: git\n\n```console\nUsage: git [OPTIONS] COMMAND [ARGS]...\n\n  Entrypoint for git commands.\n\nOptions:\n  --help  Show this message and exit.\n\nCommands:\n  render-commit-string  Display what the commit string would be.\n  render-tag-string     Display what the tag string would be.\n  tag                   Tags the repo with the templated tag string.\n```\n\n#### Command: render-tag-string\n\n```console\nUsage: render-tag-string [OPTIONS]\n\n  Display what the tag string would be.\n\nOptions:\n  --help  Show this message and exit.\n```\n\n#### Command: render-commit-string\n\n```console\nUsage: render-commit-string [OPTIONS]\n\n  Display what the commit string would be.\n\nOptions:\n  --help  Show this message and exit.\n```\n\n#### Command: tag\n\n```console\nUsage: tag [OPTIONS]\n\n  Tags the repo with the templated tag string.\n\nOptions:\n  --dryrun / --no-dryrun  If True, do not actually write files, just log the\n                          output. Defaults to False.\n  --help                  Show this message and exit.\n```\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://www.github.com/tshauck/yeyo",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "Trent Hauck",
+        "maintainer_email": "trent@trenthauck.com",
+        "name": "yeyo",
+        "package_url": "https://pypi.org/project/yeyo/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/yeyo/",
+        "project_urls": {
+            "Homepage": "https://www.github.com/tshauck/yeyo",
+            "Repository": "https://github.com/tshauck/yeyo"
+        },
+        "release_url": "https://pypi.org/project/yeyo/0.2.1/",
+        "requires_dist": [
+            "click (>=7.0,<8.0)",
+            "semver (>=2.8,<3.0)",
+            "pytest (>=4.0,<5.0)",
+            "jinja2 (>=2.10,<3.0)",
+            "requests (>=2.21,<3.0)",
+            "docker (>=3.6,<4.0)",
+            "GitPython (>=2.1,<3.0)"
+        ],
+        "requires_python": ">=3.6,<4.0",
+        "summary": "Hey-o for yeyo.",
+        "version": "0.2.1"
+    },
+    "last_serial": 4798738,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "229e916cce3b4949b14c36d574322207",
+                    "sha256": "b9e73fb0fe336882f84b1fb8de1ffd585ce69d2fe7811865f55868c193068e77"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "229e916cce3b4949b14c36d574322207",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 33245,
+                "upload_time": "2019-01-11T03:24:24",
+                "url": "https://files.pythonhosted.org/packages/b6/65/4dfb8e012c98483f8faef03bce7e5a0f3a4dd4c4bf50430edda304e7dce9/yeyo-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "354949e7b8716b84aef646edafe0b5f1",
+                    "sha256": "f01e34d0604983fede119db4eb73fdf1bc9ab2808b89735171a8d36e8f2a07eb"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "354949e7b8716b84aef646edafe0b5f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 11643,
+                "upload_time": "2019-01-11T03:24:26",
+                "url": "https://files.pythonhosted.org/packages/1d/16/2864c123b20970a446cb89dfc659952ce5deebd6b4561a543045032cf96d/yeyo-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.1.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fee9302760c2a1785d81578ffec0862a",
+                    "sha256": "b71a249cdfdc7cbfd72149358d96992ef4014b07b4e7267d1db3f4123282e7c8"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1.dev1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fee9302760c2a1785d81578ffec0862a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 10252,
+                "upload_time": "2018-12-24T04:00:28",
+                "url": "https://files.pythonhosted.org/packages/46/d5/772bd3219adb50e4a8dc6a062a58395151e2fafeafe53dd3a026cc0bb64b/yeyo-0.0.1.dev1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9468c81fe14e4d8d93776e8ee1a941a9",
+                    "sha256": "d842d714221aa29d69bbcd022933a13b72d20c598dbd58bd77f91360abf7dd48"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9468c81fe14e4d8d93776e8ee1a941a9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3253,
+                "upload_time": "2018-12-24T04:00:30",
+                "url": "https://files.pythonhosted.org/packages/12/fc/cf3f9980bfa1fb1f763d5452fe2829278103dcdeb1376d86a3840b852cf1/yeyo-0.0.1.dev1.tar.gz"
+            }
+        ],
+        "0.0.1a1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e0c983fdfce4f9989a8d8dfb81302ad",
+                    "sha256": "8c81cbb92f4d7ee6be04755572c9d7027d7a08b5e4abdeef208cb1deeb5e53b4"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1a1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2e0c983fdfce4f9989a8d8dfb81302ad",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 10195,
+                "upload_time": "2018-12-24T04:32:26",
+                "url": "https://files.pythonhosted.org/packages/37/d0/af5e406534fd73e2d999c8d2ccd2173993920d9107db650168184c92f50a/yeyo-0.0.1a1-py3-none-any.whl"
+            }
+        ],
+        "0.0.1a2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5d3d08822a23a9b703e1441f00d8c094",
+                    "sha256": "51d66d296a3400f49c73e921ddc017e489d5265f72396326a95cc932aff6020e"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1a2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5d3d08822a23a9b703e1441f00d8c094",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 10230,
+                "upload_time": "2018-12-24T04:35:13",
+                "url": "https://files.pythonhosted.org/packages/14/d7/287781aaaf9703a13784cb474c434439c2aa4ff472b04605f0901e2d6ded/yeyo-0.0.1a2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "82469500a083f111ef197fd7f0f7840b",
+                    "sha256": "e147bbbdec6344206a529377c5d82b9185afc3070a82e360ba686947e453f855"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1a2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "82469500a083f111ef197fd7f0f7840b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3279,
+                "upload_time": "2018-12-24T04:35:13",
+                "url": "https://files.pythonhosted.org/packages/27/df/fed0d46c47cfc7f80edfa8109e9337bb75d9b1a80f9779d58ef2285c7419/yeyo-0.0.1a2.tar.gz"
+            }
+        ],
+        "0.0.1b1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d33f6918010801fdacad1a8107f8aa9d",
+                    "sha256": "83c65ac9b02ebace4e59ecaac03bf0d7c0d834326106803acd475695fb240d46"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1b1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d33f6918010801fdacad1a8107f8aa9d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 12099,
+                "upload_time": "2019-01-01T06:29:28",
+                "url": "https://files.pythonhosted.org/packages/f4/2d/5ea36fcccb83dcf02dc296b8c33dd706117d1145f6976c1111fb83da29b1/yeyo-0.0.1b1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5b9d5103ebb2b808d831deadd7de33bf",
+                    "sha256": "68f32f1303bc9c664d2406a27e5c7aea2ce50211fe5514dc3d46d942f632861d"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1b1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5b9d5103ebb2b808d831deadd7de33bf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3660,
+                "upload_time": "2019-01-01T06:29:29",
+                "url": "https://files.pythonhosted.org/packages/15/49/a3757300368fa170bb699623cdf7e1db1024c68679b3545ec08154db098d/yeyo-0.0.1b1.tar.gz"
+            }
+        ],
+        "0.0.1b2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6289920d1667ac0aa5e1851b4c7f0cf7",
+                    "sha256": "20238c20b119d4572594edaf825747719d576502b6866340f84c1cffb78e7de0"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1b2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6289920d1667ac0aa5e1851b4c7f0cf7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 13538,
+                "upload_time": "2019-01-01T17:38:25",
+                "url": "https://files.pythonhosted.org/packages/90/db/19e4903d656caf17a94d7a5d73cc03762919a7b23db07293ee69ab05b818/yeyo-0.0.1b2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0c69c8f23caeafba1d36d607f33dfd57",
+                    "sha256": "4913a2f18e0529100bffdd86e0c4c4b37c12986b74099cf5e4fc38e65d5b4332"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1b2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0c69c8f23caeafba1d36d607f33dfd57",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4592,
+                "upload_time": "2019-01-01T17:38:27",
+                "url": "https://files.pythonhosted.org/packages/80/33/f5362312b3d9573a5128bf85fe77d70bc39dea945e4c3ec75576ee27dc7e/yeyo-0.0.1b2.tar.gz"
+            }
+        ],
+        "0.0.1b3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "31945c64e6506c366195e159bcab5735",
+                    "sha256": "c544a1172ce99d9f130bdc7efd86d88f1d5cdf4d553cac00a2b77e08eeafaa51"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1b3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "31945c64e6506c366195e159bcab5735",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 15606,
+                "upload_time": "2019-01-01T18:23:20",
+                "url": "https://files.pythonhosted.org/packages/e7/27/f6e6b9ae1c9d0dd83b05004ddd8360bd05565455a33afec9ccacd434cf70/yeyo-0.0.1b3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2906334fb8c1ef46309104b3d3e69a1d",
+                    "sha256": "768dd10929be7c87ff7fd3343a8f34e38ae99d931a777f9e7328bc8b1381464d"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1b3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2906334fb8c1ef46309104b3d3e69a1d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 4990,
+                "upload_time": "2019-01-01T18:23:21",
+                "url": "https://files.pythonhosted.org/packages/49/e7/8d2730643fc6d3cc619a2777cbf4e1500adbf59e2d379b77fb289b306bf2/yeyo-0.0.1b3.tar.gz"
+            }
+        ],
+        "0.0.1b4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "acd8d3c99735a647db6b5a280c4ad894",
+                    "sha256": "3dc92d219de6869224597a7b0afe1feccfb576aaf553da731e838a0ee5264988"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1b4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "acd8d3c99735a647db6b5a280c4ad894",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 17774,
+                "upload_time": "2019-01-01T23:07:43",
+                "url": "https://files.pythonhosted.org/packages/25/57/cfa5a3e4181a31f2a96ac78336e9fe3e103f805d2f8edd7921849e46a5d0/yeyo-0.0.1b4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1c01cdb9d235b82067b29260cfa251d2",
+                    "sha256": "2b7a88832a5d70f2445ab1056c6c1ade12b869c3ea514f8cf82be3ae4db21261"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1b4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1c01cdb9d235b82067b29260cfa251d2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 5463,
+                "upload_time": "2019-01-01T23:07:45",
+                "url": "https://files.pythonhosted.org/packages/9e/5c/85f0620a91484dd0f5a9ed7b4a4b4b7ab497da52d3ab5ef065df27e41996/yeyo-0.0.1b4.tar.gz"
+            }
+        ],
+        "0.0.1rc1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f59bf7f1f370a233f31ec39edd8e6371",
+                    "sha256": "55c865cc82b9cc4651068bcff65a7d2b8c18bfe5f42ad4a49a59163ae15291e2"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1rc1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f59bf7f1f370a233f31ec39edd8e6371",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 21754,
+                "upload_time": "2019-01-03T15:57:41",
+                "url": "https://files.pythonhosted.org/packages/3d/a3/b9cd644987cc63800e964306457b87b225fd3542def987299630dad7ca2c/yeyo-0.0.1rc1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "47946724dd5833c73304c83c85bc1657",
+                    "sha256": "88d6484b65a727c03e8eac8b76fdf6d1c95baa635ea5d9bc91c298e7ccfdc2da"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1rc1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "47946724dd5833c73304c83c85bc1657",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 7835,
+                "upload_time": "2019-01-03T15:57:42",
+                "url": "https://files.pythonhosted.org/packages/47/fa/7b7bc6dbe2b8e731594fbee07a16ff31abdbcab27c657c5d76b3223a9d8b/yeyo-0.0.1rc1.tar.gz"
+            }
+        ],
+        "0.0.1rc3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9ca914c1ed5820fc15035c1e3d8ae0f0",
+                    "sha256": "8f91f0fcf541d7f03fc6af98aee891803e02b2dedb826dbc123370f8ec87d6fd"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1rc3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9ca914c1ed5820fc15035c1e3d8ae0f0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 31981,
+                "upload_time": "2019-01-08T02:50:23",
+                "url": "https://files.pythonhosted.org/packages/fe/78/5a19a43e13b75f82a2cb84f545414f3817ccd47528df652dab073811fe41/yeyo-0.0.1rc3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4a4499005d0b7594beb0fd1ad44bfc63",
+                    "sha256": "1cd721cef381ff52963517ea583d27b045af4df88201b4bed82bb1aca9a99b2d"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.0.1rc3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4a4499005d0b7594beb0fd1ad44bfc63",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 10725,
+                "upload_time": "2019-01-08T02:50:25",
+                "url": "https://files.pythonhosted.org/packages/94/3d/530bc6d7eb2840fbb8b9a0a065ee553cd9731f52c998215850740a6b1bc0/yeyo-0.0.1rc3.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "08019d7e1a41f9e474924d1930f00fb1",
+                    "sha256": "dfccb028ebe3aa1ebf7ccf76160bf83a8a09a372582f548044f38166ce771697"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "08019d7e1a41f9e474924d1930f00fb1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 33244,
+                "upload_time": "2019-01-11T03:36:46",
+                "url": "https://files.pythonhosted.org/packages/98/ed/c84663e17bb96c4e6bd6cc0ab354a64769e081f71325e2413007b303c231/yeyo-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bcb66f59678937245d1a68ae0fbf6b95",
+                    "sha256": "2d5983de1efa8c5fa5ca8087d9b6de1f65f841046afece7f88714e2909c95463"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bcb66f59678937245d1a68ae0fbf6b95",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 11639,
+                "upload_time": "2019-01-11T03:36:47",
+                "url": "https://files.pythonhosted.org/packages/0f/9a/8e4a658aaf4ee1c11a80d621cf71809df61c7282872ca7013ee11d70b159/yeyo-0.1.0.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c6444dbbdc08699bb5ee33d637dd443a",
+                    "sha256": "95204724fc1c264e1405c5c42abe77c187657efd7160ff4677730bdbb7899d0f"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c6444dbbdc08699bb5ee33d637dd443a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 36491,
+                "upload_time": "2019-02-02T20:27:00",
+                "url": "https://files.pythonhosted.org/packages/cc/87/d60cf66deeb72e45debc026f8485b71081542210a17904ac4e777c4fba27/yeyo-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec81445d57c9ccedb400c90b86bbd1b6",
+                    "sha256": "819232e4ac3e42ae8dbb7e5a5931d223519823dc69f5ac0136e376eb6f4e2618"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ec81445d57c9ccedb400c90b86bbd1b6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 12726,
+                "upload_time": "2019-02-02T20:27:02",
+                "url": "https://files.pythonhosted.org/packages/78/77/69c2d4c780dc7abed49cbe8b0400905d8a084c76f7ed5a84759053508fed/yeyo-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.0.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ae0372b9a8eed0d9a165b716c73b5088",
+                    "sha256": "f271fe33b03551b376b77b20f72f66300e85471a7b8132732d4c6d61d81aa142"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.2.0.dev1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ae0372b9a8eed0d9a165b716c73b5088",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 35196,
+                "upload_time": "2019-01-27T03:52:59",
+                "url": "https://files.pythonhosted.org/packages/fc/72/afb7e626baa19055df2b38534bfe0c844938eb4e5ff38296291aefb91316/yeyo-0.2.0.dev1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "92a4bcb16d755641e957bb534d913274",
+                    "sha256": "f50e3c2e2391feb08601dec6c0e9f27855ba73aeeb8fd6d2c9df4317f77a85f1"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.2.0.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "92a4bcb16d755641e957bb534d913274",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 12345,
+                "upload_time": "2019-01-27T03:53:01",
+                "url": "https://files.pythonhosted.org/packages/7b/a1/b99320ec5532194cf962439c4f6ec0f91cd71e5682c9478cae8a2a326ece/yeyo-0.2.0.dev1.tar.gz"
+            }
+        ],
+        "0.2.0.dev2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ce68904734f9a8bf3dbbc75384bde45",
+                    "sha256": "639cb8ecd8ab20f96244dac50add902a1c928460ef584b35594bd6fb89ab1ad8"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.2.0.dev2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2ce68904734f9a8bf3dbbc75384bde45",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 36561,
+                "upload_time": "2019-01-27T04:56:56",
+                "url": "https://files.pythonhosted.org/packages/67/84/681d929cd66a69e9cf6902a67b160100ec45987dad5b530fd91d5b546e89/yeyo-0.2.0.dev2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eae22517ba665bd257e6754535848626",
+                    "sha256": "2f1d6e9e167937e5905720dd95f83bc5c2bc5476e17165d40070c2cedc50fe73"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.2.0.dev2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "eae22517ba665bd257e6754535848626",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 12768,
+                "upload_time": "2019-01-27T04:56:57",
+                "url": "https://files.pythonhosted.org/packages/da/8d/7bb78c5559bc2ae3bc4c1dcdbd6fb642e65095553b43c8ac962ce9e7b9f0/yeyo-0.2.0.dev2.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ba1a7cada33ca2e93a19ef74ed88f58a",
+                    "sha256": "2a1a1d012fea5bbaa9d2b2665a0f303732159b5238b6d3aecd11906985215882"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ba1a7cada33ca2e93a19ef74ed88f58a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 36476,
+                "upload_time": "2019-02-09T06:30:50",
+                "url": "https://files.pythonhosted.org/packages/06/bf/f2a804e779501587e9784c30067f63b26ad63de8d03b78ff586907278c7d/yeyo-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42aea76a3c638a132ff455856ba83fd3",
+                    "sha256": "846c454f4a204fdd80764f5f0eaa3efbc8bc94bcc15a7a17a67dde46915102b5"
+                },
+                "downloads": -1,
+                "filename": "yeyo-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "42aea76a3c638a132ff455856ba83fd3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 12708,
+                "upload_time": "2019-02-09T06:31:02",
+                "url": "https://files.pythonhosted.org/packages/7e/b1/3363a2d51325184bd0317bb2a466d733d3e2baa569ca1748775786a0e74c/yeyo-0.2.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ba1a7cada33ca2e93a19ef74ed88f58a",
+                "sha256": "2a1a1d012fea5bbaa9d2b2665a0f303732159b5238b6d3aecd11906985215882"
+            },
+            "downloads": -1,
+            "filename": "yeyo-0.2.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ba1a7cada33ca2e93a19ef74ed88f58a",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6,<4.0",
+            "size": 36476,
+            "upload_time": "2019-02-09T06:30:50",
+            "url": "https://files.pythonhosted.org/packages/06/bf/f2a804e779501587e9784c30067f63b26ad63de8d03b78ff586907278c7d/yeyo-0.2.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "42aea76a3c638a132ff455856ba83fd3",
+                "sha256": "846c454f4a204fdd80764f5f0eaa3efbc8bc94bcc15a7a17a67dde46915102b5"
+            },
+            "downloads": -1,
+            "filename": "yeyo-0.2.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "42aea76a3c638a132ff455856ba83fd3",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6,<4.0",
+            "size": 12708,
+            "upload_time": "2019-02-09T06:31:02",
+            "url": "https://files.pythonhosted.org/packages/7e/b1/3363a2d51325184bd0317bb2a466d733d3e2baa569ca1748775786a0e74c/yeyo-0.2.1.tar.gz"
+        }
+    ]
+}

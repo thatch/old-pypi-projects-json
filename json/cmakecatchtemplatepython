@@ -1,0 +1,709 @@
+{
+    "info": {
+        "author": "Matt Clarkson",
+        "author_email": "m.clarkson@ucl.ac.uk",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Healthcare Industry",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: C++",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 3",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Scientific/Engineering :: Information Analysis",
+            "Topic :: Scientific/Engineering :: Medical Science Apps.",
+            "Topic :: Scientific/Engineering :: Physics",
+            "Topic :: Scientific/Engineering :: Visualization",
+            "Topic :: Software Development"
+        ],
+        "description": "CMakeCatchTemplate\n------------------\n\n[![Build Status](https://travis-ci.com/MattClarkson/CMakeCatchTemplate.svg?branch=master)](https://travis-ci.com/MattClarkson/CMakeCatchTemplate)\n[![Build Status](https://ci.appveyor.com/api/projects/status/5pm89ej732c1ekf0/branch/master)](https://ci.appveyor.com/project/MattClarkson/cmakecatchtemplate)\n\n\nPurpose\n-------\n\nThis is a demo project to demonstrate a reasonable structure for [CMake](https://cmake.org/) based projects,\nthat use [CTest](https://cmake.org/) to run unit tests via [Catch](https://github.com/catchorg/Catch2).\n\n\nCredits\n-------\n\nThis project was developed as a teaching aid for UCL's [\"Research Computing with C++\"](http://rits.github-pages.ucl.ac.uk/research-computing-with-cpp/)\ncourse developed by [Dr. James Hetherington](http://www.ucl.ac.uk/research-it-services/people/james)\nand [Dr. Matt Clarkson](https://iris.ucl.ac.uk/iris/browse/profile?upi=MJCLA42).\n\n\nMain Features\n-------------\n\nThe main idea of this project is to try and help a C++ algorithm developer write their algorithm in a\nC++ library and then deploy the C++ library in a variety of scenarios. \n\nThe main features provided are:\n\n 1. A Meta-Build, also known as a SuperBuild, to optionally download and build any of the following: Boost, Eigen, FLANN, OpenCV, glog, gflags, VTK, PCL and [ArrayFire](https://arrayfire.com/). All of these can be left OFF and skipped. This results in a top-level build folder containing the compiled dependencies, and then a sub-folder containing the compiled code of this project.\n 2. A single library into which you can provide your main algorithms.\n 3. Unit tests, using Catch, and run with CTest, so you can ensure correctness and enable regression testing of your functionality.\n 4. A single command line application, to give the end user a minimalist runnable program.\n 5. KWStyle config, so you can check for consistent code style, when you have KWStyle installed on your system.\n 6. CppCheck config, so you can check for some performance, style and correctness issues, when you have CppCheck installed on your system.\n 7. Doxygen config, so you can generate documentation via a ```make docs``` or DOCS task in Visual Studio.\n 8. If your code is open-source, you can register with a Continuous Integration service, so this project provides Travis and Appveyor examples.\n 9. Basic examples of how to create a Qt+VTK, Qt+OpenGL or QML+VTK user interface, ensuring the VTK render engine works in Qt or QML framework, on Windows, Linux and Mac.\n10. CPack setup to produce installers for the GUI apps.\n11. An example of the CMake required to build python interfaces to your C++ code, using ```boost::python```.\n12. An example of the CMake required to build python interfaces to your C++ code, using [pybind11](https://github.com/pybind/pybind11), with credit to [this example](https://github.com/pybind/cmake_example).\n13. An example of the CMake required to export a C-style module into [Unity](https://unity3d.com/).\n14. Support for OpenMP, which is passed through to FLANN and OpenCV.\n15. Support for CUDA, which is passed through to FLANN, OpenCV and PCL.\n16. Support for MPI, which by default sets up the C++ libraries.\n17. If doing Boost.Python and OpenCV, an example of passing a numpy ndarray to OpenCV, computing something, and returning a cv::Mat as a numpy ndarray, thanks to [Gregory Kramida's pyboostcvconverter](https://github.com/Algomorph/pyboostcvconverter).\n18. Support for Python Wheels, thanks to [Matthew Brett's multibuild](https://github.com/matthew-brett/multibuild).\n\n\nUse Cases\n---------\n\nThe feature list above is quite diverse, and in reality most developers \nwon't want all of the above features. So, while you could attempt all of these, \nwithin the same project, we envisage the following project types:\n\n* A C++ library in C++ command line interfaces. \n* A C++ library in a C++ user interface, using Qt, or QML.\n* A C++ library in a Python module, or perhaps a Python GUI, where the Python is developed separately, outside of this project.\n* A C++ library in an environment such as Unity, developed outside of this project.\n\nSo, the aim for the C++ developer would be to write a small algorithm library, and get the code out there\ninto the hands of their users. This project can accommodate all of the above, and there are CMake\noptions to switch these options OFF/ON.\n\nFurthermore, once you have a successful build for your use-case, you could \ndelete the bits of code that you don't need.  We could have made a different\nrepository for each of the use-cases, but then there would be a lot of code\nduplication and overlap. So, for now, its all one repository. If you want to\nstreamline your project, you could:\n\n* Take a look in the ```Code``` sub-folder. Remove the directories you do not need,\nand change ```Code/CMakeLists.txt``` accordingly.\n\n* Search the top level CMakeLists.txt for code that looks like\n```mpAddSomething``` and ```mpIncludeSomething``` and easily chop out 3rd party libraries\nyou do not need. \n\nWe believe its easier to remove code you don't need than it is to\nbuild up a lot of CMake code, based on hours of searching the internet.\nAt least the CMake code here has been tested ... to some degree.\n\n\nBasic Build Instructions\n------------------------\n\nThis project itself can be built if you just want to evaluate it. In Linux terms that\nwould be:\n``` cmake\ngit clone --recursive https://github.com/MattClarkson/CMakeCatchTemplate\nmkdir CMakeCatchTemplate-Build\ncd CMakeCatchTemplate-Build\nccmake ../CMakeCatchTemplate\nmake\n```\nBut ideally, you should use this project as a template to create your own project. To do so,\nplease refer to the [CMakeTemplateRenamer](https://github.com/MattClarkson/CMakeTemplateRenamer)\nwhich will show you how to clone this repository, and rename all the variables to names of your choice.\nThen you would simply build your new project, using cmake, as shown above.\n\n\nFurther Build Instructions\n--------------------------\n\nThis project can be configured, using CMake, to build against Eigen, Boost, OpenCV, glog, gflags, \nVTK, PCL and [ArrayFire](https://arrayfire.com/). These were chosen as examples of how to use CMake, and some common\nC++ projects. These dependencies are optional, and this project will compile without them.\n\nFurthermore, these dependencies can be downloaded and built,\nor the user can specify directories of previously compiled\nlibraries.\n\nTo download and build dependencies, use CMake to ensure:\n\n  * BUILD_SUPERBUILD:BOOL=ON\n\nwhere ```ON``` is the default. Then to build any of Eigen, Boost or OpenCV etc., use CMake to set:\n\n  * BUILD_Eigen:BOOL=ON|OFF\n  * BUILD_Boost:BOOL=ON|OFF\n  * BUILD_OpenCV:BOOL=ON|OFF\n\nand so on. If you set BUILD_SUPERBUILD=OFF, and these BUILD_whatever variables are on, then CMake will just try finding\nlocally installed versions rather then downloading them.\n\nTo switch between static/dynamic linking, use CMake to set:\n\n  * BUILD_SHARED_LIBS:BOOL=ON|OFF\n\nTo switch between Debug and Release mode, use CMake to set:\n\n  * CMAKE_BUILD_TYPE:STRING=Debug|Release\n\nNote: Only Debug and Release are supported.\n\nNote: your host system is very likely to have a version of Boost that\nis different to the one provided here. So if you want to use Boost,\nyou should probably try and use the one provided by this SuperBuild.\n\n\nCaveats\n-------\n\nWith all of those above build options, it is worth stressing:\n\n * You will still be required to write CMake code. This project is only to provide an EXAMPLE.\n * If you are building any of the dependencies, you would need to ensure the correct CMake flags are set to a reasonable default in order to compile those dependencies.\n * If you are testing on Travis or Appveyor, you need to configure your build to meet the required time limits, or else pay for more time.\n * If you are building Python Wheels, using the manylinux docker images, you may well need to provide your own docker image with dependencies pre-installed, or you setup correct CMake defaults such that the SuperBuild can compile the dependencies withing your docker image.\n\nSo, once more: This project is just to provide an example.\nIts a template from which you can draw your own inspiration from.\n\n\nWindows Users\n-------------\n\nIf you build the project with shared libraries (BUILD_SHARED_LIBS:BOOL=ON)\nthen after the SuperBuild has successfully completed, you should look for the batch file\n```StartVS_Debug.bat``` or ```StartVS_Release.bat``` in the ```MYPROJECT-build``` folder.\nThis sets the path before launching Visual Studio, so that when you come to run your\napplication or unit tests within Visual Studio, the dynamically\nloaded libraries are found at run time.\n\n\nRunning a Python Module\n-----------------------\n\nThis project can be used to build Python extensions, using either Boost.Python\nor PyBind11.\n\n* Clone CMakeCatchTemplate, using ```--recursive```.\n* Use CMake to set BUILD_Python_Boost or BUILD_Python_PyBind to ON. These are mutually exclusive.\n* Run a C++ build, as shown above.\n* Set ```PYTHONPATH``` to the directory containing your C++ Python extension.\n\nCode examples are in ```Code/PythonBoost``` or ```Code/PythonPybind```. \nSo using the ```Code/PythonBoost``` as an example, once ```PYTHONPATH``` is set so\nthat you can pick up your compiled module, you would then be able to:\n```\nimport CMakeCatchTemplatePython as mp\nmp.my_first_add_function(1,6)\n```\n\nDeploying wheels is a difficult process. To help here, we have been \ninspired and assisted by [Matthew Brett's multibuild](https://github.com/matthew-brett/multibuild), \nso you would configure .travis.yml and appveyor.yml to generate your own Python Wheels.\nThis project itself is deployed to [PyPi](pypi.org) but obviously only includes the above\nfunction for illustrative purposes.\n\nTested On\n---------\n\n * Windows - Windows 8, VS2013, CMake 3.6.3, Qt 5.4.2\n * Linux - Centos 7, g++ 4.8.5, CMake 3.5.1, Qt 5.6.2\n * Mac - OSX 10.10.5, clang 6.0, CMake 3.9.4, Qt 5.6.2\n * Also refer to .travis.yml and appveyor.yml for other combinations\n\nMinimum CMake version is 3.5. If you turn GUI options on, then the minimum Qt is version 5. \nQt4 is not supported and not planned to be supported. If you are using VTK you should \ntry a Qt version >= 5.5.0 to take advantage of the new OpenGL2 backend. \nIf you need PyBind11, you need at least C++11, so on Windows you should have at least VS2015.\n\n\nA Note on Packaging and Deployment\n----------------------------------\n\nThere are many different issues and combinations to test when packaging an application.\nFor example:\n\n * System: Windows / Linux / Mac.\n * Linkage: Shared libraries / Static libraries.\n * Executable style: Command line applications / GUI applications / Command line applications bundled together with GUI applications.\n * With or without python modules.\n * With or without Unity modules.\n * The developer runs ```make install``` to install it in a specific directory, linked against known libraries, in known locations.\n * The developer runs ```make package``` to make a relocatable and distributable bundle so that another user can install it anywhere on their system.\n\nIt would take too long to document all of them and all of the issues involved. So, this project suggests\nsome simple starting points, and recommendations.\n\n| Use Case | Important CMake settings | Workflow |\n| -------- | ------------------------ | -------- |\n| Command Line Apps | leave GUIs OFF, BUILD_SHARED_LIBS=OFF, CMAKE_INSTALL_PREFIX=/path/to/install/to | make, make install |\n| C++ Gui Apps | Learn to build Qt5 first, BUILD_SHARED_LIBS=ON, build against your compiled Qt | make, make package | \n| Python Modules | must clone repo with --recursive, leave GUIs OFF, BUILD_SHARED_LIBS=OFF | make, test locally by setting PYTHONPATH, configure CI builds (see appveyor.yml and .travis.yml) to make wheels, upload to PyPi |\n| Unity Modules |  leave GUIs OFF, BUILD_SHARED_LIBS=ON | make, then point Unity at the module. |\n\nIf you change your use-case, you must do a full clean build. That means completely delete the build folder, not just do a ```make clean```.\n\n\nPreferred Branching Workflow for Contributions.\n-----------------------------------------------\n\nWe welcome contributions to this project. Please use the following workflow.\n\n 1. Raise issue in this project's Github Issue Tracker.\n 2. Fork repository.\n 3. Create a feature branch called ```<issue-number>-<some-short-description>```\n    replacing ```<issue-number>``` with the Github issue number\n    and ```<some-short-description>``` with your description of the thing you are implementing.\n 4. Code on that branch.\n 5. Push to your remote when ready.\n 6. Create pull request.\n 7. We will review code, suggest and required changes and merge to master when it is ready.\n\n\nExamples Generated With This Template\n-------------------------------------\n\n * [scikit-surgeryopencvcpp](https://github.com/UCL/scikit-surgeryopencvcpp) - image guided surgery functions using OpenCV, wrapped in Python.\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "C++ cmake catch project template",
+        "license": "BSD-3 license",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "CMakeCatchTemplatePython",
+        "package_url": "https://pypi.org/project/CMakeCatchTemplatePython/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/CMakeCatchTemplatePython/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/CMakeCatchTemplatePython/0.2.0/",
+        "requires_dist": [
+            "six (>=1.10)",
+            "numpy (>=1.11)"
+        ],
+        "requires_python": "",
+        "summary": "A template project, to enable people to build nicely structured C++ projects.",
+        "version": "0.2.0"
+    },
+    "last_serial": 4890103,
+    "releases": {
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a98aaaa4344223fd4cb2b8333d2ae15",
+                    "sha256": "3223d5bd5963a45354942e05c287a07ca2be30ddf56b9518124b70a44e72617b"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "8a98aaaa4344223fd4cb2b8333d2ae15",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 2834135,
+                "upload_time": "2019-03-02T18:39:13",
+                "url": "https://files.pythonhosted.org/packages/a9/e7/e0c5c02226f4a0323d95312c45e001111866bdb542575887f43572a97dc4/CMakeCatchTemplatePython-0.2.0-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "33c88643793d121c5527bf8b8a4ebf3c",
+                    "sha256": "4de6f274bfac5a974379b3137a83524945996d8f5e172ba5e0516441d78f1924"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27m-manylinux1_i686.whl",
+                "has_sig": false,
+                "md5_digest": "33c88643793d121c5527bf8b8a4ebf3c",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 1940585,
+                "upload_time": "2019-03-02T19:20:05",
+                "url": "https://files.pythonhosted.org/packages/a8/48/5a0c7fd5bd19d74e490e4bfcbb926689963d3653aa21f626eab8b1900807/CMakeCatchTemplatePython-0.2.0-cp27-cp27m-manylinux1_i686.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "833289b0ab34b6aae8054f810b39791d",
+                    "sha256": "a07f14d01df07273555c368ca8cb9b4557eab1f3dc268901baceb5568d4081df"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "833289b0ab34b6aae8054f810b39791d",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 2441307,
+                "upload_time": "2019-03-02T19:01:49",
+                "url": "https://files.pythonhosted.org/packages/13/59/8105826c5fa940c015eb259e122bd29abbb07356e004ca3bc422b4aea484/CMakeCatchTemplatePython-0.2.0-cp27-cp27m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eeb63eaaffde823ca9667c5339a4479a",
+                    "sha256": "0689c258e34e6dd877f4eba87cd25c636cc77c7f18f1d61eab51cc5c4abb5122"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27mu-manylinux1_i686.whl",
+                "has_sig": false,
+                "md5_digest": "eeb63eaaffde823ca9667c5339a4479a",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 1940589,
+                "upload_time": "2019-03-02T19:19:14",
+                "url": "https://files.pythonhosted.org/packages/fe/38/a0b6e45bd752b7839a49a0b1277ffb41652a2c2a42e760446f618f4b9bfc/CMakeCatchTemplatePython-0.2.0-cp27-cp27mu-manylinux1_i686.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b06ca7e667a5b416715e647132904982",
+                    "sha256": "d9b9daf5af1c4512af0e20e8fb543619cdb02df9883a001283b3ab4a216262d3"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27mu-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "b06ca7e667a5b416715e647132904982",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 2441306,
+                "upload_time": "2019-03-02T18:59:09",
+                "url": "https://files.pythonhosted.org/packages/2e/68/edb4ea7cbc94e7aa37f3149db0abe1ef68ac6453141726d1a2c11b53262d/CMakeCatchTemplatePython-0.2.0-cp27-cp27mu-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ba51a55a4516cd81ce65062a8cb5275e",
+                    "sha256": "da906f7b3b7b8ce45f4b5b6ffb13354056b57a748e9f4ea047550f9e8bb80b63"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp35-cp35m-manylinux1_i686.whl",
+                "has_sig": false,
+                "md5_digest": "ba51a55a4516cd81ce65062a8cb5275e",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp35",
+                "requires_python": null,
+                "size": 1939300,
+                "upload_time": "2019-03-02T19:39:30",
+                "url": "https://files.pythonhosted.org/packages/88/67/c23002010291bd717047c4e3832adfed05ceb275246e1e22082f39758340/CMakeCatchTemplatePython-0.2.0-cp35-cp35m-manylinux1_i686.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7ec67a5d6295c35e16d02fde73655299",
+                    "sha256": "5b07c6fd9def38c0070d99116bdb35282dd14ba770ca5bf6fc8ebd98c13efcd7"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp35-cp35m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "7ec67a5d6295c35e16d02fde73655299",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp35",
+                "requires_python": null,
+                "size": 2440268,
+                "upload_time": "2019-03-02T19:22:16",
+                "url": "https://files.pythonhosted.org/packages/41/f8/fb7c83965262c92dfd8ad3cbabd6ed13a3f2082ce246843c5afca76569b1/CMakeCatchTemplatePython-0.2.0-cp35-cp35m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "716c5d9efb1a52a83725ec1130300a01",
+                    "sha256": "3b4dce41aae21a585b465e8024eef62ab36ba7e4d011e8a77faca774a4dd985a"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp35-cp35m-win32.whl",
+                "has_sig": false,
+                "md5_digest": "716c5d9efb1a52a83725ec1130300a01",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp35",
+                "requires_python": null,
+                "size": 1169805,
+                "upload_time": "2019-03-03T04:05:44",
+                "url": "https://files.pythonhosted.org/packages/7e/18/49740e7e1cb457aa4e829d4805633998c7b8bb8cd268ada8375735311ebf/CMakeCatchTemplatePython-0.2.0-cp35-cp35m-win32.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "19fba4395166102fc26dabac4ea9f386",
+                    "sha256": "c5a2a5a82ae4515c9dd67f1f25d56da36913505c5b58808626e1884d4dd3ab8c"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp35-cp35m-win_amd64.whl",
+                "has_sig": false,
+                "md5_digest": "19fba4395166102fc26dabac4ea9f386",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp35",
+                "requires_python": null,
+                "size": 1661470,
+                "upload_time": "2019-03-03T04:41:28",
+                "url": "https://files.pythonhosted.org/packages/a6/9f/2aff399e724bda2965f2337188dfae3e05ab7bf0726348451f11ae615cfa/CMakeCatchTemplatePython-0.2.0-cp35-cp35m-win_amd64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "04026a5d3186c4afdc18145822887cb6",
+                    "sha256": "0151e0ed887565d5a4f60f0ce609603c08706d9283161b66d51e8487f1e86e53"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "04026a5d3186c4afdc18145822887cb6",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 2833321,
+                "upload_time": "2019-03-02T18:40:32",
+                "url": "https://files.pythonhosted.org/packages/75/b3/59854f0ed77ca0ca2c50082638b4f1ea43741655b79000dc80e391b6c06b/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1d313047d0798eab0b7ba116b8484968",
+                    "sha256": "d36546aa84095f3516d5e444c08d28e9ac49c82830f8036181e0ab8afc21da1b"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-manylinux1_i686.whl",
+                "has_sig": false,
+                "md5_digest": "1d313047d0798eab0b7ba116b8484968",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 1939300,
+                "upload_time": "2019-03-02T19:43:56",
+                "url": "https://files.pythonhosted.org/packages/f6/57/c80de32f3fa41bea92f4f58a132b593e3d8c5d77779427f30934108d2ffe/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-manylinux1_i686.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a798d2e54fc4d71b61e13d7707a89237",
+                    "sha256": "4ea2b90e00fb611ee15cc3413839b3cdaee3047551bd141e4111e5eead12ab2b"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "a798d2e54fc4d71b61e13d7707a89237",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 2440268,
+                "upload_time": "2019-03-02T19:40:47",
+                "url": "https://files.pythonhosted.org/packages/72/07/ead26863afeb62f68b80a2d3fe542fc87d320f1415c0f6bfcc09cbd540e7/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "db6bb4e098a8027f28adce031647c964",
+                    "sha256": "c696201c84d557e4d7df5df83f0f04800eefaa115142c38f7591898943d4b6f6"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-win32.whl",
+                "has_sig": false,
+                "md5_digest": "db6bb4e098a8027f28adce031647c964",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 1170237,
+                "upload_time": "2019-03-03T05:14:59",
+                "url": "https://files.pythonhosted.org/packages/4f/33/f9147bc119c52f2a520ba0d1d2c72b82eda8f95931f98ab239b2f91f119c/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-win32.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "624bed522dd89261032cb60761d644e2",
+                    "sha256": "8fdd6faa3961fddb49bd76c71923b30b5a8ae49a82f41ccd9213efe5264fffe2"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-win_amd64.whl",
+                "has_sig": false,
+                "md5_digest": "624bed522dd89261032cb60761d644e2",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 1661407,
+                "upload_time": "2019-03-03T05:49:06",
+                "url": "https://files.pythonhosted.org/packages/44/93/323dbfc8660089673cb08e2dff09363238cde0f212bc937c9af2906b7936/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-win_amd64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "155f4ad99a14875af038638b9391efa2",
+                    "sha256": "50620992c47f5c4db64b2a44bb90a558d84e13d236fd1bf156ccbc1cb0b243f0"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "155f4ad99a14875af038638b9391efa2",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 2833321,
+                "upload_time": "2019-03-02T18:59:07",
+                "url": "https://files.pythonhosted.org/packages/25/80/4d71e2cff5e87f00a4182a9e0f028a18d61d4b5382a47fd9c01c4d5a4b54/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "383d9b0f29a15d93cd2794a901a20f3a",
+                    "sha256": "6530b9267be2a3e418403499b2e7cb660ea444e01e1e93c8b43e024b27735008"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-manylinux1_i686.whl",
+                "has_sig": false,
+                "md5_digest": "383d9b0f29a15d93cd2794a901a20f3a",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 1939306,
+                "upload_time": "2019-03-02T20:01:04",
+                "url": "https://files.pythonhosted.org/packages/0d/53/d8bec0072d7c3ae40780625f6214a1c26020d1024a80d7ffce4f5847d436/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-manylinux1_i686.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1507e4653bad8dd5d94d259d6a27d6fb",
+                    "sha256": "b5eef0eb65d20391e8407a0989a7dcfe12cb1103e0043572402b1942084b6774"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "1507e4653bad8dd5d94d259d6a27d6fb",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 2440268,
+                "upload_time": "2019-03-02T19:59:51",
+                "url": "https://files.pythonhosted.org/packages/29/ab/a0b7b4c3a8c9b449811835588d1e0163e23f4d9fb6108bf5efcb20d26c9d/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3bb8051de4f70c2c5f625fc255ec1bc7",
+                    "sha256": "ef8489d03a7c8b1a984ac59dc5b16540f40a274805dc5c1084528c82166941d5"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-win32.whl",
+                "has_sig": false,
+                "md5_digest": "3bb8051de4f70c2c5f625fc255ec1bc7",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 1161173,
+                "upload_time": "2019-03-03T06:26:29",
+                "url": "https://files.pythonhosted.org/packages/0a/12/6dd803b40d96d6a64211988be4e39e2ca307f5191b05e3c4595f49ecfeb4/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-win32.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1f9c28758f9cd5b3d8ca55bf59e538e",
+                    "sha256": "a54066b8bd697f9611120e60bcf7b7c54ea8af9dfd85a58c45f2b09a0854d5fe"
+                },
+                "downloads": -1,
+                "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-win_amd64.whl",
+                "has_sig": false,
+                "md5_digest": "d1f9c28758f9cd5b3d8ca55bf59e538e",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 1644341,
+                "upload_time": "2019-03-03T07:05:19",
+                "url": "https://files.pythonhosted.org/packages/58/6c/2d9a7164c301d3421f87e9f4168e41991586aec0eb3c2a768a07affbf9e6/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-win_amd64.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8a98aaaa4344223fd4cb2b8333d2ae15",
+                "sha256": "3223d5bd5963a45354942e05c287a07ca2be30ddf56b9518124b70a44e72617b"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "8a98aaaa4344223fd4cb2b8333d2ae15",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 2834135,
+            "upload_time": "2019-03-02T18:39:13",
+            "url": "https://files.pythonhosted.org/packages/a9/e7/e0c5c02226f4a0323d95312c45e001111866bdb542575887f43572a97dc4/CMakeCatchTemplatePython-0.2.0-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "33c88643793d121c5527bf8b8a4ebf3c",
+                "sha256": "4de6f274bfac5a974379b3137a83524945996d8f5e172ba5e0516441d78f1924"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27m-manylinux1_i686.whl",
+            "has_sig": false,
+            "md5_digest": "33c88643793d121c5527bf8b8a4ebf3c",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 1940585,
+            "upload_time": "2019-03-02T19:20:05",
+            "url": "https://files.pythonhosted.org/packages/a8/48/5a0c7fd5bd19d74e490e4bfcbb926689963d3653aa21f626eab8b1900807/CMakeCatchTemplatePython-0.2.0-cp27-cp27m-manylinux1_i686.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "833289b0ab34b6aae8054f810b39791d",
+                "sha256": "a07f14d01df07273555c368ca8cb9b4557eab1f3dc268901baceb5568d4081df"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "833289b0ab34b6aae8054f810b39791d",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 2441307,
+            "upload_time": "2019-03-02T19:01:49",
+            "url": "https://files.pythonhosted.org/packages/13/59/8105826c5fa940c015eb259e122bd29abbb07356e004ca3bc422b4aea484/CMakeCatchTemplatePython-0.2.0-cp27-cp27m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "eeb63eaaffde823ca9667c5339a4479a",
+                "sha256": "0689c258e34e6dd877f4eba87cd25c636cc77c7f18f1d61eab51cc5c4abb5122"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27mu-manylinux1_i686.whl",
+            "has_sig": false,
+            "md5_digest": "eeb63eaaffde823ca9667c5339a4479a",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 1940589,
+            "upload_time": "2019-03-02T19:19:14",
+            "url": "https://files.pythonhosted.org/packages/fe/38/a0b6e45bd752b7839a49a0b1277ffb41652a2c2a42e760446f618f4b9bfc/CMakeCatchTemplatePython-0.2.0-cp27-cp27mu-manylinux1_i686.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b06ca7e667a5b416715e647132904982",
+                "sha256": "d9b9daf5af1c4512af0e20e8fb543619cdb02df9883a001283b3ab4a216262d3"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp27-cp27mu-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "b06ca7e667a5b416715e647132904982",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 2441306,
+            "upload_time": "2019-03-02T18:59:09",
+            "url": "https://files.pythonhosted.org/packages/2e/68/edb4ea7cbc94e7aa37f3149db0abe1ef68ac6453141726d1a2c11b53262d/CMakeCatchTemplatePython-0.2.0-cp27-cp27mu-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ba51a55a4516cd81ce65062a8cb5275e",
+                "sha256": "da906f7b3b7b8ce45f4b5b6ffb13354056b57a748e9f4ea047550f9e8bb80b63"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp35-cp35m-manylinux1_i686.whl",
+            "has_sig": false,
+            "md5_digest": "ba51a55a4516cd81ce65062a8cb5275e",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp35",
+            "requires_python": null,
+            "size": 1939300,
+            "upload_time": "2019-03-02T19:39:30",
+            "url": "https://files.pythonhosted.org/packages/88/67/c23002010291bd717047c4e3832adfed05ceb275246e1e22082f39758340/CMakeCatchTemplatePython-0.2.0-cp35-cp35m-manylinux1_i686.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7ec67a5d6295c35e16d02fde73655299",
+                "sha256": "5b07c6fd9def38c0070d99116bdb35282dd14ba770ca5bf6fc8ebd98c13efcd7"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp35-cp35m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "7ec67a5d6295c35e16d02fde73655299",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp35",
+            "requires_python": null,
+            "size": 2440268,
+            "upload_time": "2019-03-02T19:22:16",
+            "url": "https://files.pythonhosted.org/packages/41/f8/fb7c83965262c92dfd8ad3cbabd6ed13a3f2082ce246843c5afca76569b1/CMakeCatchTemplatePython-0.2.0-cp35-cp35m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "716c5d9efb1a52a83725ec1130300a01",
+                "sha256": "3b4dce41aae21a585b465e8024eef62ab36ba7e4d011e8a77faca774a4dd985a"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp35-cp35m-win32.whl",
+            "has_sig": false,
+            "md5_digest": "716c5d9efb1a52a83725ec1130300a01",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp35",
+            "requires_python": null,
+            "size": 1169805,
+            "upload_time": "2019-03-03T04:05:44",
+            "url": "https://files.pythonhosted.org/packages/7e/18/49740e7e1cb457aa4e829d4805633998c7b8bb8cd268ada8375735311ebf/CMakeCatchTemplatePython-0.2.0-cp35-cp35m-win32.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "19fba4395166102fc26dabac4ea9f386",
+                "sha256": "c5a2a5a82ae4515c9dd67f1f25d56da36913505c5b58808626e1884d4dd3ab8c"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp35-cp35m-win_amd64.whl",
+            "has_sig": false,
+            "md5_digest": "19fba4395166102fc26dabac4ea9f386",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp35",
+            "requires_python": null,
+            "size": 1661470,
+            "upload_time": "2019-03-03T04:41:28",
+            "url": "https://files.pythonhosted.org/packages/a6/9f/2aff399e724bda2965f2337188dfae3e05ab7bf0726348451f11ae615cfa/CMakeCatchTemplatePython-0.2.0-cp35-cp35m-win_amd64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "04026a5d3186c4afdc18145822887cb6",
+                "sha256": "0151e0ed887565d5a4f60f0ce609603c08706d9283161b66d51e8487f1e86e53"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "04026a5d3186c4afdc18145822887cb6",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 2833321,
+            "upload_time": "2019-03-02T18:40:32",
+            "url": "https://files.pythonhosted.org/packages/75/b3/59854f0ed77ca0ca2c50082638b4f1ea43741655b79000dc80e391b6c06b/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1d313047d0798eab0b7ba116b8484968",
+                "sha256": "d36546aa84095f3516d5e444c08d28e9ac49c82830f8036181e0ab8afc21da1b"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-manylinux1_i686.whl",
+            "has_sig": false,
+            "md5_digest": "1d313047d0798eab0b7ba116b8484968",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 1939300,
+            "upload_time": "2019-03-02T19:43:56",
+            "url": "https://files.pythonhosted.org/packages/f6/57/c80de32f3fa41bea92f4f58a132b593e3d8c5d77779427f30934108d2ffe/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-manylinux1_i686.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a798d2e54fc4d71b61e13d7707a89237",
+                "sha256": "4ea2b90e00fb611ee15cc3413839b3cdaee3047551bd141e4111e5eead12ab2b"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "a798d2e54fc4d71b61e13d7707a89237",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 2440268,
+            "upload_time": "2019-03-02T19:40:47",
+            "url": "https://files.pythonhosted.org/packages/72/07/ead26863afeb62f68b80a2d3fe542fc87d320f1415c0f6bfcc09cbd540e7/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "db6bb4e098a8027f28adce031647c964",
+                "sha256": "c696201c84d557e4d7df5df83f0f04800eefaa115142c38f7591898943d4b6f6"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-win32.whl",
+            "has_sig": false,
+            "md5_digest": "db6bb4e098a8027f28adce031647c964",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 1170237,
+            "upload_time": "2019-03-03T05:14:59",
+            "url": "https://files.pythonhosted.org/packages/4f/33/f9147bc119c52f2a520ba0d1d2c72b82eda8f95931f98ab239b2f91f119c/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-win32.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "624bed522dd89261032cb60761d644e2",
+                "sha256": "8fdd6faa3961fddb49bd76c71923b30b5a8ae49a82f41ccd9213efe5264fffe2"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp36-cp36m-win_amd64.whl",
+            "has_sig": false,
+            "md5_digest": "624bed522dd89261032cb60761d644e2",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 1661407,
+            "upload_time": "2019-03-03T05:49:06",
+            "url": "https://files.pythonhosted.org/packages/44/93/323dbfc8660089673cb08e2dff09363238cde0f212bc937c9af2906b7936/CMakeCatchTemplatePython-0.2.0-cp36-cp36m-win_amd64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "155f4ad99a14875af038638b9391efa2",
+                "sha256": "50620992c47f5c4db64b2a44bb90a558d84e13d236fd1bf156ccbc1cb0b243f0"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "155f4ad99a14875af038638b9391efa2",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 2833321,
+            "upload_time": "2019-03-02T18:59:07",
+            "url": "https://files.pythonhosted.org/packages/25/80/4d71e2cff5e87f00a4182a9e0f028a18d61d4b5382a47fd9c01c4d5a4b54/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "383d9b0f29a15d93cd2794a901a20f3a",
+                "sha256": "6530b9267be2a3e418403499b2e7cb660ea444e01e1e93c8b43e024b27735008"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-manylinux1_i686.whl",
+            "has_sig": false,
+            "md5_digest": "383d9b0f29a15d93cd2794a901a20f3a",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 1939306,
+            "upload_time": "2019-03-02T20:01:04",
+            "url": "https://files.pythonhosted.org/packages/0d/53/d8bec0072d7c3ae40780625f6214a1c26020d1024a80d7ffce4f5847d436/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-manylinux1_i686.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1507e4653bad8dd5d94d259d6a27d6fb",
+                "sha256": "b5eef0eb65d20391e8407a0989a7dcfe12cb1103e0043572402b1942084b6774"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "1507e4653bad8dd5d94d259d6a27d6fb",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 2440268,
+            "upload_time": "2019-03-02T19:59:51",
+            "url": "https://files.pythonhosted.org/packages/29/ab/a0b7b4c3a8c9b449811835588d1e0163e23f4d9fb6108bf5efcb20d26c9d/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3bb8051de4f70c2c5f625fc255ec1bc7",
+                "sha256": "ef8489d03a7c8b1a984ac59dc5b16540f40a274805dc5c1084528c82166941d5"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-win32.whl",
+            "has_sig": false,
+            "md5_digest": "3bb8051de4f70c2c5f625fc255ec1bc7",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 1161173,
+            "upload_time": "2019-03-03T06:26:29",
+            "url": "https://files.pythonhosted.org/packages/0a/12/6dd803b40d96d6a64211988be4e39e2ca307f5191b05e3c4595f49ecfeb4/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-win32.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d1f9c28758f9cd5b3d8ca55bf59e538e",
+                "sha256": "a54066b8bd697f9611120e60bcf7b7c54ea8af9dfd85a58c45f2b09a0854d5fe"
+            },
+            "downloads": -1,
+            "filename": "CMakeCatchTemplatePython-0.2.0-cp37-cp37m-win_amd64.whl",
+            "has_sig": false,
+            "md5_digest": "d1f9c28758f9cd5b3d8ca55bf59e538e",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 1644341,
+            "upload_time": "2019-03-03T07:05:19",
+            "url": "https://files.pythonhosted.org/packages/58/6c/2d9a7164c301d3421f87e9f4168e41991586aec0eb3c2a768a07affbf9e6/CMakeCatchTemplatePython-0.2.0-cp37-cp37m-win_amd64.whl"
+        }
+    ]
+}

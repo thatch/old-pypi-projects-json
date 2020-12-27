@@ -1,0 +1,87 @@
+{
+    "info": {
+        "author": "Fotis Gimian",
+        "author_email": "fgimiansoftware@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Topic :: System :: Networking",
+            "Topic :: System :: Networking :: Monitoring"
+        ],
+        "description": "Easy SNMP\n=========\n\n|Build Status| |Coverage Status| |License|\n\n.. |Build Status| image:: https://travis-ci.org/fgimian/easysnmp.svg?branch=master\n   :target: https://travis-ci.org/fgimian/easysnmp\n.. |Coverage Status| image:: https://coveralls.io/repos/fgimian/easysnmp/badge.svg\n   :target: https://coveralls.io/r/fgimian/easysnmp\n.. |License| image:: https://img.shields.io/badge/license-BSD-blue.svg\n   :target: https://github.com/fgimian/easysnmp/blob/master/LICENSE\n\n.. image:: https://raw.githubusercontent.com/fgimian/easysnmp/master/images/easysnmp-logo.png\n    :alt: Easy SNMP Logo\n\nArtwork courtesy of `Open Clip Art\nLibrary <https://openclipart.org/detail/154453/network>`_\n\nIntroduction\n------------\n\nEasy SNMP is a fork of the official `Net-SNMP Python\nBindings <http://net-snmp.sourceforge.net/wiki/index.php/Python_Bindings>`_\nbut attempts to bring a more Pythonic interface to the library. Check\nout the `Net-SNMP website <http://www.net-snmp.org/>`_ for more\ninformation about SNMP.\n\nThis module provides a full featured SNMP client API supporting all\ndialects of the SNMP protocol.\n\nWhy Another Library?\n--------------------\n\n- The `original Net-SNMP Python\n  library <http://net-snmp.sourceforge.net/wiki/index.php/Python_Bindings>`_\n  is a great starting point but is quite un-Pythonic and lacks proper\n  unit tests and documentation.\n- `PySNMP <http://pysnmp.sourceforge.net/>`_ is written in pure Python\n  and therefore has a huge performance hit. In some brief tests, I\n  estimate that both the Net-SNMP Python bindings and Easy SNMP are\n  more than 4 times faster. Further to this, PySNMP has an even less\n  Pythonic interface than the official Net-SNMP bindings.\n- Many other libraries like\n  `Snimpy <https://snimpy.readthedocs.org/en/latest/>`_ are sadly\n  based on PySNMP and so they suffer the same performance penalty.\n\nQuick Start\n-----------\n\nThere are primarily two ways you can use the Easy SNMP library.\n\nThe first is with the use of a Session object which is most suitable\nwhen you are planning on requesting multiple pieces of SNMP data from a\nsource.\n\n.. code:: python\n\n    from easysnmp import Session\n\n    # Create an SNMP session to be used for all our requests\n    session = Session(hostname='localhost', community='public', version=2)\n\n    # You may retrieve an individual OID using an SNMP GET\n    location = session.get('sysLocation.0')\n\n    # You may also specify the OID as a tuple (name, index)\n    # Note: the index is specified as a string as it can be of other types than\n    # just a regular integer\n    contact = session.get(('sysContact', '0'))\n\n    # And of course, you may use the numeric OID too\n    description = session.get('.1.3.6.1.2.1.1.1.0')\n\n    # Set a variable using an SNMP SET\n    session.set('sysLocation.0', 'The SNMP Lab')\n\n    # Perform an SNMP walk\n    system_items = session.walk('system')\n\n    # Each returned item can be used normally as its related type (str or int)\n    # but also has several extended attributes with SNMP-specific information\n    for item in system_items:\n        print '{oid}.{oid_index} {snmp_type} = {value}'.format(\n            oid=item.oid,\n            oid_index=item.oid_index,\n            snmp_type=item.snmp_type,\n            value=item.value\n        )\n\nYou may also use Easy SNMP via its simple interface which is intended\nfor one-off operations where you wish to specify all details in the\nrequest:\n\n.. code:: python\n\n    from easysnmp import snmp_get, snmp_set, snmp_walk\n\n    # Grab a single piece of information using an SNMP GET\n    snmp_get('sysDescr.0', hostname='localhost', community='public', version=1)\n\n    # Perform an SNMP SET to update data\n    snmp_set(\n        'sysLocation.0', 'My Cool Place',\n        hostname='localhost', community='public', version=1\n    )\n\n    # Perform an SNMP walk\n    snmp_walk('system', hostname='localhost', community='public', version=1)\n\nDocumentation\n-------------\n\nPlease check out the `Easy SNMP documentation at Read the\nDocs <http://easysnmp.readthedocs.org/>`_. This includes install\ninstructions for various operating systems.\n\nYou may generate the documentation as follows:\n\n.. code:: bash\n\n    # Install Sphinx\n    pip install sphinx\n\n    # You may optionally export the READTHEDOCS environment variable to build docs\n    # on systems where you haven't built the C interface\n    export READTHEDOCS=1\n\n    # Build the documentation into static HTML pages\n    cd docs\n    make html\n\nAcknowledgments\n---------------\n\nI'd like to say thanks to the following folks who have made this project\npossible:\n\n-  **Giovanni Marzot**: the original author\n-  **ScienceLogic, LLC**: sponsored the initial development of this\n   module\n-  **Wes Hardaker and the net-snmp-coders**: for their hard work and\n   dedication\n\nRunning Tests\n-------------\n\nYou may run the unit tests as follows:\n\n.. code:: bash\n\n    git clone https://github.com/fgimian/painter.git\n    cd painter\n    python setup.py test\n\nLicense\n-------\n\nEasy SNMP is released under the **BSD** license. Please see the\n`LICENSE <https://github.com/fgimian/easysnmp/blob/master/LICENSE>`_\nfile for more details.\n\nCopyright\n---------\n\nThe original version of this library is copyright (c) 2006 G. S. Marzot.\nAll rights reserved.\n\nThis program is free software; you can redistribute it and/or modify it\nunder the same terms as Net-SNMP itself.\n\nCopyright (c) 2006 SPARTA, Inc. All Rights Reserved. This program is\nfree software; you can redistribute it and/or modify it under the same\nterms as Net-SNMP itself.\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/fgimian/easysnmp",
+        "keywords": "",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "easysnmp-patched",
+        "package_url": "https://pypi.org/project/easysnmp-patched/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/easysnmp-patched/",
+        "project_urls": {
+            "Homepage": "https://github.com/fgimian/easysnmp"
+        },
+        "release_url": "https://pypi.org/project/easysnmp-patched/0.2.5.dev0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A blazingly fast and Pythonic SNMP library based on the official Net-SNMP bindings, forked by ComSource.",
+        "version": "0.2.5.dev0"
+    },
+    "last_serial": 2371232,
+    "releases": {
+        "0.2.5.dev0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0ce18432f636500d48dbe175f053b8e",
+                    "sha256": "ee4555bdf6eae1cc29ae7f1dc8dcc3f50395e15669eac2423b5489126889a108"
+                },
+                "downloads": -1,
+                "filename": "easysnmp-patched-0.2.5.dev0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c0ce18432f636500d48dbe175f053b8e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 35894,
+                "upload_time": "2016-09-29T14:44:46",
+                "url": "https://files.pythonhosted.org/packages/1c/3f/ac211b8d2efe5f6c5cb2826b149c50956b5bd36f020b4c04134c3beca885/easysnmp-patched-0.2.5.dev0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c0ce18432f636500d48dbe175f053b8e",
+                "sha256": "ee4555bdf6eae1cc29ae7f1dc8dcc3f50395e15669eac2423b5489126889a108"
+            },
+            "downloads": -1,
+            "filename": "easysnmp-patched-0.2.5.dev0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c0ce18432f636500d48dbe175f053b8e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 35894,
+            "upload_time": "2016-09-29T14:44:46",
+            "url": "https://files.pythonhosted.org/packages/1c/3f/ac211b8d2efe5f6c5cb2826b149c50956b5bd36f020b4c04134c3beca885/easysnmp-patched-0.2.5.dev0.tar.gz"
+        }
+    ]
+}

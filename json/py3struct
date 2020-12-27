@@ -1,0 +1,151 @@
+{
+    "info": {
+        "author": "Andreas Mueller",
+        "author_email": "t3kcit@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Operating System :: Unix",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Scientific/Engineering"
+        ],
+        "description": "[![Build Status](https://travis-ci.org/jlmeunier/pystruct.png)](https://travis-ci.org/jlmeunier/pystruct)\r\n[![pypi version](http://img.shields.io/pypi/v/pystruct.svg?style=flat)](https://pypi.python.org/pypi/pystruct/)\r\n[![licence](http://img.shields.io/badge/licence-BSD-blue.svg?style=flat)](https://github.com/pystruct/pystruct/blob/master/LICENSE)\r\n[![DOI](https://zenodo.org/badge/21369/pystruct/pystruct.svg)](https://zenodo.org/badge/latestdoi/21369/pystruct/pystruct)\r\n\r\n\r\n\r\n# PyStruct+\r\nThis fork of Andreas Mueller's [pystruct](https://github.com/pystruct/pystruct) project aims at:\r\n- supporting **Python3**\r\n- doing **SW maintenance** (e.g. unit tests are passing)\r\n- providing **2 extensions:**\r\n  - **supporting nodes of different nature in CRF graphs**\r\n  - **supporting hard-logic constraints when predicting**\r\n\r\nPystruct is an easy-to-use structured learning and prediction library. In particular, pystruct provides a well-documented tool for researchers as well as non-experts to make use of structured prediction algorithms. And the design tries to stay as close as possible to the interface and conventions of [scikit-learn](http://scikit-learn.org).\r\n\r\nThe extension is 100% ascendant compatible with pystruct. Anything that you did with pystruct works the same way with pystruct+. \r\nSo you can refer to the pystruct documentation for the API, examples, etc. ( http://pystruct.github.io )\r\n\r\nWhat is different in pystruct+?\r\n * the __*predict*__ method accepts now an optional constraint parameter\r\n * a new CRF model is proposed, __*NodeTypeEdgeFeatureGraphCRF*__\r\n\r\n More details are given in next sections.\r\n\r\n You can contact the author on [github](https://github.com/jlmeunier/pystruct). Comments and contributions are welcome.\r\n\r\n# Credit to EU READ Project\r\nDeveloped  for the EU project READ. The READ project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 674943.\r\n\r\n\r\n## Installation\r\nThis extension requires **ad3** latest version (so for now, Feb 15th, 2018, you need to get it directly from https://github.com/andre-martins/AD3 )\r\n\r\nThe support of hard-logic constraint requires you to choose as solver \"ad3+\". This is still ad3 code, but working on a binarized graph.\r\n\r\nFor learning I mostly used the __*OneSlackSSVM*__ learner, which requires to install **cvxopt** as well.\r\n\r\n### Python libraries:\r\n> pip install install numpy scipy cvxopt pyqpbo scikit-learn nose pytest \r\n\r\n### For AD3:\r\n * get it from https://github.com/andre-martins/AD3\r\n * install it: \r\n\r\n> python setup.py install\r\n\r\n### For Pystruct+:\r\n * get the source code from https://github.com/jlmeunier/pystruct\r\n * compile and install:\r\n\r\n> python setup.py install\r\n\r\n## Tests\r\nTo test your install, run the test of the new CRF model:\r\n> python pystruct/tests/test_models/test_node_type_edge_feature_graph_crf.py\r\n\r\n(You should see a \"OK\" displayed at the end of the script execution.)\r\n\r\n## Example\r\nBuilding on the [Snakes](https://pystruct.github.io/auto_examples/plot_snakes.html#sphx-glr-auto-examples-plot-snakes-py) example, there is now a new example called \"HiddenSnakes\". (Code in examples/plot_hidden_short_snakes_typed.py )\r\n\r\nThe idea is that some picture do not contain any snake despite 10 pixels have a Snake body colour. Why? Because they do not form a valid 10-long snake, as 1 pixel has a wrong colour destroying the continuity of the snake.\r\n\r\nThe original task remains but is more difficult: some non-blue pixels are now labelled 'background'. An additional task consists in labeling the picture as Snake or NoSnake.\r\n\r\nThis double task is solved by the use of an additional type of node that represents the picture itself, with 7 simplistic features. There are additional edges, from each pixel to the picture node. That's all. And it improves a lot from the results of the *EdgeFeatureGraphCRF*-based model. \r\n\r\nIn addition, we injected some more domain knowledge to illustrate the use of the hard logic constraints. In this case we enforce *at most one pixel of label L per picture, for L in [1, 10]*. This gives an extra accuracy bonus.\r\n\r\n## Prediction with Hard-Logic Constraints\r\n\r\nYou can now pass a __list of logical constraints__ to the predict method, with a *constraints=* named parameter.\r\n\r\n    Each constraint is tuple like *( operator, nodes, labels, negated )*\r\n    where:\r\n    - *operator* is one of 'XOR' 'XOROUT' 'ATMOSTONE' 'OR' 'OROUT' 'ANDOUT' 'IMPLY'\r\n    - *nodes* is the list of the index of each node involved in this constraint\r\n    - *labels* is the list of node label. If the labels are the same for all nodes, you can pass it directly as a scalar value.\r\n    - *negated* is a list of boolean indicating if the corresponding argument must be negated. Again, if all values are the same, pass a single boolean value instead of a list.\r\n\r\nThe operators whose name ends with 'OUT' impose that the operator applied on the all-but-last arguments yields the truth value of the last one.\r\n>For instance XOROUT(a,b,c) <=> XOR(a,b) = c\r\n\r\nWhen used jointly with the new *NodeTypeEdgeFeatureGraphCRF* model, the structure of the constraints list slightly differs. See in next section.\r\n\r\n\r\n## CRF Graph with Nodes of Different Nature\r\nPystruct CRF graphs assumes that the nodes of the graph all have the same nature. In consequence, all nodes share the same weights and the same set of possible labels. Similarly, all edges have the same nature and share the same edge weights.\r\nThis was a limitation with regards to our needs (for a Document Understanding task). So we propose a new CRF model called *NodeTypeEdgeFeatureGraphCRF*.\r\n\r\n*NodeTypeEdgeFeatureGraphCRF* supports multiple node of multiple nature, which we call **node types**. Each type has its own weights and own set of possible labels. Similarly, edges have different nature depending on the type of their sources and target-nodes. In a graph with N types, there are N^2 types of edges.\r\n\r\n*NodeTypeEdgeFeatureGraphCRF* generalizes *EdgeFeatureGraphCRF*, so edges have features. NOTE: I think that you can mimics the absence opf feature on edges (as in *GraphCRF* model) by specifying one feature per edge, whose value is 1 for all edges.\r\n\r\n**This extension has an impact on:**\r\n * the constructor\r\n * the structure of the label weights, if not uniform\r\n * the structure of the Xs\r\n * the values in Ys\r\n * the structure of the optional constraint list at prediction\r\n\r\n### Class Constructor\r\nYou need now to define the number of node types and the number of features per type (of node, and of edge) when instantiating *NodeTypeEdgeFeatureGraphCRF*.\r\n\r\n    def __init__(self\r\n                 , n_types                  #how many node type?\r\n                 , l_n_states               #how many labels   per node type?\r\n                 , l_n_features             #how many features per node type?\r\n                 , a_n_edge_features        #how many features per edge type? (array-like) shape=(n_type, n_type) -> n_feature_per_type_pair\r\n                 , inference_method=\"ad3\" \r\n                 , l_class_weight=None):    #class_weight      per node type or None     <list of array-like> or None\r\n\r\n\r\n### Xs and Ys\r\nIn single type CRF, like *EdgeFeatureGraphCRF*, an instance *X* is represented as a tuple        \r\n\r\n    (*node_features*, *edges*, *edge_features*) representing the graph. \r\n\r\n* *node_feature*s is of shape (*n_node*, *n_features*)\r\n* *edges* is an array of shape (*n_edges*, 2)\r\n* *edge_features* is of shape (*n_edges*, *n_edge_features*)\r\n\r\n    Labels y are given as array of shape (*n_nodes*,)\r\n\r\nIn multiple type graphs, with *_n_types* types, an instance *X* is represented as a tuple\r\n\r\n     (*l_node_features*, *l_edges*, *l_edge_features*) representing the graph. \r\n* *l_node_feature*s is a list of length *n_types* containing arrays of shape (*n_typ_node*, *n_typ_features*), where *n_typ_node* is the number of nodes of that type, while *n_typ_features* is the number of features for this type of nodes.\r\n* *l_edges* is a list of length *n_types*^2 . Each of its elements contains an array of shape (*n_typ_edge, 2) defining the edges from nodes of type *i* to nodes of type *j*, with *i* and *j* in [0, *n_types*-1], *j* being the secondary index (inner loop). The index of the nodes in each type starts at 0.\r\n* *l_edge_features* is a list of length *n_types*^2. It contains the features of the edges for each pair of types, in same order as in previous parameter. Each item is an array of shape (*n_typ_edges*, *n_typ_edge_features*). if *n_typ_edge_features* is 0, then *n_typ_edges* should be 0 as well for all instances of graph! If you want an edge without features, set *n_typ_edge_features* to 1 and pass 1.0 as feature for all edges (of that type).\r\n\r\nEach *Y* remains a vector array. While the label could start at 0 for all types, we have chosen not to do so. (Essentially,to make clear that types do not blend into each other, which is clear when you show a confusion matrix). So the labels of the first type start at 0, while labels of next type starts right after the value of the last label of previous type.\r\n*NodeTypeEdgeFeatureGraphCRF* provides 2 convenience methods:\r\n* *flattenY*( [ [2,0,0], [3,3,4] ] ) --> [ 2,0,0, 5,5,7]  (assuming type 0 has 3 labels)\r\n* *unflattenY*(Xs, [ 2,0,0, 5,5,7] ) --> [ [2,0,0], [3,3,4] ]   (you'll also need to pass the Xs)\r\n\r\n### Constraints on Multitype Graphs\r\nAs for the Xs and Ys, the constraint must be partitioned by type.\r\n\r\n    The constraints must be a list of tuples like:\r\n\r\nEither\r\n\r\n    ( *operator*, *l_nodes*, *l_labels*, *l_negated* )\r\n     with operator being one 'XOR' 'ATMOSTONE' 'OR'\r\n\r\nOr\r\n\r\n    ( *operator*, *l_nodes*, *l_labels*, *l_negated* , (*type*, *node*, *label*, *negated*))\r\n     with operator being one  'XOROUT' 'OROUT' 'ANDOUT' 'IMPLY'\r\n\r\n- *l_nodes* is a list of nodes per type. Each item is a list of the index of the node of that type involved in this constraint\r\n- *l_labels* is a list of labels per type. Each item is a list of the label of the involved node. If the labels are all the same for a type, you can pass it directly as a scalar value.\r\n- *l_negate*d is a list of \"negated\" per type. Each item is a list of booleans indicating if the node must be negated. Again, if all values are the same for a type, pass a single boolean value instead of a list \r\n\r\n- the last (*type*, *nod*e, *label*, *negated*) allows to refer to the outcome of an 'OUT' operator.\r\n\r\n\r\n\r\n\r\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jlmeunier/pystruct",
+        "keywords": "",
+        "license": "BSD 2-clause",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "py3struct",
+        "package_url": "https://pypi.org/project/py3struct/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/py3struct/",
+        "release_url": "https://pypi.org/project/py3struct/0.3.8/",
+        "requires_dist": [
+            "numpy",
+            "ad3"
+        ],
+        "requires_python": "",
+        "summary": "Structured Learning and Prediction in Python",
+        "version": "0.3.8"
+    },
+    "last_serial": 3748969,
+    "releases": {
+        "0.3.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f9b47d3c50960f873328985fb29d09e9",
+                    "sha256": "d0b5f697798db30c53b5151085a500d76687eea99685cca7a00a8ef024585b5e"
+                },
+                "downloads": -1,
+                "filename": "py3struct-0.3.8-cp27-cp27m-win_amd64.whl",
+                "has_sig": false,
+                "md5_digest": "f9b47d3c50960f873328985fb29d09e9",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "size": 5666573,
+                "upload_time": "2018-04-09T14:52:53",
+                "url": "https://files.pythonhosted.org/packages/e8/63/030bbbcd9ce4d9ce1455cd2999014b59b514e4ce3ec182bb21b0fba5bc26/py3struct-0.3.8-cp27-cp27m-win_amd64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2b087a705656280c3bfac4c67e9e6fd1",
+                    "sha256": "d4e948e5cf554b3ad2090841c2881025c1c70ab20a6ce1e4e2d8e851fb4e6b8f"
+                },
+                "downloads": -1,
+                "filename": "py3struct-0.3.8-cp36-cp36m-win_amd64.whl",
+                "has_sig": false,
+                "md5_digest": "2b087a705656280c3bfac4c67e9e6fd1",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "size": 5667608,
+                "upload_time": "2018-04-09T14:55:41",
+                "url": "https://files.pythonhosted.org/packages/fd/bc/b9510a1e1e11184b7679b1c23c190d84e4bd8b3b15588f2388ad83f365ce/py3struct-0.3.8-cp36-cp36m-win_amd64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "365acd7f5ae1bb2c0a390b5aa392b687",
+                    "sha256": "bc450b7b951208db59ec31a2f25c30273e7bc5002ce7f66a7bc6751d184d772d"
+                },
+                "downloads": -1,
+                "filename": "py3struct-0.3.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "365acd7f5ae1bb2c0a390b5aa392b687",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 5617396,
+                "upload_time": "2018-04-09T14:55:45",
+                "url": "https://files.pythonhosted.org/packages/73/fa/e7697389195c9f058a266f673ee700ff4ece325daf55b36ace3cb3bcfa5e/py3struct-0.3.8.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f9b47d3c50960f873328985fb29d09e9",
+                "sha256": "d0b5f697798db30c53b5151085a500d76687eea99685cca7a00a8ef024585b5e"
+            },
+            "downloads": -1,
+            "filename": "py3struct-0.3.8-cp27-cp27m-win_amd64.whl",
+            "has_sig": false,
+            "md5_digest": "f9b47d3c50960f873328985fb29d09e9",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "size": 5666573,
+            "upload_time": "2018-04-09T14:52:53",
+            "url": "https://files.pythonhosted.org/packages/e8/63/030bbbcd9ce4d9ce1455cd2999014b59b514e4ce3ec182bb21b0fba5bc26/py3struct-0.3.8-cp27-cp27m-win_amd64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2b087a705656280c3bfac4c67e9e6fd1",
+                "sha256": "d4e948e5cf554b3ad2090841c2881025c1c70ab20a6ce1e4e2d8e851fb4e6b8f"
+            },
+            "downloads": -1,
+            "filename": "py3struct-0.3.8-cp36-cp36m-win_amd64.whl",
+            "has_sig": false,
+            "md5_digest": "2b087a705656280c3bfac4c67e9e6fd1",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "size": 5667608,
+            "upload_time": "2018-04-09T14:55:41",
+            "url": "https://files.pythonhosted.org/packages/fd/bc/b9510a1e1e11184b7679b1c23c190d84e4bd8b3b15588f2388ad83f365ce/py3struct-0.3.8-cp36-cp36m-win_amd64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "365acd7f5ae1bb2c0a390b5aa392b687",
+                "sha256": "bc450b7b951208db59ec31a2f25c30273e7bc5002ce7f66a7bc6751d184d772d"
+            },
+            "downloads": -1,
+            "filename": "py3struct-0.3.8.tar.gz",
+            "has_sig": false,
+            "md5_digest": "365acd7f5ae1bb2c0a390b5aa392b687",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 5617396,
+            "upload_time": "2018-04-09T14:55:45",
+            "url": "https://files.pythonhosted.org/packages/73/fa/e7697389195c9f058a266f673ee700ff4ece325daf55b36ace3cb3bcfa5e/py3struct-0.3.8.tar.gz"
+        }
+    ]
+}

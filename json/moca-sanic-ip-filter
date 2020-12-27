@@ -1,0 +1,125 @@
+{
+    "info": {
+        "author": "el.ideal-ideas",
+        "author_email": "el.idealideas@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: Chinese (Simplified)",
+            "Natural Language :: English",
+            "Natural Language :: Japanese",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8"
+        ],
+        "description": "# System Requirements\n- Python >= 3.7\n- moca_core\n- sanic\n\n# Installation\n\n```\npip install moca_sanic_ip_filter==1.0.0\nor\npip install moca_sanic_ip_filter\n```\n\n# Overview\n##### English\nThis is the IP filter module for Moca System.\n\n---\n##### \u65e5\u672c\u8a9e\n\u3053\u308c\u306f\u30e2\u30ab\u30b7\u30b9\u30c6\u30e0\u306e\u305f\u3081\u306eIP\u30d5\u30a3\u30eb\u30bf\u30fc\u30e2\u30b8\u30e5\u30fc\u30eb\u3067\u3042\u308b\u3002\n\n---\n##### \u7b80\u4f53\u4e2d\u6587\n\u8fd9\u662f\u8309\u5ba2\u7cfb\u7edf\u7684IP\u62e6\u622a\u6a21\u5757\u3002\n\n# Usage Example\n```python\n# At first you should initialize the ip filter module.\n# \u307e\u305a\u6700\u521d\u306bIP\u30d5\u30a3\u30eb\u30bf\u30fc\u30e2\u30b8\u30e5\u30fc\u30eb\u3092\u521d\u671f\u5316\u3059\u308b\u5fc5\u8981\u304c\u3042\u308a\u307e\u3059\u3002\n# \u9996\u5148\u60a8\u9700\u8981\u521d\u59cb\u5316IP\u62e6\u622a\u6a21\u5757\u3002\napp = Sanic()\ninitialize_ip_filter(app)\n\n# Check the IP address.\n# IP\u30a2\u30c9\u30ec\u30b9\u306e\u30c1\u30a7\u30c3\u30af\u3002\n# \u68c0\u6d4bIP\u5730\u5740\u3002\nasync def some_route(request):\n    if ip_filter(request.ip, 100):\n        return text('hello')\n    else:\n        raise ServerError('blocked')\n\n@ip_filter_decorator(100)\nasync def some_route(request):\n    return text('hello')\n\n# Limit the number of access with group.\n# \u30b0\u30eb\u30fc\u30d7\u3054\u3068\u306b\u30a2\u30af\u30bb\u30b9\u3092\u5236\u9650\u3059\u308b\u3002\n# \u6bcf\u7ec4\u4f7f\u7528\u4e0d\u540c\u7684\u8bbf\u95ee\u4e0a\u9650\u3002\nasync def some_route(request):\n    if ip_filter(request.ip, 100, 'group0'):\n        return text('hello')\n    else:\n        raise ServerError('blocked')\n\n@ip_filter_decorator(100, 'group0')\nasync def some_route(request):\n    return text('hello')\n\n# if you want to change the blocking message.\n# \u30d6\u30ed\u30c3\u30af\u6642\u306e\u30ec\u30b9\u30dd\u30f3\u30b9\u3092\u5909\u66f4\u3057\u305f\u3044\u5834\u5408\u3002\n# \u5982\u679c\u60a8\u60f3\u8981\u66f4\u6539\u88ab\u62e6\u622a\u65f6\u7684\u8fd4\u56de\u4fe1\u606f\u3002\n\nfrom moca_sanic_ip_filter import blocking_msg\nblocking_msg = 'some message'\n\n```\n\n# Public Functions\n- def initialize_ip_filter(app: Sanic, response_language: str = 'english', hide_block_info: bool = False) -> None:\n    - Your must run this function at first.\n    - \u3053\u306e\u95a2\u6570\u3092\u6700\u521d\u306b\u5b9f\u884c\u3057\u306a\u3051\u308c\u3070\u3044\u3051\u307e\u305b\u3093\u3002\n    - \u60a8\u9700\u8981\u6700\u5148\u6267\u884c\u8fd9\u4e2a\u51fd\u6570\u3002\n```python\ndef initialize_ip_filter(app: Sanic,\n                         response_language: str = 'english',\n                         hide_block_info: bool = False) -> None:\n    \"\"\"\n    Initialize the IP filter.\n    If you want to use this module, you should call this function at first.\n    :param app: instance of Sanic Server.\n    :param response_language: the language of the response.\n    :param hide_block_info: don't show the details of the ip block.\n    :return: None\n    \"\"\"\n```\n\n- def ip_filter(ip: str, limit: int, name: str = '',) -> bool:\n    - check the ip address, allow or block.\n    - IP\u3092\u8a31\u53ef\u3059\u308b\u304b\u3069\u3046\u304b\u3092\u30c1\u30a7\u30c3\u30af\u3057\u307e\u3059\u3002\n    - \u68c0\u6d4bIP\u662f\u5426\u53ef\u4ee5\u8bb8\u53ef\u3002\n```python\ndef ip_filter(ip: str,\n              limit: int,\n              name: str = '',) -> bool:\n    \"\"\"\n    :param ip: IP address.\n    :param limit: the maximum number of access per minute will be allowed.\n    :param name: name of the route, if the value is empty string, use the total count.\n    :return: status, [allowed] or [blocking]\n    \"\"\"\n```\n\n- def ip_filter_decorator(limit, name: str = ''):\n    - This is a decorator of ip filter.\n    - \u3053\u308c\u306fIP\u30d5\u30a3\u30eb\u30bf\u30fc\u306e\u30c7\u30b3\u30ec\u30fc\u30bf\u30fc\u3067\u3042\u308b\u3002\n    - \u8fd9\u662fIP\u62e6\u622a\u5668\u7684\u4fee\u9970\u5668\u3002\n```python\ndef ip_filter_decorator(limit,\n                        name: str = ''):\n    \"\"\"\n    This is a ip filter decorator.\n    :param limit: the maximum number of access per minute will be allowed.\n    :param name of the route, if the value is empty string, use the total count.\n    \"\"\"\n```\n\n# License\n\n- MIT License\n\n```\nCopyright 2020.1.17 <el.ideal-ideas: https://www.el-ideal-ideas.com>\n\nPermission is hereby granted, free of charge, \nto any person obtaining a copy of this software \nand associated documentation files (the \"Software\"),\nto deal in the Software without restriction, \nincluding without limitation the rights to use, copy, \nmodify, merge, publish, distribute, sublicense, \nand/or sell copies of the Software, and to permit persons\nto whom the Software is furnished to do so, \nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be\nincluded in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF \nANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED \nTO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A \nPARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL \nTHE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, \nDAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, \nTORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH \nTHE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n```\n\n# Other Information\n- el.ideal-ideas\n    - https://www.el-ideal-ideas.com\n- Sanic\n    - https://github.com/huge-success/sanic\n- Sanic License Info\n    - https://github.com/huge-success/sanic-openapi/blob/master/LICENSE\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/el-ideal-ideas/MocaSanicIPFilter",
+        "keywords": "Moca,IP,filter",
+        "license": "Type license() to see the full license text",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "moca-sanic-ip-filter",
+        "package_url": "https://pypi.org/project/moca-sanic-ip-filter/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/moca-sanic-ip-filter/",
+        "project_urls": {
+            "Homepage": "https://github.com/el-ideal-ideas/MocaSanicIPFilter"
+        },
+        "release_url": "https://pypi.org/project/moca-sanic-ip-filter/1.0.0/",
+        "requires_dist": [
+            "moca-core",
+            "sanic"
+        ],
+        "requires_python": "",
+        "summary": "The IP filter module of Moca System.",
+        "version": "1.0.0"
+    },
+    "last_serial": 6554822,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d4233ba29ccf35fc12425de26b917c8b",
+                    "sha256": "8c5f6fd68b86175f4e91d123918d676cf0d3fa44695037574688bf79b983b0c3"
+                },
+                "downloads": -1,
+                "filename": "moca_sanic_ip_filter-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d4233ba29ccf35fc12425de26b917c8b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6915,
+                "upload_time": "2020-02-01T16:26:47",
+                "upload_time_iso_8601": "2020-02-01T16:26:47.000147Z",
+                "url": "https://files.pythonhosted.org/packages/e8/b5/b51a8fc375bce6bb045431a4415d763ea323c9b6788b9e8f405470a9a770/moca_sanic_ip_filter-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2f256f5b937a913a1f7b699d98d46572",
+                    "sha256": "05b11b9ee915d802830379b30bc42d37421af7f1fa416365f070bc560a4479fa"
+                },
+                "downloads": -1,
+                "filename": "moca_sanic_ip_filter-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2f256f5b937a913a1f7b699d98d46572",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5445,
+                "upload_time": "2020-02-01T16:26:49",
+                "upload_time_iso_8601": "2020-02-01T16:26:49.411707Z",
+                "url": "https://files.pythonhosted.org/packages/38/0e/3ea1754ac8a4c76823feea972bde75a2f78aa71af438781d2de67d9ebeb0/moca_sanic_ip_filter-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d4233ba29ccf35fc12425de26b917c8b",
+                "sha256": "8c5f6fd68b86175f4e91d123918d676cf0d3fa44695037574688bf79b983b0c3"
+            },
+            "downloads": -1,
+            "filename": "moca_sanic_ip_filter-1.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d4233ba29ccf35fc12425de26b917c8b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 6915,
+            "upload_time": "2020-02-01T16:26:47",
+            "upload_time_iso_8601": "2020-02-01T16:26:47.000147Z",
+            "url": "https://files.pythonhosted.org/packages/e8/b5/b51a8fc375bce6bb045431a4415d763ea323c9b6788b9e8f405470a9a770/moca_sanic_ip_filter-1.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2f256f5b937a913a1f7b699d98d46572",
+                "sha256": "05b11b9ee915d802830379b30bc42d37421af7f1fa416365f070bc560a4479fa"
+            },
+            "downloads": -1,
+            "filename": "moca_sanic_ip_filter-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "2f256f5b937a913a1f7b699d98d46572",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5445,
+            "upload_time": "2020-02-01T16:26:49",
+            "upload_time_iso_8601": "2020-02-01T16:26:49.411707Z",
+            "url": "https://files.pythonhosted.org/packages/38/0e/3ea1754ac8a4c76823feea972bde75a2f78aa71af438781d2de67d9ebeb0/moca_sanic_ip_filter-1.0.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,244 @@
+{
+    "info": {
+        "author": "Yezy Ilomo",
+        "author_email": "yezileliilomo@hotmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy"
+        ],
+        "description": "# drf-pretty-update\nThis is a collection of simple and flexible model serializer and fields for Django REST Framework which allows you to create/update your models with related nested data.\n\n\n## Installing\n\n`pip install drf-pretty-update`\n\n\n## Getting Started\ndrf-pretty-update has two components, `NestedModelSerializer` and `NestedField`. A serializer `NestedModelSerializer` has `update` and `create` logics for nested fields on the other hand `NestedField` is used to validate data before dispatching update or create.\n\n\n### Using NestedField\n```python\nfrom app.models import Location, Amenity, Property\nfrom drf_pretty_update.serializers import NestedModelSerializer\nfrom drf_pretty_update.fields import NestedField\n\n\nclass LocationSerializer(NestedModelSerializer):\n    class Meta:\n        model = Location\n        fields = (\"id\", \"city\", \"country\")\n\n\nclass AmenitySerializer(NestedModelSerializer):\n    class Meta:\n        model = Amenity\n        fields = (\"id\", \"name\")\n\n\nclass PropertySerializer(NestedModelSerializer):\n    location = NestedField(LocationSerializer)\n    amenities = NestedField(AmenitySerializer, many=True)\n    class Meta:\n        model = Property\n        fields = (\n            'id', 'price', 'location', 'amenities'\n        )\n```\n<br>\n\n\n```POST /api/property/```\n\nRequest Body\n```json\n{\n    \"price\": 60000,\n    \"location\": {\n        \"city\": \"Newyork\",\n        \"country\": \"USA\"\n    },\n    \"amenities\": {\n        \"add\": [3],\n        \"create\": [\n            {\"name\": \"Watererr\"},\n            {\"name\": \"Electricity\"}\n        ]\n    }\n}\n```\nWhat's done here is pretty clear, location will be created and associated with the property created, also create operation on amenities will create amenities with values specified in a list and associate with the property, add operation will add amenity with id 4 to a list of amenities of the property.\n\n**Note**: POST for many related field supports two operations which are `create` and `add`.\n\n<br>\n\nResponse\n```json\n{\n    \"id\": 2,\n    \"price\": 60000,\n    \"location\": {\n        \"id\": 3,\n        \"city\": \"Newyork\",\n        \"country\": \"USA\"\n    },\n    \"amenities\": [\n        {\"id\": 1, \"name\": \"Watererr\"},\n        {\"id\": 2, \"name\": \"Electricity\"},\n        {\"id\": 3, \"name\": \"Swimming Pool\"}\n    ]\n}\n```\n<br>\n\n\n```PUT /api/property/2/```\n\nRequest Body\n```json\n{\n    \"price\": 50000,\n    \"location\": {\n        \"city\": \"Newyork\",\n        \"country\": \"USA\"\n    },\n    \"amenities\": {\n        \"add\": [4],\n        \"create\": [{\"name\": \"Fance\"}],\n        \"remove\": [3],\n        \"update\": {1: {\"name\": \"Water\"}}\n    }\n}\n```\n**Note**: Here `add`, `create`, `remove` and `update` are operations, so `add` operation add amenitiy with id 4 to a list of amenities of the property, `create` operation create amenities with values specified in a list, `remove` operation dessociate amenities with id 3 from a property, `update` operation edit amenity with id 1 according to values specified.\n\n**Note**: PUT/PATCH for many related field supports four operations which are `create`, `add`, `remove` and `update`.\n\n<br>\n\nResponse\n```json\n{\n    \"id\": 2,\n    \"price\": 50000,\n    \"location\": {\n        \"id\": 3,\n        \"city\": \"Newyork\",\n        \"country\": \"USA\"\n    },\n    \"amenities\": [\n        {\"id\": 1, \"name\": \"Water\"},\n        {\"id\": 2, \"name\": \"Electricity\"},\n        {\"id\": 4, \"name\": \"Bathtub\"},\n        {\"id\": 5, \"name\": \"Fance\"}\n    ]\n}\n```\n<br>\n<br>\n\n\n### Using NestedField with `accept_pk=True` kwarg.\n`accept_pk=True` is used if you want to update nested field by using pk/id of existing data(basically associate and dessociate existing nested resources with the parent resource without actually mutating the nested resource). This applies to ForeignKey relation only.\n\n```python\nfrom app.models import Location, Amenity, Property\nfrom drf_pretty_update.serializers import NestedModelSerializer \nfrom drf_pretty_update.fields import NestedField\n\n\nclass LocationSerializer(NestedModelSerializer):\n    class Meta:\n        model = Location\n        fields = (\"id\", \"city\", \"country\")\n\n\nclass PropertySerializer(NestedModelSerializer):\n    location = NestedField(ocationSerializer, accept_pk=True)\n    class Meta:\n        model = Property\n        fields = (\n            'id', 'price', 'location'\n        )\n```\n<br>\n\n\n```POST /api/property/```\n\nRequest Body\n```json\n{\n    \"price\": 40000,\n    \"location\": 2\n}\n```\n**Note**: Here location resource with id 2 is already existing, so what's done here is create new property resource and associate it with a location with id 2.\n<br>\n\nResponse\n```json\n{\n    \"id\": 1,\n    \"price\": 40000,\n    \"location\": {\n        \"id\": 2,\n        \"city\": \"Tokyo\",\n        \"country\": \"China\"\n    }\n}\n```\n<br>\n\n\n### Using NestedField with `create_ops=[..]` and `update_ops=[..]` kwargs.\nYou can restrict some operations by using `create_ops` and `update_ops` keyword arguments as follows\n\n```python\nfrom app.models import Location, Amenity, Property\nfrom drf_pretty_update.serializers import NestedModelSerializer \nfrom drf_pretty_update.fields import NestedField\n\n\nclass AmenitySerializer(NestedModelSerializer):\n    class Meta:\n        model = Amenity\n        fields = (\"id\", \"name\")\n\n\nclass PropertySerializer(NestedModelSerializer):\n    amenities = NestedField(\n        AmenitySerializer, \n        many=True,\n        create_ops=[\"add\"],  # Allow only add operation(restrict create operation)\n        update_ops=[\"add\", \"remove\"]  # Allow only add and remove operations(restrict create and update operations)\n    )\n    class Meta:\n        model = Property\n        fields = (\n            'id', 'price', 'amenities'\n        )\n```\n<br>\n\n\n```POST /api/property/```\n\nRequest Body\n```json\n{\n    \"price\": 60000,\n    \"amenities\": {\n        \"add\": [1, 2]\n    }\n}\n```\n**Note**: According to `create_ops=[\"add\"]`, you can't use `create` operation in here!.\n<br>\n\nResponse\n```json\n{\n    \"id\": 2,\n    \"price\": 60000,\n    \"amenities\": [\n        {\"id\": 1, \"name\": \"Watererr\"},\n        {\"id\": 2, \"name\": \"Electricity\"}\n    ]\n}\n```\n<br>\n\n\n```PUT /api/property/2/```\n\nRequest Body\n```json\n{\n    \"price\": 50000,\n    \"amenities\": {\n        \"add\": [3],\n        \"remove\": [2]\n    }\n}\n```\n**Note**: According to `update_ops=[\"add\", \"remove\"]`, you can't use `create` or `update` operation in here!.\n<br>\n\nResponse\n```json\n{\n    \"id\": 2,\n    \"price\": 50000,\n    \"amenities\": [\n        {\"id\": 1, \"name\": \"Water\"},\n        {\"id\": 3, \"name\": \"Bathtub\"}\n    ]\n}\n```\n<br>\n\n\n## Running Tests\n\n`python setup.py test`\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/yezyilomo/drf-pretty-update",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "drf-pretty-update",
+        "package_url": "https://pypi.org/project/drf-pretty-update/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/drf-pretty-update/",
+        "project_urls": {
+            "Homepage": "https://github.com/yezyilomo/drf-pretty-update"
+        },
+        "release_url": "https://pypi.org/project/drf-pretty-update/0.1.5/",
+        "requires_dist": [
+            "djangorestframework"
+        ],
+        "requires_python": ">=2.7",
+        "summary": "Simple HTTP PUT request handler for Django REST Framework(DRF)",
+        "version": "0.1.5"
+    },
+    "last_serial": 5801867,
+    "releases": {
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "28799f5fa0b3671207333793b860c12e",
+                    "sha256": "5dc6878300ddff6eb105abab0885dfd354038b2665ac71e5a612e5837ec83eeb"
+                },
+                "downloads": -1,
+                "filename": "drf_pretty_update-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "28799f5fa0b3671207333793b860c12e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7",
+                "size": 8063,
+                "upload_time": "2019-09-02T18:23:54",
+                "upload_time_iso_8601": "2019-09-02T18:23:54.363268Z",
+                "url": "https://files.pythonhosted.org/packages/7c/c7/f6a215ff4c6ad76b4839100aa3a5b605a85fc85eebade3094aa156824729/drf_pretty_update-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5d574d1a5b9f103871a82a71c1c9a77c",
+                    "sha256": "28b483d60ca9ad49d53223b6a3e7a764e78d5e83ea20605b7c8a13387ef796f6"
+                },
+                "downloads": -1,
+                "filename": "drf-pretty-update-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5d574d1a5b9f103871a82a71c1c9a77c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 7186,
+                "upload_time": "2019-09-02T18:24:00",
+                "upload_time_iso_8601": "2019-09-02T18:24:00.929721Z",
+                "url": "https://files.pythonhosted.org/packages/54/87/2ee8e53a9ab80e9c7950a2761b70a3e6768822f71e0d5f17ef18f42b2ef5/drf-pretty-update-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "476696409843c9b29e96a0854503d7f7",
+                    "sha256": "cd346da90155d104e36c15a3b09b1e8a2d031fe216ce2f9c872c930c57ffafe3"
+                },
+                "downloads": -1,
+                "filename": "drf_pretty_update-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "476696409843c9b29e96a0854503d7f7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7",
+                "size": 8113,
+                "upload_time": "2019-09-03T17:58:27",
+                "upload_time_iso_8601": "2019-09-03T17:58:27.649290Z",
+                "url": "https://files.pythonhosted.org/packages/49/00/5046fb746d0c129cb18c1baeef93acf84a294c6c71f7d4344504658d28df/drf_pretty_update-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "47ccee6e94e5007e711672698c9f2718",
+                    "sha256": "f5b30dbe39b382669fb0432a3299e476d65fd95568bcbe8fa8daff761abd5cf2"
+                },
+                "downloads": -1,
+                "filename": "drf-pretty-update-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "47ccee6e94e5007e711672698c9f2718",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 7254,
+                "upload_time": "2019-09-03T17:58:31",
+                "upload_time_iso_8601": "2019-09-03T17:58:31.517996Z",
+                "url": "https://files.pythonhosted.org/packages/7a/83/6eef580e494b6c4b9ea7153e15575032cc65e8a63fea9af4ac6570e29e15/drf-pretty-update-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bbecb2398e93ab17f782184439bc1f65",
+                    "sha256": "f2aa1d9648a09efa298efc734928bd9b5a22d049a2b8ad57f8511ca7a1172714"
+                },
+                "downloads": -1,
+                "filename": "drf_pretty_update-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bbecb2398e93ab17f782184439bc1f65",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7",
+                "size": 8122,
+                "upload_time": "2019-09-06T21:20:05",
+                "upload_time_iso_8601": "2019-09-06T21:20:05.586205Z",
+                "url": "https://files.pythonhosted.org/packages/6f/2d/a0b4b4a87cc39c62e34bb10934ca1d26d932439369f361bf39221b66b580/drf_pretty_update-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b16cec5de1bd638cff998155fcbe4a79",
+                    "sha256": "e76ba872b84b5c3bb9f1e5ffe2f9d75915c587cc5e5652297bf82359dc85d010"
+                },
+                "downloads": -1,
+                "filename": "drf-pretty-update-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b16cec5de1bd638cff998155fcbe4a79",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 7266,
+                "upload_time": "2019-09-06T21:20:07",
+                "upload_time_iso_8601": "2019-09-06T21:20:07.965176Z",
+                "url": "https://files.pythonhosted.org/packages/5d/95/795a5f57ce0c22167e3e20ed45cf995717531a705b475dcc19273dd3a929/drf-pretty-update-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "46501fbb45c373c160dcdab6b25243a2",
+                    "sha256": "c1dee5ae87bbef43cc2b8bd6b1ff0543c20724c3c36a533d0516889166d9d0ae"
+                },
+                "downloads": -1,
+                "filename": "drf_pretty_update-0.1.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "46501fbb45c373c160dcdab6b25243a2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7",
+                "size": 8701,
+                "upload_time": "2019-09-09T06:02:55",
+                "upload_time_iso_8601": "2019-09-09T06:02:55.160147Z",
+                "url": "https://files.pythonhosted.org/packages/50/62/3fe186cbf50f58371f1295a93aa984ff60257d831055a4f51118c20a7058/drf_pretty_update-0.1.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c688597560d87c031e5e15dbe4bda5a7",
+                    "sha256": "492508b9b98dd6b67b51b42d4227a8c03cd2ba67bc002120efaa99ed97c9f526"
+                },
+                "downloads": -1,
+                "filename": "drf-pretty-update-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c688597560d87c031e5e15dbe4bda5a7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 7887,
+                "upload_time": "2019-09-09T06:02:57",
+                "upload_time_iso_8601": "2019-09-09T06:02:57.995405Z",
+                "url": "https://files.pythonhosted.org/packages/95/c6/d998301495e57b3639c419545932129b120cf855a0efab67a3f038699b8f/drf-pretty-update-0.1.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "46501fbb45c373c160dcdab6b25243a2",
+                "sha256": "c1dee5ae87bbef43cc2b8bd6b1ff0543c20724c3c36a533d0516889166d9d0ae"
+            },
+            "downloads": -1,
+            "filename": "drf_pretty_update-0.1.5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "46501fbb45c373c160dcdab6b25243a2",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=2.7",
+            "size": 8701,
+            "upload_time": "2019-09-09T06:02:55",
+            "upload_time_iso_8601": "2019-09-09T06:02:55.160147Z",
+            "url": "https://files.pythonhosted.org/packages/50/62/3fe186cbf50f58371f1295a93aa984ff60257d831055a4f51118c20a7058/drf_pretty_update-0.1.5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c688597560d87c031e5e15dbe4bda5a7",
+                "sha256": "492508b9b98dd6b67b51b42d4227a8c03cd2ba67bc002120efaa99ed97c9f526"
+            },
+            "downloads": -1,
+            "filename": "drf-pretty-update-0.1.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c688597560d87c031e5e15dbe4bda5a7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=2.7",
+            "size": 7887,
+            "upload_time": "2019-09-09T06:02:57",
+            "upload_time_iso_8601": "2019-09-09T06:02:57.995405Z",
+            "url": "https://files.pythonhosted.org/packages/95/c6/d998301495e57b3639c419545932129b120cf855a0efab67a3f038699b8f/drf-pretty-update-0.1.5.tar.gz"
+        }
+    ]
+}

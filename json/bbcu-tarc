@@ -1,0 +1,130 @@
+{
+    "info": {
+        "author": "Refael Kohen",
+        "author_email": "refael.kohen@weizmann.ac.il",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "Pseudocode of the project of TARC = transcriptome assemly and read counts for long reads:\n\n\nObjects:\n~~~~~~~~\n\n\"ReadsWithCloseStartMapping object\":\n====================================\naverage_start_position (\"PositionAverage\" object)\nexons_start_positions (list of numbers that represent the start and end coordinate of each exon)\nexons_end_positions (list of numbers that represent the start and end coordinate of each exon)\nexons_start_average (list of PositionAverage object)\nexons_end_average (list of PositionAverage object)\n\n\n\"PositionAverage\" object:\n=========================\naverage (average of the positions of the reads)\ntotal_reads_in_pos (total number of reads in this position)\nreads_names_in_pos (list of the reads name)\n\n\n\n\n\n\n\n\nProcedures:\n~~~~~~~~~~~\n\nMain procedure:\n===============\nInput: reads are sorted by ReadsWithCloseStartMapping (sorted bam file).\n\nFor each read:\n\t1.\tFind the closest \"ReadsWithCloseStartMapping object\" or create if not exist\n\t2.\tIf it is far away from current PositionAverage of the ReadsWithCloseStartMapping (or not exists any object):\n\t\t\t2.1 Run the procedure \"find_positions_average\" on current \"ReadsWithCloseStartMapping object\" with exons_start_positions.\n\t\t\t2.2 Run the procedure \"find_positions_average\" on current \"ReadsWithCloseStartMapping object\" with exons_end_positions.\n\t\t\t2.4 Run the procedure \"build_transcripts\" (the implement of the function including also the 2 above steps)\n\t\t\t2.3\tCreate a new object for current ReadsWithCloseStartMapping and add the read to the new object.\n\t\tElse: # implemented in ReadsWithCloseStartMapping.add_read()\n\t\t\t2.4\tBelong the ReadsWithCloseStartMapping of the current read to the closest \"ReadsWithCloseStartMapping object\".\n\t\t\t2.5 Run the procedure \"update_average_of_position\" with read and \"start position\" of \"ReadsWithCloseStartMapping object\"\n\n\nProcedure \"build_transcripts\":\n==============================\ninput: \"ReadsWithCloseStartMapping object\", output file.\n\nFor each read in the object:\n\t1.\tbuild transcript from \"exons_X_average\" lists by taking the averaged exons that it is belongs to them.\n\nprint to output file: the unique list of the transcripts and number of reads in each of them.\n\n\nProcedure \"find_positions_average\" (in ReadsWithCloseStartMapping object):\n==========================================================================\ninput: exons_X_positions (exons_start_positions or exons_end_positions), exons_X_average (exons_start_average or exons_end_average)\n\nFor each i position from the exons_X_positions  (dynamically changed within the loop):\n\t1.  Sort the reads (exons_X_positions) according the i position.\n\n\t2.  For each read in exons_X_positions in i position:\n        2.1 Add a new PositionAverage object to exons_X_average list if not exists\n        2.2 If i position in exons_X_positions of the read is close to i position in list of \"exons_X_average:\n2.2.1   Run procedure \"update_average_of_position\" with i position of read and i position of list of \"exons_X_average\"\n        2.3 Else:\n\t\t    2.3.1   Move the i position of the read to i+1 location (shift the list)\n\n\nProcedure \"update_average_of_position\" (in PositionAverage object):\n===================================================================\nInput: read (new reads to adding), read_position, PositionAverage object\n\n1.\tChange the PositionAverage according to the read position:\n\taverage = read_position + average * total_reads_in_pos / (total_reads_in_pos + 1)\n2.\tUpdate the number of reads and list of reads name of PositionAverage object with the current read\n\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "bbcu.tarc",
+        "package_url": "https://pypi.org/project/bbcu.tarc/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/bbcu.tarc/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/bbcu.tarc/1.0.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Build transcripts and read counts from long-reads (in development)",
+        "version": "1.0.3"
+    },
+    "last_serial": 5643650,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "41d63ff90993c4fe417647870f6a68b5",
+                    "sha256": "5f549243570431c9cd04631aa15dbe8d05ca87701593c19f9611c3f1dc801f8d"
+                },
+                "downloads": -1,
+                "filename": "bbcu.tarc-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "41d63ff90993c4fe417647870f6a68b5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20007,
+                "upload_time": "2019-07-30T16:06:43",
+                "url": "https://files.pythonhosted.org/packages/ee/e2/e9fd87248b49b9ebea3677fbabc6b9e730ffebc77e79d4ba9740f4343166/bbcu.tarc-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6273a8930b24f22cc668f5202d8fa085",
+                    "sha256": "16b247e076c1651230d4b01af33b73aa92d24e095154d8967e67a58064eb295b"
+                },
+                "downloads": -1,
+                "filename": "bbcu.tarc-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6273a8930b24f22cc668f5202d8fa085",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19934,
+                "upload_time": "2019-07-30T16:21:52",
+                "url": "https://files.pythonhosted.org/packages/1d/cc/eddc1d19a67225b758d653fa44b6bf25527fc31fe444dd14e98cc8a0e300/bbcu.tarc-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab000f15a398eca451456d30f44729ca",
+                    "sha256": "753907947276adcf8a20cdde82238890a6fef855eaf9322d2614af11ec396e92"
+                },
+                "downloads": -1,
+                "filename": "bbcu.tarc-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ab000f15a398eca451456d30f44729ca",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19955,
+                "upload_time": "2019-07-30T16:23:01",
+                "url": "https://files.pythonhosted.org/packages/ac/3d/54aa61b2a58c56b356a569d3b1a012f8108e7e7dc8a3186f35c9de569fb2/bbcu.tarc-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "431c1432d5db4b59948ed75b9b6f7d8e",
+                    "sha256": "344e2e376bcde10e96212abe800a7b162825ee378b4d7c88a0320b253e1a3a48"
+                },
+                "downloads": -1,
+                "filename": "bbcu.tarc-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "431c1432d5db4b59948ed75b9b6f7d8e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32094,
+                "upload_time": "2019-08-07T07:57:34",
+                "url": "https://files.pythonhosted.org/packages/9a/0d/e0aefa40277b8e1cea07d32e66a3171f42cde32fd872fc2fc0e697b70c3a/bbcu.tarc-1.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "431c1432d5db4b59948ed75b9b6f7d8e",
+                "sha256": "344e2e376bcde10e96212abe800a7b162825ee378b4d7c88a0320b253e1a3a48"
+            },
+            "downloads": -1,
+            "filename": "bbcu.tarc-1.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "431c1432d5db4b59948ed75b9b6f7d8e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 32094,
+            "upload_time": "2019-08-07T07:57:34",
+            "url": "https://files.pythonhosted.org/packages/9a/0d/e0aefa40277b8e1cea07d32e66a3171f42cde32fd872fc2fc0e697b70c3a/bbcu.tarc-1.0.3.tar.gz"
+        }
+    ]
+}

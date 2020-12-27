@@ -1,0 +1,155 @@
+{
+    "info": {
+        "author": "Matej Ramuta",
+        "author_email": "matej.ramuta@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# SmartNinja ODM\n\n## About\n\nSmartNinja ODM is a simple ODM tool which helps you **switch** between these NoSQL database systems: **TinyDB**, **Datastore**, **Firestore**, **MongoDB** and **Cosmos DB** (via MongoDB API).\n\nTinyDB is used for localhost development. The advantage is that it saves you time configuring a Firestore, Datastore, MonogDB or Cosmos emulator on localhost.\n\nWhen you deploy your web app to Google App Engine, Heroku or Azure App Service, the ODM figures out the new environment (through env variables) and switches the database accordingly.\n\nBear in mind that this is a simple ODM meant to be used at the [SmartNinja courses](https://www.smartninja.org) for learning purposes. So not all\nfeatures of these NoSQL databases are covered, only the basic ones.\n\n## Installation\n\nAdd this dependency in your `requirements.txt`:\n\n\tsmartninja-odm\n\nMake sure to install it locally using this command:\n\n\tpip install -r requirements.txt\n\n## Other dependencies\n\nSmartNinja ODM has two mandatory dependencies: `tinydb` and `tinydb_serialization`. These two help SmartNinja ODM use a TinyDB database for localhost development.\n\n#### Datastore\n\nGoogle Cloud Datastore dependency in `requirements.txt`:\n\n    google-cloud-datastore\n\n#### Firestore\n\nGoogle Cloud Firestore dependency in `requirements.txt`:\n\n    google-cloud-firestore\n\n#### MongoDB & Cosmos DB\n\nTo use MongoDB on Heroku or Cosmos DB on Azure App Service, you'll need to add the following library in your `requirements.txt` file:\n\n    pymongo\n\n### Heroku\n\nIf you'll use MongoDB on Heroku, make sure to choose the **mLab MongoDB** add-on.\n\n### Environment variables\n\nThe environment variables should already be automatically created, but still make sure they (still) have the correct names.\n\nHeroku:\n\n- **MONGODB_URI** (shows up when you add the mLab MongoDB add-on)\n- **DYNO** (standard Heroku env var, not visible on the dashboard)\n\nAzure:\n\n- **APPSETTING_WEBSITE_SITE_NAME** (env vars that start with \"APPSETTING_\" are Azure's standard env vars. Not visible on the dashboard)\n- **APPSETTING_MONGOURL** (shows up when you enable Cosmos DB with the Mongo API)\n\nGoogle Cloud:\n\n- **GAE_APPLICATION** (standard GAE env var)\n\n#### Important: Datastore environment variable\n\nIf you'd like to use Datastore on GAE, you must add this piece of code into your `app.yaml` file:\n\n\tenv_variables:\n\t  GAE_DATABASE: \"datastore\"\n\nIf you'd like to use Firestore instead, enter \"firestore\" or don't have this env. variable at all (Firestore is default).\n\n## Usage\n\n### Creating classes\n\nThis is the simplest way to create classes that use SmartNinja ODM:\n\n```python3\nfrom smartninja_odm.odm import Model\n\n\nclass User(Model):\n    pass\n\n```\n\nWhen you initialize a new object, you can add as many attributes as you want (no need to define them in the User model):\n\n```python3\nuser = User(first_name=\"Matt\", last_name=\"Ramuta\", age=31, human=True)\n\n```\n\nBut usually you'd want to specify at least some mandatory fields in a class:\n\n```python3\nclass User(Model):\n    def __init__(self, first_name, last_name, age, human=True, **kwargs):\n        self.first_name = first_name\n        self.last_name = last_name\n        self.age = age\n        self.human = human\n        self.created = datetime.datetime.now()\n\n        super().__init__(**kwargs)\n\n```\n\nAs you can see, `first_name`, `last_name` and `age` are mandatory fields, while `human` is optional and has a default value of `True`.\n\nThe `created` field is automatically assigned a value of `datetime.datetime.now()`.\n\n**Important**: The `super().__init__(**kwargs)` line must be the last one in the `__init__` method! Also `**kwargs` must be added as a function parameter.\n\n### Custom class methods\n\nYour classes will inherit the following methods from the Model class:\n\n- `create()`\n- `edit()`\n- `get_collection()`\n- `delete()`\n- `get()`\n- `fetch()`\n- `fetch_one()`\n\nBut you can of course create your own custom methods. Example:\n\n```python3\nclass User(Model):\n    def __init__(self, first_name, last_name, age, human=True, **kwargs):\n        self.first_name = first_name\n        self.last_name = last_name\n        self.age = age\n        self.human = human\n        self.created = datetime.datetime.now()\n\n        super().__init__(**kwargs)\n    \n    def get_full_name(self):\n        return \"{0} {1}\".format(self.first_name, self.last_name)\n\n```\n\n### Creating new objects\n\n```python3\nuser = User(first_name=\"Matt\", last_name=\"Ramuta\", age=31)\nuser.create()\n\nprint(user.id)\n\n```\n\nAs you can see, creating an object needs two things: initializing an object and saving it into a database with the `create()` method. If you don't call this method, the object will not be saved into a database.\n\nThe `create()` method returns back the **object ID**, which is **automatically** created by the database. The ID is also stored in the object itself.\n\n### Get one object from the database\n\nYou can get an object out of the database if you know its `id`:\n\n```python3\n# Add new object to the database:\nuser = User(first_name=\"Matt\", last_name=\"Ramuta\", age=31)\nuser_id = user.create()\n\n# Get the User object from the database\nnew_obj = User.get(obj_id=user_id)\n\n```\n\nYou can also find an object based on some other field using the `fetch_one()` method:\n\n```python3\n\n# search on one field\none_user = User.fetch_one(query=[\"first_name\", \"==\", \"Matt\"])\n\n# search on many fields\nquery_age = [\"age\", \">\", 30]\nquery_human = [\"human\", \"==\", True]\n\none_user = User.fetch_one(query_age=query_age, query_human=query_human)\n```\n\n### Edit an object\n\nYou need to pass the object id and the fields you want to edit:\n\n```python3\nUser.edit(obj_id=user_id, first_name=\"John\", age=25)\n\n```\n\n### Delete an object\n\nCall the `delete()` method and pass the object id:\n\n```python3\nUser.delete(obj_id=user_id)\n\n```\n\n### Query the database and fetch objects that match the query\n\nYou can specify **one query**:\n\n```python3\nquery = [\"first_name\", \"==\", \"Matt\"]\nusers = User.fetch(query=query)\n\nprint(users[0].first_name)\nprint(users[0].id)\n\n```\n\nWhat you'll get is a list of objects that match the query.\n\nYou can also have **multiple queries**:\n\n```python3\nquery_age = [\"age\", \">\", 30]\nquery_human = [\"human\", \"==\", True]\n\nusers = User.fetch(query_age=query_age, query_human=query_human)\n\n```\n\nBut be aware, that some databases (like Firestore) might require that you create an index for these composite queries.\n\n**Important:**\n\n- This query structure must be followed (as shown in examples): `[\"field\", \"operator\", value]`. So the **field name** and \nthe **operator** must be written in quotes.\n- The \"not equal\" queries (\"!=\") are not allowed, because Firestore does not support them (although TinyDB and Cosmos \nDB do).\n\n## Enable a TinyDB test database (for localhost testing)\n\nCreate an environment variable named `TESTING`:\n\n\timport os\n\tos.environ[\"TESTING\"] = \"1\"\n\nThis will create a test TinyDB database: `test_db.json`.\n\n## How the right database is determined\n\nSmartNinja ODM automatically determines which database to use. If the environment has the `GAE_APPLICATION` variable, then \nthe selected database is **Firestore** (unless you added the `GAE_DATABASE: \"datastore\"` environment variable in `app.yaml`). \n\nIf SmartNinja ODM finds a `APPSETTING_WEBSITE_SITE_NAME` it assumes the environment is **Azure**, so the selected database is **Cosmos DB**. But if **none** of these two environment variables is found, the \nselected database is **TinyDB**.\n\n## TODO\n\n- Tests\n- Continuous integration\n- \"order\" support\n- automatic composite index generator for Cloud Datastore (index.yaml)",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/smartninja/smartninja-odm",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "smartninja-odm",
+        "package_url": "https://pypi.org/project/smartninja-odm/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/smartninja-odm/",
+        "project_urls": {
+            "Homepage": "https://github.com/smartninja/smartninja-odm"
+        },
+        "release_url": "https://pypi.org/project/smartninja-odm/0.5/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "SmartNinja ODM - a simple ODM for NoSQL databases: TinyDB, Firestore, Datastore, MongoDB and Cosmos DB.",
+        "version": "0.5"
+    },
+    "last_serial": 4757066,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e6ce7ea821fcf6bcc347f8bf865f085",
+                    "sha256": "3e47d2398e0c3d45c996091aa1666a8c496fa713af98801f7580a3461459579f"
+                },
+                "downloads": -1,
+                "filename": "smartninja-odm-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2e6ce7ea821fcf6bcc347f8bf865f085",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7635,
+                "upload_time": "2019-01-07T16:34:54",
+                "url": "https://files.pythonhosted.org/packages/28/ac/2fa523ed82e4d6e8c02f477b0faf4b5aea00dee00b41b2abbdaaa9afbd4b/smartninja-odm-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a836d75851df9a56ccf3510298a982b7",
+                    "sha256": "81275d72e2fcfcb061ec4feafeb91f9e0d0437c83a29358b5deaa3ee62445856"
+                },
+                "downloads": -1,
+                "filename": "smartninja-odm-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a836d75851df9a56ccf3510298a982b7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7923,
+                "upload_time": "2019-01-21T18:37:15",
+                "url": "https://files.pythonhosted.org/packages/f2/2f/56849b1563f9d1742ff0968f5788709aef8ef1a25bc7d4ccc7d9a88a0189/smartninja-odm-0.2.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3ec76136e824d3e6e24b62a46d49e281",
+                    "sha256": "5fe46ab647ce12c868ff283ddacc713afd66c25c008fe1ba5236dface9d0f194"
+                },
+                "downloads": -1,
+                "filename": "smartninja-odm-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3ec76136e824d3e6e24b62a46d49e281",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8447,
+                "upload_time": "2019-01-26T03:20:54",
+                "url": "https://files.pythonhosted.org/packages/8a/6d/cb05c19bad963cf909bc982c72e5c231ea713e8be34802daad8935122f28/smartninja-odm-0.3.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eef68577715ed40d2ee1fe490dafc225",
+                    "sha256": "d3ecdd63a253a3537f141090c634ee52bd52c3cf7fe9314cfdd53819ab4247fe"
+                },
+                "downloads": -1,
+                "filename": "smartninja-odm-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "eef68577715ed40d2ee1fe490dafc225",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8531,
+                "upload_time": "2019-01-26T20:40:30",
+                "url": "https://files.pythonhosted.org/packages/27/34/93e05b9326c05580c5c72d4a1a75a5cdc848de65111d5b0c59104e1a3211/smartninja-odm-0.4.tar.gz"
+            }
+        ],
+        "0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "56ae08384a76dce9f2d18fcb984835b6",
+                    "sha256": "826cbcb2e1ac2dcb27fad3be00dabe8848e10d2432b920560dbc7b4072490e82"
+                },
+                "downloads": -1,
+                "filename": "smartninja-odm-0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "56ae08384a76dce9f2d18fcb984835b6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8685,
+                "upload_time": "2019-01-29T22:38:16",
+                "url": "https://files.pythonhosted.org/packages/4a/18/18cda5283074d79088fac3cf32156ee907a59de61b0217c0dd9c4ce41c67/smartninja-odm-0.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "56ae08384a76dce9f2d18fcb984835b6",
+                "sha256": "826cbcb2e1ac2dcb27fad3be00dabe8848e10d2432b920560dbc7b4072490e82"
+            },
+            "downloads": -1,
+            "filename": "smartninja-odm-0.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "56ae08384a76dce9f2d18fcb984835b6",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 8685,
+            "upload_time": "2019-01-29T22:38:16",
+            "url": "https://files.pythonhosted.org/packages/4a/18/18cda5283074d79088fac3cf32156ee907a59de61b0217c0dd9c4ce41c67/smartninja-odm-0.5.tar.gz"
+        }
+    ]
+}

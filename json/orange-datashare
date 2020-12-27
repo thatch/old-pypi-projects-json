@@ -1,0 +1,607 @@
+{
+    "info": {
+        "author": "Team Datasahre",
+        "author_email": "soda.dev@orange.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Communications"
+        ],
+        "description": "Orange Datashare python client\n==========================\n\n.. image:: https://img.shields.io/pypi/v/orange-datashare.svg\n    :target: https://pypi.python.org/pypi/orange-datashare\n.. image:: https://img.shields.io/github/license/Orange-OpenSource/datashare-client-python.svg\n    :target: https://raw.githubusercontent.com/Orange-OpenSource/datashare-client-python/master/LICENSE\n\nThis library is a python client for the `orange datashare <https://developer.orange.com/apis/datashare/>`_\nIt brings:\n\n- an `api <#api>`_ to build interact with datashare api\n- a `command line interface <#cli>`_ to directly interact with datashare\n\nDependencies\n------------\n\nIt is based on:\n\n- `oauth2 client library <https://github.com/antechrestos/OAuth2Client>`_, itself based on `requests <https://pypi.python.org/pypi/requests>`_.\n\n\nInstalling\n----------\n\nFrom pip\n~~~~~~~~\n\n.. code-block:: bash\n\n\t$ pip install orange-datashare\n\nFrom sources\n~~~~~~~~~~~~\n\nTo build the library run :\n\n.. code-block:: bash\n\n\t$ python setup.py install\n\nRun the OAuth Grant code process\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nTo start using it you must create a **developer** account on the\n`orange partner platform <https://developer.orange.com/signin>`_.\nThen create an application. But beware on one things: the **redirect url** must differ from any `localhost` or local url.\nSince we want to trick it, do as follow:\n\n- pick a domain name such `http://my-own-cloud.io:8080` (**do not use https as it cannot be handled later**)\n- create the application\n- map the **domain** `my-own-cloud.io` on `localhost` in your **host file** ( `/etc/hosts` for linux,\n    `%systemroot%\\\\system32\\\\drivers\\\\etc\\\\` for windows)\n- run the following code\n\n\n.. code-block:: python\n\n    from orange_datashare.client import DatashareClient\n    # provide the client id and client secret got on your application page\n    client = DatashareClient(client_id, client_secret, ['read_indoor_temperature', 'read_connection'])\n    # in this example the redirect url  is http://myowncloud.io:8080 and /etc/hosts contains the line\n    # 127.0.0.1       myowncloud.io\n    redirect_uri = 'http://myowncloud.io:8080'\n    url_to_open = client.init_authorize_code_process(redirect_uri=redirect_uri, state='1234')\n    print 'Open this URL: %s' % url_to_open\n    # this will block until an http request performs a GET locally with code as a query parameter\n    code = client.wait_and_terminate_authorize_code_process()\n    client.init_with_authorize_code(redirect_uri=redirect_uri, code=code)\n    print 'refresh_token got %s' % api_manager.refresh_token\n\nThis will run a **local http server listening to your domain**, print an url to open. **Open it in your browser**,\nlog in using your cloud account, consent the access for your application.\nYou will be then redirected to your **local http server**. The code will be then extracted and exchanged for a token.\nYou can save your `refresh token`. Next time you can instantiate the `ApiManager` as follows:\n\n.. code-block:: python\n\n    client = DatashareClient(client_id, client_secret, ['read_indoor_temperature', 'read_connection'])\n    api_manager.init_with_token(refresh_token)\n\nYou are now fully able to use the api.\n\nAPI\n---\n\nThe api brings the following *domains*.\n\n- `connection`: this API will allows you to manage connection.\n- `device`: this API will allows you to manage devices of connection.\n- `subscription`: this API will allows you to manage your subscriptions\n- `data`: with this API you will be allowed to query the data of your devices\n- `deprecated_data`: with this API you will be allowed to query the data of your devices with old format\n- `command`:  this API here to send command on light and thermostat devices\n\nTo get some example, take a look at the tests\n\nCommand Line interface\n----------------------\n\nTo run the client, enter the following command :\n\n.. code-block:: bash\n\n\t$ orange_datashare\n\nAt first execution, it will ask you questions.\nPlease note that your credentials won't be saved on your disk: only tokens will be kept for further use.\n\nLicense\n-------\n\n`BSD 3-clause <https://raw.githubusercontent.com/Orange-OpenSource/datashare-client-python/master/LICENSE>`_\n\n\nIssues and contributions\n------------------------\n\nPlease submit issue/pull request.\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/datashare/client-python",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "orange-datashare",
+        "package_url": "https://pypi.org/project/orange-datashare/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/orange-datashare/",
+        "project_urls": {
+            "Homepage": "http://github.com/datashare/client-python"
+        },
+        "release_url": "https://pypi.org/project/orange-datashare/1.5.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A client library for Orange Datashare",
+        "version": "1.5.0"
+    },
+    "last_serial": 4563089,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "96720fd57fefdfa91a823a3ed51a1371",
+                    "sha256": "34aa6f27de7abe5fc61e785bedf9218120ab65a918bc1be34d85c7f8b4d3e669"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "96720fd57fefdfa91a823a3ed51a1371",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10751,
+                "upload_time": "2017-02-24T10:27:04",
+                "upload_time_iso_8601": "2017-02-24T10:27:04.884404Z",
+                "url": "https://files.pythonhosted.org/packages/67/c4/4cb27ea595b7fbc79b6d2ce8f2a1cadc661dc0e8054b4110ce12557eb582/orange-datashare-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.0b1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eb246ebdc34aacfd5321eb0847cf4b74",
+                    "sha256": "0f63caa855daafe0a80399b921eed28f0e0c5be06ae66b55c0cd7104a4d9b57d"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "eb246ebdc34aacfd5321eb0847cf4b74",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9986,
+                "upload_time": "2017-01-05T09:48:57",
+                "upload_time_iso_8601": "2017-01-05T09:48:57.934939Z",
+                "url": "https://files.pythonhosted.org/packages/6b/3a/dbbe83d097e1a7ab51fb5ea417f8c75ba6c7eeb86d52a5e521cf8fe52e38/orange-datashare-1.0.0b1.tar.gz"
+            }
+        ],
+        "1.0.0b10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b9a70a7fec64adbf34a9de9d5f1cc35a",
+                    "sha256": "c82cdf1617e7c0069520101428bd885d720c064c9a83a1e361086bfefcb88c8b"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b9a70a7fec64adbf34a9de9d5f1cc35a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10488,
+                "upload_time": "2017-01-16T13:32:13",
+                "upload_time_iso_8601": "2017-01-16T13:32:13.187512Z",
+                "url": "https://files.pythonhosted.org/packages/22/7b/35196d0e9ea4f8935d8b95fdc468289980a43b5eded7d6fbe0869d2a9214/orange-datashare-1.0.0b10.tar.gz"
+            }
+        ],
+        "1.0.0b11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b69c0d106e19ee91269b923a01c8c131",
+                    "sha256": "7fe26d053ea96e4df3a7f81eb906d479ab0cf2817e7be215517e407067a9bdec"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b69c0d106e19ee91269b923a01c8c131",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10643,
+                "upload_time": "2017-01-17T14:21:30",
+                "upload_time_iso_8601": "2017-01-17T14:21:30.575749Z",
+                "url": "https://files.pythonhosted.org/packages/5f/6d/30dbd56e939db750510ef35e43fe772e18f8e114f140ce3ae386975027bc/orange-datashare-1.0.0b11.tar.gz"
+            }
+        ],
+        "1.0.0b12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "431c3536900292ae0722cda36d7e0231",
+                    "sha256": "83a17e18dd06f944713565092b8d05580759f82cbb11fdeaf75c578f71b7d41a"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "431c3536900292ae0722cda36d7e0231",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10665,
+                "upload_time": "2017-01-17T15:47:12",
+                "upload_time_iso_8601": "2017-01-17T15:47:12.591731Z",
+                "url": "https://files.pythonhosted.org/packages/5b/0d/96c1da590b4692b08cd69c941c3e10fe25405b00f0764d6f2757b935d43a/orange-datashare-1.0.0b12.tar.gz"
+            }
+        ],
+        "1.0.0b13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f0172082fd774aaedcc0468032b1d0f",
+                    "sha256": "4f8918cc7670cdc97c075288cc394b0b192e4e64157347ead6ab1d77d9f4e114"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3f0172082fd774aaedcc0468032b1d0f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10673,
+                "upload_time": "2017-01-18T08:56:51",
+                "upload_time_iso_8601": "2017-01-18T08:56:51.073705Z",
+                "url": "https://files.pythonhosted.org/packages/7b/a1/c9f4d9e26711f747e3aa1a651c7c9a263bd2d3a84b127f5d7121416a5e84/orange-datashare-1.0.0b13.tar.gz"
+            }
+        ],
+        "1.0.0b14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c8c6891a329d3911948cd5b7ba9a679",
+                    "sha256": "77980ad3389124482ae5dc6e2b7bc0cf38d14a1fe0985e92ca29fcfce3418a67"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8c8c6891a329d3911948cd5b7ba9a679",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10765,
+                "upload_time": "2017-01-18T10:48:44",
+                "upload_time_iso_8601": "2017-01-18T10:48:44.095525Z",
+                "url": "https://files.pythonhosted.org/packages/6b/a4/bca27bc2d87eb20023450ba354bfbc8b4ac4cf376341d281292b489e9197/orange-datashare-1.0.0b14.tar.gz"
+            }
+        ],
+        "1.0.0b15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a94439a744e814917556ba72af78900d",
+                    "sha256": "438e83da9a7a1aec1ab63f26c1afcb28798f4fb9d0bc902bd34f3cc7191314d9"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a94439a744e814917556ba72af78900d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10793,
+                "upload_time": "2017-01-24T10:00:42",
+                "upload_time_iso_8601": "2017-01-24T10:00:42.099074Z",
+                "url": "https://files.pythonhosted.org/packages/04/ff/2e2fbbe603cda682af24e7bd9751fe8502eff7bbbf0f5acf276ba306db9b/orange-datashare-1.0.0b15.tar.gz"
+            }
+        ],
+        "1.0.0b16": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "766baa5e8ef7f5cb8d0a3093bc31c910",
+                    "sha256": "9596637c893fa43d7364f2b6fe2a5919e3fde1fcb57ba08ac89d640a2bf9b01d"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b16.tar.gz",
+                "has_sig": false,
+                "md5_digest": "766baa5e8ef7f5cb8d0a3093bc31c910",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10752,
+                "upload_time": "2017-01-26T10:43:22",
+                "upload_time_iso_8601": "2017-01-26T10:43:22.771538Z",
+                "url": "https://files.pythonhosted.org/packages/4d/bf/ca39138876ad138e8bfc552ebc8f371a91da5c33bc1d718b29f315b07949/orange-datashare-1.0.0b16.tar.gz"
+            }
+        ],
+        "1.0.0b2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e36cd33bf2410193285d012da6d46b5f",
+                    "sha256": "794a27fd048deaf66b0c7106035481432ce97995d5c78be0aff26b155f357d78"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e36cd33bf2410193285d012da6d46b5f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9838,
+                "upload_time": "2017-01-05T10:34:13",
+                "upload_time_iso_8601": "2017-01-05T10:34:13.625886Z",
+                "url": "https://files.pythonhosted.org/packages/ed/eb/a667e7c108e7e233554a9b722076382cc41f8fdc18b3c73bd4c8bc61976d/orange-datashare-1.0.0b2.tar.gz"
+            }
+        ],
+        "1.0.0b3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1c6978162971262ce036e1f9d8246ba",
+                    "sha256": "aaadd089078293efa797e029b23a03b916cf00dc4f3406f30230a5313c98374a"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d1c6978162971262ce036e1f9d8246ba",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9816,
+                "upload_time": "2017-01-05T10:37:02",
+                "upload_time_iso_8601": "2017-01-05T10:37:02.015804Z",
+                "url": "https://files.pythonhosted.org/packages/62/38/8c87eac5ba5af50d0de28ea4451d39cc3c23a17eb8d64d13aff2fa65a23e/orange-datashare-1.0.0b3.tar.gz"
+            }
+        ],
+        "1.0.0b4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "56350699b267f381170da1e579a46169",
+                    "sha256": "af34e28ad3b8ae6bd388a18b003edaa4e6a14580c0aba62f58b722e6f149e6dc"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "56350699b267f381170da1e579a46169",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9812,
+                "upload_time": "2017-01-05T10:39:08",
+                "upload_time_iso_8601": "2017-01-05T10:39:08.180305Z",
+                "url": "https://files.pythonhosted.org/packages/4e/54/b0c7d26faba281ac1b102489de8edf6757265b81751ff8fe20aa026ec256/orange-datashare-1.0.0b4.tar.gz"
+            }
+        ],
+        "1.0.0b5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "75a47cb9adca96f4efb96b4834a8e836",
+                    "sha256": "fd3babba642a7bd14679b43eef389206a07c1f1305765378c7459293aeab167d"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "75a47cb9adca96f4efb96b4834a8e836",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10150,
+                "upload_time": "2017-01-05T11:16:25",
+                "upload_time_iso_8601": "2017-01-05T11:16:25.739171Z",
+                "url": "https://files.pythonhosted.org/packages/a0/03/1685969c94e11cf6f39a9d9349af27e4bfb92506c435a61074b61db04fa7/orange-datashare-1.0.0b5.tar.gz"
+            }
+        ],
+        "1.0.0b6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "92810764c55ce4d7a9d319dabbca0441",
+                    "sha256": "0f708315f6b60fd36da0fefb87b5383e2574a5832311e7edcfd708c138fdce3f"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "92810764c55ce4d7a9d319dabbca0441",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10266,
+                "upload_time": "2017-01-05T15:10:19",
+                "upload_time_iso_8601": "2017-01-05T15:10:19.818450Z",
+                "url": "https://files.pythonhosted.org/packages/09/f8/eb404cb2fe42ec712a9fc7d69c8808bf061effba4db825eedf6ef9a945bc/orange-datashare-1.0.0b6.tar.gz"
+            }
+        ],
+        "1.0.0b7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f02d3f10bef04c93109ee681dc14d60",
+                    "sha256": "628f213b4edef4eed531084c3e299077677cea2dd645066e68c64f406ef507b7"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8f02d3f10bef04c93109ee681dc14d60",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10255,
+                "upload_time": "2017-01-05T16:24:01",
+                "upload_time_iso_8601": "2017-01-05T16:24:01.434876Z",
+                "url": "https://files.pythonhosted.org/packages/56/b3/b74bf2dae522f2c9de089be6a4dbb775effcb5c436d619f120bc3d9542f0/orange-datashare-1.0.0b7.tar.gz"
+            }
+        ],
+        "1.0.0b8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3ec5438f17863c7e8dcd9b01dd73a24",
+                    "sha256": "ccc4f32926c64f7acb091cf8d2dfbdffffa334a7c30d7f8efc7af73065875a27"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c3ec5438f17863c7e8dcd9b01dd73a24",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10246,
+                "upload_time": "2017-01-05T16:36:13",
+                "upload_time_iso_8601": "2017-01-05T16:36:13.298554Z",
+                "url": "https://files.pythonhosted.org/packages/19/3c/9ba37dfcbfb5840828ae34999f47dc1b82ed6297408423f3b646d3a1237d/orange-datashare-1.0.0b8.tar.gz"
+            }
+        ],
+        "1.0.0b9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc32495003aee954556eae55d0db75ef",
+                    "sha256": "a90de621f5c935461463c5cd837ad1b6348175aa0fff7ae1084ff6d601eb97b3"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.0b9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dc32495003aee954556eae55d0db75ef",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10448,
+                "upload_time": "2017-01-13T08:21:17",
+                "upload_time_iso_8601": "2017-01-13T08:21:17.800971Z",
+                "url": "https://files.pythonhosted.org/packages/8e/62/853f013cb7392712283df5b96a6cb725561d8996592eba8507984ebebce4/orange-datashare-1.0.0b9.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6b10cefecbe079d97dad26d17ccc81ce",
+                    "sha256": "352b9ec5cf9b73bac9029be3207ead3d701c745ee509ac8383935882a99cd7d1"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6b10cefecbe079d97dad26d17ccc81ce",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10847,
+                "upload_time": "2017-02-24T15:35:21",
+                "upload_time_iso_8601": "2017-02-24T15:35:21.426777Z",
+                "url": "https://files.pythonhosted.org/packages/40/96/894a8a382ede97205019e33c4e38e35ba3759d1bbabf5739ae62d1f87ad3/orange-datashare-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "01b817188782c65060d6ca50db394e58",
+                    "sha256": "2e0a37a7464ac82e9dcb3567d6ec2b5ed8e7f294d2e87aa780d0fed0ed878fb6"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "01b817188782c65060d6ca50db394e58",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10856,
+                "upload_time": "2017-02-27T15:04:24",
+                "upload_time_iso_8601": "2017-02-27T15:04:24.620439Z",
+                "url": "https://files.pythonhosted.org/packages/90/5a/3de70846574dd29cf24e30f09bb106261edf96c68589fc01b48af1065e88/orange-datashare-1.0.2.tar.gz"
+            }
+        ],
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e357cd301d9bc3860111024c653d151",
+                    "sha256": "0150b608a0cbeec26183d5df22a3d93761e5d0bde56254151cb793869e2c360a"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3e357cd301d9bc3860111024c653d151",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11131,
+                "upload_time": "2017-03-07T16:48:39",
+                "upload_time_iso_8601": "2017-03-07T16:48:39.141156Z",
+                "url": "https://files.pythonhosted.org/packages/2d/ea/a8ce8f7611403adb6f582f8b7f969288231051e38556c552d749ac3bdc8e/orange-datashare-1.1.0.tar.gz"
+            }
+        ],
+        "1.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4fd4d09708a516db0a90d443d423453a",
+                    "sha256": "0c2ba946b9c406467443a01e7e8431f35b62c33e3a35e7b43ec2822ecbcd4b86"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4fd4d09708a516db0a90d443d423453a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11129,
+                "upload_time": "2017-03-07T16:50:12",
+                "upload_time_iso_8601": "2017-03-07T16:50:12.074032Z",
+                "url": "https://files.pythonhosted.org/packages/5f/dd/d6b3aec4f53ecb376480f1f36b15ea32d10d2a6856bb3abf9f303930fe59/orange-datashare-1.1.1.tar.gz"
+            }
+        ],
+        "1.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e14e185dca35845e4fbafbe4fc6f86ff",
+                    "sha256": "def3f0b8fa38b4fa1f07d5325e09b56bea7036eebbd2b13fa2e428fe7c3680c1"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e14e185dca35845e4fbafbe4fc6f86ff",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11335,
+                "upload_time": "2017-03-24T13:05:59",
+                "upload_time_iso_8601": "2017-03-24T13:05:59.968387Z",
+                "url": "https://files.pythonhosted.org/packages/92/49/6f87dd004f93bbbe042e89b9a4f3658d1816cab48ff8761bc56fcfb0d71b/orange-datashare-1.2.0.tar.gz"
+            }
+        ],
+        "1.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e3ca3b8b429294e688fca1058fe6fbc",
+                    "sha256": "e41ee572aa3b6c0b5b6c627ac08fb121c3a1f588ca5d446e9603cf42842b599d"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8e3ca3b8b429294e688fca1058fe6fbc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11730,
+                "upload_time": "2017-08-11T15:15:14",
+                "upload_time_iso_8601": "2017-08-11T15:15:14.066537Z",
+                "url": "https://files.pythonhosted.org/packages/3e/22/a4c89424bb369c822803a8770eccb4e7cd4924727b979f9bf7770e097a7f/orange-datashare-1.3.0.tar.gz"
+            }
+        ],
+        "1.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "45b9c6336b2770bb7bcb2be31830fa23",
+                    "sha256": "69e0c3c3e568ea9517b354f74d1d68b0d215b970db6680128e6c1bf1e9303872"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "45b9c6336b2770bb7bcb2be31830fa23",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11750,
+                "upload_time": "2017-08-28T12:59:12",
+                "upload_time_iso_8601": "2017-08-28T12:59:12.158150Z",
+                "url": "https://files.pythonhosted.org/packages/84/b5/54e9adf215163be3628abf4549290c6d975b4aa9702b2076c1159ad75944/orange-datashare-1.3.1.tar.gz"
+            }
+        ],
+        "1.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ea34bc6e5ce1e580d4d39ed0c4f2c02c",
+                    "sha256": "e862899088c8c221809bf5c93d005aca54f384415ec12ec6c8e4bb5b25d901b6"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ea34bc6e5ce1e580d4d39ed0c4f2c02c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11745,
+                "upload_time": "2017-10-12T08:54:22",
+                "upload_time_iso_8601": "2017-10-12T08:54:22.652360Z",
+                "url": "https://files.pythonhosted.org/packages/2d/88/ee95ad424be3646c09c44b082481d8c08058009d97907ecfc94065e8f71e/orange-datashare-1.3.2.tar.gz"
+            }
+        ],
+        "1.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "43bd09f64bda039381e8dee938eb9584",
+                    "sha256": "24c2df1554a08262d700fa6c970d085597bdfb125593c17387a2fe6604d16576"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "43bd09f64bda039381e8dee938eb9584",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12288,
+                "upload_time": "2018-02-08T14:01:40",
+                "upload_time_iso_8601": "2018-02-08T14:01:40.333202Z",
+                "url": "https://files.pythonhosted.org/packages/88/fb/00cf3f7c18a2ed5e9d463dd6e84609ac8320e8f990218b90d42f4680661e/orange-datashare-1.4.0.tar.gz"
+            }
+        ],
+        "1.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8827c221f6724c5eeded4be058135ee2",
+                    "sha256": "e929d622bdfef8a456b507be5dea90d207801d17fc7dcb5403fa5a9068cb7951"
+                },
+                "downloads": -1,
+                "filename": "orange-datashare-1.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8827c221f6724c5eeded4be058135ee2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12281,
+                "upload_time": "2018-12-05T09:24:12",
+                "upload_time_iso_8601": "2018-12-05T09:24:12.154036Z",
+                "url": "https://files.pythonhosted.org/packages/ea/bc/588b18ea1aaf5bf46f42f8205f6ccd5c0989bb86ad6455d32a3f1dd949ff/orange-datashare-1.5.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8827c221f6724c5eeded4be058135ee2",
+                "sha256": "e929d622bdfef8a456b507be5dea90d207801d17fc7dcb5403fa5a9068cb7951"
+            },
+            "downloads": -1,
+            "filename": "orange-datashare-1.5.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8827c221f6724c5eeded4be058135ee2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12281,
+            "upload_time": "2018-12-05T09:24:12",
+            "upload_time_iso_8601": "2018-12-05T09:24:12.154036Z",
+            "url": "https://files.pythonhosted.org/packages/ea/bc/588b18ea1aaf5bf46f42f8205f6ccd5c0989bb86ad6455d32a3f1dd949ff/orange-datashare-1.5.0.tar.gz"
+        }
+    ]
+}

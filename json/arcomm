@@ -1,0 +1,355 @@
+{
+    "info": {
+        "author": "Jesse R. Mather",
+        "author_email": "jmather@arista.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: Information Technology",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Software Development :: Testing",
+            "Topic :: Terminals"
+        ],
+        "description": "ArComm: Remote Control for Aristas\n==================================\n\n.. image:: https://img.shields.io/pypi/v/arcomm.svg\n    :target: https://pypi.python.org/pypi/arcomm\n\n.. image:: https://img.shields.io/pypi/dm/arcomm.svg\n    :target: https://pypi.python.org/pypi/arcomm\n\nEnable communications with Arista switches using a simple API or command line\nutility\n\n.. code-block:: python\n\n    >>> responses = arcomm.execute('eapi+https://admin@vswitch1', ['show clock', 'show version'])\n    >>> print responses.to_yaml()\n    host: vswitch1\n    status: ok\n    commands:\n      - command: show clock\n        output: |\n          Tue Feb  9 06:04:42 2016\n          Timezone: UTC\n          Clock source: local\n\nFeatures\n--------\n\n- Factory defaults: works with new switches (mgmt IP required...)\n- Switching between protocols\n- Multi-processing for batch and background operations\n- Command line utility\n- JSON encoding w/ eapi\n\nInstallation\n------------\n\n.. code-block:: bash\n\n    pip install -U arcomm\n\nor\n\n.. code-block:: bash\n\n    git clone https://github.com/aristanetworks/arcomm.git\n    cd arcomm\n    python setup.py install\n\nNote: Jinja2 is required for templating\n\n.. code-block:: bash\n\n    pip install jinja2\n\n\nDevelopment\n-----------\n\n* Install Vagrant from http://www.vagrantup.com\n\n.. code-block:: bash\n\n    git clone https://github.com/aristanetworks/arcomm.git\n    cd arcomm\n    vagrant up\n    vagrant ssh\n\nConsole Usage\n-------------\n\n.. code-block:: bash\n\n    $ arcomm -h\n    usage: arcomm [-h] [-v] [--protocol PROTOCOL] [--encoding {json,text}]\n              [-u USERNAME] [-p PASSWORD] [--authorize]\n              [-a AUTHORIZE_PASSWORD] [-t TIMEOUT] [--hosts-file HOSTS_FILE]\n              [--script SCRIPT] [--variables VARIABLES]\n              [endpoints [endpoints ...]]\n\n    positional arguments:\n    endpoints\n\n    optional arguments:\n    -h, --help            show this help message and exit\n    -v, --version         Display version info\n    --protocol PROTOCOL   Set the default protocol or protocols. If more than\n                        one is supplied, they will be tried in order\n    --encoding {json,text}\n                        Control output formatting\n    -u USERNAME, --username USERNAME\n                        Specifies the username on the switch\n    -p PASSWORD, --password PASSWORD\n                        Specifies users password. If not supplied, the user\n                        will be prompted\n    --authorize\n    -a AUTHORIZE_PASSWORD, --authorize-password AUTHORIZE_PASSWORD\n                        Use if a password is needed for elevated prvilges\n    -t TIMEOUT, --timeout TIMEOUT\n                        Change the timeout from the default of 30 seconds\n    --hosts-file HOSTS_FILE\n                        Path to file containing list of hosts\n    --script SCRIPT       Path to a script file containing commands to execute.\n                        template variables will be processed if Jinja2 is\n                        installed and `--variables` is also supplied on the\n                        command line\n    --variables VARIABLES\n                        Replacements for template variables in script file\n                        (must be JSON formatted)\n\nConsole Example\n---------------\n\n\n.. code-block:: bash\n\n    $ arcomm veos\n    Enter commands (one per line).\n    Enter '.' alone to send or 'Crtl-C' to quit.\n    > show version\n    > .\n    ---\n    host: veos\n    status: ok\n    commands:\n    - command: show version\n    output: |\n      Arista vEOS\n      Hardware version:\n      Serial number:\n      System MAC address:  0800.2776.48c5\n\n      Software image version: 4.15.2F\n      Architecture:           i386\n      Internal build version: 4.15.2F-2663444.4152F\n      Internal build ID:      0ebbad93-563f-4920-8ecb-731057802b9c\n\n      Uptime:                 13 hours and 38 minutes\n      Total memory:           1897596 kB\n      Free memory:            158892 kB\n\n    ...\n\nor pipe in the commands...\n\n\n.. code-block:: bash\n\n    $ echo \"show version\" | arcomm veos\n    ---\n    host: veos\n    status: ok\n    commands:\n    - command: show version\n    output: |\n      Arista vEOS\n      Hardware version:\n      Serial number:\n      System MAC address:  0800.2776.48c5\n\n      Software image version: 4.15.2F\n      Architecture:           i386\n      Internal build version: 4.15.2F-2663444.4152F\n      Internal build ID:      0ebbad93-563f-4920-8ecb-731057802b9c\n\n      Uptime:                 13 hours and 39 minutes\n      Total memory:           1897596 kB\n      Free memory:            158644 kB\n\n    ...\n\neven multiple hosts in parallel...\n\n.. code-block:: bash\n\n    $ echo \"show clock\" | arcomm vswitch1 vswitch2\n    ---\n    host: vswitch1\n    status: ok\n    commands:\n    - command: show clock\n    output: |\n      Mon Nov 30 16:24:07 2015\n      Timezone: UTC\n      Clock source: local\n    ---\n    host: vswitch2\n    status: ok\n    commands:\n    - command: show clock\n    output: |\n      Mon Nov 30 16:23:18 2015\n      Timezone: UTC\n      Clock source: local\n    ...\n\nMultiple Switch Upgrade w/ Script Example\n------------------------------------------\n\nContents of upgrade script file:\n\n.. code-block:: bash\n\n    $ cat sw-upgrade.script\n    ! script will stop here if file is not found.\n    dir flash:{{image}}\n    show ip interface brief\n    configure\n      boot system flash:{{image}}\n    end\n    show boot-config\n\nCommand-line w/ --variables argument:\n\n.. code-block:: bash\n\n    $ cat scaffolding/sw-upgrade.script | arcomm veos \\\n        --variables='{\"image\": \"vEOS-4.15.2F.swi\"}'\n    ---\n    host: veos\n    status: ok\n    commands:\n    - command: dir flash:vEOS-4.15.2F.swi\n    output: |\n      Directory of flash:/vEOS-4.15.2F.swi\n\n             -rwx   247919507           Oct 15 18:20  vEOS-4.15.2F.swi\n\n      1907843072 bytes total (1168683008 bytes free)\n    - command: show ip interface brief\n    output: |\n      Interface              IP Address         Status     Protocol         MTU\n      Ethernet1              unassigned         up         up              1500\n      Ethernet2              unassigned         up         up              1500\n      Ethernet3              unassigned         up         up              1500\n      Loopback0              1.1.1.1/32         up         up             65535\n      Management1            192.168.56.21/24   up         up              1500\n    - command: configure\n    output: |\n\n    - command: boot system flash:vEOS-4.15.2F.swi\n    output: |\n\n    - command: end\n    output: |\n\n    - command: show boot-config\n    output: |\n      Software image: flash:/vEOS-4.15.2F.swi\n      Console speed: (not set)\n      Aboot password (encrypted): (not set)\n      Memory test iterations: (not set)\n    ...\n\nAPI Usage\n---------\n\n.. code-block:: python\n\n    >>> import arcomm\n\n    >>> conn = arcomm.connect('veos', creds=arcomm.BasicCreds('admin', ''),\n        protocol='eapi+http')\n\n    >>> responses = conn.execute(['show clock', 'show version'])\n\n    >>> for resp in responses:\n    ...     resp.output\n    ...\n    Mon Nov 16 04:49:41 2015\n    Timezone: UTC\n    Clock source: local\n\n    Arista vEOS\n    Hardware version:\n    Serial number:\n    System MAC address:  0800.2776.48c5\n\n    Software image version: 4.15.2F\n    Architecture:           i386\n    Internal build version: 4.15.2F-2663444.4152F\n    Internal build ID:      0ebbad93-563f-4920-8ecb-731057802b9c\n\n    Uptime:                 23 hours and 17 minutes\n    Total memory:           1897596 kB\n    Free memory:            121844 kB\n\n    >>> responses = conn.execute(['show version'], encoding='json')\n    >>> for resp in responses:\n    ...     resp.output\n    ...\n    {u'memTotal': 1897596, u'version': u'4.15.2F',\n    u'internalVersion': u'4.15.2F-2663444.4152F', u'serialNumber': u'',\n    u'systemMacAddress': u'08:00:27:76:48:c5',\n    u'bootupTimestamp': 1447565515.19, u'memFree': 121952,\n    u'modelName': u'vEOS', u'architecture': u'i386',\n    u'internalBuildId': u'0ebbad93-563f-4920-8ecb-731057802b9c',\n    u'hardwareRevision': u''}",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/aristanetworks/arcomm",
+        "keywords": "arista,eapi,ssh",
+        "license": "MIT License",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "arcomm",
+        "package_url": "https://pypi.org/project/arcomm/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/arcomm/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/aristanetworks/arcomm"
+        },
+        "release_url": "https://pypi.org/project/arcomm/2.1.0/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Library for connecting to Arista switches",
+        "version": "2.1.0"
+    },
+    "last_serial": 2266932,
+    "releases": {
+        "2.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "007c5ff365041a42cbe338ed13d28450",
+                    "sha256": "7f7eabd1b8fe59fc2375bbe1582a8246924a747c41b1ff933a44bd83cd84a4f1"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "007c5ff365041a42cbe338ed13d28450",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 24456,
+                "upload_time": "2016-01-19T18:02:54",
+                "upload_time_iso_8601": "2016-01-19T18:02:54.884241Z",
+                "url": "https://files.pythonhosted.org/packages/f3/06/9df3182e22abe67817f614c014fc6258ac03d4f07e1317545d0adca8d519/arcomm-2.0.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "65daabc272daf8d4fba3f2b426e683dc",
+                    "sha256": "ba1bb12aa5b96b2e79c45994300c701a61d7659c834b8fc28f9f030337c00c2f"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "65daabc272daf8d4fba3f2b426e683dc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20273,
+                "upload_time": "2016-01-19T18:02:21",
+                "upload_time_iso_8601": "2016-01-19T18:02:21.127706Z",
+                "url": "https://files.pythonhosted.org/packages/39/93/04159be7bd91549b7d3b14fca3fd7c31fe94ec2e0c2bcfb79241a7497a32/arcomm-2.0.0.tar.gz"
+            }
+        ],
+        "2.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "279f7bed10e47e45d0d8ec2ccb7a0727",
+                    "sha256": "9e52b2df26514edfbaea7734435e15cf3303fcb717fc71ff43a0866568b040a3"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "279f7bed10e47e45d0d8ec2ccb7a0727",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 24756,
+                "upload_time": "2016-01-19T18:12:08",
+                "upload_time_iso_8601": "2016-01-19T18:12:08.916388Z",
+                "url": "https://files.pythonhosted.org/packages/1e/ce/38c28cc550799d4f730d18fb8bfc14d32e5eb1eac1fd38c16a3fd94c183a/arcomm-2.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3a4845f56ffb394cbac79d77be4edf6",
+                    "sha256": "ab4f1814ebc6238d686578f4273299ce3f5551b1d54a628c77f4cf662157a334"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c3a4845f56ffb394cbac79d77be4edf6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20350,
+                "upload_time": "2016-01-19T18:11:57",
+                "upload_time_iso_8601": "2016-01-19T18:11:57.940810Z",
+                "url": "https://files.pythonhosted.org/packages/22/2f/c587d05b21eb483c87aa58d13c19653eaa8cdae0550780ed5da0928f1220/arcomm-2.0.1.tar.gz"
+            }
+        ],
+        "2.0.2": [],
+        "2.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fafb872ad834b3d3635c06582b55d504",
+                    "sha256": "45d904f54233c41fb4f7c55feda4a5a62b4866cde267ef735f1506a7067612fd"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fafb872ad834b3d3635c06582b55d504",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 24757,
+                "upload_time": "2016-01-20T19:42:18",
+                "upload_time_iso_8601": "2016-01-20T19:42:18.895077Z",
+                "url": "https://files.pythonhosted.org/packages/23/dd/6eaab9afe43dd2c5aa755cf316168fc62b870288c4694881f9563f4519d0/arcomm-2.0.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e0e6e5a87e19bbc025a6dff626e5c8a1",
+                    "sha256": "5c083392adc5f691a01bfe34412957053a09351b585b73a9521b5871c2d53855"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e0e6e5a87e19bbc025a6dff626e5c8a1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20341,
+                "upload_time": "2016-01-20T19:41:48",
+                "upload_time_iso_8601": "2016-01-20T19:41:48.325218Z",
+                "url": "https://files.pythonhosted.org/packages/a9/b6/7ea26b2dfc01b02dc5d9c51810c36cf526df6f5ab80ac5db5b012e1e206b/arcomm-2.0.3.tar.gz"
+            }
+        ],
+        "2.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e70fc0a3349650a29e333c4d31e0484a",
+                    "sha256": "91ea813af3ab2afb8e96f46c825a131e457da29ff0174c245c11dd9102e986e8"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e70fc0a3349650a29e333c4d31e0484a",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 24739,
+                "upload_time": "2016-01-21T03:54:23",
+                "upload_time_iso_8601": "2016-01-21T03:54:23.982642Z",
+                "url": "https://files.pythonhosted.org/packages/b5/c3/3399e9cbbed833d79a7f9cc78909ef41f8b5998e42cb7f2e3fafd66cd06b/arcomm-2.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d2fe9b4f3507d153adfbb64160977d22",
+                    "sha256": "057ee1adc137119738770a5fbd982efe68d222a02efe9447416a5b54d2137805"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d2fe9b4f3507d153adfbb64160977d22",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20347,
+                "upload_time": "2016-01-21T03:54:16",
+                "upload_time_iso_8601": "2016-01-21T03:54:16.810362Z",
+                "url": "https://files.pythonhosted.org/packages/f7/c9/c955f4e35b88ae80679fba5a9b3aa22d4c9fa6abd092037a38629fa33976/arcomm-2.0.4.tar.gz"
+            }
+        ],
+        "2.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4c5420a69fc8dae4ac1f86f888e4f1ff",
+                    "sha256": "5de4d951c4f519abf4c49782ca47c03615a779e25be21770f3643874523b8d17"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.7-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4c5420a69fc8dae4ac1f86f888e4f1ff",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 25811,
+                "upload_time": "2016-03-03T22:31:29",
+                "upload_time_iso_8601": "2016-03-03T22:31:29.114586Z",
+                "url": "https://files.pythonhosted.org/packages/3e/45/89af2743596b373a676b1f5d38d90f2a9e0b0baa72c0750de467185639ad/arcomm-2.0.7-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "850bd008af12db50f3412963aab931d5",
+                    "sha256": "87d319fbdfee8f0568f52092ab0d53c9f2c2c7ad6a04a5897cc4cc5eb9412771"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "850bd008af12db50f3412963aab931d5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20270,
+                "upload_time": "2016-03-03T22:31:22",
+                "upload_time_iso_8601": "2016-03-03T22:31:22.014521Z",
+                "url": "https://files.pythonhosted.org/packages/de/07/d827511bcf433d3cddc8bf49b76775e9caa377d4c408169adc8ea3a24b2b/arcomm-2.0.7.tar.gz"
+            }
+        ],
+        "2.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "db6557b929d545e74e825cfd8df447c0",
+                    "sha256": "8d58173916d398a07ddfbe146b13df10f87f1c9d7bcf4668142fde741509b10d"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.8-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "db6557b929d545e74e825cfd8df447c0",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 27530,
+                "upload_time": "2016-07-27T03:29:03",
+                "upload_time_iso_8601": "2016-07-27T03:29:03.888834Z",
+                "url": "https://files.pythonhosted.org/packages/61/76/4976a8221116e59508128be2e6be8668d26a4951620721449f1962522a2b/arcomm-2.0.8-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c1921d8d4683b2ee72a0043e82a85ad9",
+                    "sha256": "67542140518a6bcd868a769151d5a90576bf4ea93818d5c876c2bb226e7c9754"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c1921d8d4683b2ee72a0043e82a85ad9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22931,
+                "upload_time": "2016-07-27T03:29:01",
+                "upload_time_iso_8601": "2016-07-27T03:29:01.174997Z",
+                "url": "https://files.pythonhosted.org/packages/ff/11/bec212ad3c02e1c94704070705db6849fac01004fc5836b4251cc2fbc785/arcomm-2.0.8.tar.gz"
+            }
+        ],
+        "2.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e9f93b6ac105f292a15ecfdc08efef2",
+                    "sha256": "d5b399fb5a296fb68a60ab755e48474a1ff5c6fc09f05b34facfc256a6ea2afb"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.1.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3e9f93b6ac105f292a15ecfdc08efef2",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 27873,
+                "upload_time": "2016-08-07T18:35:26",
+                "upload_time_iso_8601": "2016-08-07T18:35:26.191729Z",
+                "url": "https://files.pythonhosted.org/packages/a2/df/ed5c1f30e846d8109e914ce5037559dcba42574a92e1f4cec11fcfbd9fdc/arcomm-2.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "165f1c1614452a68c03a8590bf1a2a32",
+                    "sha256": "524d3a7a789bf6e2ca255e5d94f0be97f02a62b9efbd13b4969efe77ca75a5f8"
+                },
+                "downloads": -1,
+                "filename": "arcomm-2.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "165f1c1614452a68c03a8590bf1a2a32",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20960,
+                "upload_time": "2016-08-07T18:35:23",
+                "upload_time_iso_8601": "2016-08-07T18:35:23.148649Z",
+                "url": "https://files.pythonhosted.org/packages/fd/65/f83851ece07bba4c6abd9d29a84455191852b9ea9612ccfc67fcdbdb5c1a/arcomm-2.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3e9f93b6ac105f292a15ecfdc08efef2",
+                "sha256": "d5b399fb5a296fb68a60ab755e48474a1ff5c6fc09f05b34facfc256a6ea2afb"
+            },
+            "downloads": -1,
+            "filename": "arcomm-2.1.0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "3e9f93b6ac105f292a15ecfdc08efef2",
+            "packagetype": "bdist_wheel",
+            "python_version": "2.7",
+            "requires_python": null,
+            "size": 27873,
+            "upload_time": "2016-08-07T18:35:26",
+            "upload_time_iso_8601": "2016-08-07T18:35:26.191729Z",
+            "url": "https://files.pythonhosted.org/packages/a2/df/ed5c1f30e846d8109e914ce5037559dcba42574a92e1f4cec11fcfbd9fdc/arcomm-2.1.0-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "165f1c1614452a68c03a8590bf1a2a32",
+                "sha256": "524d3a7a789bf6e2ca255e5d94f0be97f02a62b9efbd13b4969efe77ca75a5f8"
+            },
+            "downloads": -1,
+            "filename": "arcomm-2.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "165f1c1614452a68c03a8590bf1a2a32",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 20960,
+            "upload_time": "2016-08-07T18:35:23",
+            "upload_time_iso_8601": "2016-08-07T18:35:23.148649Z",
+            "url": "https://files.pythonhosted.org/packages/fd/65/f83851ece07bba4c6abd9d29a84455191852b9ea9612ccfc67fcdbdb5c1a/arcomm-2.1.0.tar.gz"
+        }
+    ]
+}

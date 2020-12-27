@@ -1,0 +1,373 @@
+{
+    "info": {
+        "author": "zhukovgreen",
+        "author_email": "zhukovgreen@ya.ru",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# Rationale\n\nTbe ecosystem contains of a lot of microservices,\nwhich requires unification, reusability.\n\nThis package represents a common setup for any tbe\nmicroservice\n# Config\nApp configuration assumes to be setup via\ndata class with validation\n\nCurrent setup is:\n```python\n@attr.s\nclass AppConfig:\n    \"\"\"Configuration of the aiohttp application.\"\"\"\n\n    REDIS_CACHE = attr.ib(\n        default=env.str(\"REDIS_CACHE\", default=\"\"),\n        validator=attr.validators.instance_of(str),\n    )\n    SENTRY_DSN = attr.ib(\n        default=env.str(\"SENTRY_DSN\", default=\"\"),\n        validator=attr.validators.instance_of(str),\n    )\n    DEBUG = attr.ib(\n        default=env.bool(\"DEBUG\", default=False),\n        validator=attr.validators.instance_of(bool),\n    )\n    DEBUG_TOOLBAR = attr.ib(\n        default=env.bool(\n            \"DEBUG_TOOLBAR\", default=False\n        ),\n        validator=attr.validators.instance_of(bool),\n    )\n    HOST = attr.ib(\n        default=env.str(\"HOST\", default=\"0.0.0.0\"),\n        validator=attr.validators.instance_of(str),\n    )\n    PORT = attr.ib(\n        default=env.int(\"PORT\", default=80),\n        validator=attr.validators.instance_of(int),\n    )\n```\n\n\n# Use\n```python\nimport pathlib\nimport os\n\nimport trafaret as t\nimport yaml\nfrom aiohttp import web\n\nfrom tbe_mcs_app import build_tbe_mcs_app\nfrom tbe_mcs_app.structs import (\n    WebRoute,\n    Http,\n    AppConfig,\n)\n\n\nasync def health_check(request):\n    return web.Response()\n\n\nasync def get_some_data(request):\n    payload = await request.json()\n    return web.json_response(data=payload)\n\n\nasync def test_tbe_mcs_app_(\n    tmpdir, aiohttp_client, caplog\n):\n    app_config = AppConfig(DEBUG=True)\n    web_routes = [\n        WebRoute(\n            endpoint=\"/health_check\",\n            https=[\n                Http(\n                    method=\"GET\", handler=health_check\n                )\n            ],\n        ),\n        WebRoute(\n            endpoint=\"/get_some_data\",\n            https=[\n                Http(\n                    method=\"POST\",\n                    handler=get_some_data,\n                )\n            ],\n        ),\n    ]\n\n    app = build_tbe_mcs_app(\n        web_routes, app_config=app_config\n    )\n\n    client = await aiohttp_client(app)\n    resp = await client.get(\"/health_check\")\n    assert resp.status == 200\n    resp = await client.get(\"/api/doc\")\n    assert resp.status == 200\n    resp = await client.get(\"/_debugtoolbar\")\n    assert resp.status == 200\n\n    resp = await client.post(\n        \"/get_some_data\",\n        json={\"test_key\": \"test_value\"},\n    )\n    assert await resp.json() == {\n        \"test_key\": \"test_value\"\n    }\n\n    resp = await client.get(\"/not_exists\")\n    assert await resp.json() == {\n        \"error\": \"HTTPNotFound: ('Not Found',)\"\n    }\n\n    resp = await client.get(\"/get_some_data\")\n    assert await resp.json() == {\n        \"error\": \"HTTPMethodNotAllowed: ('Method Not Allowed',)\"\n    }\n```\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/remak-dva/tbe-mcs-app",
+        "keywords": "",
+        "license": "",
+        "maintainer": "zhukovgreen",
+        "maintainer_email": "zhukovgreen@ya.ru",
+        "name": "tbe-mcs-app",
+        "package_url": "https://pypi.org/project/tbe-mcs-app/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/tbe-mcs-app/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/remak-dva/tbe-mcs-app",
+            "Repository": "https://gitlab.com/remak-dva/tbe-mcs-app"
+        },
+        "release_url": "https://pypi.org/project/tbe-mcs-app/0.1.7/",
+        "requires_dist": [
+            "tbe-logging (>=0.1.0,<0.2.0)",
+            "aiohttp_swagger (>=1.0,<2.0)",
+            "aiohttp_cache (>=1.0,<2.0)",
+            "aiohttp_debugtoolbar (>=0.5.0,<0.6.0)",
+            "trafaret (>=1.2,<2.0)",
+            "envparse (>=0.2.0,<0.3.0)",
+            "tbe-middlewares (>=0.1.1,<0.2.0)"
+        ],
+        "requires_python": ">=3.7,<4.0",
+        "summary": "Basic microservice setup for tbe project",
+        "version": "0.1.7"
+    },
+    "last_serial": 4441453,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "10fb69be94a91ed7118b7a49ac85b2c3",
+                    "sha256": "fda39b844a1a59779c0508d0e44f38932402afebdcad4eee3c436b808dbc9f1b"
+                },
+                "downloads": -1,
+                "filename": "tbe_mcs_app-0.1.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "10fb69be94a91ed7118b7a49ac85b2c3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 6821,
+                "upload_time": "2018-09-02T19:55:38",
+                "url": "https://files.pythonhosted.org/packages/ad/c0/7232f3b401017975ac7e4d22bf4da985368f060c2996b72e04b803793efb/tbe_mcs_app-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1ea06b41a19e4f6367c8db58bb2f729a",
+                    "sha256": "e9083142308da8e06952ed18c700047016bd53c973014607ec4c6b729185f5a5"
+                },
+                "downloads": -1,
+                "filename": "tbe-mcs-app-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1ea06b41a19e4f6367c8db58bb2f729a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3533,
+                "upload_time": "2018-09-02T19:55:36",
+                "url": "https://files.pythonhosted.org/packages/25/bf/651301020fbd703ab57ee7e5e6009fc4a74a3107d7d130d718e7bf280f62/tbe-mcs-app-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "436396cffb143010a73fa4f775d59e7b",
+                    "sha256": "c198d24f973e9443e101664d2f42718e181caed9b36fbf04a2d89d0c63feb69c"
+                },
+                "downloads": -1,
+                "filename": "tbe_mcs_app-0.1.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "436396cffb143010a73fa4f775d59e7b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 6979,
+                "upload_time": "2018-09-02T20:42:11",
+                "url": "https://files.pythonhosted.org/packages/a7/19/8660763c0c9a51d4f7b63fa0e41a6153086898336d11ae535b65468c9785/tbe_mcs_app-0.1.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71a19b6e9a65caaebbf97d910d5ea30f",
+                    "sha256": "eb95cf54439b05dc56e0a2aa9fd89f114816352814cb6138dc2bfc0372c641bf"
+                },
+                "downloads": -1,
+                "filename": "tbe-mcs-app-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "71a19b6e9a65caaebbf97d910d5ea30f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3608,
+                "upload_time": "2018-09-02T20:42:10",
+                "url": "https://files.pythonhosted.org/packages/6f/32/8b178db6f8e463c8cf71490d3db4a66689b82f87e44e1c3d9eaec349430b/tbe-mcs-app-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f5d366920eecdd911fd37c755f789a3",
+                    "sha256": "40ced2c46290ce7b2bf44ba1b17db0ca33b0bcce07fb1f2b298591c859e79658"
+                },
+                "downloads": -1,
+                "filename": "tbe_mcs_app-0.1.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3f5d366920eecdd911fd37c755f789a3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 7362,
+                "upload_time": "2018-09-02T22:24:05",
+                "url": "https://files.pythonhosted.org/packages/02/8a/a480a638a30b68fc6f3053cd246955f30691945887671e4f3525c2e9ce47/tbe_mcs_app-0.1.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4c4daab6541d423b52fb483e7bda9b03",
+                    "sha256": "81db4e7a83f7e8b670e18d8c755f79d9e780eac38e63ede9fbebd9cab384fe59"
+                },
+                "downloads": -1,
+                "filename": "tbe-mcs-app-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4c4daab6541d423b52fb483e7bda9b03",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3714,
+                "upload_time": "2018-09-02T22:24:03",
+                "url": "https://files.pythonhosted.org/packages/63/81/47f10edfc0f7a1d20a74d7fb8e5e9421eaf8f6e6f4c45b5be5e1329667d6/tbe-mcs-app-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8cbc43080c51e8f3497351981089b90a",
+                    "sha256": "e573f2d782ea0550c604d9944f5e633b94d970a8ba8d8638a7718253c38468de"
+                },
+                "downloads": -1,
+                "filename": "tbe_mcs_app-0.1.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8cbc43080c51e8f3497351981089b90a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 7362,
+                "upload_time": "2018-09-02T23:27:29",
+                "url": "https://files.pythonhosted.org/packages/df/fd/d0fdb2e6e9197669d8d9f750d327a7f8243e479500190fa13c6eb171b8fe/tbe_mcs_app-0.1.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "566e8bcbed041beccf12a5d979026316",
+                    "sha256": "d88b395f291fb16671756dd70977f07d517cbba441451e783ef96ce68fcfb36e"
+                },
+                "downloads": -1,
+                "filename": "tbe-mcs-app-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "566e8bcbed041beccf12a5d979026316",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3714,
+                "upload_time": "2018-09-02T23:27:28",
+                "url": "https://files.pythonhosted.org/packages/a2/86/1d49f0dd04198e05644a010a63e34459f1755b5816fc8849fb8f5d6b10cf/tbe-mcs-app-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21c411e42758f4459a3d7926f36b028b",
+                    "sha256": "1098c13c1dc39e6baef4dc4e90255c8191a9a0010e993bdba713ae734e526657"
+                },
+                "downloads": -1,
+                "filename": "tbe_mcs_app-0.1.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "21c411e42758f4459a3d7926f36b028b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 8617,
+                "upload_time": "2018-09-04T11:50:11",
+                "url": "https://files.pythonhosted.org/packages/ec/f2/0060e141057520ad0d16657f716e604a5b0864a8ac695c28a2a8ea6a09c9/tbe_mcs_app-0.1.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9e527b93d5c6c4479f82a48c3c0d3e3",
+                    "sha256": "e7a4e816cf2ab3957024e546a294d29d9ec283be27f9c7f6267d81721b35f760"
+                },
+                "downloads": -1,
+                "filename": "tbe-mcs-app-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d9e527b93d5c6c4479f82a48c3c0d3e3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3947,
+                "upload_time": "2018-09-04T11:50:09",
+                "url": "https://files.pythonhosted.org/packages/52/7e/06cd636fa242696b7de9089d245410151f765b4a480fb5504fab4176b9ed/tbe-mcs-app-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f0cf9af1dbaced85df8eb110e4ff74c4",
+                    "sha256": "64414d8f9b18fd648dc676a218ca3647e1336dd4af085719b67224e96412d0d2"
+                },
+                "downloads": -1,
+                "filename": "tbe_mcs_app-0.1.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f0cf9af1dbaced85df8eb110e4ff74c4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 9199,
+                "upload_time": "2018-09-05T16:54:43",
+                "url": "https://files.pythonhosted.org/packages/81/e9/c50ab26ad0b6a3fb3c4ecbf48e1b3785b0f062d82e644ee08a765e4a1591/tbe_mcs_app-0.1.5-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b5ddf2ca80171de6c794dc1292ba900f",
+                    "sha256": "cee83d28eee33ae8ebef97ba304538803c76b427982eb78a1dfec27eaf246a9e"
+                },
+                "downloads": -1,
+                "filename": "tbe-mcs-app-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b5ddf2ca80171de6c794dc1292ba900f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4191,
+                "upload_time": "2018-09-05T16:54:42",
+                "url": "https://files.pythonhosted.org/packages/70/ff/4574708da4fbf42782e56a00c5ecfb80102216b099e4c1f687245ccc8597/tbe-mcs-app-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1410a7c742d4daf2bbac6e166be91f67",
+                    "sha256": "192b6d22d30fc410d438fd134fad0124e4c9c65a3bda565d016a29185ed41323"
+                },
+                "downloads": -1,
+                "filename": "tbe_mcs_app-0.1.6-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1410a7c742d4daf2bbac6e166be91f67",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 9154,
+                "upload_time": "2018-09-12T09:16:52",
+                "url": "https://files.pythonhosted.org/packages/87/2d/eb364c2139bc91953885d157ba18e110786bb891ea962d11bd1254e66b78/tbe_mcs_app-0.1.6-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3de9f7ae7998c8f34995c2a486ecbce",
+                    "sha256": "6d618225fea7792935848c97babe03ac994031f4fd581f06e8547bdc8da2cac3"
+                },
+                "downloads": -1,
+                "filename": "tbe-mcs-app-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e3de9f7ae7998c8f34995c2a486ecbce",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4175,
+                "upload_time": "2018-09-12T09:16:51",
+                "url": "https://files.pythonhosted.org/packages/2b/4d/06826aaca44a0c1829e017b68aebecdc708c49d376952b81199d1cbf16df/tbe-mcs-app-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "458c27b140f6263755e5df374de619ec",
+                    "sha256": "635cd21b7141e98c4eb5dfe546730e8e12dbfb9968e620d9d9bc642dbf5390dd"
+                },
+                "downloads": -1,
+                "filename": "tbe_mcs_app-0.1.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "458c27b140f6263755e5df374de619ec",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7,<4.0",
+                "size": 9169,
+                "upload_time": "2018-11-01T17:17:14",
+                "url": "https://files.pythonhosted.org/packages/54/7f/a1b171afa08939a14ac0e792c34e3a6ba02642065d18560a2d9d1160f82d/tbe_mcs_app-0.1.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12281b63375349f1564722f31edccd27",
+                    "sha256": "9d2f1bf2dbb412b840a5649bec730c84517789fdcc13cec61a738f1e4fb4a444"
+                },
+                "downloads": -1,
+                "filename": "tbe-mcs-app-0.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "12281b63375349f1564722f31edccd27",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7,<4.0",
+                "size": 4228,
+                "upload_time": "2018-11-01T17:17:12",
+                "url": "https://files.pythonhosted.org/packages/62/14/478daa38fdecd1d19729cafc667dd33689462d798a8d516855beee7c0f6e/tbe-mcs-app-0.1.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "458c27b140f6263755e5df374de619ec",
+                "sha256": "635cd21b7141e98c4eb5dfe546730e8e12dbfb9968e620d9d9bc642dbf5390dd"
+            },
+            "downloads": -1,
+            "filename": "tbe_mcs_app-0.1.7-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "458c27b140f6263755e5df374de619ec",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7,<4.0",
+            "size": 9169,
+            "upload_time": "2018-11-01T17:17:14",
+            "url": "https://files.pythonhosted.org/packages/54/7f/a1b171afa08939a14ac0e792c34e3a6ba02642065d18560a2d9d1160f82d/tbe_mcs_app-0.1.7-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "12281b63375349f1564722f31edccd27",
+                "sha256": "9d2f1bf2dbb412b840a5649bec730c84517789fdcc13cec61a738f1e4fb4a444"
+            },
+            "downloads": -1,
+            "filename": "tbe-mcs-app-0.1.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "12281b63375349f1564722f31edccd27",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7,<4.0",
+            "size": 4228,
+            "upload_time": "2018-11-01T17:17:12",
+            "url": "https://files.pythonhosted.org/packages/62/14/478daa38fdecd1d19729cafc667dd33689462d798a8d516855beee7c0f6e/tbe-mcs-app-0.1.7.tar.gz"
+        }
+    ]
+}

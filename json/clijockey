@@ -1,0 +1,253 @@
+{
+    "info": {
+        "author": "David Michael Pennington",
+        "author_email": "mike@pennington.net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Plugins",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: System Administrators",
+            "Intended Audience :: Telecommunications Industry",
+            "License :: OSI Approved :: Apache Software License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Communications",
+            "Topic :: Internet",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: System :: Networking",
+            "Topic :: System :: Networking :: Monitoring"
+        ],
+        "description": ".. image:: https://img.shields.io/pypi/v/clijockey.svg\n      :target: https://pypi.python.org/pypi/clijockey/\n      :alt: Version\n\n.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg\n      :target: https://opensource.org/licenses/Apache-2.0\n      :alt: License\n\n\n*Painless screen scraping for network engineers - Control your network with Python*\n\nUsage\n-----\n\nEssentially, this is a simple wrapper around pexpect_. Standard usage:\n\n.. code:: python\n\n    import time\n\n    from clijockey.traits import TraitTable, CUnicode, CUnicodeRegex\n    from clijockey.traits import CMacAddressCisco, CIPv4AddressStr\n    from clijockey.util import RotatingTOMLLog\n    from clijockey.util import Account\n    from clijockey.lib import CLIMachine\n\n    # TextFSM template...\n    TEMPLATE = \"\"\"Value INTF (\\S+)\\nValue IPADDR (\\S+)\\nValue STATUS (up|down|administratively down)\\nValue PROTO (up|down)\\n\\nStart\\n  ^${INTF}\\s+${IPADDR}\\s+\\w+\\s+\\w+\\s+${STATUS}\\s+${PROTO} -> Record\"\"\"\n\n    # Interfaces() is used to map TextFSM template values to the TOML Log\n    class Interfaces(TraitTable):\n        intf = CUnicode()  # See the traitlets documentation for CUnicode usage\n        addr = CUnicode()\n        status = CUnicode()\n        # Usage of CUnicodeRegex illustrated below... it errors if no match\n        proto = CUnicodeRegex(r'down|up')\n        _map = ('intf', 'addr', 'status', 'proto') # TextFSM field order\n\n    # Create a log named rviews_intfs, which automatically rotates at midnight\n    #     category must be unique per logging file\n    log = RotatingTOMLLog('rviews_intfs', category='route-views')\n\n    ## Define a tuple of username and password pairs here...\n    ##    The first is an expected failure to illustrate how it works\n    accts = (Account('itsa-mistake', ''), Account('rviews', 'secret2'),)\n\n    ## You can optionally disable auto-enable mode if you like...\n    conn = CLIMachine('route-views.routeviews.org', accts,\n        auto_priv_mode=False, log_screen=True, debug=False, \n        command_timeout=5, login_attempts=3)\n\n    conn.execute('term len 0', wait=0.5)    # Wait 0.5 seconds after the cmd\n\n    # regex is a tuple with another prompt string\n    conn.execute('show version', regex=('test>',))\n\n    conn.execute('show users', timeout=60)  # 'show users' outputs slowly...\n    ## Get the result of the 'show users' command...\n    user_output = conn.response\n    matching_regex = conn.matching_prompt_regex\n\n    ## Automatically parse with TextFSM and log to a TOML log\n    for ii in range(0, 5):\n        intf_list = conn.execute('show ip int brief', template=TEMPLATE)\n        for vals in intf_list:\n            ## NOTE: info must be a dictionary to be parsed by .write_table_list()\n            info = dict(Interfaces(vals))  # <---- This is the info table\n            ## Write a timestamped list of tables named 'rview_intf' to the log\n            log.write_table_list(table='rview_intf', info=info, timestamp=True)\n        time.sleep(1)\n\n    conn.logout()\n\n\nInstallation\n------------\n\nInstall with pip (-U to auto-upgrade to the latest version) ::\n\n    pip install -U clijockey\n\nWhy\n---\n\n*Short answer*: \n\nBecause libraries like this should \"just work\" regardless of what you're screen scraping.\n\n*Longer answer*:\n\nI have been writing network screen scraping scripts for fun and profit over the\nlast two decades; in the process, I have accumulated some opinions about how \nthings should be done.\n\nAs of this writing, there are several similar Python command / response \nlibraries... some even have a battery of vendor-specific plugins.  The obvious \nquestion is why I think another library is required.  Am I merely guilty of the\n`not invented here`_ syndrome?\n\nI hope not.\n\n1.  The popular Python libraries with vendor-specific CLI drivers are \npointlessly finicky and sometimes don't even work for all permutations from \nthat vendor.  All credit to the tireless souls who write and maintain them, but\nI'm tired of hacking around quirks in libraries; I just want to get things done.\n\n2.  Many of the existing libraries drive SSH sessions slowly because they use \nparamiko_ (pure-python SSH)\n\n3.  Unit tests should stand alone without needing a real network to test them\non.  This isn't easy when it comes to testing screen scraping, but \n`Samuel Abel's`_ `exscript tests`_ are a good example of one way you can do \nthis well.  I hope to leverage his ideas in clijockey_\n\nGoals\n-----\n\n1.  Maximum flexiblity from a single CLI driver... no vendor-specific plugins.\n2.  Get the most common authentication prompt sequences right\n3.  Try a list of credentials until one works.\n4.  Don't assume the credentials *always* grant enable privs mode\n5.  Speed\n6.  Optional parsing with TextFSM_ (gtextfsm_ to be exact)\n7.  Verbose error messages and debugs.\n8.  Support both telnet and ssh\n9.  Per-session TOML_ logging (partially implemented)\n10. Python3 support\n\nRestrictions\n------------\n\nclijockey_ only supports `\\*nix`_ (OpenSSH_ is required); no Windows support.\n\nPython_ 2.x and Python3 should work correctly\n\n\n.. _pexpect: http://https://pexpect.readthedocs.io/en/stable/\n\n.. _`not invented here`: http://dilbert.com/strip/2014-08-12\n\n.. _`Samuel Abel's`: https://github.com/knipknap\n\n.. _`exscript tests`: https://github.com/knipknap/exscript/tree/master/tests\n\n.. _`clijockey`: https://github.com/mpenning/clijockey/\n\n.. _Python: https://python.org/\n\n.. _paramiko: http://www.paramiko.org/\n\n.. _TextFSM: https://github.com/google/textfsm\n\n.. _gtextfsm: https://pypi.python.org/pypi/gtextfsm\n\n.. _OpenSSH: https://www.openssh.com/\n\n.. _`\\*nix`: https://en.wikipedia.org/wiki/Unix-like\n\n.. _TOML: https://github.com/toml-lang/toml\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mpenning/clijockey/",
+        "keywords": "",
+        "license": "Apache License 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "clijockey",
+        "package_url": "https://pypi.org/project/clijockey/",
+        "platform": "linux",
+        "project_url": "https://pypi.org/project/clijockey/",
+        "project_urls": {
+            "Homepage": "https://github.com/mpenning/clijockey/"
+        },
+        "release_url": "https://pypi.org/project/clijockey/0.3.3/",
+        "requires_dist": [
+            "backports.functools-lru-cache (==1.2.1)",
+            "pexpect",
+            "transitions",
+            "textfsm",
+            "netaddr",
+            "enum34",
+            "traitlets",
+            "arrow",
+            "colorama"
+        ],
+        "requires_python": "",
+        "summary": "Automate ssh and telnet sessions to network devices",
+        "version": "0.3.3"
+    },
+    "last_serial": 5728412,
+    "releases": {
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1a4c88bab2258167aa3e34584ef4528",
+                    "sha256": "856a85c6e43552b683453732e55caa9302c21d894b1b62a33995c5b151b99985"
+                },
+                "downloads": -1,
+                "filename": "clijockey-0.3.0-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d1a4c88bab2258167aa3e34584ef4528",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 18390,
+                "upload_time": "2019-06-29T00:53:14",
+                "upload_time_iso_8601": "2019-06-29T00:53:14.586099Z",
+                "url": "https://files.pythonhosted.org/packages/a7/b6/778fcc7c349e40ffa6aba0be0bdca51ef7e18ddaf654ad832683b3eb07df/clijockey-0.3.0-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b8e4df101eca44faa11a1369075e642c",
+                    "sha256": "f26d6b8a0d9df99b982aa44d14762fcaf6f4fe31720f98d71311e274897cee8e"
+                },
+                "downloads": -1,
+                "filename": "clijockey-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b8e4df101eca44faa11a1369075e642c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12881,
+                "upload_time": "2019-06-29T00:53:16",
+                "upload_time_iso_8601": "2019-06-29T00:53:16.864225Z",
+                "url": "https://files.pythonhosted.org/packages/c6/0b/32cfb7676d9bc73738fe04ec57da180bfebb60b67257c250e9134f5504cb/clijockey-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ba7cca4c94b325cbede58f7c6d9ae840",
+                    "sha256": "f39cead104abab50e0947277cfaf26b45670f864411c1d87ea3de5b0e5b13809"
+                },
+                "downloads": -1,
+                "filename": "clijockey-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ba7cca4c94b325cbede58f7c6d9ae840",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 14815,
+                "upload_time": "2019-06-30T14:06:26",
+                "upload_time_iso_8601": "2019-06-30T14:06:26.934719Z",
+                "url": "https://files.pythonhosted.org/packages/08/50/15bb11b5ddb38e4771a0f037af2b1cfdb22f7e9baa40d692fb15b2b242a5/clijockey-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2401f5bd8b99b058fdef478caed6c645",
+                    "sha256": "3f0de2f22c392b6f4f851f5e207af788d4c8fe61248b64a2a8cc48f4fecf6fe9"
+                },
+                "downloads": -1,
+                "filename": "clijockey-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2401f5bd8b99b058fdef478caed6c645",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15301,
+                "upload_time": "2019-06-30T14:06:29",
+                "upload_time_iso_8601": "2019-06-30T14:06:29.036798Z",
+                "url": "https://files.pythonhosted.org/packages/9c/6a/db30e992db341eece23a9cd87ef29961d154ec9f07d1caf9f172bde9552e/clijockey-0.3.1.tar.gz"
+            }
+        ],
+        "0.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5dc85cd1824d74f49695586c94077c6b",
+                    "sha256": "b40f630efed5ea6eaac9e69d3922e18e054da7ab302a303aeaa8ca1a474e63c8"
+                },
+                "downloads": -1,
+                "filename": "clijockey-0.3.2-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5dc85cd1824d74f49695586c94077c6b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 18535,
+                "upload_time": "2019-08-25T14:55:27",
+                "upload_time_iso_8601": "2019-08-25T14:55:27.436585Z",
+                "url": "https://files.pythonhosted.org/packages/af/97/171fa1388aafd91385910ce6a3aa95eb1e3c9815bf3df4e14001a9040df3/clijockey-0.3.2-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "87766d4b8d85c7eecdb45354dc51887d",
+                    "sha256": "394645f59a38f9adcc102763aba29f604caeac4a3681396dbb9588c19db1690b"
+                },
+                "downloads": -1,
+                "filename": "clijockey-0.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "87766d4b8d85c7eecdb45354dc51887d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13016,
+                "upload_time": "2019-08-25T14:55:29",
+                "upload_time_iso_8601": "2019-08-25T14:55:29.435579Z",
+                "url": "https://files.pythonhosted.org/packages/77/f8/38e0b73726c06e0f0c1a12267ca993429668b5e630228b05d7473cfbdf3d/clijockey-0.3.2.tar.gz"
+            }
+        ],
+        "0.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e623c19ff0ad312338edcce49d77ba19",
+                    "sha256": "490b06ed8c827f6fc6cca434ad8b750117237e0beec2dbc3db3d4acca7a2bb9f"
+                },
+                "downloads": -1,
+                "filename": "clijockey-0.3.3-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e623c19ff0ad312338edcce49d77ba19",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 18605,
+                "upload_time": "2019-08-26T00:58:57",
+                "upload_time_iso_8601": "2019-08-26T00:58:57.511014Z",
+                "url": "https://files.pythonhosted.org/packages/69/24/fd4cac14712a6b519a29232633fe52b5fa528103fe371b290291f305375b/clijockey-0.3.3-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f879d39da27922d25815333f9b0b6bad",
+                    "sha256": "e630aaccfd6171d4752e58072465e1258e4193334721fba4db2a01a61f706887"
+                },
+                "downloads": -1,
+                "filename": "clijockey-0.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f879d39da27922d25815333f9b0b6bad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13068,
+                "upload_time": "2019-08-26T00:58:59",
+                "upload_time_iso_8601": "2019-08-26T00:58:59.317074Z",
+                "url": "https://files.pythonhosted.org/packages/52/89/7f42faaa681627f8b3c70f10ecedbdadd622010da5df8790c40f99f80dc1/clijockey-0.3.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e623c19ff0ad312338edcce49d77ba19",
+                "sha256": "490b06ed8c827f6fc6cca434ad8b750117237e0beec2dbc3db3d4acca7a2bb9f"
+            },
+            "downloads": -1,
+            "filename": "clijockey-0.3.3-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "e623c19ff0ad312338edcce49d77ba19",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 18605,
+            "upload_time": "2019-08-26T00:58:57",
+            "upload_time_iso_8601": "2019-08-26T00:58:57.511014Z",
+            "url": "https://files.pythonhosted.org/packages/69/24/fd4cac14712a6b519a29232633fe52b5fa528103fe371b290291f305375b/clijockey-0.3.3-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f879d39da27922d25815333f9b0b6bad",
+                "sha256": "e630aaccfd6171d4752e58072465e1258e4193334721fba4db2a01a61f706887"
+            },
+            "downloads": -1,
+            "filename": "clijockey-0.3.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f879d39da27922d25815333f9b0b6bad",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 13068,
+            "upload_time": "2019-08-26T00:58:59",
+            "upload_time_iso_8601": "2019-08-26T00:58:59.317074Z",
+            "url": "https://files.pythonhosted.org/packages/52/89/7f42faaa681627f8b3c70f10ecedbdadd622010da5df8790c40f99f80dc1/clijockey-0.3.3.tar.gz"
+        }
+    ]
+}

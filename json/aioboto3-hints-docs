@@ -1,0 +1,194 @@
+{
+    "info": {
+        "author": "Terry Cain",
+        "author_email": "terry@terrys-home.co.uk",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Typing :: Typed"
+        ],
+        "description": "# aioboto3 Type Hints\n\n[![PyPi Version](https://img.shields.io/pypi/v/aioboto3-hints.svg)](https://pypi.python.org/pypi/aioboto3-hints)\n[![Build Status](https://travis-ci.com/terrycain/aioboto3-hints.svg?branch=master)](https://travis-ci.com/terrycain/aioboto3-hints)\n[![PyUp Updates](https://pyup.io/repos/github/terrycain/aioboto3-hints/shield.svg)](https://pyup.io/repos/github/terrycain/aioboto3-hints/)\n\n\nAll of the credit goes to Allie Fitter who did all of the hard work, I've just repurposed his repo to generate async type hints\n\nUpstream repo - https://github.com/alliefitter/boto3_type_annotations\n\n## With or Without Docstrings\n\nThis package is available both with docstrings, named `aioboto3-hints-docs` on PyPi (which contains the \nsame documentation you'll find online), and without, named `aioboto3-hints` on PyPi. The reason for this is \nthat, for a python package, `aioboto3-hints-docs` is HUGE. `aioboto3-hints` is pretty large itself \nat 2.2 MB, but `aioboto3-hints-with-docs` dwarfs it at 41 MB. Both of the packages contain a module `aioboto3_hints` \nso you can swap out the libraries between local testing and going to production with ease.\n\n## TODO\n\nAm planning to add in work to reflect some work done by vemel here - https://github.com/vemel/mypy_boto3\n\n## Installation\n\nWithout docs:\n```\npip install aioboto3-hints\n```\n\nWith docs:\n```\npip install aioboto3-hints-docs\n```\n\n## Usage\n\nRegardless of which deployment package you install, you'll still import the same package, `aioboto3_hints`.\nIts constituent packages and modules can be used to declare the type of `aioboto3` objects. For instance, everybody's \nfavorite, S3:\n\n```python\nimport asyncio\nimport boto3\nfrom aioboto3_hints.s3 import Client, ServiceResource\nfrom aioboto3_hints.s3.waiter import BucketExists\nfrom aioboto3_hints.s3.paginator import ListObjectsV2\n\n# With type annotations\nasync def main():\n    client: Client = boto3.client('s3')\n    await client.create_bucket(Bucket='foo')  # Not only does your IDE knows the name of this method, \n                                              # it knows the type of the `Bucket` argument too!\n                                              # It also, knows that `Bucket` is required, but `ACL` isn't!\n\n    # Waiters and paginators and defined also...\n    waiter: BucketExists = client.get_waiter('bucket_exists')\n    await waiter.wait('foo')\n\n    paginator: ListObjectsV2 = client.get_paginator('list_objects_v2')\n    async for response in paginator.paginate(Bucket='foo'):\n        print(response)\n\n    await client.close()\n\n    # Along with service resources.\n    resource: ServiceResource = boto3.resource('s3')\n    bucket = resource.Bucket('bar')\n    await bucket.create()\n\n    await resource.close()\n\n    # With type comments\n    async with boto3.client('s3') as client:  # type: Client\n        response = await client.get_object(Bucket='foo', Key='bar')\n\n    # This should also work\n    client: Client\n    async with boto3.client('s3') as client:\n        response = await client.get_object(Bucket='foo', Key='bar')\n\n\nasyncio.run(main())    \n\n# In docstrings\nclass Foo:\n    def __init__(self, client):\n        \"\"\"\n        :param client: It's an S3 Client and the IDE is gonna know what it is!\n        :type client: Client\n        \"\"\"\n        self.client = client\n\n    async def bar(self):\n        \"\"\"\n        :rtype: Client\n        \"\"\"\n        await self.client.delete_object(Bucket='foo', Key='bar')\n        return self.client\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/terrycain/aioboto3-hints",
+        "keywords": "",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "aioboto3-hints-docs",
+        "package_url": "https://pypi.org/project/aioboto3-hints-docs/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/aioboto3-hints-docs/",
+        "project_urls": {
+            "Homepage": "https://github.com/terrycain/aioboto3-hints"
+        },
+        "release_url": "https://pypi.org/project/aioboto3-hints-docs/0.4.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Type annotations for aioboto3. Adds code completion in IDEs such as PyCharm.",
+        "version": "0.4.0"
+    },
+    "last_serial": 6137377,
+    "releases": {
+        "0.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42e19b48c465078a86fdfd7833b452c9",
+                    "sha256": "57dad7daf176a244d9c75719c6a57c1e816713ded6256a1fef23f859da4f8907"
+                },
+                "downloads": -1,
+                "filename": "aioboto3_hints_docs-0.2.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "42e19b48c465078a86fdfd7833b452c9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7414747,
+                "upload_time": "2019-11-14T12:15:31",
+                "upload_time_iso_8601": "2019-11-14T12:15:31.590591Z",
+                "url": "https://files.pythonhosted.org/packages/66/42/4390b10fdd6b756762ce60ae6b053af5fd9a2694e52d81f49fb6327f9c6b/aioboto3_hints_docs-0.2.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12a377b94e7e73c084ad868de7a38b59",
+                    "sha256": "f014adb559f57f5a17682db915ca7766149328cbae78d4508955f75834557347"
+                },
+                "downloads": -1,
+                "filename": "aioboto3-hints-docs-0.2.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "12a377b94e7e73c084ad868de7a38b59",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6913298,
+                "upload_time": "2019-11-14T12:15:36",
+                "upload_time_iso_8601": "2019-11-14T12:15:36.790624Z",
+                "url": "https://files.pythonhosted.org/packages/d5/99/33b277c64a2f8d7b42af477205f5d71c60f9182b36948d479cde06eddbbd/aioboto3-hints-docs-0.2.8.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c54733c7ebebdde043e653acb9a8633c",
+                    "sha256": "bfb89ed50d22206992f4823a45a37ffef7b7b9d6af25d7c2849dee5655eb780a"
+                },
+                "downloads": -1,
+                "filename": "aioboto3_hints_docs-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c54733c7ebebdde043e653acb9a8633c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7414872,
+                "upload_time": "2019-11-14T15:08:26",
+                "upload_time_iso_8601": "2019-11-14T15:08:26.838781Z",
+                "url": "https://files.pythonhosted.org/packages/2c/57/54ddffd46ba55d45a66be528334c5d19c46723a554f670bdb97389370311/aioboto3_hints_docs-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a6a062eae8c9ef79d5f76b279d347009",
+                    "sha256": "61bf80e890fd05a6fbc281afa33c8ae315e52ad9b0ef7f684a16f75f54a6d96c"
+                },
+                "downloads": -1,
+                "filename": "aioboto3-hints-docs-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a6a062eae8c9ef79d5f76b279d347009",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6913519,
+                "upload_time": "2019-11-14T15:08:29",
+                "upload_time_iso_8601": "2019-11-14T15:08:29.495238Z",
+                "url": "https://files.pythonhosted.org/packages/85/88/3ebe6d926fbe3eee901abb1dd0e5d6399fb4c5bd5c9d539cc3adf9e8f956/aioboto3-hints-docs-0.3.1.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5d2858a6c14a7c6fdde61c5dfce9b3b",
+                    "sha256": "89e2c7e821357e18f04b0c43a6620b90b07d701f43b9d64fe4f163057e27e404"
+                },
+                "downloads": -1,
+                "filename": "aioboto3_hints_docs-0.4.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a5d2858a6c14a7c6fdde61c5dfce9b3b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7415067,
+                "upload_time": "2019-11-14T16:07:01",
+                "upload_time_iso_8601": "2019-11-14T16:07:01.770016Z",
+                "url": "https://files.pythonhosted.org/packages/e0/d0/b7f849f43e21e4239ece954795598e26960936612a756a82e8eca96a8cd2/aioboto3_hints_docs-0.4.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4439f03afbb23991436b69179eca69db",
+                    "sha256": "ad1a3fa81777bd2aec96f86ab9962d353c994b63828972fb187b76b31fd84dd7"
+                },
+                "downloads": -1,
+                "filename": "aioboto3-hints-docs-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4439f03afbb23991436b69179eca69db",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6913732,
+                "upload_time": "2019-11-14T16:07:05",
+                "upload_time_iso_8601": "2019-11-14T16:07:05.297126Z",
+                "url": "https://files.pythonhosted.org/packages/04/6c/a7e4b2eeee6c3b3bd4eb13e50eb89fbd75035fe9d557a68d7c0c554a75ef/aioboto3-hints-docs-0.4.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a5d2858a6c14a7c6fdde61c5dfce9b3b",
+                "sha256": "89e2c7e821357e18f04b0c43a6620b90b07d701f43b9d64fe4f163057e27e404"
+            },
+            "downloads": -1,
+            "filename": "aioboto3_hints_docs-0.4.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a5d2858a6c14a7c6fdde61c5dfce9b3b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 7415067,
+            "upload_time": "2019-11-14T16:07:01",
+            "upload_time_iso_8601": "2019-11-14T16:07:01.770016Z",
+            "url": "https://files.pythonhosted.org/packages/e0/d0/b7f849f43e21e4239ece954795598e26960936612a756a82e8eca96a8cd2/aioboto3_hints_docs-0.4.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4439f03afbb23991436b69179eca69db",
+                "sha256": "ad1a3fa81777bd2aec96f86ab9962d353c994b63828972fb187b76b31fd84dd7"
+            },
+            "downloads": -1,
+            "filename": "aioboto3-hints-docs-0.4.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "4439f03afbb23991436b69179eca69db",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 6913732,
+            "upload_time": "2019-11-14T16:07:05",
+            "upload_time_iso_8601": "2019-11-14T16:07:05.297126Z",
+            "url": "https://files.pythonhosted.org/packages/04/6c/a7e4b2eeee6c3b3bd4eb13e50eb89fbd75035fe9d557a68d7c0c554a75ef/aioboto3-hints-docs-0.4.0.tar.gz"
+        }
+    ]
+}

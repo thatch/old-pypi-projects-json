@@ -1,0 +1,207 @@
+{
+    "info": {
+        "author": "Jangwon Park",
+        "author_email": "adieujw@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Scientific/Engineering :: Artificial Intelligence"
+        ],
+        "description": "# DistilKoBERT\n\nDistillation of KoBERT (KoBERT \uacbd\ub7c9\ud654)\n\n## KoBERT for transformers library\n\n- transformers v2.2.2\ubd80\ud130 \uac1c\uc778\uc774 \ub9cc\ub4e0 \ubaa8\ub378\uc744 transformers\ub97c \ud1b5\ud574 \uc9c1\uc811 \uc5c5\ub85c\ub4dc/\ub2e4\uc6b4\ub85c\ub4dc\ud558\uc5ec \uc0ac\uc6a9\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4\n\n```python\n>>> from transformers import BertModel\n>>> model = BertModel.from_pretrained('monologg/kobert')\n```\n\n- Tokenizer\ub97c \uc0ac\uc6a9\ud558\ub824\uba74, \ub8e8\ud2b8 \ub514\ub809\ud1a0\ub9ac\uc758 `tokenization_kobert.py` \ud30c\uc77c\uc744 \ubcf5\uc0ac\ud55c \ud6c4, `KoBertTokenizer`\ub97c \uc784\ud3ec\ud2b8\ud558\uba74 \ub429\ub2c8\ub2e4.\n\n```python\n>>> from tokenization_kobert import KoBertTokenizer\n>>> tokenizer = KoBertTokenizer.from_pretrained('monologg/kobert')\n>>> tokenizer.tokenize(\"[CLS] \ud55c\uad6d\uc5b4 \ubaa8\ub378\uc744 \uacf5\uc720\ud569\ub2c8\ub2e4. [SEP]\")\n['[CLS]', '\u2581\ud55c\uad6d', '\uc5b4', '\u2581\ubaa8\ub378', '\uc744', '\u2581\uacf5\uc720', '\ud569\ub2c8\ub2e4', '.', '[SEP]']\n>>> tokenizer.convert_tokens_to_ids(['[CLS]', '\u2581\ud55c\uad6d', '\uc5b4', '\u2581\ubaa8\ub378', '\uc744', '\u2581\uacf5\uc720', '\ud569\ub2c8\ub2e4', '.', '[SEP]'])\n[2, 4958, 6855, 2046, 7088, 1050, 7843, 54, 3]\n```\n\n## Pretraining DistilKoBERT\n\n- \uae30\uc874\uc758 12 layer\ub97c **3 layer**\ub85c \uc904\uc600\uc73c\uba70, \uae30\ud0c0 configuration\uc740 kobert\ub97c \uadf8\ub300\ub85c \ub530\ub790\uc2b5\ub2c8\ub2e4.\n- Pretraining Corpus\ub294 \ud55c\uad6d\uc5b4 \uc704\ud0a4, \ub098\ubb34\uc704\ud0a4, \ub274\uc2a4 \ub4f1 \uc57d 6GB\uc758 \ub370\uc774\ud130\ub97c \uc0ac\uc6a9\ud588\uc73c\uba70, 2.5 epoch \ud559\uc2b5\ud558\uc600\uc2b5\ub2c8\ub2e4.\n\n## DistilKoBERT for transformers library\n\n- Tokenizer\ub97c \uc0ac\uc6a9\ud558\ub824\uba74, \ub8e8\ud2b8 \ub514\ub809\ud1a0\ub9ac\uc758 `tokenization_kobert.py` \ud30c\uc77c\uc744 \ubcf5\uc0ac\ud55c \ud6c4, `KoBertTokenizer`\ub97c \uc784\ud3ec\ud2b8\ud558\uba74 \ub429\ub2c8\ub2e4.\n\n```python\n>>> from transformers import DistilBertModel\n>>> from tokenization_kobert import KoBertTokenizer\n>>> model = DistilBertModel.from_pretrained('monologg/distilkobert')\n>>> tokenizer = KoBertTokenizer.from_pretrained('monologg/distilkobert')\n```\n\n## DistilKobert python library\n\n### Install DistilKoBERT\n\n```bash\n$ pip3 install distilkobert\n```\n\n### How to Use\n\n```python\n>>> import torch\n>>> from distilkobert import get_distilkobert_model\n\n>>> model = get_distilkobert_model(no_cuda=True)\n>>> input_ids = torch.LongTensor([[31, 51, 99], [15, 5, 0]])\n>>> attention_mask = torch.LongTensor([[1, 1, 1], [1, 1, 0]])\n>>> last_layer_hidden_state, _ = model(input_ids, attention_mask)\n>>> last_layer_hidden_state\ntensor([[[-0.2155,  0.1182,  0.1865,  ..., -1.0626, -0.0747, -0.0945],\n         [-0.5559, -0.1476,  0.1060,  ..., -0.3178, -0.0172, -0.1064],\n         [ 0.1284,  0.2212,  0.2971,  ..., -0.4619,  0.0483,  0.3293]],\n\n        [[ 0.0414, -0.2016,  0.2643,  ..., -0.4734, -0.9823, -0.2869],\n         [ 0.2286, -0.1787,  0.1831,  ..., -0.7605, -1.0209, -0.5340],\n         [ 0.2507, -0.0022,  0.4103,  ..., -0.7278, -0.9471, -0.3140]]],\n       grad_fn=<AddcmulBackward>)\n```\n\n```python\n>>> from distilkobert import get_tokenizer\n>>> tokenizer = get_tokenizer()\n>>> tokenizer.tokenize(\"[CLS] \ud55c\uad6d\uc5b4 \ubaa8\ub378\uc744 \uacf5\uc720\ud569\ub2c8\ub2e4. [SEP]\")\n['[CLS]', '\u2581\ud55c\uad6d', '\uc5b4', '\u2581\ubaa8\ub378', '\uc744', '\u2581\uacf5\uc720', '\ud569\ub2c8\ub2e4', '.', '[SEP]']\n>>> tokenizer.convert_tokens_to_ids(['[CLS]', '\u2581\ud55c\uad6d', '\uc5b4', '\u2581\ubaa8\ub378', '\uc744', '\u2581\uacf5\uc720', '\ud569\ub2c8\ub2e4', '.', '[SEP]'])\n[2, 4958, 6855, 2046, 7088, 1050, 7843, 54, 3]\n```\n\n## Result on Sub-task\n\n|                 | KoBERT | DistilKoBERT (3 layer) | Bert (multilingual) | FastText |\n| --------------- | ------ | ---------------------- | ------------------- | -------- |\n| Model Size (MB) | 351    | 108                    | 681                 | 2        |\n| NSMC (%)        | 89.63  | 88.28                  | 87.07               | 85.50    |\n\n## Reference\n\n- [KoBERT](https://github.com/SKTBrain/KoBERT)\n- [Huggingface Transformers](https://github.com/huggingface/transformers)\n- [DistilBERT](https://github.com/huggingface/transformers/blob/master/examples/distillation/README.md)\n- [DistilBERT Paper](https://arxiv.org/abs/1910.01108)\n- [bert-as-service](https://github.com/hanxiao/bert-as-service)\n- [\ub525\ub7ec\ub2dd\uc73c\ub85c-\ub3d9\ub124\uc0dd\ud65c-\uac8c\uc2dc\uae00-\ud544\ud130\ub9c1\ud558\uae30](https://medium.com/daangn/%EB%94%A5%EB%9F%AC%EB%8B%9D%EC%9C%BC%EB%A1%9C-%EB%8F%99%EB%84%A4%EC%83%9D%ED%99%9C-%EA%B2%8C%EC%8B%9C%EA%B8%80-%ED%95%84%ED%84%B0%EB%A7%81%ED%95%98%EA%B8%B0-263cfe4bc58d)\n\n## TBD\n\n- [ ] Train DistilKoALBERT\n- [x] Build API Server\n- [x] Make Dockerfile for server\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/monologg/DistilKoBERT",
+        "keywords": "distillation kobert bert pytorch transformers lightweight",
+        "license": "Apache-2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "distilkobert",
+        "package_url": "https://pypi.org/project/distilkobert/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/distilkobert/",
+        "project_urls": {
+            "Homepage": "https://github.com/monologg/DistilKoBERT"
+        },
+        "release_url": "https://pypi.org/project/distilkobert/0.4.1/",
+        "requires_dist": [
+            "torch (>=1.1.0)",
+            "sentencepiece (>=0.1.82)",
+            "transformers (>=2.2.2)"
+        ],
+        "requires_python": ">=3",
+        "summary": "Distillation of KoBERT",
+        "version": "0.4.1"
+    },
+    "last_serial": 6327107,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4bb81c21967d0db3da4b1a8be83eee67",
+                    "sha256": "607a794163fd1e13a1ad76ac050ca0e502da24835ca60ad8ca5a592f933d8e5e"
+                },
+                "downloads": -1,
+                "filename": "distilkobert-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4bb81c21967d0db3da4b1a8be83eee67",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 10767,
+                "upload_time": "2019-12-04T01:59:40",
+                "upload_time_iso_8601": "2019-12-04T01:59:40.562452Z",
+                "url": "https://files.pythonhosted.org/packages/73/9e/4898c375526b1a41d22184ee7af6dec7b4e930f8c9e57515a29af010fd92/distilkobert-0.1.0-py3-none-any.whl"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eef607aa53ba72eeba02243216a782dd",
+                    "sha256": "8ac90e67712b8db1732669859b6c9728a44952cea206b2abac288015518bce6b"
+                },
+                "downloads": -1,
+                "filename": "distilkobert-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "eef607aa53ba72eeba02243216a782dd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 11382,
+                "upload_time": "2019-12-04T15:25:31",
+                "upload_time_iso_8601": "2019-12-04T15:25:31.168121Z",
+                "url": "https://files.pythonhosted.org/packages/38/e9/dd0b7ac62af2a1a5e62358db943622c8d505bf70919dba6398816789ad6e/distilkobert-0.1.1-py3-none-any.whl"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "acb287e62db6ab98eaca7bda4835d550",
+                    "sha256": "d13852345fd6765c7ebca4c79803207a4de08dfbb6ad3803896784e140f79b59"
+                },
+                "downloads": -1,
+                "filename": "distilkobert-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "acb287e62db6ab98eaca7bda4835d550",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 8894,
+                "upload_time": "2019-12-05T16:31:45",
+                "upload_time_iso_8601": "2019-12-05T16:31:45.397755Z",
+                "url": "https://files.pythonhosted.org/packages/a5/cd/8dad57a9e36635dd6c46a72c55d56f1e223819eb8763f6dda1e81edb6c8e/distilkobert-0.2.0-py3-none-any.whl"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8ece4c1644aa21e293ba3e8a1328385c",
+                    "sha256": "85c031b73d40056f553c329fd9f9a5272b94cfbc42bf976b4ed1d031f401e7f6"
+                },
+                "downloads": -1,
+                "filename": "distilkobert-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8ece4c1644aa21e293ba3e8a1328385c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 8886,
+                "upload_time": "2019-12-05T16:34:10",
+                "upload_time_iso_8601": "2019-12-05T16:34:10.969443Z",
+                "url": "https://files.pythonhosted.org/packages/09/82/2a820e41e17a0a3a2e5652f9bd1da7f62fbbb57a86cb541d45b3a3f21b5f/distilkobert-0.2.1-py3-none-any.whl"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9bcb515f7d05d4e986e0100de1f2124d",
+                    "sha256": "7417c49599c74e75965b7295f13807084ed724a23fbdb933a6fd3fcaaa4604a6"
+                },
+                "downloads": -1,
+                "filename": "distilkobert-0.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9bcb515f7d05d4e986e0100de1f2124d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 9005,
+                "upload_time": "2019-12-06T11:29:05",
+                "upload_time_iso_8601": "2019-12-06T11:29:05.549793Z",
+                "url": "https://files.pythonhosted.org/packages/99/1d/267270d026ff1e5c6c23ebdf2b52399834d16f04d8d728f5ea9087714c30/distilkobert-0.3.0-py3-none-any.whl"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e5b5a34b0d746b10176dc3bf10a1cdc0",
+                    "sha256": "50e2215220883548c7d95b4386b3e308f4661a4e15b2a58d476133551cdcb65c"
+                },
+                "downloads": -1,
+                "filename": "distilkobert-0.4.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e5b5a34b0d746b10176dc3bf10a1cdc0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 7464,
+                "upload_time": "2019-12-18T17:30:26",
+                "upload_time_iso_8601": "2019-12-18T17:30:26.411319Z",
+                "url": "https://files.pythonhosted.org/packages/5d/f5/c24077ec390d80232763d599af05d87b879fb9e09658472e4732ad910cbb/distilkobert-0.4.0-py3-none-any.whl"
+            }
+        ],
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d4f4d757bce2934931e8e600d6baeb62",
+                    "sha256": "18d6bccaa99342a0648a80930ae0bc3ef767cb8e0a6ec9f25d9e4b5b087c9017"
+                },
+                "downloads": -1,
+                "filename": "distilkobert-0.4.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d4f4d757bce2934931e8e600d6baeb62",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3",
+                "size": 7083,
+                "upload_time": "2019-12-18T18:16:33",
+                "upload_time_iso_8601": "2019-12-18T18:16:33.854225Z",
+                "url": "https://files.pythonhosted.org/packages/c0/e6/1636b7ea00b595708f5f8d117c224e50864bad90e17e45f251053006265c/distilkobert-0.4.1-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d4f4d757bce2934931e8e600d6baeb62",
+                "sha256": "18d6bccaa99342a0648a80930ae0bc3ef767cb8e0a6ec9f25d9e4b5b087c9017"
+            },
+            "downloads": -1,
+            "filename": "distilkobert-0.4.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d4f4d757bce2934931e8e600d6baeb62",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3",
+            "size": 7083,
+            "upload_time": "2019-12-18T18:16:33",
+            "upload_time_iso_8601": "2019-12-18T18:16:33.854225Z",
+            "url": "https://files.pythonhosted.org/packages/c0/e6/1636b7ea00b595708f5f8d117c224e50864bad90e17e45f251053006265c/distilkobert-0.4.1-py3-none-any.whl"
+        }
+    ]
+}

@@ -1,0 +1,138 @@
+{
+    "info": {
+        "author": "RicterZ",
+        "author_email": "ricterzheng@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Other Audience",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: Chinese (Traditional)",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython"
+        ],
+        "description": "BGmi\n====\nBGmi is a cli tool for subscribed bangumi.\n\n`\u4e2d\u6587\u8bf4\u660e <https://bgmi.rtfd.io/zh_CN/latest/>`_\n\n|pypi|\n|pypistats|\n|travis|\n|coverage|\n|license|\n\n====\nTODO\n====\n\n==========\nUpdate Log\n==========\n+ Fetch data from multi data sources at same time\n+ Refactor server code to improve performance\n+ Remove python2 support\n+ Transmission rpc authentication configuration\n+ New download delegate `deluge-rpc <https://www.deluge-torrent.org/>`_\n+ You can filter search results by min and max episode\n\n=======\nFeature\n=======\n+ Multi data sources supported: `bangumi_moe <https://bangumi.moe>`_, `mikan_project <https://mikanani.me>`_ or `dmhy <https://share.dmhy.org/>`_\n+ Use aria2, transmission or deluge to download bangumi\n+ Web interface to manage bangumi with HTTP API\n+ Play bangumi online with danmaku\n+ RSS feed for uTorrent, ICS calendar for mobile devices\n+ Bangumi Script: Write your own bangumi parser!\n+ Bangumi calendar / episode information\n+ Keyword, subtitle group, regular expression filters for download bangumi\n+ Windows, Linux and Router system supported, BGmi everywhere\n\n.. image:: ./docs/images/bgmi_cli.png?raw=true\n    :alt: BGmi\n    :align: center\n.. image:: ./docs/images/bgmi_http.png?raw=true\n    :alt: BGmi HTTP Service\n    :align: center\n.. image:: ./docs/images/bgmi_player.png?raw=true\n    :alt: BGmi HTTP Service\n    :align: center\n.. image:: ./docs/images/bgmi_admin.png?raw=true\n    :alt: BGmi HTTP Service\n    :align: center\n\n============\nInstallation\n============\n\nAttention: If you are using Python<3.6, please download a binary release with python3.6 interpreter\n\nFor **Mac OS X / Linux / Windows**:\n\nInstall from source:\n\n.. code-block:: bash\n\n    branch='master'\n    pip install https://api.github.com/repos/BGmi/BGmi/tarball/$branch\n\nOr use pip:\n\n.. code-block:: bash\n\n    pip install bgmi\n\nIf you want to use mysql as your database you need to install ``pymysql`` `<https://github.com/PyMySQL/PyMySQL>`_.\n\nOr:\n\n.. code-block:: bash\n\n    pip install bgmi[mysql] # will use pymysql as driver\n\nInit BGmi database and install BGmi web interface:\n\n.. code-block:: bash\n\n    bgmi install\n\nif you don't need bgmi-frontend, add ``--no-web`` options to skip download front static file\n\n** ``bgmi`` now will not try to create dirs and init db every time, you will have to use ``bgmi install`` at first time**\n\n============\nUpgrade\n============\n.. code-block:: bash\n\n    pip install bgmi -U\n    bgmi upgrade\n\nMake sure to run :code:`bgmi upgrade` after you upgrade your bgmi\n\n======\nDocker\n======\nBuild Docker:\n\n.. code-block:: bash\n\n    git clone https://github.com/BGmi/BGmi\n    cd BGmi\n    # dev branch not working now\n    git checkout dev\n    docker build -t bgmi .\n\n    alias bgmi='docker run -e BGMI_PATH=$HOME/.bgmi -v $HOME/.bgmi:$HOME/.bgmi --net host bgmi'\n    alias bgmi_http='docker run -p 127.0.0.1:8888:8888 -e BGMI_PATH=$HOME/.bgmi -v $HOME/.bgmi:$HOME/.bgmi --net host bgmi'\n    # bootstrap bgmi\n    bgmi install\n    # start bgmi http server in back ground\n    bgmi_http\n\n\nMake sure that docker env ``BGMI_PATH`` in docker is same as the path on host.\nBecause bgmi will tell downloader to download file in ``$BGMI_PATH/bangumi``.\nSo it must be same inside or outside the docker\n\nThen use docker image as same as bgmi installed with pip:\n\n.. code-block:: bash\n\n    bgmi cal --download-cover\n\n=============\nUsage of bgmi\n=============\nCli completion(bash and zsh. Shell was detected from your env $SHELL)\n\n.. code-block:: bash\n\n    eval \"$(bgmi complete)\"\n\nSetup custom BGMI_PATH:\n\n.. code-block:: bash\n\n    BGMI_PATH=/bgmi bgmi -h\n\n\nOr add this code to your .bashrc file:\n\n.. code-block:: bash\n\n    alias bgmi='BGMI_PATH=/tmp bgmi'\n\n\nShow bangumi calendar:\n\n.. code-block:: bash\n\n    bgmi cal\n\n\nSubscribe bangumi:\n\n.. code-block:: bash\n\n    bgmi add \"Re:CREATORS\" \"\u590f\u76ee\u53cb\u4eba\u5e10 \u9646\" \"\u8fdb\u51fb\u7684\u5de8\u4eba season 2\"\n    bgmi add \"\u6a31\u82b1\u4efb\u52a1\" --episode 0\n\n\nUnsubscribe bangumi:\n\n.. code-block:: bash\n\n    bgmi delete \"Re:CREATORS\"\n\n\nUpdate bangumi database which locates at ~/.bgmi/bangumi.db acquiescently:\n\n.. code-block:: bash\n\n    bgmi update --download\n    bgmi update \"\u4ece\u96f6\u5f00\u59cb\u7684\u9b54\u6cd5\u4e66\" --download 2 3\n    bgmi update \"\u65f6\u949f\u673a\u5173\u4e4b\u661f\" --download\n\n\nSet up the bangumi subtitle group filter and fetch entries:\n\n.. code-block:: bash\n\n    bgmi list\n    bgmi fetch \"Re:CREATORS\"\n    bgmi filter \"Re:CREATORS\" --subtitle \"DHR\u52d5\u7814\u5b57\u5e55\u7d44,\u8c4c\u8c46\u5b57\u5e55\u7ec4\" --include 720P --exclude BIG5\n    bgmi fetch \"Re:CREATORS\"\n    # remove subtitle, include and exclude keyword filter and add regex filter\n    bgmi filter \"Re:CREATORS\" --subtitle \"\" --include \"\" --exclude \"\" --regex\n    bgmi filter \"Re:CREATORS\" --regex \"(DHR\u52d5\u7814\u5b57\u5e55\u7d44|\u8c4c\u8c46\u5b57\u5e55\u7ec4).*(720P)\"\n    bgmi fetch \"Re:CREATORS\"\n\n\nSearch bangumi and download:\n\n.. code-block:: bash\n\n    bgmi search '\u4e3a\u7f8e\u597d\u7684\u4e16\u754c\u732e\u4e0a\u795d\u798f\uff01' --regex-filter '.*\u52a8\u6f2b\u56fd\u5b57\u5e55\u7ec4.*\u4e3a\u7f8e\u597d\u7684\u4e16\u754c\u732e\u4e0a\u795d\u798f\uff01].*720P.*'\n    # download\n    bgmi search '\u4e3a\u7f8e\u597d\u7684\u4e16\u754c\u732e\u4e0a\u795d\u798f\uff01' --regex-filter '.*\u5408\u96c6.*' --download\n\n\nModify bangumi episode:\n\n.. code-block:: bash\n\n    bgmi list\n    bgmi mark \"Re:CREATORS\" 1\n\n\nManage download items:\n\n.. code-block:: bash\n\n    bgmi download --list\n    bgmi download --list --status 0\n    bgmi download --mark 1 --status 2\n\nStatus code:\n\n+ 0 - Not downloaded items\n+ 1 - Downloading items\n+ 2 - Downloaded items\n\nManually match bangumi from multi data source.\n\nBGmi will try to find same bangumis from different data source.\n\n`example <https://github.com/BGmi/BGmi/issues/109#issuecomment-435870748>`_\n\nBut there may also be accidents. like \"\u9b54\u5076\u9a6c\u620f\u56e2\" and \"\u5080\u5121\u9a6c\u620f\u56e2\", so BGmi apply two actions for user to tell BGmi that\na bangumi name have different chinese translations.\n\n\n.. code-block:: bash\n\n    bgmi link \u9b54\u5076\u9a6c\u620f\u56e2 \u5080\u5121\u9a6c\u620f\u56e2\n    bgmi cal --force-update\n\n    bgmi unlink \u9b54\u5076\u9a6c\u620f\u56e2 \u5080\u5121\u9a6c\u620f\u56e2 # these two bangumis will be treated as different bangumis\n    bgmi cal --force-update\n\n\nShow BGmi configure and modify it:\n\n.. code-block:: bash\n\n    bgmi config\n    bgmi config ARIA2_RPC_TOKEN 'token:token233'\n\nFields of configure file:\n\nBGmi configure:\n\n+ :code:`ENABLE_DATA_SOURCE`:enabled data sources.\n+ :code:`BANGUMI_MOE_URL`: url of bangumi.moe mirror\n+ :code:`BGMI_SAVE_PATH`: bangumi saving path\n+ :code:`DOWNLOAD_DELEGATE`: the ways of downloading bangumi (aria2-rpc, transmission-rpc, deluge-rpc)\n+ :code:`MAX_PAGE`: max page for fetching bangumi information\n+ :code:`BGMI_TMP_PATH`: just a temporary path\n+ :code:`DANMAKU_API_URL`: url of danmaku api\n+ :code:`LANG`: language\n+ :code:`DB_URL`: peewee Database URL, see `peewee#database-url <https://docs.peewee-orm.com/en/latest/peewee/playhouse.html#database-url>`_ for more details. Only sqlite and mysql are tested. default mysql database charset is :code:`utf8md4`, so if you are using mysql, you should set it you :code:`mysql://{username}:{password}@{host}:{port}/{dbname}?charset=utf8mb4`\n\nKeyword Weight configure:\n\nIf you some preferred keywords like ``720``, ``\u5185\u5d4c`` or ``\u53cc\u8bed``,\nbut you don't want to include or exclude it,\nyou can add ``keyword=weight`` pair to ``keyword weight`` section of config file.\n\nexample:\n\n.. code-block:: ini\n\n    [keyword weight]\n    720 = 10\n    \u5185\u5d4c = 100\n    \u53cc\u8bed = 100\n\nIf there are titles named ``720p \u7b80\u4f53`` and ``1080p \u53cc\u8bed`` and ``720 \u5185\u5d4c \u53cc\u8bed``,\ntheir weight will be ``10``, ``100`` and ``210``(``10+100+100``)\n``bgmi`` will choose to download the third torrent.\n\nAria2-rpc configure:\n\n+ :code:`ARIA2_RPC_URL`: aria2c daemon RPC url, not jsonrpc url.(\"http://localhost:6800/rpc\" for localhost)\n+ :code:`ARIA2_RPC_TOKEN`: aria2c daemon RPC token(\"token:\" for no token)\n\nTransmission-rpc configure:\n\n+ :code:`TRANSMISSION_RPC_URL`: transmission rpc host\n+ :code:`TRANSMISSION_RPC_PORT`: transmission rpc port\n+ :code:`TRANSMISSION_RPC_USERNAME`: transmission rpc username (leave it default if you don't set rpc authentication)\n+ :code:`TRANSMISSION_RPC_PASSWORD`: transmission rpc password (leave it default if you don't set rpc authentication)\n\nDeluge-rpc configure:\n\n+ :code:`DELUGE_RPC_URL`: deluge rpc url\n+ :code:`DELUGE_RPC_PASSWORD`: deluge rpc password\n\n\n\n\n==================\nUsage of bgmi_http\n==================\nDownload all bangumi cover:\n\n.. code-block:: bash\n\n    bgmi cal --download-cover\n\nDownload frontend static files:\n\n.. code-block:: bash\n\n    bgmi install\n\nStart BGmi HTTP Service bind on :code:`0.0.0.0:8888`:\n\n.. code-block:: bash\n\n    bgmi_http --port=8888 --address=0.0.0.0\n\nIf you are using docker:\n\n.. code-block:: bash\n\n    host_port=8888\n    aria2c_port=6800\n    docker run -p127.0.0.1:$host_port:80 -p$aria2c_port:6800 -d -v $HOME/.bgmi:$HOME/.bgmi ricterz/bgmi\n\nBehind a Web Server\n-------------------\nGenerate a sample Nginx config\n\n.. code-block:: bash\n\n    bgmi gen nginx.conf --server-name bgmi.example.com\n\nGenerate a sample Caddyfile\n\n.. code-block:: bash\n\n    bgmi gen caddyfile --server-name bgmi.example.com\n\nGenerate systemd service unit file\n----------------------------------\n\n.. code-block:: bash\n\n    bgmi gen bgmi_http.service | sudo tee /etc/systemd/system/bgmi_http.service\n    sudo systemctl daemon-reload\n    sudo systemctl enable bgmi_http.service\n    sudo systemctl start bgmi_http.service\n\n\nmacOS launchctl service controller\n----------------------------------\nsee `issue #77 <https://github.com/BGmi/BGmi/pull/77>`_\n\n`me.ricterz.bgmi.plist <./bgmi/others/me.ricterz.bgmi.plist>`_\n\n===================\nDPlayer and Danmaku\n===================\n\nBGmi use `DPlayer <https://github.com/DIYgod/DPlayer>`_ to play bangumi.\n\nFirst, setup your ``bgmi_http``.\nSecond, choose one danmaku backend at `DPlayer#related-projects <https://github.com/DIYgod/DPlayer#related-projects>`_.\n\nUse ``bgmi config`` to setup the url of danmaku api.\n\n.. code-block:: bash\n\n    bgmi config DANMAKU_API_URL https://api.prprpr.me/dplayer/ # This api is provided by dplayer official, seems broken now.\n\n...restart your :code:`bgmi_http` and enjoy :D\n\n==============\nBangumi Script\n==============\n\nBangumi Script is a script which you can write the bangumi parser own.\nBGmi will load the script and call the method you write before the native functionality.\n\nBangumi Script Runner will catch the data you returned, update the database, and download the bangumi.\nYou only just write the parser and return the data.\n\nBangumi Script is located at :code:`BGMI_PATH/script`, inherited :code:`ScriptBase` class. There is an example:\n\n.. code-block:: python\n\n    # coding=utf-8\n\n    import re\n    import json\n    import requests\n    import urllib\n\n    from bgmi.utils import parse_episode\n    from bgmi.script import ScriptBase\n    from bgmi.utils import print_error\n\n\n    unquote = urllib.parse.unquote\n\n\n    class Script(ScriptBase):\n\n        # \u5b9a\u4e49 Model, \u6b64\u5904 Model \u4e3a\u663e\u793a\u5728 BGmi HTTP \u4ee5\u53ca\u5176\u4ed6\u5730\u65b9\u7684\u540d\u79f0\u3001\u5c01\u9762\u53ca\u5176\u5b83\u4fe1\u606f\n        class Model(ScriptBase.Model):\n            bangumi_name = '\u731c\u8c1c\u738b(BGmi Script)' # \u540d\u79f0, \u968f\u610f\u586b\u5199\u5373\u53ef\n            cover = 'COVER URL' # \u5c01\u9762\u7684 URL\n            update_time = 'Tue' # \u6bcf\u5468\u51e0\u66f4\u65b0\n\n        def get_download_url(self):\n            \"\"\"Get the download url, and return a dict of episode and the url.\n            Download url also can be magnet link.\n            For example:\n            ```\n                {\n                    1: 'http://example.com/Bangumi/1/1.mp4'\n                    2: 'http://example.com/Bangumi/1/2.mp4'\n                    3: 'http://example.com/Bangumi/1/3.mp4'\n                }\n            ```\n            The keys `1`, `2`, `3` is the episode, the value is the url of bangumi.\n            :return: dict\n            \"\"\"\n            # fetch and return dict\n            resp = requests.get('http://www.kirikiri.tv/?m=vod-play-id-4414-src-1-num-2.html').text\n            data = re.findall(\"mac_url=unescape\\('(.*)?'\\)\", resp)\n            if not data:\n                print_error('No data found, maybe the script is out-of-date.', exit_=False)\n                return {}\n\n            data = unquote(json.loads('[\"{}\"]'.format(data[0].replace('%u', '\\\\u')))[0])\n\n            ret = {}\n            for i in data.split('#'):\n                title, url = i.split('$')\n                # parse_episode \u4e3a\u5185\u7f6e\u7684\u89e3\u6790\u96c6\u6570\u7684\u65b9\u6cd5, \u53ef\u4ee5\u5e94\u5bf9\u5927\u591a\u6570\u60c5\u51b5\u3002\u5982\u82e5\u4e0d\u53ef\u7528, \u53ef\u4ee5\u81ea\u5df1\u5b9e\u73b0\u89e3\u6790\n                ret[parse_episode(title)] = url\n\n            return ret\n\nAnother example:\n\n.. code-block:: python\n\n    # coding=utf-8\n\n    import re\n    import requests\n    from bs4 import BeautifulSoup as bs\n\n    from bgmi.utils import parse_episode\n    from bgmi.script import ScriptBase\n    from bgmi.utils import print_error\n\n\n    class Script(ScriptBase):\n\n        class Model(ScriptBase.Model):\n            bangumi_name = 'Rick and Morty Season 3'\n            cover = 'http://img.itvfans.com/wp-content/uploads/31346.jpg'\n            update_time = 'Mon'\n\n        def get_download_url(self):\n            # fetch and return dict\n            resp = requests.get('http://www.itvfans.com/fenji/313463.html').text\n            html = bs(resp, 'html.parser')\n\n            data = html.find(attrs={'id': '31346-3-720p'})\n\n            if not data:\n                print_error('No data found, maybe the script is out-of-date.', exit_=False)\n                return {}\n\n            ret = {}\n            match_episode = re.compile('Rick\\.and\\.Morty\\.S03E(\\d+)\\.720p')\n            for row in data.find_all('a', attrs={'type': 'magnet'}):\n                link = row.attrs['href']\n                episode = match_episode.findall(link)\n                if episode:\n                    ret[int(episode[0])] = link\n\n            return ret\n\n\n    if __name__ == '__main__':\n        s = Script()\n        print(s.get_download_url())\n\n\nThe returned dict as follows.\n\n.. code-block:: python\n\n    {\n        1: 'http://example.com/Bangumi/1/1.mp4'\n        2: 'http://example.com/Bangumi/1/2.torrent'\n        3: 'magnet:?xt=urn:btih:aaa1bbb2ccc3ddd4eee5fff6ggg7'\n    }\n\n\nThe keys ``1``, ``2``, ``3`` are the episodes, the values are the urls of bangumi files or torrent.\n\n================\nBGmi Data Source\n================\n\nYou can easily add your own BGmi data source by extending BGmi website base(:code:`bgmi.website.base.BaseWebsite`) class and implement all the method.\n\n.. code-block:: python\n\n\n    from bgmi.website.base import BaseWebsite\n\n    class DataSource(BaseWebsite)\n        def search_by_keyword(self, keyword, count):\n            \"\"\"\n            return a list of dict with at least 4 key: download, name, title, episode\n            example:\n            ```\n                [\n                    {\n                        'name':\"\u8def\u4eba\u5973\u4e3b\u7684\u517b\u6210\u65b9\u6cd5\",\n                        'download': 'magnet:?xt=urn:btih:what ever',\n                        'title': \"[\u6f84\u7a7a\u5b66\u56ed] \u8def\u4eba\u5973\u4e3b\u7684\u517b\u6210\u65b9\u6cd5 \u7b2c12\u8bdd MP4 720p  \u5b8c\",\n                        'episode': 12\n                    },\n                ]\n\n            :param keyword: search key word\n            :type keyword: str\n            :param count: how many page to fetch from website\n            :type count: int\n\n            :return: list of episode search result\n            :rtype: list[dict]\n            \"\"\"\n            raise NotImplementedError\n\n        def fetch_bangumi_calendar_and_subtitle_group(self):\n            \"\"\"\n            return a list of all bangumi and a list of all subtitle group\n\n            list of bangumi dict:\n            update time should be one of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']\n            example:\n            ```\n                [\n                    {\n                        \"status\": 0,\n                        \"subtitle_group\": [\n                            \"123\",\n                            \"456\"\n                        ],\n                        \"name\": \"\u540d\u4fa6\u63a2\u67ef\u5357\",\n                        \"keyword\": \"1234\", #bangumi id\n                        \"update_time\": \"Sat\",\n                        \"cover\": \"https://example.com/images/cover1.jpg\"\n                    },\n                ]\n            ```\n\n            ``cover`` should be a full url of bangumi cover image file\n\n\n            list of subtitle group dict:\n            example:\n            ```\n                [\n                    {\n                        'id': '233',\n                        'name': 'bgmi\u5b57\u5e55\u7ec4'\n                    }\n                ]\n            ```\n\n\n            :return: list of bangumi, list of subtitile group\n            :rtype: (list[dict], list[dict])\n            \"\"\"\n            raise NotImplementedError\n\n        def fetch_episode_of_bangumi(self, bangumi_id, subtitle_list=None, max_page=MAX_PAGE):\n            \"\"\"\n            get all episode by bangumi id\n            example\n            ```\n                [\n                    {\n                        \"download\": \"magnet:?xt=urn:btih:e43b3b6b53dd9fd6af1199e112d3c7ff15cab82c\",\n                        \"subtitle_group\": \"58a9c1c9f5dc363606ab42ec\",\n                        \"title\": \"\u3010\u55b5\u840c\u5976\u8336\u5c4b\u3011\u2605\u4e03\u6708\u65b0\u756a\u2605[\u6765\u81ea\u6df1\u6e0a/Made in Abyss][07][GB][720P]\",\n                        \"episode\": 0,\n                        \"time\": 1503301292\n                    },\n                ]\n            ```\n\n            :param bangumi_id: bangumi_id\n            :param subtitle_list: list of subtitle group\n            :type subtitle_list: list\n            :param max_page: how many page you want to crawl if there is no subtitle list\n            :type max_page: int\n            :return: list of bangumi\n            :rtype: list[dict]\n            \"\"\"\n            raise NotImplementedError\n\n\n===================\nDebug\n===================\nSome error will not be raised unless you ``export DEBUG=1``.\n\nSet env ``BGMI_LOG`` to ``debug``, ``info``, ``warning``, ``error`` for different log level\n\nlog file will locate at ``{TMP_PATH}/bgmi.log``\n\n=========\nUninstall\n=========\nScheduled task will not be delete automatically, you will have to remove them manually.\n\n\\*nix:\n\n    remove them from your crontab\n\nwindows:\n\n.. code-block:: bash\n\n \u00a0 \u00a0 schtasks /Delete /TN 'bgmi calendar updater'\n \u00a0 \u00a0 schtasks /Delete /TN 'bgmi bangumi updater'\n\nThen, consider remove your ``~/.bgmi`` directory.\n\n============\nContributing\n============\n\n`contributing.md <./.github/contributing.md>`_\n\n=======\nLicense\n=======\nThe MIT License (MIT)\n\nCopyright (c) 2017-2019 BGmi Developer Team (https://github.com/BGmi)\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n\n\n.. |pypi| image:: https://img.shields.io/pypi/v/bgmi.svg\n   :target: https://pypi.python.org/pypi/bgmi\n\n.. |travis| image:: https://img.shields.io/travis/BGmi/BGmi/master.svg\n   :target: https://travis-ci.org/BGmi/BGmi\n\n.. |coverage| image:: https://img.shields.io/codecov/c/github/BGmi/BGmi/master.svg\n   :target: https://codecov.io/gh/BGmi/BGmi\n\n.. |license| image:: https://img.shields.io/badge/License-MIT-blue.svg\n   :target: https://github.com/BGmi/BGmi/blob/master/LICENSE\n\n.. |pypistats| image:: https://img.shields.io/pypi/dm/bgmi.svg\n   :target: https://pypi.python.org/pypi/bgmi\n",
+        "description_content_type": "text/x-rst",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/BGmi/BGmi",
+        "keywords": "bangumi,bgmi,feed",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "test23333333",
+        "package_url": "https://pypi.org/project/test23333333/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/test23333333/",
+        "project_urls": {
+            "Homepage": "https://github.com/BGmi/BGmi",
+            "Repository": "https://github.com/BGmi/BGmi"
+        },
+        "release_url": "https://pypi.org/project/test23333333/3.0.0a0/",
+        "requires_dist": [
+            "attrs (==19.1.0)",
+            "beautifulsoup4 (==4.8.0)",
+            "chardet (==3.0.4)",
+            "hanziconv (==0.3.2)",
+            "icalendar (==4.0.3)",
+            "peewee (==3.11.2)",
+            "requests (==2.22.0)",
+            "stevedore (==1.31.0)",
+            "tornado (==6.0.3)",
+            "peewee_migrate (==1.1.6)",
+            "click (==7.0)",
+            "pydantic (==0.32.2)",
+            "pymysql (==0.9.3); extra == \"mysql\""
+        ],
+        "requires_python": ">=3.6,<4.0",
+        "summary": "BGmi is a cli tool for subscribed bangumi.",
+        "version": "3.0.0a0"
+    },
+    "last_serial": 5910382,
+    "releases": {
+        "3.0.0a0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7d6e2a3b742a6287edac88943c24a6f2",
+                    "sha256": "5842482ae01edef25315a614830e99743bda2cc915513a702fc451059045e7da"
+                },
+                "downloads": -1,
+                "filename": "test23333333-3.0.0a0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7d6e2a3b742a6287edac88943c24a6f2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 84609,
+                "upload_time": "2019-10-01T04:47:28",
+                "upload_time_iso_8601": "2019-10-01T04:47:28.338499Z",
+                "url": "https://files.pythonhosted.org/packages/e5/ce/36714af0fb78d9c27d4eeb851e43ceb52a0b52c59f6cad52551a55460473/test23333333-3.0.0a0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "364918200c7879fecb0ae89fb8fad24c",
+                    "sha256": "5debed53f2c0dbfa6908b5eb6c2f75f7efe86dda447e73b591131e3dfce989bc"
+                },
+                "downloads": -1,
+                "filename": "test23333333-3.0.0a0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "364918200c7879fecb0ae89fb8fad24c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 68941,
+                "upload_time": "2019-10-01T04:47:31",
+                "upload_time_iso_8601": "2019-10-01T04:47:31.421144Z",
+                "url": "https://files.pythonhosted.org/packages/fe/03/56ca249d474635f8a37b5047def9246afd70fb6d6b228caca70fd0e8d2d5/test23333333-3.0.0a0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7d6e2a3b742a6287edac88943c24a6f2",
+                "sha256": "5842482ae01edef25315a614830e99743bda2cc915513a702fc451059045e7da"
+            },
+            "downloads": -1,
+            "filename": "test23333333-3.0.0a0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "7d6e2a3b742a6287edac88943c24a6f2",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6,<4.0",
+            "size": 84609,
+            "upload_time": "2019-10-01T04:47:28",
+            "upload_time_iso_8601": "2019-10-01T04:47:28.338499Z",
+            "url": "https://files.pythonhosted.org/packages/e5/ce/36714af0fb78d9c27d4eeb851e43ceb52a0b52c59f6cad52551a55460473/test23333333-3.0.0a0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "364918200c7879fecb0ae89fb8fad24c",
+                "sha256": "5debed53f2c0dbfa6908b5eb6c2f75f7efe86dda447e73b591131e3dfce989bc"
+            },
+            "downloads": -1,
+            "filename": "test23333333-3.0.0a0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "364918200c7879fecb0ae89fb8fad24c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6,<4.0",
+            "size": 68941,
+            "upload_time": "2019-10-01T04:47:31",
+            "upload_time_iso_8601": "2019-10-01T04:47:31.421144Z",
+            "url": "https://files.pythonhosted.org/packages/fe/03/56ca249d474635f8a37b5047def9246afd70fb6d6b228caca70fd0e8d2d5/test23333333-3.0.0a0.tar.gz"
+        }
+    ]
+}

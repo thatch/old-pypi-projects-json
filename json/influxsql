@@ -1,0 +1,163 @@
+{
+    "info": {
+        "author": "Gerard Duval",
+        "author_email": "gerard.duval@gdsoftconsulting.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+            "Topic :: Utilities"
+        ],
+        "description": "Introduction\n------------\n\nInfluxDB is a nice time series database, especially efficient in\nperformance for storing a large numbers of events. However the query\nlanguage provided with Influxdb has many shortcomings (no joins between\nmeasurements, restrictive order by, syntax very specific in comparison\nwith standard SQL, \u2026)\n\nThe basic idea of influxsql is to extend influxdb with a true, fully\nfonctional query language compatible with Sqlite.\n\nThe design behind influxsql is to associate a database within Influxdb\nwith a Sqlite in-memory database and to realize a mapping between\nmeasurements and virtual tables in Sqlite.\n\nInstallation\n------------\n\nInstall, upgrade and uninstall influxsql with the following commands:\n\n::\n\n    $ pip install influxsql\n    $ pip install --upgrade influxsql\n    $ pip uninstall influxsql\n\nDependencies\n------------\n\nThe influxsql distribution is supported and tested on Python 2.7.\n\nMain dependencies are:\n\n-  influxdb package\n-  apsw package\n\napsw is a python access to Sqlite supporting virtual tables.\n\nDocumentation\n-------------\n\nInfluxdb documentation is available at\nhttp://influxdb-python.readthedocs.org \n\nApsw documentation is available\nat https://rogerbinns.github.io/apsw/\n\nThere is no specific documentation for influxsql except the examples\nbelow.\n\nExamples\n--------\n\nA typical influxsql session looks like:\n\n::\n\n    $ python\n    >>> import influxsql\n    >>> session = influxsql.InfluxSQLClient()\n\nA typical influxdb session looks like:\n\n::\n\n    $ python\n    >>> import influxdb\n    >>> session = influxdb.InfluxDBClient()\n\ninfluxsql.InfluxSQLClient is a class extending influxdb.InfluxDBClient\n\nSo everything available with InfluxDBClient is available with\nInfluxSQLclient.\n\nExample:\n\n::\n\n    $ python\n    >>> import influxsql\n    >>> session = influxsql.InfluxSQLClient()\n    >>> json_body = [ { \"measurement\": \"cpu_load_short\", \"tags\": { \"host\": \"server01\", \"region\": \"us-west\" }, \"time\": \"2009-11-10T23:00:00Z\", \"fields\": { \"value\": 0.64 } } ]\n    >>> session.create_database('example')\n    >>> session.swith_database('example')\n    >>> session.write_points(json_body)\n    >>> result = session.query('select value from cpu_load_short')\n    >>> print(\"Result: {0}\".format(result))\n\nIn this example, no value added coming from influxsql in comparison with\ninfluxdb. This example only shows that everything possible with influxdb\nis also possible with influxsql.\n\nInfluxsql defines a method to query the influxdb database with a SQL\nrequest compatible with Sqlite. Example:\n\n::\n\n    $ python\n    >>> def dict_factory(cursor, row):\n    ...     d = dict()\n    ...     for idx, col in enumerate(cursor.description): d[col[0]] = row[idx]\n    ...     return d \n    ...\n    >>> import influxsql\n    >>> session = influxsql.InfluxSQLClient()\n    >>> session.switch_database('example')\n    >>> session.apsw.setrowtrace(dict_factory)\n    >>> session.detach('cpu_load_short')\n    >>> session.attach('cpu_load_short')\n    >>> result = session.sql(\"select * from cpu_load_short\")\n    >>> for row in result: print(row)\n\nExplanation of this example:\n\nWe define first a function (dict\\_factory) to specify the format of each\nrow returned by a query. Here we want to return a row as a dictionary.\nThis step is not mandatory. By default, apsw will return a tuple.\n\nThe Sqlite database associated with the session is an in-memory\ndatabase. This database can be queried as any sqlite database with the\nhandle \u201csession.apsw\u201d.\n\nIn our example, we have used \u201csession.apsw.setrowtrace(dict\\_factory)\u201d\nto tell to apsw that we want each row in a specific format.\n\nFor each measurement to query with sqlite, we need to define a virtual\ntable. This is done in the statement\n\u201csession.attach(\u2018cpu\\_load\\_short\u2019)\u201d.\n\nThe statement \u201csession.detach(\u2018cpu\\_load\\_short\u2019)\u201d has the side effect\nto remove the virtual table within sqlite. If the description of the\nmeasurement is static (tags and fields unchanged over time), the detach\nmethod is not mandatory to be called. But if the description of the\nmeasurement is dynamic (new tags or new fields), it\u2019s necessary to call\ndetach and attach to get all charact\u00e9ristics of the measurement.\n\nDetach and attach methods could have been integrated to the sql method,\nbut for performance reasons, this has not been done in the current\nversion.\n\nIn this example, the request \u201cselect \\* from cpu\\_load\\_short\u201d is very\nsimple. You can replace this query by any query compatible with the sql\nprovided by sqlite. You can create user fonctions in python and\nreference them in the query.\n\nYou can of course, realize joins between measurements.\n\nYou can have access to all \u201corder by\u201d you want.\n\nIn addition to the methods described above, influxsql provides a method\nnamed \"imp\" allowing to import to import a table coming from sqlite to a\nmeasurement.\n\nExample:\n\nSuppose we have a Sqlite database in the file /tmp/music.db and we want \nto upload a table named \"artists\" in influxdb...\n\n::\n\n    $ python\n    >>> import influxsql\n    >>> session = influxsql.InfluxSQLClient()\n    >>> session.switch_database('example')\n    >>> session.imp(file='/tmp/music.db',table='artists')\n\nAn additional field \"time\" will be created with the current time (precision\nmicrosecond)",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/gduvalsc/influxsql",
+        "keywords": null,
+        "license": "GPL",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "influxsql",
+        "package_url": "https://pypi.org/project/influxsql/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/influxsql/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/gduvalsc/influxsql"
+        },
+        "release_url": "https://pypi.org/project/influxsql/0.0.16/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Query INFLUXDB with SQL compatible with SQLITE.",
+        "version": "0.0.16"
+    },
+    "last_serial": 2533063,
+    "releases": {
+        "0.0.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a50743c20ae9dbf238f628a79729f42b",
+                    "sha256": "eafb232cade1045797882449471aa062c3effe6c360538420cc693c8d3ba6b90"
+                },
+                "downloads": -1,
+                "filename": "influxsql-0.0.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a50743c20ae9dbf238f628a79729f42b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5238,
+                "upload_time": "2016-10-19T07:43:11",
+                "upload_time_iso_8601": "2016-10-19T07:43:11.358867Z",
+                "url": "https://files.pythonhosted.org/packages/12/b3/44494614d545b1ecf66e36542c6152e3ff0c787c5f9f739e0d23ab8b3b32/influxsql-0.0.12.tar.gz"
+            }
+        ],
+        "0.0.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9dba3cfdf55e8e5c2362b9f20d5fbc5e",
+                    "sha256": "4edcd9d8fcd82d5b72cdf4f6a1def5ea9e7b9ef03ad6462ccb1caf2dfc5bf6f7"
+                },
+                "downloads": -1,
+                "filename": "influxsql-0.0.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9dba3cfdf55e8e5c2362b9f20d5fbc5e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5255,
+                "upload_time": "2016-11-23T16:09:08",
+                "upload_time_iso_8601": "2016-11-23T16:09:08.561833Z",
+                "url": "https://files.pythonhosted.org/packages/ab/cf/2cdc95e62c85aa7fc71b9c4ae9ce6d23e2c964738a19199d6cdc3a7a49c3/influxsql-0.0.13.tar.gz"
+            }
+        ],
+        "0.0.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8ff8635bc1a38cf0f228f2f203a94896",
+                    "sha256": "8c4b3d3de114ea32a072982f24b02ed4109d0b39ad2f22fe684a59e602a381d8"
+                },
+                "downloads": -1,
+                "filename": "influxsql-0.0.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8ff8635bc1a38cf0f228f2f203a94896",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5252,
+                "upload_time": "2016-11-23T16:21:12",
+                "upload_time_iso_8601": "2016-11-23T16:21:12.053940Z",
+                "url": "https://files.pythonhosted.org/packages/18/10/6955a962571deee60142aab81cdfb52208edadcf9b997a214e9e7191586d/influxsql-0.0.14.tar.gz"
+            }
+        ],
+        "0.0.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e25e027d6c36fa8a66ef8fe35804ca6f",
+                    "sha256": "6c86673b0816b0a9d523cbec91c9e2b6a867863475fa3bc58d920fcc7b94e5e5"
+                },
+                "downloads": -1,
+                "filename": "influxsql-0.0.15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e25e027d6c36fa8a66ef8fe35804ca6f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5254,
+                "upload_time": "2016-11-23T16:25:20",
+                "upload_time_iso_8601": "2016-11-23T16:25:20.032358Z",
+                "url": "https://files.pythonhosted.org/packages/03/1a/6d1a2d6dccfc283383dcb81f0a28da47738f20f0c4c83ceff8b9dc99531e/influxsql-0.0.15.tar.gz"
+            }
+        ],
+        "0.0.16": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a45c6b624b7e44a8e3274209ef45acbc",
+                    "sha256": "49fab7f907ee076d52dc3b9fb5e7b19a4a81839e8599dd28806cbceeb37d70f2"
+                },
+                "downloads": -1,
+                "filename": "influxsql-0.0.16.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a45c6b624b7e44a8e3274209ef45acbc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5299,
+                "upload_time": "2016-12-21T17:12:21",
+                "upload_time_iso_8601": "2016-12-21T17:12:21.931772Z",
+                "url": "https://files.pythonhosted.org/packages/c4/44/d8e7dcf4b61420379795b2ca302ca1a409acf3a894c8d0a838fabc9b99f9/influxsql-0.0.16.tar.gz"
+            }
+        ],
+        "0.0.4": []
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a45c6b624b7e44a8e3274209ef45acbc",
+                "sha256": "49fab7f907ee076d52dc3b9fb5e7b19a4a81839e8599dd28806cbceeb37d70f2"
+            },
+            "downloads": -1,
+            "filename": "influxsql-0.0.16.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a45c6b624b7e44a8e3274209ef45acbc",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5299,
+            "upload_time": "2016-12-21T17:12:21",
+            "upload_time_iso_8601": "2016-12-21T17:12:21.931772Z",
+            "url": "https://files.pythonhosted.org/packages/c4/44/d8e7dcf4b61420379795b2ca302ca1a409acf3a894c8d0a838fabc9b99f9/influxsql-0.0.16.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,215 @@
+{
+    "info": {
+        "author": "Sondre Lilleb\u00f8 Gundersen",
+        "author_email": "sondrelg@live.no",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Framework :: Pytest",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Documentation",
+            "Topic :: Software Development",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Libraries :: Application Frameworks",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Software Development :: Testing",
+            "Topic :: Software Development :: Testing :: Unit"
+        ],
+        "description": ".. role:: python(code)\n   :language: python\n\n############################\nOpenAPI Specification Tester\n############################\n\n.. image:: https://img.shields.io/pypi/v/openapi-tester.svg\n    :target: https://pypi.org/project/openapi-tester/\n\n.. image:: https://img.shields.io/pypi/pyversions/openapi-tester.svg\n    :target: https://pypi.org/project/openapi-tester/\n\n.. image:: https://codecov.io/gh/sondrelg/openapi-tester/branch/master/graph/badge.svg\n    :target: https://codecov.io/gh/sondrelg/openapi-tester\n\n.. image:: https://img.shields.io/badge/code%20style-black-000000.svg\n    :target: https://pypi.org/project/openapi-tester/\n\n\nThis package provides a simple test-utility to test the integrity of your OpenAPI/Swagger documentation against actual API responses.\n\nPackage is currently under development, and only supports the testing of swagger documentation implemented in Django using drf_yasg_. The ambition for release 1.0.0 is to expand the current features to support testing any openapi specification, and to cut the dependence on Django tooling.\n\n.. _Drf_yasg: https://github.com/axnsan12/drf-yasg\n\n\nInstallation\n############\n\nInstall using pip:\n\n.. code:: python\n\n    pip install openapi-tester\n\nAdd 'openapi_tester' to your INSTALLED_APPS setting in ``settings.py``:\n\n.. code:: python\n\n   INSTALLED_APPS = [\n      ...\n      'openapi_tester',\n   ]\n\nConfiguration\n#############\n\nThe app currently requires two parameters.\n\n**Path**: The path to your OpenAPI specification. Can be an url, or the path to your document.\n\n**Case**: The case standard you wish to enforce for your documentation. Can be 'camel case', 'snake case', or None.\n\n- `camel case`__: Checks that your documentation is camelCased (default).\n\n.. __: https://en.wikipedia.org/wiki/Camel_case\n\n- `snake case`__: Checks that your documentation is snake_cased.\n\n.. __: https://en.wikipedia.org/wiki/Camel_case\n\n- None: Doesn't check the documentation case standard.\n\n|\n\n**Configuration example**\n\n.. code:: python\n\n    OPENAPI_TESTER = {\n        'path': '127.0.0.1:8080/swagger/?format=openapi',\n        'case': 'camel case'\n    }\n\n\nImplementation\n##############\n\nThe OpenAPI tester should primarily be used to supplement your existing API tests.\n\nThe easiest way to implement it would be in a test where you're successfully retrieving a valid response from an endpoint.\n\nAn example might look like this:\n\n.. code:: python\n\n    from django.contrib.auth.models import User\n    from rest_framework.test import APITestCase\n\n    from openapi_tester import test_schema\n\n\n    class TestMyAPI(APITestCase):\n\n        def setUp(self):\n            user, _ = User.objects.update_or_create(username='test_user')\n            self.client.force_authenticate(user=user)\n            self.path = '/api/v1/cars'\n\n        def test_get_200(self):\n            \"\"\"\n            Verifies that a 200 is returned for a valid GET request to the /correct/ endpoint.\n            \"\"\"\n            response = self.client.get(self.path + '/correct' /, headers={'Content-Type': 'application/json'})\n            expected_response = [\n                {'name': 'Saab', 'color': 'Yellow', 'height': 'Medium', 'width': 'Very wide', 'length': '2 meters'},\n                {'name': 'Volvo', 'color': 'Red', 'height': 'Medium', 'width': 'Not wide', 'length': '2 meters'},\n                {'name': 'Tesla', 'color': 'black', 'height': 'Medium', 'width': 'Wide', 'length': '2 meters'},\n            ]\n\n            self.assertEqual(response.status_code, 200)\n            self.assertEqual(response.json(), expected_response)\n\n            # Test Swagger documentation\n            test_schema(response, 'GET', self.path + '/correct/')\n\nSee the demo project and tests folder for more examples.\n\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "https://pypi.python.org/pypi/openapi-tester",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/sondrelg/openapi-tester",
+        "keywords": "openapi,swagger,api,test,testing,drf_yasg",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "openapi-tester",
+        "package_url": "https://pypi.org/project/openapi-tester/",
+        "platform": "OS Independent",
+        "project_url": "https://pypi.org/project/openapi-tester/",
+        "project_urls": {
+            "Download": "https://pypi.python.org/pypi/openapi-tester",
+            "Homepage": "https://github.com/sondrelg/openapi-tester"
+        },
+        "release_url": "https://pypi.org/project/openapi-tester/0.0.3/",
+        "requires_dist": [
+            "djangorestframework",
+            "requests",
+            "PyYAML",
+            "django"
+        ],
+        "requires_python": "",
+        "summary": "Test utility for asserting that your API outputs actually match your OpenAPI/Swagger specification.",
+        "version": "0.0.3"
+    },
+    "last_serial": 6516577,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "86d8c4409be3618c3d9ff4c5f00de059",
+                    "sha256": "2e1d7d070e5083091cb4bce266757ec7b7add1b71cf1d04091972108082106c1"
+                },
+                "downloads": -1,
+                "filename": "openapi_tester-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "86d8c4409be3618c3d9ff4c5f00de059",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5564,
+                "upload_time": "2020-01-12T00:22:36",
+                "upload_time_iso_8601": "2020-01-12T00:22:36.025606Z",
+                "url": "https://files.pythonhosted.org/packages/ef/e6/ef0851a016323abd59524d168120a332c2cf1b5387b715eae31b0b15ab7c/openapi_tester-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "52ba43f0931345cf77f235019cd2dd7a",
+                    "sha256": "af55946b3e71fcd9df987ff3978b5aef716dcb28126d93bcca7710596b7a038a"
+                },
+                "downloads": -1,
+                "filename": "openapi-tester-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "52ba43f0931345cf77f235019cd2dd7a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4234,
+                "upload_time": "2020-01-12T00:22:38",
+                "upload_time_iso_8601": "2020-01-12T00:22:38.358655Z",
+                "url": "https://files.pythonhosted.org/packages/3f/94/e0f7aa42aa1b7f00f5c109bb673f46019c1bfc6cd4397bf480d316ef1e4c/openapi-tester-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e6f5d3fc07428ee086d7e000ad1d45a7",
+                    "sha256": "42ffab2cdaf24b1a2999b1dff202a43252a40787c5445ff050ba2ffee0cbb6e7"
+                },
+                "downloads": -1,
+                "filename": "openapi_tester-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e6f5d3fc07428ee086d7e000ad1d45a7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 19489,
+                "upload_time": "2020-01-19T00:16:42",
+                "upload_time_iso_8601": "2020-01-19T00:16:42.908820Z",
+                "url": "https://files.pythonhosted.org/packages/02/6b/5c7c55fa1e162cea8b4506263bcd7cef4bee65927bbfd4fe50ab54cb70fe/openapi_tester-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aaeea16a890a07a8413fa0546c18051c",
+                    "sha256": "bc8906816ae5097a7a5a130c533a4faba3cc610d2510e7f77e690db98446b9e9"
+                },
+                "downloads": -1,
+                "filename": "openapi-tester-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aaeea16a890a07a8413fa0546c18051c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12801,
+                "upload_time": "2020-01-19T00:16:45",
+                "upload_time_iso_8601": "2020-01-19T00:16:45.369098Z",
+                "url": "https://files.pythonhosted.org/packages/e3/23/86a0aed9d7b04c915d5f38c7cf0d49686f7848a84bdce853c8884ab02c9e/openapi-tester-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ebb14e205ae99d57ad966225b19e60ea",
+                    "sha256": "adb23585bb312e8857e4038b7bb1e524addbb3efec538b1ed7c75dbd0d305342"
+                },
+                "downloads": -1,
+                "filename": "openapi_tester-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ebb14e205ae99d57ad966225b19e60ea",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 28857,
+                "upload_time": "2020-01-24T22:28:46",
+                "upload_time_iso_8601": "2020-01-24T22:28:46.147569Z",
+                "url": "https://files.pythonhosted.org/packages/82/5c/f757a6f0cd4a4d4bf59143512739f3ea5680f67a78ed9493e68677bba7f6/openapi_tester-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e90bc2fa829291f5577180464f7895e6",
+                    "sha256": "5c1a37030302aa78913a199fdaa01e8b0542ba57396fecf4360e6e258a4e2b9e"
+                },
+                "downloads": -1,
+                "filename": "openapi-tester-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e90bc2fa829291f5577180464f7895e6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16912,
+                "upload_time": "2020-01-24T22:28:48",
+                "upload_time_iso_8601": "2020-01-24T22:28:48.838581Z",
+                "url": "https://files.pythonhosted.org/packages/92/b9/14b7dfa4465b96958e83cd892c90bf7377e8ec295af560920f34a154132e/openapi-tester-0.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ebb14e205ae99d57ad966225b19e60ea",
+                "sha256": "adb23585bb312e8857e4038b7bb1e524addbb3efec538b1ed7c75dbd0d305342"
+            },
+            "downloads": -1,
+            "filename": "openapi_tester-0.0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ebb14e205ae99d57ad966225b19e60ea",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 28857,
+            "upload_time": "2020-01-24T22:28:46",
+            "upload_time_iso_8601": "2020-01-24T22:28:46.147569Z",
+            "url": "https://files.pythonhosted.org/packages/82/5c/f757a6f0cd4a4d4bf59143512739f3ea5680f67a78ed9493e68677bba7f6/openapi_tester-0.0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e90bc2fa829291f5577180464f7895e6",
+                "sha256": "5c1a37030302aa78913a199fdaa01e8b0542ba57396fecf4360e6e258a4e2b9e"
+            },
+            "downloads": -1,
+            "filename": "openapi-tester-0.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e90bc2fa829291f5577180464f7895e6",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 16912,
+            "upload_time": "2020-01-24T22:28:48",
+            "upload_time_iso_8601": "2020-01-24T22:28:48.838581Z",
+            "url": "https://files.pythonhosted.org/packages/92/b9/14b7dfa4465b96958e83cd892c90bf7377e8ec295af560920f34a154132e/openapi-tester-0.0.3.tar.gz"
+        }
+    ]
+}

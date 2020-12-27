@@ -1,0 +1,79 @@
+{
+    "info": {
+        "author": "Samuel James",
+        "author_email": "samuelvarejames@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "Ormuco Code Challege Question C\n===============================\n\nFolder: cache\n~~~~~~~~~~~~~\n\n.. code:: text\n\n   Question\u00a0C\n   At Ormuco, we want to optimize every bits of software we write. Your goal is to write a new\n   library that can be integrated to the Ormuco stack. Dealing with network issues everyday,\n   latency is our biggest problem. Thus, your challenge is to write a new Geo Distributed LRU (Least\n   Recently Used) cache with time expiration. This library will be used extensively by many of our\n   services so it needs to meet the following criteria:\n   \u00a0\n   \u00a0 \u00a0 1 - Simplicity. Integration needs to be dead simple.\n   \u00a0 \u00a0 2 - Resilient to network failures or crashes.\n   \u00a0 \u00a0 3 - Near real time replication of data across Geolocation. Writes need to be in real time.\n   \u00a0 \u00a0 4 - Data consistency across regions\n   \u00a0 \u00a0 5 - Locality of reference, data should almost always be available from the closest region\n   \u00a0 \u00a0 6 - Flexible Schema\n   \u00a0 \u00a0 7 - Cache can expire\u00a0\n\nSolution\n========\n\nInstallation\n------------\n\n``pip install sjames_lru_cache``\n\nThe module can be used with a decorator or without a decorator. Using it\nwithout the decorator allows you to have fine control over LRUCache APIs\n\n.. code:: python\n\n   - insertKeyValuePair(key, value)\n   - getValueFromKey(key)\n   - deleteKey(key)\n   - prune() # removes time contrained object from the cache\n\n   # the LRUCache object is also dict like object which means it also \n   # behaves like a python dict and has access to the python dict API.\n\n   def __getitem__(self, key):\n       return self.getValueFromKey(key)\n\n   def __setitem__(self, key, value):\n       self.insertKeyValuePair(key, value)\n\n   def __delitem__(self, key):\n       return self.deleteKey(key)\n\nDecorator example LRUCache\n~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n.. code:: python\n\n   from lrucache.lru_cache import LRUCache\n   from lrucache.memoize_cache import MemoizedCache\n\n   # Sample Usage with the decorator\n   @MemoizedCache(cache=LRUCache(maxSize=5, timeout=3600))\n   def get_random(max_value):\n       import random\n       return random.random() * max_value\n\n   print(get_random(1))\n   print(get_random(1))\n   print(get_random(3))\n   print(get_random(4))\n   print(get_random(5))\n   print(get_random(5))\n   print(get_random(7))\n   print(get_random(8))\n\n   print(get_random.misses)\n   # => 6\n   print(get_random.hits)\n   # => 2\n\n   # cache info\n   get_random.cache_info()\n   # => MemoizedCache(hits=2, misses=6, maxsize=5, currsize=5)\n\n   # Simple report on performance\n   report = f'Hit %: {(float(get_random.hits) / (get_random.hits + get_random.misses))}'\n   print(report)\n   # => Hit %: 0.25\n\nDecorator example GeoLRUCache\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n.. code:: python\n\n   from lrucache.geo_lru_cache import GeoLRUCache\n   from lrucache.memoize_cache import MemoizedCache\n\n   # timeout if not provided defaults to 3600\n   @MemoizedCache(\n       cache=GeoLRUCache(\n           maxSize=5,\n           remote_server=('192.168.10.1', '8080'))\n   )\n   def get_random(max_value):\n       import random\n       return random.random() * max_value\n\n.. code:: python\n\n   GeoLRUCache(maxSize=5, timeout=3600, remote_server=('192.168.10.1', '8080'))\n\nLRUCache example\n~~~~~~~~~~~~~~~~\n\n.. code:: python\n\n   from lrucache.lru_cache import LRUCache\n\n   lru = LRUCache(mazsize=4)\n\n   lru.insertKeyValuePair(\"a\", 99)\n   lru[\"b\"] = 100\n\n   lru.deleteKey(\"b\")\n   del lru[\"b\"]\n\n   lru.getValueFromKey(\"a\")\n   lru.get(\"a\", None)\n\nLRUCache time constraint example (expire after time t)\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n.. code:: python\n\n   from lrucache.utils import StoppableThread\n   from lrucache.lru_cache import LRUCache\n\n   lru = LRUCache(maxSize = 100, timeout=600)\n   lruThread = StoppableThread(lru)\n\n   # calling start on the thread makes a call to the lru.prune() method\n   # that clears out expired cache after. \n   lruThread.start()\n   lruThread.join()\n\nTest\n~~~~\n\n.. code:: text\n\n   python /path_to_lru_cache/ samuel_james_test.py\n\nNotes on lrucache\n~~~~~~~~~~~~~~~~~\n\n.. code:: text\n\n   The LRUCache is a dict-like container that is size limited. It used the prune method when called to clean time bound objects.\n\n   All objects on creation have a timestamp on it, this timestamp is used to check for expired objects when a timeout is given, the prune method can be run periodically in a thread to do cleanups.\n\n   Items are kept in a dict but are also mutually linked to\n   each other in sequence of their last access time,\n\n   Performance: access to single items, deletion, and update is done in constant time O(1)\n\n   In addition to the time-out, there also is a size limit, which\n   when exceeded will cause the oldest among the not yet expired items\n   to be kicked out as well.\n\n   Operations are generally thread safe, where a lock is acquired before an operation and released after an operation.\n\nNotes on geo lrucache\n~~~~~~~~~~~~~~~~~~~~~\n\n.. code:: text\n\n   The Geo LRUCache inherits from the LRUCache container and is also a dict like object and it also uses the prune method for time constrained cleanup.\n\n   When the decorated function is called, the GeoLRUCache stores the data in the cache and at the same time sends an update to the remote server via a socket connection.\n\n   It will also listen on a connection to updates from the remote server. As soon as it receives a buffered sized item from the remote server it updates it local cache.\n\n\n   These sends and receive are done via a thread.\n\nTODOS\n~~~~~\n\n.. code:: text\n\n   - Write test for the geo lru cache implementaion\n   - Properly simulate a remote client-server data exchange\n   - Auto populate geo lru cache on initialization/connection with remote server\n   - Re write how data is received on from the remote server",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/andela-sjames/projectOrmuco/tree/master/cache",
+        "keywords": "lru cache implementation",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sjames-lru-cache",
+        "package_url": "https://pypi.org/project/sjames-lru-cache/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/sjames-lru-cache/",
+        "project_urls": {
+            "Homepage": "https://github.com/andela-sjames/projectOrmuco/tree/master/cache"
+        },
+        "release_url": "https://pypi.org/project/sjames-lru-cache/0.1.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A python library to demonstrate geo lru cache",
+        "version": "0.1.3"
+    },
+    "last_serial": 5252027,
+    "releases": {
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bb6648eddab16035ab3f6b03dbaefde2",
+                    "sha256": "736989f4010ba91a4aa47a501aa297d0c21badb3f9c3b21d8e2309fc7a34534c"
+                },
+                "downloads": -1,
+                "filename": "sjames_lru_cache-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bb6648eddab16035ab3f6b03dbaefde2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7474,
+                "upload_time": "2019-05-10T12:43:13",
+                "url": "https://files.pythonhosted.org/packages/c7/0b/3373efaf93f0f3d13e2510392a25c09dd07ff6b9406bb03466be5118771d/sjames_lru_cache-0.1.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "bb6648eddab16035ab3f6b03dbaefde2",
+                "sha256": "736989f4010ba91a4aa47a501aa297d0c21badb3f9c3b21d8e2309fc7a34534c"
+            },
+            "downloads": -1,
+            "filename": "sjames_lru_cache-0.1.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "bb6648eddab16035ab3f6b03dbaefde2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7474,
+            "upload_time": "2019-05-10T12:43:13",
+            "url": "https://files.pythonhosted.org/packages/c7/0b/3373efaf93f0f3d13e2510392a25c09dd07ff6b9406bb03466be5118771d/sjames_lru_cache-0.1.3.tar.gz"
+        }
+    ]
+}

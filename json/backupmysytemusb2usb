@@ -1,0 +1,110 @@
+{
+    "info": {
+        "author": "St\u00e9phane Bressani",
+        "author_email": "s.bressani@bluewin.ch",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: No Input/Output (Daemon)",
+            "Environment :: X11 Applications :: GTK",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+            "Natural Language :: English",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: System :: Archiving :: Backup",
+            "Topic :: System :: Archiving :: Mirroring",
+            "Topic :: Utilities"
+        ],
+        "description": "backupmystemusb2usb: Backup my system usb to usb\n================================================\n\nbackupmystemusb2usb is a GPLv3-liscensed Python package for copy usb key.\n\nIts runs on Python 3.7 and has a dependency for yaml, and another one for the gui.\n\nInstallation without the source\n-------------------------------\n\nTo install *backupmystemusb2usb* package run the following command:\n\n.. code-block:: bash\n\n   sudo apt-get install libyaml-dev python3-gi\n   sudo -H pip3 install backupmystemusb2usb\n\nYou have to create a config.yml file\n\n.. code-block:: bash\n   \n   UUID_1_Master: 790d1fbb-96ed-46c3-868d-08e05e223fa7\n   UUID_1_Slave: 790d1fbb-96ed-46c3-868d-08e05e223fa7\n   Temp_img: /home/stephane/Temp/Linux.img\n   Temp_log: /home/stephane/Temp/BackupMySystem-Temp.log\n   Kill_dd: True\n\nUUID list\n\n.. code-block:: bash\n   \n   sudo blkid\n\nFind your device and for change the label. If the device master UUID is the same as the slave UUID (if you cancel in copy img to slave), you have to put a date upper on master than slave\n\n*Warning* UUID is not Label !\n\n.. code-block:: bash\n\n   sudo e2label /dev/sd_1 \"19991231235959\"\n   \nFor the deamon, write a *run.py* for running by user root with chmod 700\n\n.. code-block:: bash\n\n   #!/usr/bin/env python3\n   import sys\n   import yaml\n   from backupmystemusb2usb.usb2usb import usb2usb\n   try:\n      u2u = usb2usb(sys.argv[1])\n      u2u.backup()\n   except yaml.YAMLError:\n      exit()\n\nYou can create a service systemd if you planed to backup your usb key evry day in the morning. You can wakeonlan from a raspberrypi or other technique\n\n.. code-block:: bash\n\n   wakeonlan MACADRESS\n   crontab -e\n   # write your cron\n   sudo service cron reload\n\nNow for create a daemon in startup (without console)\n\n.. code-block:: bash\n\n   cd /etc/systemd/system\n   vi backupmystemusb2usb.service\n\nWrite\n   \n.. code-block:: bash\n\n   [Unit]\n   After=ssh.service\n\n   [Service]\n   WorkingDirectory=/your/working/path/\n   ExecStart=/usr/bin/sh -c \"/your/working/path/run.py /your/working/path/config.yml\"\n\n   [Install]\n   WantedBy=default.target\n\nEnable and start\n\n.. code-block:: bash\n   \n   sudo systemctl daemon-reload\n   sudo systemctl enabled backupmystemusb2usb\n\nThen the service start on reboot.\nIf you will test now the service :\n\n.. code-block:: bash\n\n   sudo systemctl start backupmystemusb2usb\n\nCheck the log (no detail just the command like dd)\n\n.. code-block:: bash\n\n   sudo journalctl --unit backupmysystemusb2usb -n 20\n\nYou can go to check your ouput log file configured by config.yml\n   \nNow we have to create the shell return for no-root user\n\n.. code-block:: bash\n\n   WORK IN PROGRESS FOR THE X11 GTK INTERFACE...\n\nYou can have the display of progress with run_user.py and run_user.sh in my github (modifiy the path for config.yml)\n\nYou can create a Gnome desktop startup\n\n.. code-block:: bash\n\n   cd ~/.config/autostart\n   touch backupmystemusb2usb.desktop\n   chmod 744\n   vi backupmystemusb2usb.desktop\n\nAnd in your editor enter\n\n.. code-block:: bash\n\n   [Desktop Entry]\n   Name=Backup my system usb to usb\n   Comment=Copy disk with the same space\n   Exec=/your/working/path/run_user.sh\n   Icon=org.gnome.Terminal\n   Path=/your/working/path/\n   Terminal=true\n   Hidden=false\n   Type=Application\n   Categories=Utility;Application;\n\nInstallation from source\n------------------------\n\nTo install the latest developpement version run the following command:\n\n.. code-block:: bash\n\n   git clone https://github.com/stephaneworkspace/backupmystemusb2usb",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/stephaneworkspace/backupmysystemusb2usb.git",
+        "keywords": "",
+        "license": "GPLv3+",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "backupmysytemusb2usb",
+        "package_url": "https://pypi.org/project/backupmysytemusb2usb/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/backupmysytemusb2usb/",
+        "project_urls": {
+            "Homepage": "https://github.com/stephaneworkspace/backupmysystemusb2usb.git"
+        },
+        "release_url": "https://pypi.org/project/backupmysytemusb2usb/0.0.13/",
+        "requires_dist": null,
+        "requires_python": ">=3.7",
+        "summary": "Backup a usb key to another usb key with the same space disk",
+        "version": "0.0.13"
+    },
+    "last_serial": 6127357,
+    "releases": {
+        "0.0.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e9da7b969d036fffadf9a731b26ccc3e",
+                    "sha256": "cdd24d19a1c4a41eb6de20159bd676a8f811bbb77dcf4810f3ed978a05d0d3c5"
+                },
+                "downloads": -1,
+                "filename": "backupmysytemusb2usb-0.0.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e9da7b969d036fffadf9a731b26ccc3e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 3089,
+                "upload_time": "2019-11-13T00:17:23",
+                "upload_time_iso_8601": "2019-11-13T00:17:23.643720Z",
+                "url": "https://files.pythonhosted.org/packages/b6/17/55f7066cf88f8cba960cd18f8a85464cd7681252ed807396dd8649f13762/backupmysytemusb2usb-0.0.12.tar.gz"
+            }
+        ],
+        "0.0.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1e932fee7b7ef86da310c11bf2e6bcb9",
+                    "sha256": "e0fe4cbaa5903b86097fc46c30044257483561e4a78aadb541616736b97fdd63"
+                },
+                "downloads": -1,
+                "filename": "backupmysytemusb2usb-0.0.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1e932fee7b7ef86da310c11bf2e6bcb9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 3299,
+                "upload_time": "2019-11-13T00:53:28",
+                "upload_time_iso_8601": "2019-11-13T00:53:28.541112Z",
+                "url": "https://files.pythonhosted.org/packages/d2/f6/9bdfadbc126d3919cbc437e1a291b7d22a17cb44fc50cb52874bbfa175da/backupmysytemusb2usb-0.0.13.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1e932fee7b7ef86da310c11bf2e6bcb9",
+                "sha256": "e0fe4cbaa5903b86097fc46c30044257483561e4a78aadb541616736b97fdd63"
+            },
+            "downloads": -1,
+            "filename": "backupmysytemusb2usb-0.0.13.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1e932fee7b7ef86da310c11bf2e6bcb9",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7",
+            "size": 3299,
+            "upload_time": "2019-11-13T00:53:28",
+            "upload_time_iso_8601": "2019-11-13T00:53:28.541112Z",
+            "url": "https://files.pythonhosted.org/packages/d2/f6/9bdfadbc126d3919cbc437e1a291b7d22a17cb44fc50cb52874bbfa175da/backupmysytemusb2usb-0.0.13.tar.gz"
+        }
+    ]
+}

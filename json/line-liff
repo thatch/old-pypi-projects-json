@@ -1,0 +1,86 @@
+{
+    "info": {
+        "author": "FumiyaOgawa",
+        "author_email": "engineer.fumi@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development"
+        ],
+        "description": "# line-liff\nIt is a package that allows you to manipulate LIFF(Line Frontend Framework) by Python.\n\n# Caution\n\n\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\nThis branch is for `Alpha Version`.   \nThis package has little or no testing\n\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\u25a0\u25a1\n\n# How to use\n\n## Example\n\n```python\n# -*- coding:utf-8 -*-\nfrom line-liff import (\n    LineFrontendFramework as LIFF,\n    ErrorResponse\n)\n\n\ndef main():\n    liff_api = LIFF(\"YOUR_CHANNEL_ACCESS_TOKEN\")\n    \n    try:\n        # If you want to add LIFF app\n        liff_id = liff_api.add(\n            view_type=\"compact\",\n            view_url=\"https://{YOUR LIFF-SITE}\")\n            # 400 Error or 401 Error\n        try:\n            # If you want to update LIFF app\n            liff_api.update(liff_id, \n            view_type=\"full\",\n            view_url=\"https://{YOUR LIFF-SITE}\")\n        except ErrorResponse as err:\n            # 401 Error or 404 Error\n            print(err.message)\n            return \n    except ErrorResponse as err:\n        # 401 Error or 404 Error\n        print(err.message)\n        return \n    \n    try:\n        # If you want to get all LIFF apps\n        apps_info = liff_api.get(\"compact\", \"https://{YOUR LIFF-SITE}\")\n        for app_info in apps_info:\n            try:\n                # If you want to delete LIFF app\n                liff_api.delete(app_info[\"liffId\"])\n            except ErrorResponse as err:\n                # 401 Error or 404 Error\n                print(err.message)\n                return \n    except ErrorResponse as err:\n        # 401 Error or 404 Error\n        print(err.message)\n        return \n\nif __name__ == '__main__':\n    main()\n\n```\n\n## API\n\n### LineFrontendFramework\n\n#### `__init__(self, channel_access_token)`\n\nCreate a new LineFrontendFramework instance.\n\n```python\nliff_api = add(\n            view_type=\"compact\",\n            view_url=\"https://{YOUR LIFF-SITE}\")\n```\n\n\n#### `add(self, view_type, view_url)`\n\nAdds an app to LIFF. You can add up to 30 LIFF apps on one channel.\n\n```python\nliff_id = LineFrontendFramework('YOUR_CHANNEL_ACCESS_TOKEN')\n```\n\n##### view_type\n\n|name|mean|\n|:---:|:---:|\n|`\"compact\"`|50% of the screen height of the device|\n|`\"tall\"`|80% of the screen height of the device.\n|`\"full\"`|100% of the screen height of the device.|\n\n\"Add LIFF app\" in [https://developers.line.me/ja/reference/liff/](https://developers.line.me/ja/reference/liff/)\n\n\n#### `update(self, liff_id, view_type, view_url)`\n\nUpdates LIFF app settings.  \n\n```python\nliff_api.update(liff_id,\n    view_type=\"full\",\n    view_url=\"https://{YOUR LIFF-SITE}\")\n```\n\n##### view_type\n\n|name|mean|\n|:---:|:---:|\n|`\"compact\"`|50% of the screen height of the device|\n|`\"tall\"`|80% of the screen height of the device.\n|`\"full\"`|100% of the screen height of the device.|\n\n\"Update LIFF app\" in [https://developers.line.me/ja/reference/liff/](https://developers.line.me/ja/reference/liff/)\n\n#### `get(self)`\n\nGets information on all the LIFF apps registered in the channel.\n\n```python\nliff_api.get()\n```\n\n\"Get all LIFF apps\" in [https://developers.line.me/ja/reference/liff/](https://developers.line.me/ja/reference/liff/)\n\n#### `delete(self, liff_id)`\n\nDeletes a LIFF app.\n\n```python\nliff_api.delete(liff_id)\n```\n\n\"Delete LIFF app\" in [https://developers.line.me/ja/reference/liff/](https://developers.line.me/ja/reference/liff/)\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/fantm21/line-liff",
+        "keywords": "",
+        "license": "Apache License 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "line-liff",
+        "package_url": "https://pypi.org/project/line-liff/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/line-liff/",
+        "project_urls": {
+            "Homepage": "https://github.com/fantm21/line-liff"
+        },
+        "release_url": "https://pypi.org/project/line-liff/0.0.1a0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "It is a package that allows you to manipulate LIFF(Line Frontend Framework) by Python.",
+        "version": "0.0.1a0"
+    },
+    "last_serial": 4268521,
+    "releases": {
+        "0.0.1a0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "37fbba5abca758ddab17722fa2c18a7f",
+                    "sha256": "d8b63d7650421fe8b7df87fe993bef8f6dab566fa268a977f76b32a1a8599db0"
+                },
+                "downloads": -1,
+                "filename": "line-liff-0.0.1a0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "37fbba5abca758ddab17722fa2c18a7f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3947,
+                "upload_time": "2018-09-13T12:01:55",
+                "url": "https://files.pythonhosted.org/packages/3d/e9/c4e31c25814757b94183a36b69cef32f1f599b034000662e23c02220c407/line-liff-0.0.1a0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "37fbba5abca758ddab17722fa2c18a7f",
+                "sha256": "d8b63d7650421fe8b7df87fe993bef8f6dab566fa268a977f76b32a1a8599db0"
+            },
+            "downloads": -1,
+            "filename": "line-liff-0.0.1a0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "37fbba5abca758ddab17722fa2c18a7f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 3947,
+            "upload_time": "2018-09-13T12:01:55",
+            "url": "https://files.pythonhosted.org/packages/3d/e9/c4e31c25814757b94183a36b69cef32f1f599b034000662e23c02220c407/line-liff-0.0.1a0.tar.gz"
+        }
+    ]
+}

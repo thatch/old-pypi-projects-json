@@ -1,0 +1,1964 @@
+{
+    "info": {
+        "author": "Benjamin Berman",
+        "author_email": "ben@hiddenswitch.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "# Spellsource-Server\n\n[![Build Status](https://travis-ci.org/hiddenswitch/Spellsource-Server.svg?branch=master)](https://travis-ci.org/hiddenswitch/Spellsource-Server)\n[![Discord](https://img.shields.io/badge/chat-join%20us%20on%20discord-blue.svg?longCache=true&style=flat&icon=discord)](https://discord.gg/HmbESh2)\n[![Documentation](https://img.shields.io/badge/docs-java-yellow.svg?longCache=true&style=flat)](https://hiddenswitch.github.io/Spellsource-Server/overview-summary.html)\n\nThis is a simulator and game server for Spellsource, a community-authored card game, licensed under the Affero GPLv3.\n\n**Play Now**: Download the Hidden Switch Launcher for [Mac OS X](http://go.hiddenswitch.com/mac) or [Windows](http://go.hiddenswitch.com/win) to get a copy of the game client. Play online against others! No other installation required.\n\n**Developers**: See [this example notebook](docs/simulation_example.ipynb) for how to simulate games.\n\nPlease see the Issues tab to report bugs or request functionality.\n\n### Contents\n\n 1. [Changelist](www/whatsnew.md)\n 2. [Description](#description)\n 3. [AI Research FAQ](#ai-research-faq)\n 4. [Quick Start Python](#quick-start-python)\n 5. [Quick Start Multiplayer](#quick-start-multiplayer)\n 6. [Quick Start Contributing Cards](#quick-start-contributing-cards)\n 7. [Getting started with Development on Windows](#getting-started-with-development-on-windows)\n 8. [Contributing Cards](#contributing-cards)\n\n### Changelist\n\nRead [the latest changes here](www/whatsnew.md) or the deployed changes on the [website](https://playspellsource.com/whats-new).\n\n### Description\n\nThe `Spellsource-Server` project is a 2-player card battler that supports hosted, networked gameplay. It features rudimentary matchmaking, collection management and support for game mechanics that persist between matches.\n\nSee the complete code reference [here](https://hiddenswitch.github.io/Spellsource-Server/overview-summary.html).\n\n### AI Research FAQ\n\nPlease visit [this FAQ](docs/faq.ipynb) for an example of interactively playing a match in Python using Spellsource. This example can help you get started poking around Spellsource.\n\n### Quick Start Python\n\nThe `spellsource` package creates a bridge with the Java-based `Spellsource-Server` engine. It provides a direct 1-to-1 mapping with the Java API.\n\nYou can explore commands available in the package using this command:\n\n```\n$ spellsource --help\n\nUsage: spellsource [OPTIONS] COMMAND [ARGS]...\n\nOptions:\n  --help  Show this message and exit.\n\nCommands:\n  change-password       Changes a Spellsource user's password.\n  create-cards-db       Saves a cards.json database for the client.\n  create-user           Creates an AWS user named USERNAME.\n  fix-merge             Fixes card catalogue merge issues.\n  format-cards          Formats JSON card files.\n  hearthcards-stubs     Creates stubs from the Hearthcards.\n  hs-replay-matchups    Prints a table of HSReplay matchups in TSV format.\n  image-stubs           Converts images to card stubs.\n  markdown-to-textmesh  Renders a Markdown file to TextMesh markup.\n  replicate-database    Replicates mongo databases.\n  run                   Runs the server.\n  simulate              Run a simulation using AIs of a given deck matchup.\n  update-dbf            Updates Hearthstone IDs.\n  update-decklists      Updates the deck lists from Tempostorm.\n```\n\nYou can also use the `spellsource` package programmatically. This requires **Python 3** and **Java 12 or higher** (only **Java 12** tested). To get started:\n\n 1. Install a Java JDK.\n    - On Windows: Visit [this link](https://github.com/ojdkbuild/ojdkbuild) for the latest OpenJDK builds.\n    - On macOS: Install `brew`, then `brew cask install java`.\n 2. `pip3 install spellsource` to install the latest version of the package. To build from Git, use `pip3 install -e .` to install the package from the root of this repository, and run `./gradlew net:shadowJar` to build the engine.\n 3. Start a game and play it with the specified bots:\n\n    ```python\n    from spellsource.context import Context\n    from spellsource.playrandombehaviour import PlayRandomBehaviour\n\n    with Context() as ctx:\n        game_context = ctx.game.GameContext.fromTwoRandomDecks()\n        behaviour1 = PlayRandomBehaviour()\n        behaviour2 = PlayRandomBehaviour()\n        game_context.setBehaviour(0, behaviour1.wrap(ctx))\n        game_context.setBehaviour(1, behaviour2.wrap(ctx))\n        game_context.play()\n        assert game_context.updateAndGetGameOver()\n    ```\n\nVisit [`GameStateValueBehaviour`](spellsource/gamestatevaluebehaviour.py) to see an implementation of a complex AI bot in Python. This is a direct port of the Java code. Unfortunately, on the Python platform, remoting (accessing the Java engine) in the particular way this bot does is slow. To implement more sophisticated bots, consider adding a method to `GameContext` that will extract the exact data, in a binary format, that you need in your Python implementation, to reduce the communication overhead between Java and Python.\n\n### Quick Start Multiplayer\n\n 1. Download the Hidden Switch Launcher for [Mac OS X](http://go.hiddenswitch.com/mac) or [Windows](http://go.hiddenswitch.com/win).\n 2. Download the Spellsource Client from within the launcher and start it.\n 3. Enter Quick Play to play against a bot, or Matchmaking to play against a random opponent.\n\n### Quick Start Contributing Cards\n\nIf you'd like to **contribute or edit cards**, **write new game mechanics** or **improve the server**, visit the [Windows Development Guide](http://playspellsource.com/windows-development).\n\n### Getting started with Development on Windows\n\nVisit the [Windows Development Guide](http://playspellsource.com/windows-development) for more about Windows development.\n\n\n### Contributing Cards\n\nVisit our [website](http://playspellsource.com/contribute) for more about contributions, including guidelines.\n\n\n### Special Thanks\n\n![YourKit](https://www.yourkit.com/images/yklogo.png)\n\nYourKit supports open source projects with its full-featured Java Profiler.\n\nYourKit, LLC is the creator of <a href=\"https://www.yourkit.com/java/profiler/index.jsp\">YourKit Java Profiler</a>\nand <a href=\"https://www.yourkit.com/.net/profiler/index.jsp\">YourKit .NET Profiler</a>,\ninnovative and intelligent tools for profiling Java and .NET applications.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/hiddenswitch/Spellsource-Server",
+        "keywords": "hearthstone,artificial intelligence,ai,spellsource,cards,games,machine learning,ml",
+        "license": "AGPLv3",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "spellsource",
+        "package_url": "https://pypi.org/project/spellsource/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/spellsource/",
+        "project_urls": {
+            "Homepage": "http://github.com/hiddenswitch/Spellsource-Server"
+        },
+        "release_url": "https://pypi.org/project/spellsource/0.8.61/",
+        "requires_dist": [
+            "py4j (==0.10.8.1)",
+            "tqdm (>=4)",
+            "objdict",
+            "msgpack",
+            "Click (==7.0)",
+            "autoboto (==0.4.3)",
+            "scrapy",
+            "boto3",
+            "hearthstone",
+            "pymongo",
+            "mistletoe",
+            "GitPython",
+            "numpy ; extra == 'ext'",
+            "h5py ; extra == 'ext'",
+            "keras ; extra == 'ext'",
+            "hearthstone-data ; extra == 'ext'",
+            "nltk ; extra == 'ext'",
+            "gitpython ; extra == 'ext'"
+        ],
+        "requires_python": ">3.6",
+        "summary": "The Spellsource card game engine, supports Hearthstone AI and simulation",
+        "version": "0.8.61"
+    },
+    "last_serial": 6449367,
+    "releases": {
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ef93d4540238c8420212807cd86f5ee0",
+                    "sha256": "6e3005b939ca82546be2ebcbff0404807d04b635d76ff82c451611a39b001563"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ef93d4540238c8420212807cd86f5ee0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40200573,
+                "upload_time": "2018-05-09T18:57:00",
+                "upload_time_iso_8601": "2018-05-09T18:57:00.991322Z",
+                "url": "https://files.pythonhosted.org/packages/04/53/46e426392978d228e36d5a5f918985b27cefa7ca32bcdc0727803d798410/spellsource-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9df175df59b096e66a496de4f1ccf515",
+                    "sha256": "cea21d40fdcfa62b7a2f21be6607bbe16fc45d8dbe89d21c107d10bdc5303eea"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9df175df59b096e66a496de4f1ccf515",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42435959,
+                "upload_time": "2018-05-09T18:57:20",
+                "upload_time_iso_8601": "2018-05-09T18:57:20.750928Z",
+                "url": "https://files.pythonhosted.org/packages/51/e7/889197d4f3ea13ab09c5e0a95f5c75e5c003fe3ae78355222c87b739977e/spellsource-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "60c0878965c6094ca90c597b8e159467",
+                    "sha256": "f700670b553b2a4146f7d9c3485f0dd6afd45df2c6215d234644f8a5203d59c7"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.2.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "60c0878965c6094ca90c597b8e159467",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40210276,
+                "upload_time": "2018-05-10T01:36:44",
+                "upload_time_iso_8601": "2018-05-10T01:36:44.443281Z",
+                "url": "https://files.pythonhosted.org/packages/8d/5a/efbed10cdcac2bbbd9009da587c52dd9c22658a06947643e9aa9b9221837/spellsource-0.2.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42333ee050ad7ad35629eb07f46f77b9",
+                    "sha256": "7fb05ec4aacf93b7fa4f3025479fa321647baed877e3db934ac5938fdc93317d"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "42333ee050ad7ad35629eb07f46f77b9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42445994,
+                "upload_time": "2018-05-10T01:40:00",
+                "upload_time_iso_8601": "2018-05-10T01:40:00.430211Z",
+                "url": "https://files.pythonhosted.org/packages/be/dd/863d38bd9592cffc4768a6965f63da5347da911ca9de577c28eeb1c3cac9/spellsource-0.2.2.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1859278020741922a5cb22f0507c2aa0",
+                    "sha256": "5500735a3bd22bbaa760f1a733a324d41483b8cb0bfa06092dd1a5a6e8ac8eaf"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1859278020741922a5cb22f0507c2aa0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40210277,
+                "upload_time": "2018-05-10T01:44:18",
+                "upload_time_iso_8601": "2018-05-10T01:44:18.631122Z",
+                "url": "https://files.pythonhosted.org/packages/58/7a/542fd2cbfd3d150b74116eb7ae1375bdad39ce30f962eedf83da5fb57b0b/spellsource-0.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fe29e3772f03556a18a11531b33ba8b1",
+                    "sha256": "443de3a17c71d794840901980af7b883191ae4ac3b129433a27ab8d913620098"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fe29e3772f03556a18a11531b33ba8b1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42446023,
+                "upload_time": "2018-05-10T01:44:42",
+                "upload_time_iso_8601": "2018-05-10T01:44:42.951050Z",
+                "url": "https://files.pythonhosted.org/packages/af/c7/b04bfc948878c2d429235c65a8b04a5c1f23e117864c2e8319913386f233/spellsource-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bfd2d5661a45a37e395946ec8c4faa18",
+                    "sha256": "b7caa271b703b57db73af25261fef33fd796a7bc3283b104a8aee0c22b981d72"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bfd2d5661a45a37e395946ec8c4faa18",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40228126,
+                "upload_time": "2018-05-15T21:19:29",
+                "upload_time_iso_8601": "2018-05-15T21:19:29.234208Z",
+                "url": "https://files.pythonhosted.org/packages/40/ad/a47a48b7190cb2d283cf5fff0a2a78773e1923e201a08fc1c5e0c901296d/spellsource-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1c5846561ea5235d38a1959492cea5c5",
+                    "sha256": "388bdf0eabe472744e14262bfad46948b86b3146f7a066184b715b6a93a40a95"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1c5846561ea5235d38a1959492cea5c5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42472528,
+                "upload_time": "2018-05-15T21:19:51",
+                "upload_time_iso_8601": "2018-05-15T21:19:51.577672Z",
+                "url": "https://files.pythonhosted.org/packages/a5/57/2967e0de9a992514467272bf5712b23a2e9ded5a32bd66413ac699a12c7b/spellsource-0.3.1.tar.gz"
+            }
+        ],
+        "0.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b04a8e462f19de96fabf15f19e98a95d",
+                    "sha256": "b31f3bd2dc7d975be2f03fae3bab910263a4a2715b6f788e123361105db62899"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b04a8e462f19de96fabf15f19e98a95d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40244012,
+                "upload_time": "2018-05-22T19:32:39",
+                "upload_time_iso_8601": "2018-05-22T19:32:39.345724Z",
+                "url": "https://files.pythonhosted.org/packages/35/c0/8356592b630756d73caee74b2443a84d350f07855503442b2e4c5508c0df/spellsource-0.3.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0834e056f8ee30d27898306a637cd947",
+                    "sha256": "42ce4db22b712411eb793ff26e79c8295d37a0c2e2d35a86c69e81d1e3f0f5ad"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0834e056f8ee30d27898306a637cd947",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42495529,
+                "upload_time": "2018-05-22T19:33:02",
+                "upload_time_iso_8601": "2018-05-22T19:33:02.709559Z",
+                "url": "https://files.pythonhosted.org/packages/6f/44/01fa9cc280dbdad590e44f68ab49805ddb468f2aa9118c10e73cc9e3a368/spellsource-0.3.2.tar.gz"
+            }
+        ],
+        "0.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1bf9529243a0e1520b01500af8bbe1c3",
+                    "sha256": "8e8d6a1074b200216234a86128b2a39db80ae1312276e51d12fbc575ad62f25a"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1bf9529243a0e1520b01500af8bbe1c3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40277664,
+                "upload_time": "2018-05-28T19:56:55",
+                "upload_time_iso_8601": "2018-05-28T19:56:55.024703Z",
+                "url": "https://files.pythonhosted.org/packages/ae/2d/989649218834654d030f417a9d06c2e7ec2142189a012e6532914a49f5db/spellsource-0.3.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "17fe8df308993b6a4d043b26e81a3ac6",
+                    "sha256": "240f525693855c7fa6c44fae2989ad18b68c6a520b5dfda4804e455c889cd2d4"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "17fe8df308993b6a4d043b26e81a3ac6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42551777,
+                "upload_time": "2018-05-28T19:57:20",
+                "upload_time_iso_8601": "2018-05-28T19:57:20.520510Z",
+                "url": "https://files.pythonhosted.org/packages/ae/8a/78d700ad3113d0d2033b2c8d0629f45277f2012926b7529c67ae3132f659/spellsource-0.3.3.tar.gz"
+            }
+        ],
+        "0.3.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f15ec9a0bb5662660e38e54bd930b6ec",
+                    "sha256": "14803880438bedb51121cfe62e6decc172b86bdac1f92fd07cdc4e2943b89349"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f15ec9a0bb5662660e38e54bd930b6ec",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40405806,
+                "upload_time": "2018-06-01T20:34:37",
+                "upload_time_iso_8601": "2018-06-01T20:34:37.714030Z",
+                "url": "https://files.pythonhosted.org/packages/56/68/34c8d78b54276847c10765004b32b62143f9baa492f882a207770a9495f0/spellsource-0.3.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d611a0297c90984fbd751f76a2c9fe28",
+                    "sha256": "37e194ce3332b9f863f1e794dea56a54ee7a2d498400eded4086306c6ca19aea"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.3.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d611a0297c90984fbd751f76a2c9fe28",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42696238,
+                "upload_time": "2018-06-01T20:34:56",
+                "upload_time_iso_8601": "2018-06-01T20:34:56.595970Z",
+                "url": "https://files.pythonhosted.org/packages/8f/ec/120920a578deedbb60e4ccc173e02b64ce81ee2cae454aa53e2935f4aba3/spellsource-0.3.4.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21a327c10d3d6259ab9a89c4c0260239",
+                    "sha256": "f59f0d0f2e0061d39153177d8db294f887ecc2677b6df94387794515cfc64dd9"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "21a327c10d3d6259ab9a89c4c0260239",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40421116,
+                "upload_time": "2018-06-11T05:06:43",
+                "upload_time_iso_8601": "2018-06-11T05:06:43.509953Z",
+                "url": "https://files.pythonhosted.org/packages/af/f9/be0af9e6f9f4001125c161c112b0b87d4b127c7f9790ded44eec4b8933d8/spellsource-0.4.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7aeb4e7d1496b80afbdfd701949efaaa",
+                    "sha256": "1967b0d7a4ddc1f2239f941e653f53055f376c4674ef391be9fd40e731b7b439"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7aeb4e7d1496b80afbdfd701949efaaa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42718322,
+                "upload_time": "2018-06-11T05:08:24",
+                "upload_time_iso_8601": "2018-06-11T05:08:24.160876Z",
+                "url": "https://files.pythonhosted.org/packages/df/4f/859cadea7f0d2f7bcf6f675987b27de1aab0002348bc47d994bfc5ee79c9/spellsource-0.4.0.tar.gz"
+            }
+        ],
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e9115f74c9c46044f4e223d305f0171",
+                    "sha256": "b1c52626ab28b5a9b40d270acc601c72e10e40e5ea1447b188cff1c906ff0cd2"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8e9115f74c9c46044f4e223d305f0171",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40469025,
+                "upload_time": "2018-06-18T18:47:17",
+                "upload_time_iso_8601": "2018-06-18T18:47:17.930994Z",
+                "url": "https://files.pythonhosted.org/packages/ac/aa/375f5d5eaf66fb7c03cc84e9429b5570ad1411c040179ec2f27fd2836a5f/spellsource-0.4.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "089cf068743f373ca09dc329ad208c09",
+                    "sha256": "2111e140d57396ce2adf4fa5c08be3520a2de0afba8c9327768a1bd25510f148"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "089cf068743f373ca09dc329ad208c09",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42780498,
+                "upload_time": "2018-06-18T18:47:38",
+                "upload_time_iso_8601": "2018-06-18T18:47:38.730533Z",
+                "url": "https://files.pythonhosted.org/packages/24/53/43f34e5d073659bb8b82228448917e027b13112ba0c4d90422a07b1324e4/spellsource-0.4.1.tar.gz"
+            }
+        ],
+        "0.4.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d8b65a79127eeed68655619bc980d811",
+                    "sha256": "fe547c8527906e9770de276bc5bc922aefe08676ffeaf38710d329c3ecab6a51"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d8b65a79127eeed68655619bc980d811",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 43006293,
+                "upload_time": "2018-07-12T00:38:27",
+                "upload_time_iso_8601": "2018-07-12T00:38:27.321627Z",
+                "url": "https://files.pythonhosted.org/packages/9a/27/9a1f0ab7d4076105baec6e401043952b13cf1a8ad845fe6ece817673610e/spellsource-0.4.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "230c549cc7dea7e8318582c5d95c0e3a",
+                    "sha256": "d2b202c0b53a9d09b41a195015793fd5503753e3f092daacfdefe00f0ea00bbd"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "230c549cc7dea7e8318582c5d95c0e3a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 44201798,
+                "upload_time": "2018-07-12T00:38:45",
+                "upload_time_iso_8601": "2018-07-12T00:38:45.869962Z",
+                "url": "https://files.pythonhosted.org/packages/36/75/edde03de5b34905f92cbaf8625423ca112d4ca1ba3175403fad60b7ad63a/spellsource-0.4.10.tar.gz"
+            }
+        ],
+        "0.4.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8b4a097a9115d802c8d430638e6c6679",
+                    "sha256": "3c109a2378c04fe58bad459744064259e34fd912187924457a27880ec830c074"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8b4a097a9115d802c8d430638e6c6679",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 43048850,
+                "upload_time": "2018-07-15T00:45:53",
+                "upload_time_iso_8601": "2018-07-15T00:45:53.533360Z",
+                "url": "https://files.pythonhosted.org/packages/cf/59/7263af4f98a0bc8b182a02452c1745609c27dcce2dd3ffd0d32dd4ca5eb0/spellsource-0.4.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9a0309909245768e96e13325ab4730f5",
+                    "sha256": "48b45776975144567be6ef1cde8374891f35f9ae09b0f71665d966d62527fcea"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9a0309909245768e96e13325ab4730f5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 44261650,
+                "upload_time": "2018-07-15T00:46:09",
+                "upload_time_iso_8601": "2018-07-15T00:46:09.861044Z",
+                "url": "https://files.pythonhosted.org/packages/bd/30/d4d877543b89176ff31e7825f72fef293991507d86208e478368fa83659c/spellsource-0.4.11.tar.gz"
+            }
+        ],
+        "0.4.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d6327fe75f4ff38a6b57e19782ae1933",
+                    "sha256": "f27a8ed9083e09bae52a988c85ce001d9e46701f1fa043803e6a560f3eaeb728"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.12-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d6327fe75f4ff38a6b57e19782ae1933",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 43049222,
+                "upload_time": "2018-07-15T05:09:54",
+                "upload_time_iso_8601": "2018-07-15T05:09:54.140878Z",
+                "url": "https://files.pythonhosted.org/packages/24/a0/f402ab964a3860fa49ddd51367b6cb394c789c79dd1d8c7f774803a589bd/spellsource-0.4.12-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ee2e58b4b70ae424632dc2e033bd1483",
+                    "sha256": "85f05ecd82a07202422f73d5dacba92a5077037f7f3a2493aff1db575bcb0ac4"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ee2e58b4b70ae424632dc2e033bd1483",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 44262051,
+                "upload_time": "2018-07-15T05:10:37",
+                "upload_time_iso_8601": "2018-07-15T05:10:37.825083Z",
+                "url": "https://files.pythonhosted.org/packages/c5/9e/1840d31f716b96cc3fd249aefbb4f9871658c50fad4b37e192896cfc1cb3/spellsource-0.4.12.tar.gz"
+            }
+        ],
+        "0.4.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c087a889cd4d85c41550d87f169228c0",
+                    "sha256": "6d7423e522522a7fe16a5dc96b99bf69880bc4ac97d9af176044f4af92ac5ea6"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.13-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c087a889cd4d85c41550d87f169228c0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 44667235,
+                "upload_time": "2018-08-01T20:04:11",
+                "upload_time_iso_8601": "2018-08-01T20:04:11.941653Z",
+                "url": "https://files.pythonhosted.org/packages/94/7a/b3b8b75d2265525c07424e758c5b8398ca93604cd3f79855166ada6eb6a8/spellsource-0.4.13-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1e98c328b379bf993063886cfe2a9ab2",
+                    "sha256": "96cd0637c4ab08a700dd5b65a82ea1c1d85c7e9b8d5f281d4ca9cd651c95a74c"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1e98c328b379bf993063886cfe2a9ab2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 3926700,
+                "upload_time": "2018-08-01T20:04:18",
+                "upload_time_iso_8601": "2018-08-01T20:04:18.207161Z",
+                "url": "https://files.pythonhosted.org/packages/c6/f0/64fae24acd71998ee41de3d6a63201f6308fb05a106ed6f48cd06f82bff3/spellsource-0.4.13.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ba9c333938954c796dd69bd9b1177f65",
+                    "sha256": "439aa48a688d35e88b9fa1044c9d0cc5ea57f451254e2365db3d714f1232a0de"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ba9c333938954c796dd69bd9b1177f65",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 40469644,
+                "upload_time": "2018-06-18T22:45:43",
+                "upload_time_iso_8601": "2018-06-18T22:45:43.279128Z",
+                "url": "https://files.pythonhosted.org/packages/c3/94/604a23bb9af8ddecb5cb03ad40b8b9d93fab56431ff4b0347d11ae6355c3/spellsource-0.4.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e39fe2da386b0007d28ed671e851685b",
+                    "sha256": "89a035ae5ebc985ae84c0a00f98a51bde11acb85372f14e48f5beb0c6d5ad146"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e39fe2da386b0007d28ed671e851685b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42782338,
+                "upload_time": "2018-06-18T22:46:08",
+                "upload_time_iso_8601": "2018-06-18T22:46:08.272864Z",
+                "url": "https://files.pythonhosted.org/packages/e4/93/f6778234fee2b90cb57bcb5f35ff2edc3a76683d008bc10e0f935851adb4/spellsource-0.4.2.tar.gz"
+            }
+        ],
+        "0.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f52c0eecbab20d89881d0bad938c2410",
+                    "sha256": "cf768188d146a15d9a9b8a06ac4ec9bb4cfadca5268aa2ea554a73b045f3ec12"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f52c0eecbab20d89881d0bad938c2410",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 41605475,
+                "upload_time": "2018-06-26T00:03:12",
+                "upload_time_iso_8601": "2018-06-26T00:03:12.468936Z",
+                "url": "https://files.pythonhosted.org/packages/e3/59/eec5af8b9dde8e62dd0a11c979a66ccf2e7aeb9c32ed5f687272274e4e01/spellsource-0.4.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a2486e270bb31b36f417af577f7b24a8",
+                    "sha256": "ab7e6e226ffbae244afbb74ef838f0c911afa165dfe5d09c0e4afc3da832cf9c"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a2486e270bb31b36f417af577f7b24a8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 42778971,
+                "upload_time": "2018-06-26T00:03:38",
+                "upload_time_iso_8601": "2018-06-26T00:03:38.488625Z",
+                "url": "https://files.pythonhosted.org/packages/9c/3d/48a38c0156c6c4cf3fa33e7a1d93115ee02e2d5bb750bf8b00e43a8303ca/spellsource-0.4.3.tar.gz"
+            }
+        ],
+        "0.4.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9bb80751fc0f73db6ec4126a052d36df",
+                    "sha256": "8a142b78693f6a863d1b6024baa3b00bb5303fc84d926390f65db950258279e2"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9bb80751fc0f73db6ec4126a052d36df",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 42978733,
+                "upload_time": "2018-07-02T01:17:11",
+                "upload_time_iso_8601": "2018-07-02T01:17:11.300719Z",
+                "url": "https://files.pythonhosted.org/packages/8b/a8/893d5d75fcd6236b860bb6594411e03291d328663787c7afad81881abac8/spellsource-0.4.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f47eadb7a621873cc18c8385230b52b2",
+                    "sha256": "97a54f105fe391ac4c5924040abd7d3fad3e06344dc987a2daa66d55e00f2eea"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f47eadb7a621873cc18c8385230b52b2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 44161790,
+                "upload_time": "2018-07-02T01:17:34",
+                "upload_time_iso_8601": "2018-07-02T01:17:34.393106Z",
+                "url": "https://files.pythonhosted.org/packages/ae/c9/31ada46ad50871f93198e18996c7c806fad7370ad9355fb15e11aada8d45/spellsource-0.4.4.tar.gz"
+            }
+        ],
+        "0.4.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c77042bf49b810b54f0242331177e2e9",
+                    "sha256": "d9a69408b5c187a089dc304d166f7c32b5f779dac48206d738b2ea3cb3b3a543"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c77042bf49b810b54f0242331177e2e9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 43003582,
+                "upload_time": "2018-07-09T20:17:32",
+                "upload_time_iso_8601": "2018-07-09T20:17:32.668065Z",
+                "url": "https://files.pythonhosted.org/packages/fc/28/e305c76a77e04533e03d76dd2a2033261eba4c66e245a8e6887d24935408/spellsource-0.4.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5857edb7cc553e4b26391f3f7c85698",
+                    "sha256": "064e7ac088f7bb31f75c68d530cbfed8adb65b5abef42b649a46cd1a9f3666ec"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a5857edb7cc553e4b26391f3f7c85698",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 2355697,
+                "upload_time": "2018-07-09T20:17:37",
+                "upload_time_iso_8601": "2018-07-09T20:17:37.460685Z",
+                "url": "https://files.pythonhosted.org/packages/c8/16/cbce711d04f7f30fe3667d858aa50d3106ed7818a7db6e2f1d88cf3a60f8/spellsource-0.4.5.tar.gz"
+            }
+        ],
+        "0.4.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "66d532d6816b0326db16df1d805ea25e",
+                    "sha256": "985f9ebf42875d013ceb5f2cfc9bef8c24c14d10e977fd1c7204498846374631"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "66d532d6816b0326db16df1d805ea25e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 43003898,
+                "upload_time": "2018-07-10T04:27:41",
+                "upload_time_iso_8601": "2018-07-10T04:27:41.456834Z",
+                "url": "https://files.pythonhosted.org/packages/0c/f3/03e3c439ac3feb54f98c24341509a102fb431530930e497280c650712ee5/spellsource-0.4.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6f30808f331188f9566653c7fdd7ca74",
+                    "sha256": "49283e65ae6a81dbe6111d0bf0296622028450c564ecea206a6546a9f65f9570"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.4.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6f30808f331188f9566653c7fdd7ca74",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 44196082,
+                "upload_time": "2018-07-10T04:28:09",
+                "upload_time_iso_8601": "2018-07-10T04:28:09.223771Z",
+                "url": "https://files.pythonhosted.org/packages/96/93/ff51cfe7aa7f466066cd0fce8d0d13e086bce6255fd9ec789f7ad0d4f25a/spellsource-0.4.6.tar.gz"
+            }
+        ],
+        "0.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a03f6732a61b62e45df84512404a701",
+                    "sha256": "bb2a60f16250c3c60dcfb1e565ea032d2da9b2267edf57f5061c9c6ab078276d"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7a03f6732a61b62e45df84512404a701",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 44684665,
+                "upload_time": "2018-08-01T21:51:40",
+                "upload_time_iso_8601": "2018-08-01T21:51:40.155718Z",
+                "url": "https://files.pythonhosted.org/packages/f7/80/60109eca00f0a9c108657c69064455c60736f5cec275458e5ce63fbdc566/spellsource-0.5.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1ee62421826e842d74eda928d4cc88c0",
+                    "sha256": "08f12a1da25a3c8dd11039524a14f9d0dc75fed296867bd97b21e9a13b9a62b4"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1ee62421826e842d74eda928d4cc88c0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 45823073,
+                "upload_time": "2018-08-01T21:52:01",
+                "upload_time_iso_8601": "2018-08-01T21:52:01.278357Z",
+                "url": "https://files.pythonhosted.org/packages/3c/ae/466e3570387083dd3e87ef84c9f56573bb29815e97fd8ada9a99324e262d/spellsource-0.5.0.tar.gz"
+            }
+        ],
+        "0.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a6c88920cd90ab780b05aa352c26666f",
+                    "sha256": "c4759d358cab3b2e6bac3f9abe7912b8fca5244aed52aca638b6dc5ba6f0b5cf"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a6c88920cd90ab780b05aa352c26666f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 46617239,
+                "upload_time": "2018-08-03T18:01:01",
+                "upload_time_iso_8601": "2018-08-03T18:01:01.416017Z",
+                "url": "https://files.pythonhosted.org/packages/03/a9/603734d1423c7bd59663f4ef13f9b8f0100312021ce11a4c6563ff25e841/spellsource-0.5.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e6c2c1d3a0de7e084b6095f77d439dfd",
+                    "sha256": "27b4db6acb96b84cfd5d7a4f65a0006d9630d9eda8bdac1b77fc7c986a65f6f2"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e6c2c1d3a0de7e084b6095f77d439dfd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 45872980,
+                "upload_time": "2018-08-03T18:01:28",
+                "upload_time_iso_8601": "2018-08-03T18:01:28.681233Z",
+                "url": "https://files.pythonhosted.org/packages/2e/1c/1fb01ecd4db7dabdaec95b626fd1a9cf06618750ee388f01b5e9730f5e57/spellsource-0.5.1.tar.gz"
+            }
+        ],
+        "0.5.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "62550070a68dbb390a045a204f66df24",
+                    "sha256": "54a05ce0b96863d38ce402703c73adb4fae23935984a77e27f80f9efe547c130"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "62550070a68dbb390a045a204f66df24",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 49837078,
+                "upload_time": "2018-09-16T21:51:39",
+                "upload_time_iso_8601": "2018-09-16T21:51:39.308380Z",
+                "url": "https://files.pythonhosted.org/packages/07/aa/99368b704a96039f778c31852391c5acadeb97b0de9815ed684a65b6a936/spellsource-0.5.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6824427bfe1bc0d21d8f1d35d4169011",
+                    "sha256": "e429320c5253cf8bb42b567c2129964d864538062a50fcdaa78fb533dc9754fa"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6824427bfe1bc0d21d8f1d35d4169011",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49219088,
+                "upload_time": "2018-09-16T21:52:07",
+                "upload_time_iso_8601": "2018-09-16T21:52:07.707451Z",
+                "url": "https://files.pythonhosted.org/packages/26/75/eefb92a4672b96f35b16d0d8b8feadbf418be933b8161101316439a83020/spellsource-0.5.10.tar.gz"
+            }
+        ],
+        "0.5.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61812251d18de5659e26c2064bff6739",
+                    "sha256": "f5393e097d1b40cc53a748cc61aea66efba3f3cc2c51816c6d7423ffc02f3942"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "61812251d18de5659e26c2064bff6739",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 49958315,
+                "upload_time": "2018-09-17T23:06:56",
+                "upload_time_iso_8601": "2018-09-17T23:06:56.694397Z",
+                "url": "https://files.pythonhosted.org/packages/95/86/d66dcf91a541a664773c92f7e9750c79389220e95e3ea016b147baf9c8c4/spellsource-0.5.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d732e8eef579978639a5b17bdb1f9650",
+                    "sha256": "b1186fd7361c46e4f2f52dbc578104b0ed927abf426906d13ef8d23d9417785e"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d732e8eef579978639a5b17bdb1f9650",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49298942,
+                "upload_time": "2018-09-17T23:07:32",
+                "upload_time_iso_8601": "2018-09-17T23:07:32.369698Z",
+                "url": "https://files.pythonhosted.org/packages/c9/c3/88ea8ca69bd5d2cb974378d9c70d1a4adee2f343ec30b754bc86b0dacc96/spellsource-0.5.11.tar.gz"
+            }
+        ],
+        "0.5.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1602ec76cab715832a6846ef0943592f",
+                    "sha256": "1193b4694f97a4671701dbe03c93068c296b959ffca43fdd4286b8ca58d896ee"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.12-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1602ec76cab715832a6846ef0943592f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50112890,
+                "upload_time": "2018-09-20T23:09:13",
+                "upload_time_iso_8601": "2018-09-20T23:09:13.043562Z",
+                "url": "https://files.pythonhosted.org/packages/f8/b2/66f38ff150f67e718bf6b305d5f2f912807424552c912437348f1791c2ea/spellsource-0.5.12-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca472139ad9135391332e8210fa3dcbb",
+                    "sha256": "adc15450b33479e60f768116e455ee82261790600d14a5d97918ea0848c4ade9"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ca472139ad9135391332e8210fa3dcbb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49395912,
+                "upload_time": "2018-09-20T23:09:40",
+                "upload_time_iso_8601": "2018-09-20T23:09:40.992864Z",
+                "url": "https://files.pythonhosted.org/packages/bd/d8/88217bccdb30a3418ed4ccf6a235ac52837d584be0753a30ded936de8606/spellsource-0.5.12.tar.gz"
+            }
+        ],
+        "0.5.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "92add0a389c4086609cbe541b04c0560",
+                    "sha256": "934c07210bce8e5708ad47d75d153eb5270b78bc01fa42d6a1fd8cd2f39174d3"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.13-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "92add0a389c4086609cbe541b04c0560",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50115984,
+                "upload_time": "2018-10-01T17:18:41",
+                "upload_time_iso_8601": "2018-10-01T17:18:41.032384Z",
+                "url": "https://files.pythonhosted.org/packages/d9/bd/fd78f8cc8c10e08885918eb54b3772909f10ad6ae285165dcd53088324e4/spellsource-0.5.13-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "06ac2211d66b487e8db7f81b10d02980",
+                    "sha256": "9d6b339bf6b9028319473c7ba82851eef5d92663e47baa7f94c265050ec6b767"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "06ac2211d66b487e8db7f81b10d02980",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49402675,
+                "upload_time": "2018-10-01T17:19:17",
+                "upload_time_iso_8601": "2018-10-01T17:19:17.582924Z",
+                "url": "https://files.pythonhosted.org/packages/41/fd/aa40f8f2880ca09d9c90660f95a6a999b51ea504bb819e5b465aca131af0/spellsource-0.5.13.tar.gz"
+            }
+        ],
+        "0.5.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "56b431f78d954979db052f9fb7951ee4",
+                    "sha256": "ff138c871e31e6fb58342ff672250d429b738f4dee68f5c7599101743767d9cd"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.14-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "56b431f78d954979db052f9fb7951ee4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50321369,
+                "upload_time": "2018-10-22T10:41:11",
+                "upload_time_iso_8601": "2018-10-22T10:41:11.622695Z",
+                "url": "https://files.pythonhosted.org/packages/03/84/94f652b46d419556cc969b6cce32c36b9aad5e17c32c83562f9c9497b6ec/spellsource-0.5.14-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dbee3dd458554436719a99bf44c2a155",
+                    "sha256": "f42eecc86077dc67983f79c08662cb11fc42fff04a947372f7a62fce23f7a902"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dbee3dd458554436719a99bf44c2a155",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49523249,
+                "upload_time": "2018-10-22T10:49:21",
+                "upload_time_iso_8601": "2018-10-22T10:49:21.700867Z",
+                "url": "https://files.pythonhosted.org/packages/91/83/7793dfd4f6bcd877ff04d371ff1bb3970da6442dfe0a717af20526fbc72d/spellsource-0.5.14.tar.gz"
+            }
+        ],
+        "0.5.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "163192903a08ec4063975009ec3d77dd",
+                    "sha256": "17efb5d07ec67e99ef4992cc7806be657cd9d9bc31e4974a66213ed643fa66c7"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.15-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "163192903a08ec4063975009ec3d77dd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50324515,
+                "upload_time": "2018-10-22T13:31:10",
+                "upload_time_iso_8601": "2018-10-22T13:31:10.251747Z",
+                "url": "https://files.pythonhosted.org/packages/2d/6f/a818e2ff63e7c8a0f115b9bcde71660899bb1aa00d724c69143d4336dcd6/spellsource-0.5.15-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "280dccc968185854bbaa27c04849ddbe",
+                    "sha256": "2adb930a4706ae4019375ae3de14e101db4b11aa62e7cc9bd8e352f5b5cc5b81"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "280dccc968185854bbaa27c04849ddbe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49524170,
+                "upload_time": "2018-10-22T13:38:26",
+                "upload_time_iso_8601": "2018-10-22T13:38:26.836913Z",
+                "url": "https://files.pythonhosted.org/packages/0e/5b/1a4613edc5d858d3d08aa6d09d251b413b7c5a83e18d8f44615470efdb5d/spellsource-0.5.15.tar.gz"
+            }
+        ],
+        "0.5.17": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d104d3e540af2413fc08007461e9fff0",
+                    "sha256": "9afea6c448c0ab34271884d1ca9c73ab6ec008b76374e6598ea470f037bb8ed9"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.17-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d104d3e540af2413fc08007461e9fff0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50425068,
+                "upload_time": "2018-10-23T15:50:59",
+                "upload_time_iso_8601": "2018-10-23T15:50:59.527341Z",
+                "url": "https://files.pythonhosted.org/packages/ca/90/4c414584a75de7ce86faeff12e8d95d224a3de3864eac16fe463e4decefc/spellsource-0.5.17-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9bb05e4970ce070116b3896ef860373",
+                    "sha256": "3f8f4cea496470a75e1689e5ebf80cfcc0fa881b3dac40c84b747a887cde1280"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.17.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d9bb05e4970ce070116b3896ef860373",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49582223,
+                "upload_time": "2018-10-23T16:06:25",
+                "upload_time_iso_8601": "2018-10-23T16:06:25.249003Z",
+                "url": "https://files.pythonhosted.org/packages/aa/7a/82190445d3209b30893c46e1bd15527155730b0b38144ce0787847ee759b/spellsource-0.5.17.tar.gz"
+            }
+        ],
+        "0.5.18": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3735f0aa0c8f91b4a723aa0200a537b4",
+                    "sha256": "8996e46ea60729d1fd4fb4b43582612e6bdbfd9acc496778673c146ec68e0211"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.18-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3735f0aa0c8f91b4a723aa0200a537b4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50432991,
+                "upload_time": "2018-10-28T20:51:14",
+                "upload_time_iso_8601": "2018-10-28T20:51:14.210779Z",
+                "url": "https://files.pythonhosted.org/packages/0a/93/c668547167913f448199ac669e8fc87175be180ceb1ee3db83bb4114a45f/spellsource-0.5.18-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eb70f8b2c1f1a6694fc6e5d47108cdce",
+                    "sha256": "0d4c384210936a1681ece317c208cbcd94e1ac9eff01887d178cd55433ab47e1"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.18.tar.gz",
+                "has_sig": false,
+                "md5_digest": "eb70f8b2c1f1a6694fc6e5d47108cdce",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49589186,
+                "upload_time": "2018-10-28T20:52:39",
+                "upload_time_iso_8601": "2018-10-28T20:52:39.642029Z",
+                "url": "https://files.pythonhosted.org/packages/b3/e2/fa838aef9bc099fb298fbf8ac1815d19797e0d75ada9fc4fe4e374f869b4/spellsource-0.5.18.tar.gz"
+            }
+        ],
+        "0.5.19": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f6b0495260b9e96069d6fecb7074a50d",
+                    "sha256": "e7c417bc58df0e512d7481d6f5eebaaf308049945257869eedfed292aa0450b1"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.19-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f6b0495260b9e96069d6fecb7074a50d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50552750,
+                "upload_time": "2018-10-31T02:54:31",
+                "upload_time_iso_8601": "2018-10-31T02:54:31.646764Z",
+                "url": "https://files.pythonhosted.org/packages/7a/5c/b9831a837802fb5c2fdcf3afa8381b8f1571343064ec93e8d02c6fb20851/spellsource-0.5.19-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94f112c6b48a961cca024f427702f0a2",
+                    "sha256": "fac9017bf124eb47f79ddfe8a46f5c37e34f6b839ee1038b8a2e92889514094e"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.19.tar.gz",
+                "has_sig": false,
+                "md5_digest": "94f112c6b48a961cca024f427702f0a2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49671874,
+                "upload_time": "2018-10-31T02:55:19",
+                "upload_time_iso_8601": "2018-10-31T02:55:19.670834Z",
+                "url": "https://files.pythonhosted.org/packages/6a/de/074b040fe3aaf7782e6a2232131254ff957faeb8646e834421b3f1b0a7cf/spellsource-0.5.19.tar.gz"
+            }
+        ],
+        "0.5.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e85e33f1c006b0809eee9aa65d2384e4",
+                    "sha256": "166d8b91236b8fa2dd620269bdbbabe448329c461fbbc55ba8860084234a71ae"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e85e33f1c006b0809eee9aa65d2384e4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 46617219,
+                "upload_time": "2018-08-03T18:27:39",
+                "upload_time_iso_8601": "2018-08-03T18:27:39.444292Z",
+                "url": "https://files.pythonhosted.org/packages/43/ef/5b32beb16171699e97a6c3b88da1d86cfad716fa0a41a43241539f42b3b9/spellsource-0.5.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71df18d7e63042e6a371f99c6e329ed0",
+                    "sha256": "38355466a320a92b2597ff04a87bf0c92b6047c7b1ff8d4a359e52dbfb921315"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "71df18d7e63042e6a371f99c6e329ed0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 45872953,
+                "upload_time": "2018-08-03T18:28:03",
+                "upload_time_iso_8601": "2018-08-03T18:28:03.824829Z",
+                "url": "https://files.pythonhosted.org/packages/1f/4d/d13651f9d28eaeba33b05bb577cc26351232a777cafdb41d3549537f3eac/spellsource-0.5.2.tar.gz"
+            }
+        ],
+        "0.5.20": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "181748210ad36850db8a5d7e34d03552",
+                    "sha256": "3dc700a81de900c51de25012099dea5af462234b9850cf2d09f641fe0bf94eb8"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.20-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "181748210ad36850db8a5d7e34d03552",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50625668,
+                "upload_time": "2018-11-05T18:27:23",
+                "upload_time_iso_8601": "2018-11-05T18:27:23.416767Z",
+                "url": "https://files.pythonhosted.org/packages/00/3a/95224bc835e9a1de89a6ce287419bc478422ab456fb455fb62cfa94c368e/spellsource-0.5.20-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b8b4e7539c9b746b867c5f163cc58f2d",
+                    "sha256": "911d601f043a3423f2e4cda939fcb21adc82d920c29572e2a692dc1d4ffd185e"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.20.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b8b4e7539c9b746b867c5f163cc58f2d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49719089,
+                "upload_time": "2018-11-05T18:29:50",
+                "upload_time_iso_8601": "2018-11-05T18:29:50.248578Z",
+                "url": "https://files.pythonhosted.org/packages/c3/b9/26966096a05d4938f99eb28216a6a8e0e7a25c96f34b037f0a5db0e814db/spellsource-0.5.20.tar.gz"
+            }
+        ],
+        "0.5.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c26bdb73ce53e494b47f4d8284f289f1",
+                    "sha256": "f376f4b4b717b1c13587d1bf4635f02b1b156d77cc21af04f5a10eb67f6343db"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c26bdb73ce53e494b47f4d8284f289f1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 46617220,
+                "upload_time": "2018-08-03T18:49:17",
+                "upload_time_iso_8601": "2018-08-03T18:49:17.792907Z",
+                "url": "https://files.pythonhosted.org/packages/fb/00/96d80ee210e320ba2cd28a25d38ff90af77b652220f48396b5a65b438fc7/spellsource-0.5.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e20d73342c2d93b37a4f78e6861e3d43",
+                    "sha256": "3004ecfcb134c6b8986e2f8848cfee63aee470ade49ffc57acd3a560f42730c0"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e20d73342c2d93b37a4f78e6861e3d43",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 45872838,
+                "upload_time": "2018-08-03T18:49:41",
+                "upload_time_iso_8601": "2018-08-03T18:49:41.912737Z",
+                "url": "https://files.pythonhosted.org/packages/1b/eb/24e0acba1226265de5fcd68744886b5aa6c055a4a44c0aed6778e30b8999/spellsource-0.5.3.tar.gz"
+            }
+        ],
+        "0.5.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "57a0fc96ab613578835952c5de3f8538",
+                    "sha256": "492c8cfa898b6d63413a23afc5089adfa831077eed17eb70f4304942b02c6ea5"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "57a0fc96ab613578835952c5de3f8538",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 46820595,
+                "upload_time": "2018-08-03T23:59:09",
+                "upload_time_iso_8601": "2018-08-03T23:59:09.038386Z",
+                "url": "https://files.pythonhosted.org/packages/91/8a/88cccfeb38aad301ab8973826dd8a6aa7dfedae0901a2a83c50f38460891/spellsource-0.5.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f183893fed0927d800220c68bd5e1446",
+                    "sha256": "ba48c74521f46147c433d16de5ba4818cf867f5df21427a9e09e1bd7ecd7fa51"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f183893fed0927d800220c68bd5e1446",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 46081883,
+                "upload_time": "2018-08-03T23:59:32",
+                "upload_time_iso_8601": "2018-08-03T23:59:32.965457Z",
+                "url": "https://files.pythonhosted.org/packages/5d/f4/4c8df39b6bbed88fb7d667e1b41604260ab2a576c818976dd7591affe194/spellsource-0.5.4.tar.gz"
+            }
+        ],
+        "0.5.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9975290b2fba84e7c7759586ea3a9cd7",
+                    "sha256": "9392992fcbc33e6304e7adabcaff0c180852ea969721f8d5fdc00da4b5903c18"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9975290b2fba84e7c7759586ea3a9cd7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 46832957,
+                "upload_time": "2018-08-20T21:41:21",
+                "upload_time_iso_8601": "2018-08-20T21:41:21.981872Z",
+                "url": "https://files.pythonhosted.org/packages/e2/bf/2151aafbed65616e896530dd857ce173f0de0b66ea3d70ccaf69cbd1e161/spellsource-0.5.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f531b298d5db957b9a8652aa9a464b70",
+                    "sha256": "c0a68095bcffb2b9b3eda3061d70b9b503f6ee55a480383380cb84b23553bb61"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f531b298d5db957b9a8652aa9a464b70",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 46097413,
+                "upload_time": "2018-08-20T21:43:18",
+                "upload_time_iso_8601": "2018-08-20T21:43:18.489750Z",
+                "url": "https://files.pythonhosted.org/packages/6a/3a/112626751d362fc8b9030d545aeb70a7f5a4dedf1f916e3fa44cd33d31a3/spellsource-0.5.5.tar.gz"
+            }
+        ],
+        "0.5.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f62ee455dcd12374d3c87b7fec9ec16",
+                    "sha256": "0f5f277c78a3da21f1c408c4a5bd6cba554240234367a82f4dd3428a8015f29c"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8f62ee455dcd12374d3c87b7fec9ec16",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 46845135,
+                "upload_time": "2018-08-21T06:15:49",
+                "upload_time_iso_8601": "2018-08-21T06:15:49.662528Z",
+                "url": "https://files.pythonhosted.org/packages/25/2f/c89f9353f898cd14c86ea1cd8e405816b35b3131ce403f7e8fee87e24da8/spellsource-0.5.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e36417a998246d321aaacf6c9408aa5",
+                    "sha256": "df77a5207446dc39aaeb678e74998448bdeea6e0eb6f6de4c1d7ca599777c3ce"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4e36417a998246d321aaacf6c9408aa5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 46109928,
+                "upload_time": "2018-08-21T06:16:13",
+                "upload_time_iso_8601": "2018-08-21T06:16:13.187614Z",
+                "url": "https://files.pythonhosted.org/packages/03/be/330e02f2881f9278ae77b1f8169f9fc5f0d5df7f403f90192b76c3db9d24/spellsource-0.5.6.tar.gz"
+            }
+        ],
+        "0.5.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a6d7c1a48f21d34dd38e24644555f74",
+                    "sha256": "7ce09ad77dd553e4e2b7cd149da6a2b94794e89635eb96586156553f0d857350"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8a6d7c1a48f21d34dd38e24644555f74",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 46847112,
+                "upload_time": "2018-08-21T19:52:42",
+                "upload_time_iso_8601": "2018-08-21T19:52:42.510427Z",
+                "url": "https://files.pythonhosted.org/packages/30/5c/1b26e55fe965a38405f9820b25ffed3387623f288fcfd0d2987be0993634/spellsource-0.5.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b900b0d438c1e81d6040be1a32ca81dc",
+                    "sha256": "b857002b499c3c191ead2963766646f9df4e213085350e6ff57421d115b8656a"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b900b0d438c1e81d6040be1a32ca81dc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 46110878,
+                "upload_time": "2018-08-21T19:53:10",
+                "upload_time_iso_8601": "2018-08-21T19:53:10.192025Z",
+                "url": "https://files.pythonhosted.org/packages/22/e7/766a8dfcc11d800615a6b2dda94863fd9cd6dd37cd97699a8be6f47a2cec/spellsource-0.5.7.tar.gz"
+            }
+        ],
+        "0.5.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aff4dcdaf8e31784939a2dd84a4aa646",
+                    "sha256": "91f0ba19c6786ff2b6a33992f7a8fe55541b2fa4ab8735dec6b720e558475a06"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "aff4dcdaf8e31784939a2dd84a4aa646",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 47004719,
+                "upload_time": "2018-08-28T23:38:32",
+                "upload_time_iso_8601": "2018-08-28T23:38:32.788676Z",
+                "url": "https://files.pythonhosted.org/packages/c9/6c/1edbbd3b66e12b4987585e22718442f24860db1895c22b57aa7f67227e71/spellsource-0.5.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "60c85709e30ed2d6dcff49c8cb08328a",
+                    "sha256": "0d950d423189cb8a003a3e8448ee60ae0bdbe62cd03c18c3dbe51ffc6f3bdbef"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.5.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "60c85709e30ed2d6dcff49c8cb08328a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 46213143,
+                "upload_time": "2018-08-28T23:39:12",
+                "upload_time_iso_8601": "2018-08-28T23:39:12.142085Z",
+                "url": "https://files.pythonhosted.org/packages/45/4a/5f378670d018d4606f9167ceef6eaca67b9f1d0f8c0c49308fe31e3c8fba/spellsource-0.5.9.tar.gz"
+            }
+        ],
+        "0.6.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1edb0d765508cf62fcc38984187d750a",
+                    "sha256": "a29c3ca4a924e948010fae0b5e399ba106221eda483b49093229d45c94157d51"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.6.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1edb0d765508cf62fcc38984187d750a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50622235,
+                "upload_time": "2018-11-08T01:22:50",
+                "upload_time_iso_8601": "2018-11-08T01:22:50.012211Z",
+                "url": "https://files.pythonhosted.org/packages/07/dd/ce73da792272f9f2b3438c7484381ae7951f67fdffa12199c329cca97b7d/spellsource-0.6.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f7721f2d45434cd6a5467374fc9b77fd",
+                    "sha256": "4a918832b1db2df4b3edf16f7a1bf5cebfab554fbebef70ecf6252b133582ed7"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.6.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f7721f2d45434cd6a5467374fc9b77fd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49722050,
+                "upload_time": "2018-11-08T01:23:37",
+                "upload_time_iso_8601": "2018-11-08T01:23:37.231194Z",
+                "url": "https://files.pythonhosted.org/packages/a4/60/d5c834fc4347ced6f786e1fb607f2ce737686a830d5d353f3345ae915608/spellsource-0.6.0.tar.gz"
+            }
+        ],
+        "0.6.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3ee600ed729a49596a0a24ef7107d500",
+                    "sha256": "d731d57ac6b6fee45630a72f43f97038ed38c7917e31a418398ed55c321bc510"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.6.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3ee600ed729a49596a0a24ef7107d500",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 50638295,
+                "upload_time": "2018-11-23T02:07:05",
+                "upload_time_iso_8601": "2018-11-23T02:07:05.422773Z",
+                "url": "https://files.pythonhosted.org/packages/e0/04/c14c019b8988d3fbe436d5ea27ef072affd1305ff9f92405aa5d5a54296e/spellsource-0.6.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "53f30107ea7c34c1b3bf230916479af9",
+                    "sha256": "f9d4f29ba325befdda930789a6b0508318e9932add84f93ca872ae87e2584ef1"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.6.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "53f30107ea7c34c1b3bf230916479af9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 49743128,
+                "upload_time": "2018-11-23T02:09:31",
+                "upload_time_iso_8601": "2018-11-23T02:09:31.867686Z",
+                "url": "https://files.pythonhosted.org/packages/46/e3/5a8af4a11c6e5420dcac20d592764fc0b7a8c6d49028fa4cb088bb866155/spellsource-0.6.1.tar.gz"
+            }
+        ],
+        "0.7.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "70e9853fb7b3dfe29d1070c6678f06df",
+                    "sha256": "a33520d8fd21ddb2b68920990513700c2524067cdbfbef403c7c87e1dc802c7a"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "70e9853fb7b3dfe29d1070c6678f06df",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 51897903,
+                "upload_time": "2018-12-03T23:42:29",
+                "upload_time_iso_8601": "2018-12-03T23:42:29.898264Z",
+                "url": "https://files.pythonhosted.org/packages/c1/02/49cb19d78d4e8e8acea7460c42b9e0047c80a0ac5b9dcdcda3bff84341a4/spellsource-0.7.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3ecd8d70dbbe5990c72005c8d2bbab0",
+                    "sha256": "4799c5d54ae86ec74f0cdeecc6736413b876946e83c0ab7bfd5a6b42ca9ff1b1"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f3ecd8d70dbbe5990c72005c8d2bbab0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 50917217,
+                "upload_time": "2018-12-03T23:43:30",
+                "upload_time_iso_8601": "2018-12-03T23:43:30.456500Z",
+                "url": "https://files.pythonhosted.org/packages/e5/bc/d7396ae5eb8d89237e7f467d1cbf8ff03155402c9de792d95a9ff5f31dbf/spellsource-0.7.4.tar.gz"
+            }
+        ],
+        "0.7.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2e306009e81adc28cfb2856aca7bcce",
+                    "sha256": "19197a7cc3da38afe7e6dad1f8db434481b1b620471e370c1bb62a24f07b87b3"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f2e306009e81adc28cfb2856aca7bcce",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 51928357,
+                "upload_time": "2018-12-04T19:59:41",
+                "upload_time_iso_8601": "2018-12-04T19:59:41.885074Z",
+                "url": "https://files.pythonhosted.org/packages/3e/a1/cdc1bb4b59373055f9f2623a89be491ff66dd645675c5af710716378b497/spellsource-0.7.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a8487da2ffff3eb4fc12b272330af038",
+                    "sha256": "0e0ebe92b829209f18acf5a0f00b0a43851c89d4f55d4147a943413b1f83cb4d"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a8487da2ffff3eb4fc12b272330af038",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 50932993,
+                "upload_time": "2018-12-04T20:10:38",
+                "upload_time_iso_8601": "2018-12-04T20:10:38.935673Z",
+                "url": "https://files.pythonhosted.org/packages/58/14/ee7e467b511f808b9dccefb9929f4b1f09a24a94fd571e3198c1fa1fc835/spellsource-0.7.5.tar.gz"
+            }
+        ],
+        "0.7.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f8860466d91898011f174b92dad99717",
+                    "sha256": "bf92a49605764b7acdf1d72d13c78d4f95a1bb50930a805e878d1f096722cce1"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f8860466d91898011f174b92dad99717",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 53551590,
+                "upload_time": "2018-12-09T22:22:08",
+                "upload_time_iso_8601": "2018-12-09T22:22:08.852431Z",
+                "url": "https://files.pythonhosted.org/packages/61/df/3989eb15b7f694663567847a9c595c5a7eeaa9f7ae85a5e4d89420c68115/spellsource-0.7.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "679899b08960b399bd87ec79503d2e83",
+                    "sha256": "27270af8ed8d532f4b1b8c8e9ddf79ba1ba2d6819402e54e6b73aac350b2cce4"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "679899b08960b399bd87ec79503d2e83",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 52561829,
+                "upload_time": "2018-12-09T22:24:09",
+                "upload_time_iso_8601": "2018-12-09T22:24:09.918445Z",
+                "url": "https://files.pythonhosted.org/packages/c7/0e/ce5f9f753646253e29c651b5e5ed2cf5bacd2ad0f1723b62cbfaa41a1a90/spellsource-0.7.7.tar.gz"
+            }
+        ],
+        "0.7.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9b45a4e364e1e307292119b45f7331a8",
+                    "sha256": "89e925223ba49823bfd1489fdb73c6863db9f4e089dd766e6f5bd3d1b3a1a9b4"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9b45a4e364e1e307292119b45f7331a8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 53558825,
+                "upload_time": "2018-12-10T19:49:05",
+                "upload_time_iso_8601": "2018-12-10T19:49:05.662866Z",
+                "url": "https://files.pythonhosted.org/packages/9c/0a/d7edb6bc862b3f5e5d96bb333e3ca0dbb1dedcb1c92d19e88744e8aa4159/spellsource-0.7.8-py3-none-any.whl"
+            }
+        ],
+        "0.7.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eead0716d4e3918a4aee5e1d87cfdb1c",
+                    "sha256": "0610561310fd82ab9a5a04d23c0a10a7b72d177656bb95b3031b6c96948c3b94"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "eead0716d4e3918a4aee5e1d87cfdb1c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 53559468,
+                "upload_time": "2018-12-13T00:27:25",
+                "upload_time_iso_8601": "2018-12-13T00:27:25.562579Z",
+                "url": "https://files.pythonhosted.org/packages/bd/a4/f5c1a19567d972cd0950ba54b9dbc4de3e206a83916f9e6d924c0c9daae9/spellsource-0.7.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8e5b97adb6a02e46e83fc161a74468a",
+                    "sha256": "142d0935c5d5336446ecf6f195122ee431c8b64289aac7273a51f5071bae0287"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.7.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c8e5b97adb6a02e46e83fc161a74468a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 52567367,
+                "upload_time": "2018-12-13T00:29:53",
+                "upload_time_iso_8601": "2018-12-13T00:29:53.766666Z",
+                "url": "https://files.pythonhosted.org/packages/2c/3b/998051de3c1bf1ca31230787ad3babfd504a50e2a1a758c47d92be9809b5/spellsource-0.7.9.tar.gz"
+            }
+        ],
+        "0.8.20": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "85e8a80b12de3d18a5806cfcca04213a",
+                    "sha256": "a9c44dd43c4ce7f7994df4375b1f048a2dae0e9e4baf23c4aa981c068aa6c7f5"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.20-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "85e8a80b12de3d18a5806cfcca04213a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 54358250,
+                "upload_time": "2019-02-26T19:14:13",
+                "upload_time_iso_8601": "2019-02-26T19:14:13.930189Z",
+                "url": "https://files.pythonhosted.org/packages/e2/d3/c12b04d70c9e2c77a756494975e236dd85cf202c7d61ed43751fca8c6125/spellsource-0.8.20-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d9d94b0d18d6a38639bf421f3debda8",
+                    "sha256": "cfee85acf03f91cc754a1600fca95c4ccf510f719cd6e0bc459ffaa3aaa2e3eb"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.20.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4d9d94b0d18d6a38639bf421f3debda8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 52148102,
+                "upload_time": "2019-02-26T19:14:34",
+                "upload_time_iso_8601": "2019-02-26T19:14:34.475272Z",
+                "url": "https://files.pythonhosted.org/packages/25/37/7cc3e986c5b05c03b00868241fb8b30e432ed8760561f009c35fe8f2af49/spellsource-0.8.20.tar.gz"
+            }
+        ],
+        "0.8.32": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6579fad54b3be3a470098ba5b0bbfa0e",
+                    "sha256": "c4f2fac7060757dfd9dfc6d4faa8569a46a1bff20d6013f7998a2220df20031a"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.32-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6579fad54b3be3a470098ba5b0bbfa0e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 54981421,
+                "upload_time": "2019-06-05T17:23:12",
+                "upload_time_iso_8601": "2019-06-05T17:23:12.368290Z",
+                "url": "https://files.pythonhosted.org/packages/01/cc/2b1a85c9e555ea1185a339c2201480881e3dce3a5c8b116561f3716050ca/spellsource-0.8.32-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5ad18862e2afb52410a614aa2737f113",
+                    "sha256": "c666084a240f285a877417e993322fd94c4bc8c4d0c73bba0d207425b356ec61"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.32.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5ad18862e2afb52410a614aa2737f113",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 52541089,
+                "upload_time": "2019-06-05T17:24:04",
+                "upload_time_iso_8601": "2019-06-05T17:24:04.898780Z",
+                "url": "https://files.pythonhosted.org/packages/95/1c/d7c6cdbc05594117d96028c069b0571ced0858a3cc07e3a6bd1f3884a98e/spellsource-0.8.32.tar.gz"
+            }
+        ],
+        "0.8.40": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "635938b0caa685687b7170a018d5802b",
+                    "sha256": "07532e96c329a60256d00d38963176709d7e9ecdf46914bb951acbe26bbccca7"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.40-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "635938b0caa685687b7170a018d5802b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 51585857,
+                "upload_time": "2019-07-17T21:43:09",
+                "upload_time_iso_8601": "2019-07-17T21:43:09.609775Z",
+                "url": "https://files.pythonhosted.org/packages/6f/16/343f59e463273adc87f1b77e8f4cf58708eb950244961cdb9ab15edfdc9d/spellsource-0.8.40-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18ac8e719d035fbacd4589c90cf2e920",
+                    "sha256": "20ef426cdf3c68294c6ba5030a714cc11143cac81fe4a1e1b6cbbe5a75fb295d"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.40.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18ac8e719d035fbacd4589c90cf2e920",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 50253616,
+                "upload_time": "2019-07-17T21:43:19",
+                "upload_time_iso_8601": "2019-07-17T21:43:19.861364Z",
+                "url": "https://files.pythonhosted.org/packages/5d/6b/7a5322513eacc289872d2eb5ca0362f8a8490a43d276fe5d464639422e27/spellsource-0.8.40.tar.gz"
+            }
+        ],
+        "0.8.61": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "498c21d53290e6e6d71bcee290be5eda",
+                    "sha256": "a712379ca9947359b77b3beead5ed139db9462d21610b9204116b7a3976170e2"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.61-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "498c21d53290e6e6d71bcee290be5eda",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 46411636,
+                "upload_time": "2020-01-14T06:37:48",
+                "upload_time_iso_8601": "2020-01-14T06:37:48.150503Z",
+                "url": "https://files.pythonhosted.org/packages/df/93/d4172c8b2e9ed3211863d00e1b292c2c2fff6708ccc7dc578824f09f986d/spellsource-0.8.61-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4148bcae8f28d84d1c1e7690c46c0cd7",
+                    "sha256": "143863d4dadfc97a12b62d7748c0cf401f5d25a146103957bc5429eb9b60cfcc"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.61.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4148bcae8f28d84d1c1e7690c46c0cd7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 76988,
+                "upload_time": "2020-01-14T06:37:51",
+                "upload_time_iso_8601": "2020-01-14T06:37:51.792607Z",
+                "url": "https://files.pythonhosted.org/packages/d3/03/a930a4b7b138bbeaab555c6640e477c801274df22a9470bb8e44be7e6d5c/spellsource-0.8.61.tar.gz"
+            }
+        ],
+        "0.8.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3594f15e3ec14826b5323cd38840b9c",
+                    "sha256": "bb5aaacd135e02fdfcfc33d71e997ca36275295bf314a996944712c4ad121dad"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f3594f15e3ec14826b5323cd38840b9c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 53773480,
+                "upload_time": "2019-01-02T18:34:37",
+                "upload_time_iso_8601": "2019-01-02T18:34:37.868797Z",
+                "url": "https://files.pythonhosted.org/packages/f2/84/960c3672de218cee3e0218d5b0fe1583a76b81467d42f93e8585f4e022c3/spellsource-0.8.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0b849896601709be57ff57d4c4d59429",
+                    "sha256": "9651d796d650b91928b953e0ca855a2472c6e73178c57669fdce535fdceda568"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0b849896601709be57ff57d4c4d59429",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">3.6",
+                "size": 52642732,
+                "upload_time": "2019-01-02T18:35:49",
+                "upload_time_iso_8601": "2019-01-02T18:35:49.978521Z",
+                "url": "https://files.pythonhosted.org/packages/4a/52/b3aca7207594d294cd83534bf1975a407f8e11d7b261ab1edc14d6c1ce33/spellsource-0.8.7.tar.gz"
+            }
+        ],
+        "0.8.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "084a5348d269d39862eb9c817be4959a",
+                    "sha256": "a9d8ceb59b0181456fdcf40f22ad427bb2d85685f9e13f9217c6c98d101d3135"
+                },
+                "downloads": -1,
+                "filename": "spellsource-0.8.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "084a5348d269d39862eb9c817be4959a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">3.6",
+                "size": 53775403,
+                "upload_time": "2019-01-04T23:32:46",
+                "upload_time_iso_8601": "2019-01-04T23:32:46.496316Z",
+                "url": "https://files.pythonhosted.org/packages/26/15/e072ecb51b887f1fe2efda281b59a72150969a603ef432139099c89eecbb/spellsource-0.8.8-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "498c21d53290e6e6d71bcee290be5eda",
+                "sha256": "a712379ca9947359b77b3beead5ed139db9462d21610b9204116b7a3976170e2"
+            },
+            "downloads": -1,
+            "filename": "spellsource-0.8.61-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "498c21d53290e6e6d71bcee290be5eda",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">3.6",
+            "size": 46411636,
+            "upload_time": "2020-01-14T06:37:48",
+            "upload_time_iso_8601": "2020-01-14T06:37:48.150503Z",
+            "url": "https://files.pythonhosted.org/packages/df/93/d4172c8b2e9ed3211863d00e1b292c2c2fff6708ccc7dc578824f09f986d/spellsource-0.8.61-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4148bcae8f28d84d1c1e7690c46c0cd7",
+                "sha256": "143863d4dadfc97a12b62d7748c0cf401f5d25a146103957bc5429eb9b60cfcc"
+            },
+            "downloads": -1,
+            "filename": "spellsource-0.8.61.tar.gz",
+            "has_sig": false,
+            "md5_digest": "4148bcae8f28d84d1c1e7690c46c0cd7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">3.6",
+            "size": 76988,
+            "upload_time": "2020-01-14T06:37:51",
+            "upload_time_iso_8601": "2020-01-14T06:37:51.792607Z",
+            "url": "https://files.pythonhosted.org/packages/d3/03/a930a4b7b138bbeaab555c6640e477c801274df22a9470bb8e44be7e6d5c/spellsource-0.8.61.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,123 @@
+{
+    "info": {
+        "author": "Will Gordon",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Framework :: Django :: 1.7",
+            "Framework :: Django :: 1.8",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Topic :: Utilities"
+        ],
+        "description": "**NOTE**: This package has been forked from https://github.com/EliotBerriot/django-navutils, with just a few additional features added on\n\nDjango-navutils2\n~~~~~~~~~~~~~~~\n\n**Note**: this package is still in beta. It has been successfully used in a few projects of my own. However, API may be subject to backward incompatible changes until the first major version is released.\n\nDjango-navutils2 is a lightweight package for handling menu and breadcrumbs inside your django project.\n\n.. contents::\n    :local:\n    :depth: 2\n\nFeatures\n========\n\n- No database involved (unless you want it): menus and breadcrumbs are plain old python code\n- Highly customizable\n- Conditionnal menu items display: you want to show a menu link to authenticated users only ? Anonymous ? Staff members ? A custom criteria ? You're covered !\n- i18n-friendly: you can rely on usual django translation mechanisms\n- Unlimited menus\n- Semi-automatic current menu node detection\n\nRequirements\n============\n\n- Python >= 2.7 or >= 3.3\n- Django >= 1.7\n\nThe menu system may be integrated in any project, but the breadcrumbs part requires\nthat you use class-based views.\n\nInstall\n=======\n\nPackage is available on pip and can be installed via ``pip install django-navutils2``.\n\nYou'll also have to add ``navutils2`` to your ``settings.INSTALLED_APPS``\n\nAlso add the following to ``settings.CONTEXT_PROCESSORS``:\n\n.. code:: python\n\n    CONTEXT_PROCESSORS = (\n        # ...\n        'navutils2.context_processors.menus',\n    )\n\nUsage\n=====\n\nTemplates\n*********\n\nYou can globally override the templates used by specifying any of the following\n\n``settings.py``:\n\n.. code:: python\n\n    NAVUTILS2_MENU_TEMPLATE\n    NAVUTILS2_NODE_TEMPLATE\n    NAVUTILS2_BREADCRUMBS_TEMPLATE\n    NAVUTILS2_CRUMB_TEMPLATE\n\n\nMenus\n*****\n\nNavutils2 represents menus using ``Menu`` and ``Node`` instances, each menu being a collection of\nnode instances representing a menu link. Nodes may have children, which are also ``Node`` instances.\n\nLet's see a minimal example.\n\n``yourapp/menu.py``:\n\n.. code:: python\n\n    from navutils2 import menu\n\n    main_menu = menu.Menu('main')\n    menu.register(main_menu)\n\n    # will be shown to everybody\n    blog = menu.Node(id='blog', label='Blog', pattern_name='blog:index')\n    main_menu.register(blog)\n\n    # nodes created with a pattern_name argument will use django reverse\n    assert blog.get_url() == '/blog'\n\n    # if you want to disable reversion, use the url argument\n    django = menu.Node(id='django',\n                       label='Django project',\n                       url='http://djangoproject.com',\n                       link_attrs={'target': '_blank'})\n\n    # Each node instance can accept an arbitrary number of children\n    blog.add(\n        menu.Node(id='last_entries',\n                  label='Last entries',\n                  pattern_name='blog:last_entries')\n    )\n    blog.add(\n        menu.Node(id='archives', label='Archives', pattern_name='blog:archives')\n    )\n\n    # will be shown to anonymous users only\n    login = menu.AnonymousNode(id='login',\n                               label='Login',\n                               pattern_name='accounts_login',\n                               link_attrs={'class': 'big-button'})\n    main_menu.register(login)\n\n    # will be shown to authenticated users only\n    logout = menu.AuthenticatedNode(id='logout',\n                                    label='Logout',\n                                    pattern_name='accounts_logout')\n    main_menu.register(logout)\n\n\n``yourapp/templates/index.html``::\n\n    {% load navutils2_tags %}\n    {% render_menu menu=menus.main user=request.user %}\n\nFor an anonymous user, this would output something like:\n\n.. code:: html\n\n    <nav class=\"main-menu\">\n        <ul>\n            <li class=\"has-children menu-item\">\n                <a href=\"/blog\">Blog<a>\n                <ul class=\"sub-menu\">\n                    <li class=\"menu-item\">\n                        <a href=\"/blog/latest\">Latest entries</a>\n                    </li>\n                    <li class=\"menu-item\">\n                        <a href=\"/blog/archives\">Archives</a>\n                    </li>\n                </ul>\n            </li>\n            <li class=\"menu-item\">\n                <a href=\"http://djangoproject.com\" target=\"_blank\">Django project</a>\n            </li>\n            <li class=\"menu-item\">\n                <a href=\"/login\" class=\"big-button\">Login</a>\n            </li>\n        </ul>\n    </nav>\n\n\nYou can also directly set children nodes on parent instanciation with the ``children`` argument:\n\n.. code:: python\n\n    user = menu.Node(\n        id='user',\n        label='Greetings',\n        pattern_name='user:dashboard',\n        children=[\n            menu.Node(id='logout', label='Logout', pattern_name='user:logout'),\n\n            # you can nest children indefinitely\n            menu.Node(\n                id='settings',\n                label='Settings',\n                pattern_name='user:settings',\n                children = [\n                    menu.Node(id='newsletter',\n                              label='Newsletter',\n                              pattern_name='user:settings:newsletter')\n                ],\n            ),\n        ]\n    )\n\nNodes can be customized in many ways:\n\n.. code:: python\n\n    heavily_customized_node = menu.Node(\n        'customized',\n        'My custom menu',  # Supports arbitrary template values as well\n                           # like {{ request.user }}\n        url='#',  # Supports arbitrary template values as well\n                  # like {{ request.user }}\n\n        # a custom CSS class that will be applied to the node on rendering\n        css_class='custom-class',\n\n        # the <a> title attribute\n        title='click me!',\n\n        # a path to a custom template for rendering the node\n        template='myapp/menu/mynode.html',\n\n        # extra context you can use in your node template\n        context={'foo': 'bar'},\n\n        # a dict of attributes that will be applied as HTML attributes on the <li>\n        attrs = {'style': 'background-color: white;'}\n\n        # a dict of attributes that will be applied as HTML attributes on the <a>\n        link_attrs = {'target': '_blank', 'data-something': 'fancy-stuff'}\n    )\n\nCurrent node\n------------\n\nYou'll probably want to highlight the current node in some way. Navutils2 provide\na view mixin you an inherit from in order to achieve this.\n\nAssuming the following menu:\n\n.. code:: python\n\n    from navutils2 import menu\n\n    main_menu = menu.Menu(id='main')\n    menu.register(main_menu)\n\n    login = menu.Node(id='login', label='Login', pattern_name='account_login')\n    main_menu.register(login)\n\n\nYou can bind a view to a menu node with the following code:\n\n.. code:: python\n\n    from navutils2 import MenuMixin\n\n    class Login(MenuMixin, TemplateView):\n        current_menu_item = 'login'\n\n\nUnder the hood, the mixin will pass the value to the context and a `current` class will be added\n to the login node if the view is displayed. Note that you can achieve the same result\n with django function-based views, as long as you manually pass the node identifier in the context,\n under the `current_menu_item` key.\n\nNode reference\n--------------\n\nNavutils2 provide a few node subclasses that address common use cases.\n\nNode\n++++\n\nThe base Node type, will be displayed to anybody.\n\nAnonymousNode\n+++++++++++++\n\nDisplayed to anonymous users only.\n\nAuthenticatedNode\n+++++++++++++++++\n\nDisplayd to authenticated users only.\n\nStaffNode\n+++++++++\n\nDisplayed to staff users/superusers only.\n\nPermissionNode\n++++++++++++++\n\nDisplayed to users that have the given permission. Usage:\n\n.. code:: python\n\n    vip_node = menu.PermissionNode('vip',\n                                   label='VIP Area',\n                                   pattern_name='vip:index',\n                                   permission='access_vip_area')\n\nAllPermissionsNode\n++++++++++++++++++\n\nDisplayed to users that match a list of permission. Usage:\n\n.. code:: python\n\n    permissions = ['myapp.access_vip_area', 'myapp.drink_champagne']\n    champagne_node = menu.AllPermissionsNode('champagne',\n                                             label='Champagne!',\n                                             pattern_name='vip:champagne',\n                                             permissions=permissions)\n\nAnyPermissionsNode\n++++++++++++++++++\n\nDisplayed to users that match any given permission. Usage:\n\n.. code:: python\n\n    permissions = ['myapp.can_party', 'myapp.can_have_fun']\n    have_a_good_time = menu.AnyPermissionsNode('good-time',\n                                               label='Have a good time',\n                                               pattern_name='good_time',\n                                               permissions=permissions)\n\n\nPassTestNode\n++++++++++++\n\nDisplayed to users that match a custom test. Usage:\n\n.. code:: python\n\n    def can_drink_alcohol(user, context):\n        return user.age >= 21 or user.looks_mature_for_his_age\n\n    drink_alcohol = menu.PassTestNode('drink',\n                                      label='Have a beer',\n                                      pattern_name='beer',\n                                      test=can_drink_alcohol)\n\nIf it's not enough, you can also override the default templates:\n\n- ``navutils2/menu.html`` : the menu wrapper that loop through the nodes\n- ``navutils2/node.html`` : called for displaying each node instance\n\nAnd of course, you're free to create your own sub-classes.\n\nBreadcrumbs\n***********\n\nBreadcrumbs are set up into views, and therefore can only be used with class-based views.\n\nFirst of all, you'll probably want to define a base mixin for all your views:\n\n.. code:: python\n\n    from navutils2 import BreadcrumbsMixin, Breadcrumb\n\n    class BaseMixin(BreadcrumbsMixin):\n        def get_breadcrumbs(self):\n            breadcrumbs = super(BaseMixin, self).get_breadcrumbs()\n            breadcrumbs.append(Breadcrumb('Home', url='/'))\n            return breadcrumbs\n\nThen, you can inherit from this view everywhere:\n\n.. code:: python\n\n    # breadcrumbs = Home > Blog\n    class BlogView(BaseMixin):\n        title = 'Blog'\n\n\n    # breadcrumbs = Home > Logout\n    class LogoutView(BaseMixin):\n        title = 'Logout'\n\n\nBy default, the last element of the breadcrumb is deduced from the ``title`` attribute of the view.\nHowever, for a complex hierarchy, you are free to override the ``get_breadcrumbs`` method:\n\n.. code:: python\n\n    # you can trigger url reversing via pattern_name, as for menu nodes\n    class BlogMixin(BaseMixin)\n        def get_breadcrumbs(self):\n            breadcrumbs = super(BlogMixin, self).get_breadcrumbs()\n            breadcrumbs.append(Breadcrumb('Blog', pattern_name='blog:index'))\n            return breadcrumbs\n\n\n    # breadcrumbs = Home > Blog > Last entries\n    class BlogIndex(BlogMixin):\n        title = 'Last entries'\n\n\n    # for dynamic titles, just override the get_title method\n    # breadcrumbs = Home > Blog > My category name\n    class CategoryDetail(BlogMixin, DetailView):\n\n        model = Category\n\n        def get_title(self):\n            # assuming your Category model has a title field\n            return self.object.title\n\n\nThe last step is to render the breadcrumbs in your template. The provided mixin takes\ncare with passing data in the context, so all you need is::\n\n    {% load navutils2_tags %}\n\n    {% render_breadcrumbs breadcrumbs %}\n\nThe breadcrumbs part of navutils2 is bundled with two templates, feel free to override them:\n\n- ``navutils2/breadcrumbs.html``: the breadcrumbs wrapper\n- ``navutils2/crumb.html``: used to render each crumb\n\nThat's it !\n\nChangelog\n=========\n\nSee `CHANGES.rst\n<CHANGES.rst>`_.\n\nLicense\n=======\n\nProject is licensed under BSD license.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/wgordon17/django-navutils2",
+        "keywords": "",
+        "license": "BSD License",
+        "maintainer": "Will Gordon",
+        "maintainer_email": "",
+        "name": "django-navutils2",
+        "package_url": "https://pypi.org/project/django-navutils2/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/django-navutils2/",
+        "project_urls": {
+            "Homepage": "http://github.com/wgordon17/django-navutils2"
+        },
+        "release_url": "https://pypi.org/project/django-navutils2/0.6.1/",
+        "requires_dist": [
+            "persisting-theory"
+        ],
+        "requires_python": "",
+        "summary": "A lightweight package for handling menus and breadcrumbs in your django project",
+        "version": "0.6.1"
+    },
+    "last_serial": 4848416,
+    "releases": {
+        "0.6.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "359ca87eae623f8c6a4423c19fb8e339",
+                    "sha256": "36b4be78dab38965d6e038138fc3fdd62ef12b35ecae27fc2fa57c3c9553c5d8"
+                },
+                "downloads": -1,
+                "filename": "django_navutils2-0.6.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "359ca87eae623f8c6a4423c19fb8e339",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 19769,
+                "upload_time": "2019-02-21T04:08:50",
+                "url": "https://files.pythonhosted.org/packages/fd/31/7978b930d8c1b038a8fac28f85de85a18eb42c827c467a97174a133646a3/django_navutils2-0.6.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d31ea9c26fe21c4e4b9f078e4422e4a7",
+                    "sha256": "41e4a4a7f21c974a0bd810fb3243472bea39cc28b53e71b58599714564b13aa3"
+                },
+                "downloads": -1,
+                "filename": "django-navutils2-0.6.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d31ea9c26fe21c4e4b9f078e4422e4a7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15843,
+                "upload_time": "2019-02-21T04:08:52",
+                "url": "https://files.pythonhosted.org/packages/91/de/b4bc7ba90d5f4baf62bda4620dec295a9ad6c83eed5446040356e50a302a/django-navutils2-0.6.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "359ca87eae623f8c6a4423c19fb8e339",
+                "sha256": "36b4be78dab38965d6e038138fc3fdd62ef12b35ecae27fc2fa57c3c9553c5d8"
+            },
+            "downloads": -1,
+            "filename": "django_navutils2-0.6.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "359ca87eae623f8c6a4423c19fb8e339",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 19769,
+            "upload_time": "2019-02-21T04:08:50",
+            "url": "https://files.pythonhosted.org/packages/fd/31/7978b930d8c1b038a8fac28f85de85a18eb42c827c467a97174a133646a3/django_navutils2-0.6.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d31ea9c26fe21c4e4b9f078e4422e4a7",
+                "sha256": "41e4a4a7f21c974a0bd810fb3243472bea39cc28b53e71b58599714564b13aa3"
+            },
+            "downloads": -1,
+            "filename": "django-navutils2-0.6.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d31ea9c26fe21c4e4b9f078e4422e4a7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 15843,
+            "upload_time": "2019-02-21T04:08:52",
+            "url": "https://files.pythonhosted.org/packages/91/de/b4bc7ba90d5f4baf62bda4620dec295a9ad6c83eed5446040356e50a302a/django-navutils2-0.6.1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,342 @@
+{
+    "info": {
+        "author": "Konstantinos Tsakiltzidis",
+        "author_email": "laerusk@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5"
+        ],
+        "description": "abcmd\n=====\n\n.. image:: https://img.shields.io/pypi/v/abcmd.svg\n    :target: https://pypi.python.org/pypi/abcmd\n    :alt: Latest PyPI version\n\n.. image:: https://travis-ci.org/modulus-sa/abcmd.svg?branch=master\n    :target: https://travis-ci.org/modulus-sa/abcmd\n\n.. image:: https://codecov.io/gh/modulus-sa/abcmd/branch/master/graph/badge.svg\n  :target: https://codecov.io/gh/modulus-sa/abcmd\n\nA library for wrapping shell commands with static configuration.\n\nUsage\n-----\n\nThe library provides the ``abcmd.Command`` ABC that can be used\nto create shell command wrappers.\n\nSubclassing ``abcmd.Command`` requires the following methods to be implemented:\n\n* ``run``\n\nin addition the following methods are optional and will run only if implemented:\n\n* ``dont_run``\n* ``handle_error``\n* ``before_run``\n* ``after_run``\n\nThe decorator ``abcmd.error_handler`` is used to decorate subclass methods which\nare called only for the matching errors, errors that don't have specific handlers\nwill fall back to calling the ``handle_error`` method if it's implemented.\n\nExamples\n--------\n\nAutomating backup of dotfiles\n\nFirst we subclass ``Command`` and describe the procedure:\n\n.. code-block:: python\n\n    import datetime\n    import os\n\n    import abcmd\n\n    class Backup(abcmd.Command):\n        make = 'mkdir {directory}'\n        copy = 'cp {files} {directory}'\n        sync = 'rsync {directory} {user}@{server}:'\n\n        def run(self, *args, **kwargs):\n            os.chdir(os.environ['HOME'])\n            self.make()\n            self.copy()\n            self.sync()\n\n        def dont_run(self, *args, **kwargs):\n            # don't run between working hours\n            return dt.datetime.now().hour in range(8, 16)\n\n        def handle_error(self, cmd, error):\n            # if the backup directory exists ignore the error and continue\n            return cmd.startswith('mkdir') and error.endswith('File exists')\n\nthen we instantiate with a mapping that is used to render the templates,\nthis will return a callable object that when called will run the procedure:\n\n.. code-block:: python\n\n    config = {\n        'user': 'laerus',\n        'directory': 'dotfiles',\n        'files': ['.vimrc', '.bashrc', '.inputrc'],\n        'server': '192.168.1.10'\n    }\n\n    runner = Backup(config)\n    runner()\n\n\nThis would be equivalent with running the following commands:\n\n.. code-block:: shell\n\n    $ cd ~\n    $ mkdir dotfiles \n    $ cp .vimrc .bashrc .inputrc dotfiles\n    $ rsync dotfiles laerus@192.168.1.10:\n\n\nInstallation\n------------\n\n.. code-block:: shell\n\n    $ pip install abcmd\n\nCompatibility\n-------------\npython3.5+\n\nLicence\n-------\nMIT\n\nAuthors\n-------\n\n`abcmd` was written by `Konstantinos Tsakiltzidis <https://github.com/laerus>`_.",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/laerus/abcmd",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "abcmd",
+        "package_url": "https://pypi.org/project/abcmd/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/abcmd/",
+        "project_urls": {
+            "Homepage": "https://github.com/laerus/abcmd"
+        },
+        "release_url": "https://pypi.org/project/abcmd/0.4.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Library for wrapping CLI commands with static configuration.",
+        "version": "0.4.0"
+    },
+    "last_serial": 4620451,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7e3563d56eb5c94629b4d6bc059be499",
+                    "sha256": "b46996bab64d8f8d5fcf90dc44afc6ad356acc2a98784e5c6d81888cbd3f8451"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7e3563d56eb5c94629b4d6bc059be499",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5053,
+                "upload_time": "2017-06-22T12:51:41",
+                "upload_time_iso_8601": "2017-06-22T12:51:41.596291Z",
+                "url": "https://files.pythonhosted.org/packages/a9/0d/2273a4bc58a9f7137f0e52b6d82ea434166f2772f3afb918b2ba8096ff64/abcmd-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3dd06571c949e2e56ce34f3489c92ac4",
+                    "sha256": "9afe9f905b32f8b802854477e4fe7c4dd2bdf955557326857d5bf79ffe7a387e"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3dd06571c949e2e56ce34f3489c92ac4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5148,
+                "upload_time": "2017-06-30T11:30:07",
+                "upload_time_iso_8601": "2017-06-30T11:30:07.885143Z",
+                "url": "https://files.pythonhosted.org/packages/da/8e/478d3902d02149a68b439d5fe462914bb250748e6e5ffee06876a042135b/abcmd-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "02278fb4f98a2b6a0eb295c02be17b71",
+                    "sha256": "094160086a14687a6ee837aeafa604989768889007107285715e1cefc24da0fb"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "02278fb4f98a2b6a0eb295c02be17b71",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5112,
+                "upload_time": "2017-06-30T13:51:50",
+                "upload_time_iso_8601": "2017-06-30T13:51:50.305339Z",
+                "url": "https://files.pythonhosted.org/packages/34/8a/b6a62839a953125a5fc69e8eed1a6de4db5236aa551511e4243e79cc9594/abcmd-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "115d83db18b211fca01fe22387f4a256",
+                    "sha256": "c0073b23a55a8a4c224a9bdf36e980230f054d6f112596d541343fba6e9ce942"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "115d83db18b211fca01fe22387f4a256",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6811,
+                "upload_time": "2017-07-05T14:23:06",
+                "upload_time_iso_8601": "2017-07-05T14:23:06.891498Z",
+                "url": "https://files.pythonhosted.org/packages/05/7b/61287da41a1da62e996e17cc0642862e3ac0103fd37e4181abb8a7f9d6bc/abcmd-0.1.3.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "566e5d9b47a98a12c884bcd0b5606661",
+                    "sha256": "c6e4f956fb8f301425c4288eb7fad83ddf7bc18d42c5fe855196157d3c9b4c1d"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "566e5d9b47a98a12c884bcd0b5606661",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6734,
+                "upload_time": "2017-07-20T13:00:47",
+                "upload_time_iso_8601": "2017-07-20T13:00:47.774460Z",
+                "url": "https://files.pythonhosted.org/packages/b2/6d/16c9415c157e6248f18b23f9b37601ee11615a311a594dcadf59a3442772/abcmd-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b2adf6e47c6e69e8eee3dc6daa3b0381",
+                    "sha256": "bb14b3da8511f0279f4252e385dce7aab33ff9afc605d3a29bdf032e3a1e8f75"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b2adf6e47c6e69e8eee3dc6daa3b0381",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6703,
+                "upload_time": "2017-08-23T10:49:15",
+                "upload_time_iso_8601": "2017-08-23T10:49:15.179340Z",
+                "url": "https://files.pythonhosted.org/packages/25/06/a954d6034a278baacc5897466506cb6c6ba5f240d7d055fa89ca5789dc9e/abcmd-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a0918dfe8b114ed0371fc608c9f75e5",
+                    "sha256": "a6374d208abb5cb261d83cf8f0b12485332f4dfde066b6f671b0b638bd42061e"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8a0918dfe8b114ed0371fc608c9f75e5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6789,
+                "upload_time": "2017-09-20T11:23:01",
+                "upload_time_iso_8601": "2017-09-20T11:23:01.604449Z",
+                "url": "https://files.pythonhosted.org/packages/ec/57/13909d5468ff087ba38dbd612967b3b861b1b8be6d6ea12ed198cef9f069/abcmd-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e08d00e3abd5612c74598d3ca3334d4",
+                    "sha256": "da83ea94c606992518ed4a10ad44aa4ea4829bd04d037b94c525b5a6c77fc61a"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3e08d00e3abd5612c74598d3ca3334d4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6943,
+                "upload_time": "2017-09-22T08:44:59",
+                "upload_time_iso_8601": "2017-09-22T08:44:59.002567Z",
+                "url": "https://files.pythonhosted.org/packages/c6/cf/00d222d6779b67884a1b882f3df3f6ffea635eeeec54264a25f1647b00f3/abcmd-0.2.3.tar.gz"
+            }
+        ],
+        "0.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "134646cb999702c135b54623f258a4d7",
+                    "sha256": "be73e8f725a5c81a124ebc3e59cd924a589a4bb13b8c907c9c538b6749ce520a"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "134646cb999702c135b54623f258a4d7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6944,
+                "upload_time": "2017-09-22T08:46:43",
+                "upload_time_iso_8601": "2017-09-22T08:46:43.248244Z",
+                "url": "https://files.pythonhosted.org/packages/35/a9/2f3e4c05ad839fa622fd110b741e69606d9877cbdbd9e9116d7ece34174b/abcmd-0.2.4.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eb53dcd630af56204b1daf11990bba3b",
+                    "sha256": "e25b8fa519251d1810d0ef308b7479b51fb4c6fafc239e49f87d270433bb721c"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "eb53dcd630af56204b1daf11990bba3b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4414,
+                "upload_time": "2017-10-05T11:01:42",
+                "upload_time_iso_8601": "2017-10-05T11:01:42.478294Z",
+                "url": "https://files.pythonhosted.org/packages/8b/85/e932e5626b3b06f0d92f3615d8e374f747ed0199af6ca2818982f8848559/abcmd-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f86fb0b428c5473dab4c9a7408e492c2",
+                    "sha256": "95ab3caef7bab8ef56ba4a58e4b4e6581cea6b49123812777591343917d420e8"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f86fb0b428c5473dab4c9a7408e492c2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4410,
+                "upload_time": "2017-10-06T13:30:51",
+                "upload_time_iso_8601": "2017-10-06T13:30:51.109773Z",
+                "url": "https://files.pythonhosted.org/packages/9b/b8/2d5079fcc28d29c0a8402c84d1b42922458f2467d071d3d046657ae82ce7/abcmd-0.3.1.tar.gz"
+            }
+        ],
+        "0.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6de93c7dc16715cb12dc6a30271c1c0e",
+                    "sha256": "c513698217ce54f3c591462e94a9a87b987ed26f48ee14b6d2959c7f295b69b5"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6de93c7dc16715cb12dc6a30271c1c0e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4438,
+                "upload_time": "2017-10-10T14:52:18",
+                "upload_time_iso_8601": "2017-10-10T14:52:18.131480Z",
+                "url": "https://files.pythonhosted.org/packages/3f/ac/dc161da6cc1714ed65be6b1eecbf9776efe5bd2c2cf25794728afc9b8a56/abcmd-0.3.2.tar.gz"
+            }
+        ],
+        "0.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6e9c8973e4b17252b572bf62b5122039",
+                    "sha256": "70e608e2c94c0149da80ac98a0c88467453510958e0a6373c71de77762ca89f2"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6e9c8973e4b17252b572bf62b5122039",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5173,
+                "upload_time": "2018-01-12T13:54:53",
+                "upload_time_iso_8601": "2018-01-12T13:54:53.635934Z",
+                "url": "https://files.pythonhosted.org/packages/4a/26/171e187bbd48de22f5c0b77670de2d768edffabd0503fa4992cf67aafc41/abcmd-0.3.3.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "885ccce8c1d55707daa00bd6fe9b3781",
+                    "sha256": "c40f9f63f4a96868d991b84d2008132af8df32586ef0c94a440cc94c7feaf05d"
+                },
+                "downloads": -1,
+                "filename": "abcmd-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "885ccce8c1d55707daa00bd6fe9b3781",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7938,
+                "upload_time": "2018-12-20T11:18:36",
+                "upload_time_iso_8601": "2018-12-20T11:18:36.279478Z",
+                "url": "https://files.pythonhosted.org/packages/11/35/d040ed053105a935e3a3475b28518128061c3ae9e04e987d9847c4a30362/abcmd-0.4.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "885ccce8c1d55707daa00bd6fe9b3781",
+                "sha256": "c40f9f63f4a96868d991b84d2008132af8df32586ef0c94a440cc94c7feaf05d"
+            },
+            "downloads": -1,
+            "filename": "abcmd-0.4.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "885ccce8c1d55707daa00bd6fe9b3781",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7938,
+            "upload_time": "2018-12-20T11:18:36",
+            "upload_time_iso_8601": "2018-12-20T11:18:36.279478Z",
+            "url": "https://files.pythonhosted.org/packages/11/35/d040ed053105a935e3a3475b28518128061c3ae9e04e987d9847c4a30362/abcmd-0.4.0.tar.gz"
+        }
+    ]
+}

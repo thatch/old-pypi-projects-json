@@ -1,0 +1,258 @@
+{
+    "info": {
+        "author": "M. Farrajota",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: MacOS X",
+            "Environment :: Win32 (MS Windows)",
+            "Environment :: X11 Applications",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Scientific/Engineering"
+        ],
+        "description": ".. note::\n   For the latest source, discussion, etc, please visit the\n   `GitLab repository <https://gitlab.com/farrajota/jungle.ai-challenge-data-extractor>`_\n\n\ndata_db_extractor: Easily retrieve large amounts of data from a database\n=========================================================================\n\nThis repository hosts the code for the ``data_db_extractor`` tool used for\nretrieving large amounts of data from a database to be used for ML workflows.\n\nThe main features of this tool are the following:\n\n- Simple and lean API to retrieve data from a database\n- Simple to advanced filtering operations on the data\n- Basic data transformations such as clipping, normalization and resampling\n- Spills to disk if there is not sufficient memory available\n- Runs on as many cpu cores as the system has available for use\n- You can use it either programmatically or via a terminal\n\nRequirements\n------------\n\n- Python 3.7+\n- PostgreSQL (or compatible database like TimescaleDB)\n\nInstallation\n------------\n\nYou can install ``data_db_extractor`` using either ``pip`` or by installing from source.\n\nPip\n~~~\n\nInstalling from pip is simple and easy as:\n\n::\n\n    $ pip install data_db_extractor\n\nInstall from Source\n~~~~~~~~~~~~~~~~~~~\n\nTo install ``data_db_extractor`` from source, clone the repository from GitLab:\n\n::\n\n    $ git clone https://gitlab.com/farrajota/jungle.ai-challenge-data-extractor\n    $ cd jungle.ai-challenge-data-extractor\n    $ make install\n    or\n    $ python setup.py install\n\nHow-to use\n----------\n\nVia Python\n~~~~~~~~~~\n\nTo fetch data from a database and perform transformations to make it ML-ready using ``data_db_extractor``,\nyou first need to import the package lib in Python and access the ``data_db_extractor()`` method to query\na database and store the results into a ``.parquet`` file:\n\n.. code:: python\n\n    >>> from data_db_extractor import data_db_extractor\n\nNext, to use this method, you are required to pass the necessary configs to connect to the database and\nretrieve data from a target table:\n\n.. code:: python\n\n    >>> data_db_extractor(host_ip=\"localhost\",\n                          port=\"5432\",\n                          username=\"postgres\",\n                          password=\"postgres\",\n                          database=\"postgres\",\n                          table=\"turbine\")\n\nIn this example, the method will connect to a database hosted in **localhost** in the port **5432** and\nuse the username and password to connect to the **postgres** database and query the **turbine** table and\nretrieve all rows and columns from the target table.\n\nHowever, if you want to select only a subset of the data, you can apply some simple filtering operations\nwhen fetching data from the database using the following input args: ``columns``, ``timestamp_range_ini``,\n``timestamp_range_end``, and ``limit``. For example, if you want to select only a handfull of columns,\nyou can use the ``columns`` agr in ``data_db_extractor()`` to retrieve only the information of those columns:\n\n.. code:: python\n\n    >>> data_db_extractor(host_ip=\"localhost\",\n                          port=\"5432\",\n                          username=\"postgres\",\n                          password=\"postgres\",\n                          database=\"postgres\",\n                          table=\"turbine\",\n                          columns=[\"generator___mechanical___speed\",\n                                   \"generator___temperature\"])\n\nAdditionally, you can also apply some simple transformations to the data like value clipping and/or normalization\nand resampling data w.r.t. a target frequency (e.g., 10s, 1min, 1h, 1d, etc.). To do this, use the following input\nargs available in ``data_db_extractor()``: ``norm``, ``clip``, and ``resample``. For example, if you want to resample\nthe retrieved data to intervals of one minute, you can achieve this by calling ``data_db_extractor()`` with the\nfollowing arguments:\n\n.. code:: python\n\n    >>> data_db_extractor(host_ip=\"localhost\",\n                          port=\"5432\",\n                          username=\"postgres\",\n                          password=\"postgres\",\n                          database=\"postgres\",\n                          table=\"turbine\",\n                          resample=\"1min\")\n\nThe resampling transformation will squash all rows in a tiem range and compute metrics like mean, std, min, max and median\nfor each column.\n\n.. note::\n\n    For more information, see the official documentation.\n\nVia Terminal\n~~~~~~~~~~~~\n\nYou can perform the same operations you do in Python with the ``data_db_extractor`` module on the terminal.\nWhen installing the package, a cli api is also installed on your system which allows you to\nquickly start using the tool with little to no effort by calling ``data-db-extractor`` on the terminal.\n\nTo list check all available options, simply do:\n\n::\n\n    $ data-db-extractor --help\n    Usage: data-db-extractor [OPTIONS]\n\n    Easily retrieve large amounts of data from a database.\n\n    Options:\n    --host TEXT                 IP Address of the database host.\n    --port TEXT                 Port number.\n    --username TEXT             User name registered on the database.\n    --password TEXT             Password of the username.\n    --database TEXT             Database name to connect to.\n    --table TEXT                Table name to perform the queries.\n    --sql-command TEXT          A custom sql query the user can pass to the\n                                database\n                                for more complex operations.\n    --timestamp_range_ini TEXT  Lower bound range to include rows by timestamp.\n    --timestamp_range_end TEXT  Upper bound range to include rows by timestamp.\n    --columns TEXT              Columns to be selected from the database.\n    --limit INTEGER             Limit of the number of rows returned (if > 0).\n    --norm                      Computes the normalization transformation on the\n                                retrieved data.\n    --clip FLOAT                Clips values that are below / above *N* standard\n                                deviations from the mean.\n    --resample TEXT             Computes a resampling of the data based on a\n                                given frequency.\n    --output-path TEXT          Directory to store the generated files.\n    --help                      Show this message and exit.\n\nYou can see that it has the same options than the ``data_db_extractor()`` method in\n``data_db_extractor`` module.  Using the last example in the previous section, we\ncan resample the retrieved data to intervals of one minute by typping\nthe following command on the terminal:\n\n::\n\n    $ data-db-extractor \\\n        --host localhost \\\n        --port 5432 \\\n        --username postgres \\\n        --password postgres \\\n        --database postgres \\\n        --table turbine \\\n        --resample 1s\n\nSo, computing what you need is as simply as configuring the connection to the database\nand setting the transformation you want to perform on the data being retrieved,\nand let the tool do the rest.\n\nDocumentation\n-------------\n\nDocumentation for the package can be found `here`_.\n\nLicense\n=======\n\n`MIT License`_\n\n.. _Dask: https://docs.dask.org/en/latest/\n.. _here: https://farrajota.gitlab.io/jungle.ai-challenge-data-extractor/\n.. _MIT License: LICENSE.txt\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/farrajota/jungle.ai-challenge-data-extractor",
+        "keywords": "",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "data-db-extractor",
+        "package_url": "https://pypi.org/project/data-db-extractor/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/data-db-extractor/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/farrajota/jungle.ai-challenge-data-extractor"
+        },
+        "release_url": "https://pypi.org/project/data-db-extractor/0.0.4/",
+        "requires_dist": [
+            "click (==7.0)",
+            "dask[dataframe] (==2.8.1)",
+            "fsspec (==0.6.1)",
+            "locket (==0.2.0)",
+            "numpy (==1.17.4)",
+            "pandas (==0.25.3)",
+            "partd (==1.1.0)",
+            "psycopg2-binary (==2.8.4)",
+            "pyarrow (==0.15.1)",
+            "python-dateutil (==2.8.1)",
+            "pytz (==2019.3)",
+            "six (==1.13.0)",
+            "sqlalchemy (==1.3.11)",
+            "toolz (==0.10.0)"
+        ],
+        "requires_python": "",
+        "summary": "Retrieve data from a database for large amounts of data.",
+        "version": "0.0.4"
+    },
+    "last_serial": 6214549,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7ab50baeb884f214c66cd60664de489e",
+                    "sha256": "6aa966d254b532d423e7056f00707f40d2fad5c15af1aac8dc145b1405b3654b"
+                },
+                "downloads": -1,
+                "filename": "data_db_extractor-0.0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7ab50baeb884f214c66cd60664de489e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 7525,
+                "upload_time": "2019-11-27T18:17:38",
+                "upload_time_iso_8601": "2019-11-27T18:17:38.319935Z",
+                "url": "https://files.pythonhosted.org/packages/90/c6/87fb5d045327f9c52acc6d443fe74e08584a363acfeb539a8aaa6378abaf/data_db_extractor-0.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "efa05cba766c4d078d8c22a21846be22",
+                    "sha256": "1d356813bf31b571a361056acb48414399fc7cba31c86bdb7e5e47a5f9e0b77e"
+                },
+                "downloads": -1,
+                "filename": "data_db_extractor-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "efa05cba766c4d078d8c22a21846be22",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6492,
+                "upload_time": "2019-11-27T18:17:40",
+                "upload_time_iso_8601": "2019-11-27T18:17:40.408030Z",
+                "url": "https://files.pythonhosted.org/packages/d6/c1/f42403a17792236136f0a3f3049b4679e70e1f87d95a560e2de98c7f885c/data_db_extractor-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dda1c6c1c97764e6e508cca55edde6d5",
+                    "sha256": "68e11a142aaf2e88e4819c4417b1661176947f186c32c4f97e22b992df1ea1ae"
+                },
+                "downloads": -1,
+                "filename": "data_db_extractor-0.0.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dda1c6c1c97764e6e508cca55edde6d5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 10002,
+                "upload_time": "2019-11-27T21:05:40",
+                "upload_time_iso_8601": "2019-11-27T21:05:40.795936Z",
+                "url": "https://files.pythonhosted.org/packages/61/e0/4584658c51ee1d87cfbf2f7a36a5e95b640d700392bd5fb7c0f8e9eb3881/data_db_extractor-0.0.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "25732b6a18554d445309f33c5a4f3528",
+                    "sha256": "9c68b0051e4782bfd9026243ff2ed2b36bb428ee39b4045867d70370db6f834d"
+                },
+                "downloads": -1,
+                "filename": "data_db_extractor-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "25732b6a18554d445309f33c5a4f3528",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8341,
+                "upload_time": "2019-11-27T21:05:42",
+                "upload_time_iso_8601": "2019-11-27T21:05:42.389496Z",
+                "url": "https://files.pythonhosted.org/packages/74/f1/7ce4542d71b7b46a4c545e3a1103e101b58ab7a6150a1be0da61c50a639f/data_db_extractor-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "87a9752c13bf924acf4207be9b8202ff",
+                    "sha256": "bb6b411ecd6f6f9496e51dd6a67c0d2d36b98fea60767105cff1b87b039bdfc8"
+                },
+                "downloads": -1,
+                "filename": "data_db_extractor-0.0.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "87a9752c13bf924acf4207be9b8202ff",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 12148,
+                "upload_time": "2019-11-27T21:55:23",
+                "upload_time_iso_8601": "2019-11-27T21:55:23.682691Z",
+                "url": "https://files.pythonhosted.org/packages/5e/62/ca16253db0ecec2aa1004cad453fe9f5b1ea87d8ddedce38d86dfa954c6b/data_db_extractor-0.0.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d0a1fc00e95d1ed6d01636eaf8801390",
+                    "sha256": "d78da078337e37390ba9ee995f709990cfd1f68cecb0178fae71bf207732a395"
+                },
+                "downloads": -1,
+                "filename": "data_db_extractor-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d0a1fc00e95d1ed6d01636eaf8801390",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11191,
+                "upload_time": "2019-11-27T21:55:25",
+                "upload_time_iso_8601": "2019-11-27T21:55:25.327668Z",
+                "url": "https://files.pythonhosted.org/packages/07/f8/74a44fe3a5001b631aae3c143b56f2e9a23ea5bdfd29d7753dba0034a205/data_db_extractor-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c275f39ba58983c2516eff54aaa58897",
+                    "sha256": "a72a6211b91df62c66758455c764627e43f7de183bc550c13a0b4b94ad65ad50"
+                },
+                "downloads": -1,
+                "filename": "data_db_extractor-0.0.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c275f39ba58983c2516eff54aaa58897",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 12147,
+                "upload_time": "2019-11-28T14:54:21",
+                "upload_time_iso_8601": "2019-11-28T14:54:21.348084Z",
+                "url": "https://files.pythonhosted.org/packages/8e/d6/73dcf958b93772a7656ae5b87e8168597a3300e27a56f0d57e880350c40e/data_db_extractor-0.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b4a920e820f2ab3b7cd4f5799644f3a5",
+                    "sha256": "b9a8ae2c6cabafacefc3d44a57aa7da53bfcbd093759f8ab859333640429682c"
+                },
+                "downloads": -1,
+                "filename": "data_db_extractor-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b4a920e820f2ab3b7cd4f5799644f3a5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11194,
+                "upload_time": "2019-11-28T14:54:22",
+                "upload_time_iso_8601": "2019-11-28T14:54:22.562041Z",
+                "url": "https://files.pythonhosted.org/packages/70/5d/4f75170da59ef56b6926db66979d6b10b026359f6a2ba418ffba02c57c1d/data_db_extractor-0.0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c275f39ba58983c2516eff54aaa58897",
+                "sha256": "a72a6211b91df62c66758455c764627e43f7de183bc550c13a0b4b94ad65ad50"
+            },
+            "downloads": -1,
+            "filename": "data_db_extractor-0.0.4-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c275f39ba58983c2516eff54aaa58897",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 12147,
+            "upload_time": "2019-11-28T14:54:21",
+            "upload_time_iso_8601": "2019-11-28T14:54:21.348084Z",
+            "url": "https://files.pythonhosted.org/packages/8e/d6/73dcf958b93772a7656ae5b87e8168597a3300e27a56f0d57e880350c40e/data_db_extractor-0.0.4-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b4a920e820f2ab3b7cd4f5799644f3a5",
+                "sha256": "b9a8ae2c6cabafacefc3d44a57aa7da53bfcbd093759f8ab859333640429682c"
+            },
+            "downloads": -1,
+            "filename": "data_db_extractor-0.0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "b4a920e820f2ab3b7cd4f5799644f3a5",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11194,
+            "upload_time": "2019-11-28T14:54:22",
+            "upload_time_iso_8601": "2019-11-28T14:54:22.562041Z",
+            "url": "https://files.pythonhosted.org/packages/70/5d/4f75170da59ef56b6926db66979d6b10b026359f6a2ba418ffba02c57c1d/data_db_extractor-0.0.4.tar.gz"
+        }
+    ]
+}

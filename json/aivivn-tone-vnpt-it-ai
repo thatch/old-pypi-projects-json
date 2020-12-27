@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "Example Author",
+        "author_email": "author@example.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# aivivn-tone\n\n\nPredict a sentence: \npredictor = Predictor()\npred_sent = predictor.predict_sentence(a_sentence)\n\n\n\n\nSubmission for AIviVN Vietnamese diacritics restoration contest https://www.aivivn.com/contests/3.\n\nA more detailed summary of the approach can be found [here (Vietnamese)](https://forum.machinelearningcoban.com/t/aivivn-3-vietnamese-tone-prediction-1st-place-solution/5721).\n\n## Requirements\n\nPython > 3.6, PyTorch 1.0.1, torchtext, unidecode, dill, visdom, tqdm, kenlm.\n\n`visdom` is mainly used for visualizing training loss and accuracy.\n\n`kenlm` can be found [here](https://github.com/kpu/kenlm). I had some troubles with the version on the master branch, so the stable release may be better.\n\n## Overview\n\n### Character-level BiLSTM seq2seq model\n\n[<p align=\"center\"><img width=\"510\" src=\"https://i.imgur.com/67CCUEU.png\"></p>]()\n\nThe embedding layer and encoder are standard. The model consists of 3 decoders (each decoder has its own softmax prediction layer):\n- a left-to-right decoder\n- a right-to-left decoder\n- a combined decoder constructed by concatenating output LSTM states of two previous decoders\n\nThe final loss is a sum of 3 component losses:\n`L = L_ltr + L_rtl + L_combined`\n\nSince only a certain set of characters requires diacritics restoration (`a, d, e, i, o, u, y`), we can apply teacher forcing at both training time and test time. \n\nIn addition, since each character only has a fixed set of targets (e.g., for `i` it's `i, \u00ed, \u00ec, \u1ec9, \u0129, \u1ecb`), masked softmax can also be applied. \n\n### Beam search\n\n[<p align=\"center\"><img width=\"780\" src=\"https://i.imgur.com/MultVmF.png\"></p>]()\n\nWe run a standard beam search in 2 directions, left-to-right and right-to-left, and combine results. For any disagreements that may appear between the two searches, repeat the procedure until there are no disagreements left. We fall back on exhaustive search after a number of recursive calls in case of infinite recursion.\n\nA 4-gram word-level language model is used to score candidates during beam search.\n\nThe beam search component is separated from the seq2seq model (not jointly trained during training time), so it can be used with any other models.\n\n## Replicating submission results\n\nI filtered out sentences longer than 300 characters, and divided the training data into smaller splits so they could fit in my computer's limited RAM. The data I used can be found [here](https://drive.google.com/file/d/1NqrYfs1cK63ZRlfl__6-p64NEfgsMLFD/view?usp=sharing).\n\nI trained the seq2seq model until the accuracy on validation set stopped increasing. The final model can be found [here](https://drive.google.com/file/d/1cWp0P2Uj6rcXZzqpfQt9kY8a9SlLEsNU/view?usp=sharing).\n\nThe n-gram language model can be found [here](https://drive.google.com/file/d/14RmQSYgijeSVzZNZ2mPGL0lCLg_guXGE/view?usp=sharing).\n\nThe `main` function in [`train.py`](./train.py) and [`predict.py`](./predict.py) has examples of how to train the model from scratch and run predictions on test data. I set beam size to a very large number so it may take **very long** to run predictions.\n\n## Credits\n\nSome of the code is taken from [IBM's PyTorch seq2seq implementation](https://github.com/IBM/pytorch-seq2seq).\n\nThe code to produce cleaned test data is [written by Khoi Nguyen](https://gist.github.com/suicao/5fd9e27bfb00a147998035730ca224d7?fbclid=IwAR13ufFJUTjTeyMO3KuN8dZTBACkC9ix-_XxN9Z6lshDdD8Eyn3KGPJri6o).\n\nThe data used to train n-gram language model are taken from [this repo by @binhvq](https://github.com/binhvq/news-corpus).\n\nThe Vietnamese dictionary used during beam search is taken from [this repo by @undertheseanlp](https://github.com/undertheseanlp/dictionary/blob/wiktionary/dictionary/words.txt).\n\nFinally, I'd like to thank the AIviVN admins for organizing the contest, providing the data, and preparing [a script to convert predicted text file to submission file](https://github.com/aivivn/vietnamese_tone_prediction_utils).\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/pypa/sampleproject",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "aivivn-tone-vnpt-it-ai",
+        "package_url": "https://pypi.org/project/aivivn-tone-vnpt-it-ai/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/aivivn-tone-vnpt-it-ai/",
+        "project_urls": {
+            "Homepage": "https://github.com/pypa/sampleproject"
+        },
+        "release_url": "https://pypi.org/project/aivivn-tone-vnpt-it-ai/0.0.1/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "A small example package",
+        "version": "0.0.1"
+    },
+    "last_serial": 6024830,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2f093c68970033788e0d12ddf86bbb14",
+                    "sha256": "fdd51beb2fe7847351e125fdad19216cdc3becf991a75eb65b269d7eb5160270"
+                },
+                "downloads": -1,
+                "filename": "aivivn_tone_vnpt_it_ai-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2f093c68970033788e0d12ddf86bbb14",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 21945,
+                "upload_time": "2019-10-24T16:28:55",
+                "url": "https://files.pythonhosted.org/packages/c1/1b/7f6a2a87290dbcabc8eda4ce7377323ef704b5f3f1de1a8fa5e85997e958/aivivn_tone_vnpt_it_ai-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6c9d01e780c66f3f3cb608492f7fd4b7",
+                    "sha256": "34867c1ca5b98880b266ca947f889d79f89fab4d0d7481e1aa35e72bddda12c1"
+                },
+                "downloads": -1,
+                "filename": "aivivn-tone-vnpt-it-ai-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6c9d01e780c66f3f3cb608492f7fd4b7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 17911,
+                "upload_time": "2019-10-24T16:28:57",
+                "url": "https://files.pythonhosted.org/packages/cc/4c/62decdc0d29ba15ceec878a8986b47dc32861930bc52a46b4368fce8651d/aivivn-tone-vnpt-it-ai-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2f093c68970033788e0d12ddf86bbb14",
+                "sha256": "fdd51beb2fe7847351e125fdad19216cdc3becf991a75eb65b269d7eb5160270"
+            },
+            "downloads": -1,
+            "filename": "aivivn_tone_vnpt_it_ai-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2f093c68970033788e0d12ddf86bbb14",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 21945,
+            "upload_time": "2019-10-24T16:28:55",
+            "url": "https://files.pythonhosted.org/packages/c1/1b/7f6a2a87290dbcabc8eda4ce7377323ef704b5f3f1de1a8fa5e85997e958/aivivn_tone_vnpt_it_ai-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6c9d01e780c66f3f3cb608492f7fd4b7",
+                "sha256": "34867c1ca5b98880b266ca947f889d79f89fab4d0d7481e1aa35e72bddda12c1"
+            },
+            "downloads": -1,
+            "filename": "aivivn-tone-vnpt-it-ai-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "6c9d01e780c66f3f3cb608492f7fd4b7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 17911,
+            "upload_time": "2019-10-24T16:28:57",
+            "url": "https://files.pythonhosted.org/packages/cc/4c/62decdc0d29ba15ceec878a8986b47dc32861930bc52a46b4368fce8651d/aivivn-tone-vnpt-it-ai-0.0.1.tar.gz"
+        }
+    ]
+}

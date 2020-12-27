@@ -1,0 +1,116 @@
+{
+    "info": {
+        "author": "Jeff Levensailor",
+        "author_email": "jeff@levensailor.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/levensailor/py-cisco-ris)\n\n# ciscosxml\n\nUses Realtime Information Service (RIS) to capture registration status of Cisco IP Phones on CUCM\nhttps://developer.cisco.com/docs/sxml/#risport70-api-reference\n\n#### Install with pip or clone repo\n\n```bash\npip install ciscosxml\n```\n\n#### import ris, logcollection or other classes\n```py\nfrom ciscosxml import ris\n```\n\n#### specify your CUCM details\n```py\ncucm = os.getenv('cucm', '10.10.10.10')\nversion = os.getenv('version', '11.5')\nrisuser = os.getenv('risuser', 'risadmin')\nrispass = os.getenv('rispass', 'p@ssw0rd')\n```\n\n#### instanciate your RIS object\n```py\nris = RIS(username=risuser,password=rispass,cucm=cucm,cucm_version=version)\n```\n\n#### input an array of phones\n\n```py\nphones = ['SEPF8A5C59E0F1C', 'SEP1CDEA78380DE', 'SEP01CD4EF58980']\n```\n\n#### input an array of \"process nodes\" or nodes which run Callmanager service\n```py\nsubs = ['sub1', 'sub2', 'sub3']\n```\n\n#### you can use the related `ciscoaxl` library grab process nodes via API.\n```py\ndef getSubs():\n    nodes = axl.listProcessNodes()\n    if nodes['success']:\n        return nodes['response']\n\nsubs = getSubs()\n```\n\n#### group phones into 1000 and check registrations per group\n```py\nlimit = lambda phones, n=1000: [phones[i:i+n] for i in range(0, len(phones), n)]\n\ngroups = limit(phones)\nfor group in groups:\n    registered = ris.checkRegistration(group, subs)\n    user = registered['LoginUserId']\n    regtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(registered['TimeStamp']))\n    for item in registered['IPAddress']:\n        ip = item[1][0]['IP']\n\n    for item in registered['LinesStatus']:\n        primeline = item[1][0]['DirectoryNumber']\n    name = registered['Name']\n\n    print('name: '+name)\n    print('user: '+user)\n    print('primary dn: '+primeline)\n    print('ip address: '+ip)\n    print('registration time: '+regtime)\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/levensailor/ciscosxml",
+        "keywords": "Cisco,Call Manager,CUCM,RIS,LogCollection,VoIP",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ciscosxml",
+        "package_url": "https://pypi.org/project/ciscosxml/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ciscosxml/",
+        "project_urls": {
+            "Homepage": "https://github.com/levensailor/ciscosxml"
+        },
+        "release_url": "https://pypi.org/project/ciscosxml/0.0.1/",
+        "requires_dist": [
+            "suds-jurko (==0.6)",
+            "urllib3 (==1.23)"
+        ],
+        "requires_python": "",
+        "summary": "Cisco CUCM SXML Library. Simple to use.",
+        "version": "0.0.1"
+    },
+    "last_serial": 4984692,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "16f81ac17e1b2b932093375635a838c1",
+                    "sha256": "4de91f2fa295803b71e1b826832c11d3b6d2520cd40692c41e8210da9530c08b"
+                },
+                "downloads": -1,
+                "filename": "ciscosxml-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "16f81ac17e1b2b932093375635a838c1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3856,
+                "upload_time": "2019-03-25T21:21:14",
+                "url": "https://files.pythonhosted.org/packages/dd/0a/ebcea13a324712c5479e8a9078f17538aa4f43b0b59f2996f28b9bb19488/ciscosxml-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5f2989158f9358a428c22d6ad278189",
+                    "sha256": "ff1f32950e4ccb5c58b108f11426302328804a1ee3dc95b7202db348f005b86a"
+                },
+                "downloads": -1,
+                "filename": "ciscosxml-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a5f2989158f9358a428c22d6ad278189",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3594,
+                "upload_time": "2019-03-25T21:21:16",
+                "url": "https://files.pythonhosted.org/packages/b1/95/0d5d7ce6404a5fd8bf70198fff3213921f78a0444493a86603587a024779/ciscosxml-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "16f81ac17e1b2b932093375635a838c1",
+                "sha256": "4de91f2fa295803b71e1b826832c11d3b6d2520cd40692c41e8210da9530c08b"
+            },
+            "downloads": -1,
+            "filename": "ciscosxml-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "16f81ac17e1b2b932093375635a838c1",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 3856,
+            "upload_time": "2019-03-25T21:21:14",
+            "url": "https://files.pythonhosted.org/packages/dd/0a/ebcea13a324712c5479e8a9078f17538aa4f43b0b59f2996f28b9bb19488/ciscosxml-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a5f2989158f9358a428c22d6ad278189",
+                "sha256": "ff1f32950e4ccb5c58b108f11426302328804a1ee3dc95b7202db348f005b86a"
+            },
+            "downloads": -1,
+            "filename": "ciscosxml-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a5f2989158f9358a428c22d6ad278189",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 3594,
+            "upload_time": "2019-03-25T21:21:16",
+            "url": "https://files.pythonhosted.org/packages/b1/95/0d5d7ce6404a5fd8bf70198fff3213921f78a0444493a86603587a024779/ciscosxml-0.0.1.tar.gz"
+        }
+    ]
+}

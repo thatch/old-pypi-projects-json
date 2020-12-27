@@ -1,0 +1,261 @@
+{
+    "info": {
+        "author": "bcj",
+        "author_email": "brendan@bcjbcj.ca",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Other Audience",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Artistic Software",
+            "Topic :: Multimedia",
+            "Topic :: Multimedia :: Graphics",
+            "Topic :: Multimedia :: Graphics :: Editors",
+            "Topic :: Multimedia :: Graphics :: Editors :: Vector-Based",
+            "Topic :: Text Processing :: Markup :: XML",
+            "Topic :: Utilities"
+        ],
+        "description": "# Vector von Doom\n\nVector von Doom is an SVG-based vector image tool.\n\n# Installation\n\nParable requires Python 3.6+.\n\nTo install:\n\n```sh\npip install vectorvondoom\n```\n\n# Usage\n\nThe basic workflow for creating an image is: create a new image, add all the elements you want, then export to a file.\n\n## Creating a New Image\n\nImages are created using the `SVG` class:\n\n```python\nfrom victorvondoom import SVG\n\nimage = SVG()\n```\n\nYou can set the viewport by passing a width and a height, and can set the background colour of the SVG using the `background` parameter.\nFor any other attribute to set for the base SVG object, you can pass the key-value pair using the `attribute` parameter:\n\n```python\nimage = SVG(1920, 1080, background='black')\n```\n\n## Adding Elements\n\nVector von Doom currently supports the SVG Elements: `Circle`, `Rect`, and `Polygon`.\nSee [Elements](#elements) for details on how to use the individual elements.\n\nElements can be added to the image using the `add` method:\n\n```python\nfrom victorvondoom import Circle, Point\n\ncircle = Circle.new(Point(100, 50), 50, fill='blue')\n\nsvg.add(circle)\n```\n\nThere are also convenience methods for all supported elements:\n\n```python\nsvg.circle(Point(100, 50), 50, fill='blue')\n```\n\nFor unsupported elements, you can use the `add_raw` method, passing in the element name and a `dict` of attributes to directly create the element:\n\n```python\nsvg.add_raw(\n    'text',\n    {\n        'x': 0, 'y': 100,\n        'font-size': 12, 'font-family': \"Verdana\",\n    },\n    text=\"Hello World\"\n)\n```\n\n## Exporting the image\n\nThe `SVG` `export` method will convert the SVG to `bytes`\n\n```python\npath.write_bytes(svg.export())\n```\n\n# Elements\n\nVector von Doom has built-in support for some SVG elements.\n\n## Circle\n\nA [circle](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle).\n\nCreate a new circle with the `new` method, passing in the center point and the radius:\n\n```\nfrom vectorvondoom import Circle, Point\n\ncircle = Circle.new(Point(0, 0), 15)\n```\n\n## Rect\n\nA [rect(angle)](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect).\n\nCreate a new rectangle with the `new` method, passing in the top left point and the width and height:\n\n```\nfrom vectorvondoom import Rect, Point\n\nrectangle = Rect.new(Point(1, 1), 2, 4)\n```\n\nAlternately, you can use the `from_box` method, to create a new rectangle giving the top left and bottom right points:\n\n```\nfrom vectorvondoom import Rect, Point\n\nrectangle = Rect.from_box(Point(1, 1), Point(3, 5))\n```\n\n## Polygon\n\nA [polygon](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polygon).\n\nCreate a new polygon with the `new` method, passing in an iterable of points:\n\n```\nfrom vectorvondoom import Polygon, Point\n\nrectangle = Polygon.new([Point(1, 2), Point(3, 2), Point(3, 5)])\n```\n\n## Path\n\nA [path](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths)\n\nCreate a new Path with the `new` method, passing it any number of Path Descriptions:\n\n```\nfrom vectorvondoom import Path, MoveTo, LineTo, CurveTo, ClosePath, Point\n\npath = Polygon.new(\n    MoveTo(Point(50, 50)),\n    LineTo(Point(0, -50), relative=True),\n    CurveTo(Point(-50, 50), Point(0, 50), relative=True),\n    ClosePath()\n)\n```\n\n### Path Descriptions\n\nVector von Doom implements the 5 [`d`](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d) Attributes:\n\n  -  `MoveTo`: A point to move to. Args:\n      -  `point`: The point to move to.\n      -  `relative` (optional, `False`): Whether the supplied point is absolute, or relative to the previous position.\n  -  `LineTo`: Draw a line from the current position to a point. Args:\n      -  `point`: The end of the line.\n      -  `relative` (optional, `False`): Whether the supplied point is absolute, or relative to the previous position.\n  -  `CurveTo`: Draw a Bezier curve from the current position to a point. Args:\n      -  `point`: The end of the curve.\n      -  `p1`: The first midpoint.\n      -  `p2` (optional, `None`): The second midpoint. If supplied, the curve will be cubic, otherwise it will be quadratic.\n      -  `relative` (optional, `False`): Whether the supplied points are absolute, or relative to the previous position.\n  -  `ChainTo`: Continue a curve using the previous curve's (final) midpoint rotated \u03c0 radians around its endpoint as the curve's (first) midpoint. Args:\n      -  `point`: The end of the curve.\n      -  `p2` (optional, `None`): The second midpoint. If supplied, the curve will be cubic, otherwise it will be quadratic.\n      -  `relative` (optional, `False`): Whether the supplied points are absolute, or relative to the previous position.\n  -  `ArcTo`: Draw an elliptical curve from the current position to a point. Args:\n      -  `point`: The end of the curve.\n      -  `x_radius`: The curve's radius in the horizontal direction (relative to the axis of rotation).\n      -  `y_radius`: The curve's radius in the vertical direction (relative to the axis of rotation).\n      -  `rotation`: The axis of rotation of the curve (in radians).\n      -  `large_arc` (optional, `False`): Whether to draw the larger of the two possible arcs.\n      -  `sweep` (optional, `False`): Whether to draw the arc in a clockwise rotation.\n      -  `relative` (optional, `False`): Whether the supplied point is absolute, or relative to the previous position.\n  -  `ClosePath`: Draw a line back to the origin.\n\n## Custom Shapes\n\nVector von Doom has some support for shapes that don't exist as native SVG elements.\nThis includes support for shapes which require multiple SVG elements to properly express (done using `vectorvondoom.elements.Elements`) .\n\n### Stars\n\nN-pointed stars can be generated using the `Elements.star` method, or directly added using the `SVG.star` convenience method.\n\nBoth methods take the following parameters:\n\n -  `center`: The center of the star.\n -  `length`: The distance of each point from the center.\n -  `num_points`: The number of points on the star.\n -  `rotation`: (optional, `-\u03c0/2`) The rotation of the star. The default rotation will put the first point facing upwards.\n -  `ngram`: (optional, `False`) Draw the star using n straight lines (e.g., make a pentagram).\n -  `inner_length`: (optional, `None`) How far from the center to place the midpoint between each point. If `ngram` is `True`, this value is ignored. If `inner_length` is not given, the length will match the intersections of the ngram version of the star.\n\n## Transformations\n\nAll elements have support for three basic transformations: translate, rotate, and reflect.\n\n**NOTE** All transformations create a new element, they don't modify the current element.\n\n### `translate`\n\nMove the element by a distance:\n\n```python\ncircle = Circle.new(Point(1, 0), 3).translate(1, 2)\ncircle.center() == Point(2, 2)\n```\n\nThere also is a `recenter` convenience method to set the center of the element to an absolute value:\n\n```python\ncircle = Circle.new(Point(1, 0), 3).recenter(1, 2)\ncircle.center() == Point(1, 2)\n```\n\n### `rotate`\n\nRotate the element.\nThe amount is given in radians:\n\n```python\nrectangle = Rect.new(Point(0, 1), 2, 3).rotate(math.pi / 2)\nrectangle.bounds() == Point(0.5, 2.5), Point(4.5, 5.5)\n```\n\nBy default, the center of rotation is the center of element. You can pass an origin point to rotate around it instead:\n\n```python\nrectangle = Rect.new(Point(0, 1), 2, 3).rotate(math.pi / 2, origin=Point(0, 0))\nrectangle.bounds() == Point(2, 1), Point(6, 4)\n```\n\n**NOTE**: A rotated element may no longer be representable as its original SGV element (e.g., a rotated rectangle).\nIn these cases, the element will be added to the SVG as equivalent element where the shape can be represented (e.g., a polygon).\n\n### `reflect`\n\nMirror the element on one or more axis:\n\n```python\npolygon = Polygon.new([Point(0, 0), Point(1, 0), Point(1, 2)]).reflect(horizontal=True)\npolygon == Polygon.new([Point(1, 0), Point(0, 0), Point(0, 2)])\n```\n\nBy default, the center of reflection is the center of element. You can pass an origin point to reflect around it instead:\n\n```python\nrectangle = Rect.new(Point(0, 1), 2, 3).reflect(vertical=True, origin=Point(0, 0))\nrectangle.bounds() == Point(0, -4), Point(2, -1)\n```\n\n## Other Methods\n\n### `bounds`\n\nReturns the top-left, and bottom-right corners of a box that completely encloses the element:\n\n```python\ncircle = Circle.new(Point(1, 2), 3)\ncircle.bounds() == Point(-2, -5), Point(4, 5)\n\nrectangle = Rect.new(Point(1, 2), 3, 4)\nrectangle.bounds() == Point(1, 2), Point(4, 6)\n```\n\n**NOTE**: Bounds don't take into account any border around the element.\nBorders created using `stroke-width` are always centered, so you can calculate border size manually\n\n```python\ncircle = Circle.new(Point(1, 2), 3, stroke_width=2)\nminimum, maximum = circle.bounds()\nborder_bounds = minimum - Point(1, 1), maximum + Point(1, 1)\n```\n\n### `center`\n\nReturns the center of the element.\nThe center of an element is defined as the center of its bounding box, there isn't any weighting to element.\n\n```python\ncircle = Circle.new(Point(1, 2), 3)\ncircle.center() == Point(1, 2)\n\nrectangle = Rect.new(Point(1, 2), 3, 4)\nrectangle.center() == Point(2.5, 4)\n```\n\n## Element Attributes\n\nAny additional attributes can be passed into elements as named parameters:\n\n```python\ncircle = Circle.new(Point(10, 5), 5, stroke_width=1, stroke='black')\n```\n\nAny underscores (`_`) in attributes will automatically be converted into hyphens (`-`).\nAll values will be converted to strings automatically.\nItems in (non-string) sequences (e.g., path commands) will be converted to strings and then space (` `) separated.\n\nYou can add support for custom types (e.g., a colour type) by adding an `__svg__ method to your type.\n\n\n# Geometry\n\nIf you need to perform mathematical operations on things other than elements (e.g., SVG paths), you should probably check out the `geometry` module.\nIt implements Cartesian and polar points (`Point`, and `Polar`) with the ability to convert between them and (probably) all the mathematical operators you'd expect.\n\nThere is also a `Line` object which lets you easily calculate intersections and `Polygon`, `Rectangle`, and `Square` which were used to implement the `Polygon` and `Rect` elements.\n\n# Bugs and Feature Requests\n\nThis is a support library for some hobby projects I've made.\nI'm only really planning to make changes and improvements to this package as I need them for those projects.\n\nFeel free to make issues if you want to be notified when/if a feature gets added, but this package is very much provided as is.\n\n## Contributing\n\nI'm not interested in contributions at this time.\n\n# License\n\nVector von Doom is available under an AGPL License.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/bcj/vectorvondoom",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "vectorvondoom",
+        "package_url": "https://pypi.org/project/vectorvondoom/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/vectorvondoom/",
+        "project_urls": {
+            "Homepage": "https://github.com/bcj/vectorvondoom"
+        },
+        "release_url": "https://pypi.org/project/vectorvondoom/0.5.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "An SVG-based vector image tool.",
+        "version": "0.5.0"
+    },
+    "last_serial": 3016363,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9efdce43e0d667b8bb57026971fa2842",
+                    "sha256": "63b55ee6316178eb0eb5034cd31956286701f8e6bc4cd5380c39d040679aaa5a"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.1.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9efdce43e0d667b8bb57026971fa2842",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15795,
+                "upload_time": "2017-06-05T00:50:53",
+                "upload_time_iso_8601": "2017-06-05T00:50:53.488659Z",
+                "url": "https://files.pythonhosted.org/packages/d9/78/b6de6f126c0be955a7da7b8526adb2e5b7eac97f2a4e1b8473e211e8bd7f/vectorvondoom-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3aec0bfd58eaee5ba1d0da435863cb08",
+                    "sha256": "d18e9bc46eaadc10acd3a4de812cf5458ca1790f8f01e74ca2d1ad1c2c24d2c5"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.1.0-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "3aec0bfd58eaee5ba1d0da435863cb08",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26216,
+                "upload_time": "2017-06-05T00:50:55",
+                "upload_time_iso_8601": "2017-06-05T00:50:55.002554Z",
+                "url": "https://files.pythonhosted.org/packages/64/f3/988e063dd27d4904766d6d1e5ac62719e5a17f73f0edac092f0e7f53d63d/vectorvondoom-0.1.0-py3.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "589a5d5cc809db36a72445a4e96dfe7a",
+                    "sha256": "450738a28c731bcd746e1d1e7b32c22847b76e8219fa8d9c499f9e23375ceeb5"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "589a5d5cc809db36a72445a4e96dfe7a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14291,
+                "upload_time": "2017-06-05T00:50:57",
+                "upload_time_iso_8601": "2017-06-05T00:50:57.067331Z",
+                "url": "https://files.pythonhosted.org/packages/70/1a/056de1024e8ace4617b4946aa793902c2ef124537cffb26e8b0a258de857/vectorvondoom-0.1.0.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "db2f0af68eb8bf214b4e95e2fc679cbb",
+                    "sha256": "9297c95cb1ab2d3bc1808fc38caaa0adb302af3e5c14f446faf2ecbd6c34c686"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.2.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "db2f0af68eb8bf214b4e95e2fc679cbb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 20357,
+                "upload_time": "2017-06-21T09:01:42",
+                "upload_time_iso_8601": "2017-06-21T09:01:42.351997Z",
+                "url": "https://files.pythonhosted.org/packages/06/05/cf11e3c89e90273e4d464527d660ac8e53ca8477e6ad555c421ee6bdff31/vectorvondoom-0.2.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18d7ac1e3f6d6111535007e6960c838d",
+                    "sha256": "a77f744eeac05d52dd2de52a002264d6b00b16ed0bd8323ee96fd50992d54402"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18d7ac1e3f6d6111535007e6960c838d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18955,
+                "upload_time": "2017-06-21T09:01:43",
+                "upload_time_iso_8601": "2017-06-21T09:01:43.476691Z",
+                "url": "https://files.pythonhosted.org/packages/4c/f4/9b6674f0482a9a7af32df46221d3b753d2b746741a45a7f9829389d8f567/vectorvondoom-0.2.0.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dca6e26888136b8e1d989e26b086753e",
+                    "sha256": "a32660e2bb021bc5369ae248c93ad6afcaaeed483d3810e8352237afc6ea0490"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.3.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dca6e26888136b8e1d989e26b086753e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 20814,
+                "upload_time": "2017-06-25T22:42:17",
+                "upload_time_iso_8601": "2017-06-25T22:42:17.891863Z",
+                "url": "https://files.pythonhosted.org/packages/ca/88/bd188ccc1ca134592cdcc6bcdc523ba613441a62fe9f2d20d19fccd10372/vectorvondoom-0.3.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c23eed864121d9de7ffe2a7beed1e980",
+                    "sha256": "a161d7ed3e6b1aef83a4c70b1d6c53010e614aed1af07a8a811b3f7bba40ce58"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c23eed864121d9de7ffe2a7beed1e980",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19639,
+                "upload_time": "2017-06-25T22:42:19",
+                "upload_time_iso_8601": "2017-06-25T22:42:19.419495Z",
+                "url": "https://files.pythonhosted.org/packages/7b/3a/d9922d94627ef8f561b0b3d9efcd3198dbacf8457661417eb346dee4fbd8/vectorvondoom-0.3.0.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e4aaf65a106ee68d0ef9e7d2f6d28fa2",
+                    "sha256": "76e3c1ba4d7f09c671a56ec6c369f48c3b0fbd7930bfbfb98e8e38b871936816"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.4.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e4aaf65a106ee68d0ef9e7d2f6d28fa2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 20794,
+                "upload_time": "2017-06-26T01:48:32",
+                "upload_time_iso_8601": "2017-06-26T01:48:32.301851Z",
+                "url": "https://files.pythonhosted.org/packages/85/bf/e6a776a37d5f30f5dca3ffe43f4d62e353ea45f5f270703a31c2be8f6ca4/vectorvondoom-0.4.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "335e0154dab6d96f8c7835417bb23aa0",
+                    "sha256": "98e72bd2f25993d35c47bd5d67e576a7925d5da0e5826ef0b8bc1c11f0ad30bf"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "335e0154dab6d96f8c7835417bb23aa0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19672,
+                "upload_time": "2017-06-26T01:48:33",
+                "upload_time_iso_8601": "2017-06-26T01:48:33.262465Z",
+                "url": "https://files.pythonhosted.org/packages/4f/9c/969dbeb343ca1cbc7a21a0bca6f07934e0a13cae45a69daed635c694f960/vectorvondoom-0.4.0.tar.gz"
+            }
+        ],
+        "0.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d519f26fb4b6fefa893fd29c35cdef5e",
+                    "sha256": "2808d1ebafaf2012b276ef31c284ab380e485cdefbfd67d5e3d3edb003f6cf82"
+                },
+                "downloads": -1,
+                "filename": "vectorvondoom-0.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d519f26fb4b6fefa893fd29c35cdef5e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21642,
+                "upload_time": "2017-07-12T03:13:33",
+                "upload_time_iso_8601": "2017-07-12T03:13:33.219274Z",
+                "url": "https://files.pythonhosted.org/packages/2f/f1/8846e83b377aa3486b8c99bc0cac4d3d7ba99457697a6241106d5aae0153/vectorvondoom-0.5.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d519f26fb4b6fefa893fd29c35cdef5e",
+                "sha256": "2808d1ebafaf2012b276ef31c284ab380e485cdefbfd67d5e3d3edb003f6cf82"
+            },
+            "downloads": -1,
+            "filename": "vectorvondoom-0.5.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d519f26fb4b6fefa893fd29c35cdef5e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 21642,
+            "upload_time": "2017-07-12T03:13:33",
+            "upload_time_iso_8601": "2017-07-12T03:13:33.219274Z",
+            "url": "https://files.pythonhosted.org/packages/2f/f1/8846e83b377aa3486b8c99bc0cac4d3d7ba99457697a6241106d5aae0153/vectorvondoom-0.5.0.tar.gz"
+        }
+    ]
+}

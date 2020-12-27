@@ -1,0 +1,935 @@
+{
+    "info": {
+        "author": "Enigma Bridge Ltd, Smart Arcs Ltd",
+        "author_email": "support@smartarchitects.co.uk",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Internet :: Proxy Servers",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Security",
+            "Topic :: System :: Networking"
+        ],
+        "description": "# CloudFoxy - pyTCPProxy\n\nThis proxy connects clients implementing simple TCP requests with the CloudFoxy \nRESTful API. You can send any support request via GitLab issues or open a \nsupport ticket at\n[https://cloudfoxy.freshdesk.com](https://cloudfoxy.freshdesk.com/support/tickets/new)\n\n## External dependencies\n\nsudo yum install gcc libffi-devel python-devel openssl-devel\n\n## Install\n\npip install foxy_tcpproxy\n\n## TCP Interface\n\nThe TCP interface of the proxy starts listening on port 4001. The port can be \nadjusted with a command line parameter `-p<port>`. Similarly, the address of the \nRESTful server can be set with the `-s<url:port>`.\n\nTCP clients can send multiple commands over a period of time as the server keeps \nconnections opened until its clients close them.\n\nEach request consists of at least 2 lines:\n  - card reader identification\n  - one or more commands - each in a separate line\n\n*Example 1 - abstrakt*\n\n```\n><card reader name>\"|\"\n><cmd ID1>:<command1>:<data>:<object>\"|\"\n><cmd ID2>:<command2>:<data>:object\"|\"\n```\n\n*with a subsequent response to this request:*\n\n```\n<cmd ID1>:<response 1>\n<cmd ID2>:<response 2>\n@@\n```\n\n*Example 2*\n```\n>OMNIKEY AG 3121 USB|\n>1:RESET|\n>2:APDU|00 A4 00 0C 02 3F 00|\n```\n\n*with a subsequnt response*\n```\n1:6F048400A5009000\n2:9000\n@@\n```\n\n## TCP Commands\n\nThere are currently four commands implemented for the TCP interface:\n - RESET - reset a particular smartcard\n - APDU - send a command according to ISO7816 specifications\n - ENUM - return a list of smart-card readers - names of reaers are base64 \n          encoded, separated with \"|\"\n - ALIASES - return a list of names from certificates in connected smartcards, \n         names are base64 encoded as they may\n         contain utf-8 characters; names are separated with \"|\"\n - CHAIN - return certificate chain for a particular alias\n - SIGN - request a signature from a particular smartcard\n\nThe first three are low-level commands, either directly sent to smartcards, or\njust return a list of smartcard names. The ALIASES, CHAIN and\nSIGN are abstract commands tailored to particular smartcards - eIDAS smartcards\nsold by [http://ica.cz](I.CA - a Czech company). They show how the API can be\nextended, although the CloudFoxy RESTful API also allows definitions of abstract\ncommands via protocols defines with a simple JSON notation.\n\n## CloudFoxy Smartcards\n\nCloudFoxy can interface smartcards connected via USB ports - as shown in the\nexample above, butthe primary reason why we built it was to provide a convenient\ninterface to the CloudFoxy hardware platform, which can host up to 120 smartcards.\n\nThe CloudFoxy RESTful server can connect to a multiple of them and provide access\nto thousands of smartcards.\n\nThe CloudFoxy smartcards have the following name format:\n\n```\n\"CloudFoxy \" | <IP address> | \"@\" | <id> - example \"CloudFoxy 192.168.42.10@120\"\n```\n\nwhich is an enriched format of a geeky `/<IP address> |\"@\"|<id>`, e.g., `/192.168.42.10@120`\n\n\n## End-to-End Dataflow Example\n\nWhile a detailed description of the CloudFoxy RESTful API can be found\n[here](https://gitlab.com/cloudfoxy/RESTfulFoxy), it makes sense to demonstrate the\nwhole dataflow, which compromises:\n\n1. your application / telnet / script / APDUPlay (a Windows PC/SC library)\n2. foxy_tcpproxy\n3. CloudFoxy server\n\n### Request\n\n#### Client -> foxy_tcpproxy\n\n```\n>CloudFoxy 192.168.42.10@12|\n>2342:RESET|\n>2343:APDU:00A4040008A00000000300000000|\n```\n\n#### foxy_tcpproxy -> CloudFoxy RESTful\n\nAssuming the RESTful API is running at the *http://restful.cloudfoxy.com:8081*\naddress.\n\n`http://restful.cloudfoxy.com:8081/api/v1/basic?reset=1&terminal=%2F192.168.42.10%4012`\n\n`http://restful.cloudfoxy.com:8081/api/v1/basic?apdu=00A4040008A00000000300000000&terminal=%2F192.168.42.10%4012`\n\n*Note: each request to the RESTful API has to hav an X-Auth-Token header. The secrets\nare defined in the configuration of each CloudFoxy RESTful server.\n\n### Response\n\nCloudFoxy RESTful returns a response to each of the GET requests, which will be\na simple text response if the `/api/v1/basic` endpoint is used.\n\n\n#### CloudFoxy RESTful -> foxy_tcpproxy\n\nThere are two requests above, they may provide separate responses, which look like:\n\n - response 1: `6F048400A5009000`\n - response 2: `9000`\n\n#### foxy_tcpproxy -> client\n\nTCP proxy will combine the responses and send all in one message back to the client:\n\n```\n2342:6F048400A5009000\n2343:9000\n```\n\n### CloudFoxy RESTful - Other Endpoints\n\nThis is a side note about other options for using CloudFoxy RESTful. If you use\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://cloudfoxy.com",
+        "keywords": "",
+        "license": "MIT License\n\nCopyright (c) 2018 Enigma bridge\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "foxy-tcpproxy",
+        "package_url": "https://pypi.org/project/foxy-tcpproxy/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/foxy-tcpproxy/",
+        "project_urls": {
+            "Homepage": "http://cloudfoxy.com"
+        },
+        "release_url": "https://pypi.org/project/foxy-tcpproxy/1.1.11/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "TCP proxy for Cloud Foxy - cloud platform for smart cards",
+        "version": "1.1.11"
+    },
+    "last_serial": 4234930,
+    "releases": {
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3ccda72f9245766b7223af68175fcafc",
+                    "sha256": "6d27982abf9b3f5b25b5c66eea8d969f8373822b5b56e3e7dccf76aaec45996f"
+                },
+                "downloads": -1,
+                "filename": "foxy-tcpproxy-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3ccda72f9245766b7223af68175fcafc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12128,
+                "upload_time": "2018-08-20T22:07:12",
+                "url": "https://files.pythonhosted.org/packages/9b/95/27607dccd09c5decdd3e8df49af1f925f5a93320fc11bcfae9b27ebdc44f/foxy-tcpproxy-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b8bd57b91de19e2cfaabcffc38dfb0dc",
+                    "sha256": "873ebad5d44c415d5ca1bac479837f7a6dbf38275d09e8e1d930aa154cc39bec"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b8bd57b91de19e2cfaabcffc38dfb0dc",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 23965,
+                "upload_time": "2018-08-21T01:22:59",
+                "url": "https://files.pythonhosted.org/packages/69/f9/d5dca51f4b37f07066fe944e0cde595d24e8a86f1bdfd2d9439c48731a0e/foxy_tcpproxy-1.0.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0d20b1a4b2e46c7bafa028f09896bbf3",
+                    "sha256": "4e6c31eaf3f5aaab6d72474928bea23184eab89a5c2c3e0ebad0593137819336"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0d20b1a4b2e46c7bafa028f09896bbf3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12031,
+                "upload_time": "2018-08-21T01:22:57",
+                "url": "https://files.pythonhosted.org/packages/91/52/865fbd00afbd7b8d075d6a51668a7e3af2704d7616bfa63b009b939b1640/foxy_tcpproxy-1.0.10.tar.gz"
+            }
+        ],
+        "1.0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e573966746f35ae123ad1bfcb1bd237",
+                    "sha256": "c534a65aedd03d0250424a07ffbbe629fa763038ffe8eb5a1c9dc392f5e0d8f9"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3e573966746f35ae123ad1bfcb1bd237",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 23973,
+                "upload_time": "2018-08-21T01:35:34",
+                "url": "https://files.pythonhosted.org/packages/b6/97/a7c29af9212966f7c70aa4bcc04226096772e6b03fbaedc51f053be812f9/foxy_tcpproxy-1.0.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "51b558709e58440243c906d4547c7ed4",
+                    "sha256": "3acee2ee41c643d9862bca9a14271981f791c274d1efde2146da2e309fbd5426"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "51b558709e58440243c906d4547c7ed4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12034,
+                "upload_time": "2018-08-21T01:35:32",
+                "url": "https://files.pythonhosted.org/packages/fb/ad/43b022a88fecd98a079536efc92e23a25c69b7c5187b05f3f3c170dd2720/foxy_tcpproxy-1.0.11.tar.gz"
+            }
+        ],
+        "1.0.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "635b8f4a2b1b6ca6499b9b5e881881dd",
+                    "sha256": "90a191eb43e1656b22d7dabfd16c2521cb8f8e09fd513023d3352196bc583c77"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.12-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "635b8f4a2b1b6ca6499b9b5e881881dd",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 23988,
+                "upload_time": "2018-08-21T01:37:17",
+                "url": "https://files.pythonhosted.org/packages/e6/24/7d9c620875b4ca03a362ccad732a8b9a52d1a6f8c31d06f71c41899c8343/foxy_tcpproxy-1.0.12-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d57723174208e0ad863397f68057094",
+                    "sha256": "e146c89b23ee5976f72cb9041a9e3e9858d93731f52720610f50bb553ce51c88"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4d57723174208e0ad863397f68057094",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12043,
+                "upload_time": "2018-08-21T01:37:15",
+                "url": "https://files.pythonhosted.org/packages/9b/37/6379d1db1001ad1d15a69e618ea3069fff21466d571d1cb20ed600b92f6d/foxy_tcpproxy-1.0.12.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "527ae95247df080dfc7f0f9bdb93e3ed",
+                    "sha256": "c206a030d3b48868a6a9023952f22bb512719097f58fb72972dc561abeae57dc"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "527ae95247df080dfc7f0f9bdb93e3ed",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 13585,
+                "upload_time": "2018-08-21T00:55:26",
+                "url": "https://files.pythonhosted.org/packages/9d/a9/749ec83c6528698c696ea776a5ea27e2c7406579e9da0b550d67b6097aae/foxy_tcpproxy-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9ab66c81f0072b0c56b21c48894fe062",
+                    "sha256": "55fa237152c011a84a6aaadafa98b56fe4e2f93e0f04afc616a6abf9badd4861"
+                },
+                "downloads": -1,
+                "filename": "foxy-tcpproxy-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9ab66c81f0072b0c56b21c48894fe062",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12227,
+                "upload_time": "2018-08-21T00:55:24",
+                "url": "https://files.pythonhosted.org/packages/21/24/8f5b3b761e055ac927d14397f51e0e0c45149b3f71bd68ef2007c8b5a2d2/foxy-tcpproxy-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5cae6ae2af599155dcd6931b79907ca7",
+                    "sha256": "29103e4c7c65aecbd055bb256f5adc440ae80205d4089ec306c3a31f7cbb15f2"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5cae6ae2af599155dcd6931b79907ca7",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 13588,
+                "upload_time": "2018-08-21T01:06:42",
+                "url": "https://files.pythonhosted.org/packages/fe/2b/3ab20559b2f9806fe2b486b7db5692eaadb44bf9d657190301b4a2412940/foxy_tcpproxy-1.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "96525542bb8b82edb6dfe7556b1dcd1a",
+                    "sha256": "524cb3f8e2c3bad7ad2239a8d504dceb76f2487dd2382fb46b74dece1fc006d8"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "96525542bb8b82edb6dfe7556b1dcd1a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12232,
+                "upload_time": "2018-08-21T01:06:40",
+                "url": "https://files.pythonhosted.org/packages/54/1c/c74e43a95e2081c30cff17011040534b4fd08427e5256479d6dc26c13789/foxy_tcpproxy-1.0.3.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1d07fc19f7152b3e78cb4f7213a67a12",
+                    "sha256": "bf87bb9b0c22b59cd68ced69aa76888dbd8b8986e0bb7e0e1d95892e4aab4f91"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1d07fc19f7152b3e78cb4f7213a67a12",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 22883,
+                "upload_time": "2018-08-21T01:09:33",
+                "url": "https://files.pythonhosted.org/packages/d7/0f/239e2d75d12f585e0931913659741a77adb85d7f8e3574f2566d07a6314c/foxy_tcpproxy-1.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7eb6e3fe8764f068deb0d22d9935fc64",
+                    "sha256": "6b895eda62a0af85b535a74f2bc16932bae28277cd555c7fa5613f1ea6260260"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7eb6e3fe8764f068deb0d22d9935fc64",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11942,
+                "upload_time": "2018-08-21T01:09:31",
+                "url": "https://files.pythonhosted.org/packages/16/c1/43645e296113d7d506516445d33e8c38ef797e138932d96e29c0c62d3d20/foxy_tcpproxy-1.0.4.tar.gz"
+            }
+        ],
+        "1.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f4dbb7ebba8a2ba9eb8faf2ac0d31706",
+                    "sha256": "6297b45515147280b7566d3be153cf21bb829f005fcd0e0ea9d65f2b5da39ce4"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f4dbb7ebba8a2ba9eb8faf2ac0d31706",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 22917,
+                "upload_time": "2018-08-21T01:11:39",
+                "url": "https://files.pythonhosted.org/packages/86/fd/1ff1a86887dc21e3cec968f9028b97e493ec00f35b73ba15e7c3e5a3df38/foxy_tcpproxy-1.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e5bfc888ab5596bbedbef51ace007676",
+                    "sha256": "7ae57961ae2197d4f0107091f25c27be09feb7c08dd2c02b9cc2ae6986bcc6a5"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e5bfc888ab5596bbedbef51ace007676",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11943,
+                "upload_time": "2018-08-21T01:11:37",
+                "url": "https://files.pythonhosted.org/packages/c3/79/3869ed35d3fe17cfa069a964d1fb48b69f6d7ee3cb322b7c0548d4b84960/foxy_tcpproxy-1.0.5.tar.gz"
+            }
+        ],
+        "1.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3c2d14b61e5de084bde0c61c268adad",
+                    "sha256": "4c0b12d4dad57e26fd67d2982a804cced7104c9b387ca1565a9dff0ed246b079"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e3c2d14b61e5de084bde0c61c268adad",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 22915,
+                "upload_time": "2018-08-21T01:16:30",
+                "url": "https://files.pythonhosted.org/packages/f3/80/2d9d164d8af89cb607876d9e1bdbdab3458b9af3ec53ee773f8e64c90f4f/foxy_tcpproxy-1.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a923c8e149df39e0019fdecee9494480",
+                    "sha256": "90b83c1e5e0e650e441e6d4136453c9c168ec9bcbcb92d74268190c2656eef4a"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a923c8e149df39e0019fdecee9494480",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11946,
+                "upload_time": "2018-08-21T01:16:28",
+                "url": "https://files.pythonhosted.org/packages/b4/17/a78c147cd100f407f926d54c0a243b3bf0e1d380104f05cf940ba07621ad/foxy_tcpproxy-1.0.6.tar.gz"
+            }
+        ],
+        "1.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c20b8e7989f2097e40748537b9791a40",
+                    "sha256": "8cc2703d35c0e3a3d7adf345d3577e20f2024a0b33d708be99d6305240bc9de2"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c20b8e7989f2097e40748537b9791a40",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 22910,
+                "upload_time": "2018-08-21T01:17:29",
+                "url": "https://files.pythonhosted.org/packages/88/1f/4ceff905e3961ea4c1a1a6df72270723324818e7366cb1a9a2be27ef1050/foxy_tcpproxy-1.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0da96b9861f9c361a80cdb57f6ff8a0e",
+                    "sha256": "9ad0e0f4f659e286cabe11e0baacdc61aacb2d2dc73c56d961af76a7ba1b9721"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0da96b9861f9c361a80cdb57f6ff8a0e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11940,
+                "upload_time": "2018-08-21T01:17:27",
+                "url": "https://files.pythonhosted.org/packages/14/19/fbce70f273e281de29f86b91003f6eb65c4f01f9e082a1143c048549c02f/foxy_tcpproxy-1.0.7.tar.gz"
+            }
+        ],
+        "1.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bd5dc7495411c2b9a2570440c9371f73",
+                    "sha256": "2261bee3f24ce5e9721c1fe5b42eedbffa2da45d8271df357c697cadd8a53d7c"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bd5dc7495411c2b9a2570440c9371f73",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 23965,
+                "upload_time": "2018-08-21T01:20:26",
+                "url": "https://files.pythonhosted.org/packages/2a/d9/9cc1b5fba64d336f645714a6eb85e594bd853fc487c539040eb7e345c51d/foxy_tcpproxy-1.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c25db8ca0a1f70201b5fcfba87cbe187",
+                    "sha256": "9617708f53f4a5f261a48acd1adf0460bffa7603ddfb5bd40179159d588e9123"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c25db8ca0a1f70201b5fcfba87cbe187",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12027,
+                "upload_time": "2018-08-21T01:20:24",
+                "url": "https://files.pythonhosted.org/packages/ea/12/3a119d23e77f7bf5e092f8ca2a435587b45462ca4b0c27118d4da854585e/foxy_tcpproxy-1.0.8.tar.gz"
+            }
+        ],
+        "1.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "17796a1b2b6a36fc726abe5862a874d7",
+                    "sha256": "60884abc3c3e14cbe6e6bcc6dc0ea1fd35eda20d1f346993a9d9fc451edc8692"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "17796a1b2b6a36fc726abe5862a874d7",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 23974,
+                "upload_time": "2018-08-21T01:21:47",
+                "url": "https://files.pythonhosted.org/packages/f4/fc/568f9cdb2a7de0c4b25179a7389e80204b2388656ddd3eaea6abe6bd21d0/foxy_tcpproxy-1.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61c9772cc622344456e8ee1b84e1e857",
+                    "sha256": "6e1cae45778b16cf42dcb509894d4d4a8dc54bad30b0373f4e0bdabc804e2e30"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "61c9772cc622344456e8ee1b84e1e857",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12028,
+                "upload_time": "2018-08-21T01:21:45",
+                "url": "https://files.pythonhosted.org/packages/be/12/a58a7b387e4f2c44f8d787488ec99269ae64c583c1c160ded9f302e1fc40/foxy_tcpproxy-1.0.9.tar.gz"
+            }
+        ],
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac45fd4af70a75d2282112b4ebe67230",
+                    "sha256": "2346416a02c5aa2eb4d56ab7652d3c3561b0cb3439039036c512e4d7d397bacb"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ac45fd4af70a75d2282112b4ebe67230",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26361,
+                "upload_time": "2018-08-21T09:28:17",
+                "url": "https://files.pythonhosted.org/packages/3f/28/c292171709ce3843811327b38a6c939dd93fe4c69f98a526ca2d2c04b27f/foxy_tcpproxy-1.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c5f588999054649ac4b69d899a8f2be4",
+                    "sha256": "84cf328575996be66565cda0272c5f3a44904abc68cc4b01204bb6d6ec3e8296"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c5f588999054649ac4b69d899a8f2be4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14969,
+                "upload_time": "2018-08-21T09:28:15",
+                "url": "https://files.pythonhosted.org/packages/58/87/387edf90ad6060f5ae1927eee5da62390ff7ffae034ff624deb61c289a66/foxy_tcpproxy-1.1.0.tar.gz"
+            }
+        ],
+        "1.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9fee35c7bf2d4ff8722289f8c374985a",
+                    "sha256": "af9193f85942b7404bf634b16d0e6debbf4cc88a0337ec64057394f83260a361"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9fee35c7bf2d4ff8722289f8c374985a",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26749,
+                "upload_time": "2018-08-21T10:01:27",
+                "url": "https://files.pythonhosted.org/packages/7a/9c/1402689095119b11ebd9730a384e2d75e3eabc8789367b7b441108406ebf/foxy_tcpproxy-1.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95839bbfe2ee0b74dffa004bdfd46628",
+                    "sha256": "ae2bd4c2c90c83b797c24bb3c450163242fd6270935ef44636b0925bdf671ba3"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "95839bbfe2ee0b74dffa004bdfd46628",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15309,
+                "upload_time": "2018-08-21T10:01:25",
+                "url": "https://files.pythonhosted.org/packages/90/74/71ac06feb0eaf87a2e38905f4b7f17f1f4442018a98d1ffc2ded84c5d57f/foxy_tcpproxy-1.1.1.tar.gz"
+            }
+        ],
+        "1.1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "20959f451341ade47078bac9964957d0",
+                    "sha256": "9e72d75e38d4fed0e2737c4a4e9bb19ed290a0f1b6373ef9c501ed10fa1e504c"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "20959f451341ade47078bac9964957d0",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 27203,
+                "upload_time": "2018-09-03T16:08:28",
+                "url": "https://files.pythonhosted.org/packages/e7/d4/2723f84008b8fa56b5daa2e89c70427bc869a7dabf9d7a4092135584b127/foxy_tcpproxy-1.1.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec2a832d79743cd71b4c58801ca758bb",
+                    "sha256": "be7aacbdc7b50bdf5ce8c5378c329feae02e751e6189556c732ce414dcb7f35b"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ec2a832d79743cd71b4c58801ca758bb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15745,
+                "upload_time": "2018-09-03T16:08:26",
+                "url": "https://files.pythonhosted.org/packages/cf/c4/f8e52b73f77ff7fb914e2fc07fa67ae0f33e422addfcf2f6ac4208512608/foxy_tcpproxy-1.1.10.tar.gz"
+            }
+        ],
+        "1.1.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2a8ad3f88a456052a49b85ce310d7a27",
+                    "sha256": "510bb3a9f86ad3de478f0412e59c4b07182a408c1eb5e66a7fd1fd90f996d7d1"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2a8ad3f88a456052a49b85ce310d7a27",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 27638,
+                "upload_time": "2018-09-03T17:04:44",
+                "url": "https://files.pythonhosted.org/packages/d3/8a/6e09e683c75d99ec8f9f7924e5ffb796a369832534c524fd8f9c84bd945e/foxy_tcpproxy-1.1.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9925222b15827a3ef2ed7067746f54cb",
+                    "sha256": "5fefa37b761dad38d36f6b2835efc341d1674af56906bc2fe58209db3f145ade"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9925222b15827a3ef2ed7067746f54cb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16149,
+                "upload_time": "2018-09-03T17:04:42",
+                "url": "https://files.pythonhosted.org/packages/b0/5e/51db7d42a9b7deff6105fd64f23100d54ceeaa36211a7aa906ded76d765c/foxy_tcpproxy-1.1.11.tar.gz"
+            }
+        ],
+        "1.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e1b9d46af5d20d7fe20460fa62c5334",
+                    "sha256": "af656de2781eefed478321260206aa2e7c871ceb1620ec4d7d7b7d8cd770c669"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9e1b9d46af5d20d7fe20460fa62c5334",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26723,
+                "upload_time": "2018-08-31T17:14:43",
+                "url": "https://files.pythonhosted.org/packages/92/e2/b88698a5187909640d29297de4ee5a55b7a31d3366ccc6dbeeb1be0b67df/foxy_tcpproxy-1.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "311437f511ff5ecaed55861a3d88256b",
+                    "sha256": "63bb9a8d1380823e0e3fcacc18b6a7a9fcc390b68ddbbdb02d938ecde54f6553"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "311437f511ff5ecaed55861a3d88256b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15284,
+                "upload_time": "2018-08-31T17:14:41",
+                "url": "https://files.pythonhosted.org/packages/e5/17/b4532c9edcbfc50de625d714c0c31021d98ab7d4b9ddd996cdab5f1ee36f/foxy_tcpproxy-1.1.2.tar.gz"
+            }
+        ],
+        "1.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed61dc9330b5f43a231dfa3d645e851b",
+                    "sha256": "c0f77fbe0c931aacce42e0d2eff762d9265be23ed8897349c32c8724c7d7e3c3"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ed61dc9330b5f43a231dfa3d645e851b",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26724,
+                "upload_time": "2018-08-31T17:19:48",
+                "url": "https://files.pythonhosted.org/packages/30/dc/4417534bff71eb83f4069af063e9482ef5f0b024e5a014e86c90e0ea202c/foxy_tcpproxy-1.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7d892a8753df10748a69f020741e7cad",
+                    "sha256": "b029b544ca72f66b01f4a4b8151c60fbb9a1071284b63aa8ced035f9601d23bc"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7d892a8753df10748a69f020741e7cad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15283,
+                "upload_time": "2018-08-31T17:19:46",
+                "url": "https://files.pythonhosted.org/packages/a3/75/67c642bc854f456697fa1711e9d2ddb34e15d37851dcbd18509f8d237ce0/foxy_tcpproxy-1.1.3.tar.gz"
+            }
+        ],
+        "1.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e9ce59c95000949e2fad0f3e211dad6e",
+                    "sha256": "47d1b9788cc7a6970d4182bc0566e5161110193d33d1af3028da0edf8e1c4562"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e9ce59c95000949e2fad0f3e211dad6e",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26723,
+                "upload_time": "2018-08-31T17:21:23",
+                "url": "https://files.pythonhosted.org/packages/4c/22/3f6fb8489281a9a46109a56fd310603b77b13e3bf73685ad82f1a6d6e3e8/foxy_tcpproxy-1.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "973f1bab200eb75f2686286f6027fb5f",
+                    "sha256": "70a8fe55fd4d19029cb668313c99f983c3d707f8566eecc662a02205361c12bf"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "973f1bab200eb75f2686286f6027fb5f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15283,
+                "upload_time": "2018-08-31T17:21:21",
+                "url": "https://files.pythonhosted.org/packages/5d/19/33161fabde40b792eddda54b32becb8505429eed842c3c1519256aca5151/foxy_tcpproxy-1.1.4.tar.gz"
+            }
+        ],
+        "1.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7f21c04804c874946ba2c92e9ba763ad",
+                    "sha256": "0d6bef68a23ea75d195d6a20888d686eb4618ca973ffd14bc28a70db38a505ff"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7f21c04804c874946ba2c92e9ba763ad",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26736,
+                "upload_time": "2018-08-31T17:23:40",
+                "url": "https://files.pythonhosted.org/packages/c4/3f/53e3b258f5c6eaf4212bb21c5be2daa2e5639c7afed0137f2e1ffc366da9/foxy_tcpproxy-1.1.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3ef1e22b79d4f1c3bd063e6b3d522cb",
+                    "sha256": "a657b281f7a90587f550c03e5d659d7cfb74f31b7ed7ba31de85253c96c7b6a5"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e3ef1e22b79d4f1c3bd063e6b3d522cb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15291,
+                "upload_time": "2018-08-31T17:23:38",
+                "url": "https://files.pythonhosted.org/packages/47/ab/9703784da77aa25846508f039424147c48da99fa33a41998eac5b97d4b3e/foxy_tcpproxy-1.1.5.tar.gz"
+            }
+        ],
+        "1.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "651032ff146c21d55de607f91abe68ae",
+                    "sha256": "d754688a3384498d867c1ef00effcc8b8ab8e9efcc2ce3eedc460dcd0246fa2d"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "651032ff146c21d55de607f91abe68ae",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26720,
+                "upload_time": "2018-08-31T17:25:20",
+                "url": "https://files.pythonhosted.org/packages/fc/51/d6f2654519b95ca772812bf7fe7ef8a50e8fc039d4e6d3d2506bb66b3707/foxy_tcpproxy-1.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "665ccb6a281e36046b639644d8059336",
+                    "sha256": "1bcfc52874d6f1b22b9da26b549c899241a363fd59b8dc93f0a2ee9d03b598de"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "665ccb6a281e36046b639644d8059336",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15273,
+                "upload_time": "2018-08-31T17:25:18",
+                "url": "https://files.pythonhosted.org/packages/6f/30/5a435c667d6c6a857284ff3952297a1d1a7c9f93f9b83ae230b368d08daf/foxy_tcpproxy-1.1.6.tar.gz"
+            }
+        ],
+        "1.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "deedbc4be704f9071cf9deb3452e0689",
+                    "sha256": "7da7f20fdac49e293f674f8d1374eb5ef77951de856e68582d0defabfc7c5a85"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "deedbc4be704f9071cf9deb3452e0689",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26761,
+                "upload_time": "2018-09-03T11:35:15",
+                "url": "https://files.pythonhosted.org/packages/1e/eb/7146e4a4066d49ff04e49f442b0123578d34afbdfe6d22059a8a60907c6b/foxy_tcpproxy-1.1.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e4b157be9049cdf26889c7c7e4d9f7fb",
+                    "sha256": "cd51e5def2ae2d400fcda4f75a4f1f6f6bda5b386ff90dfa7a01c11aaba85895"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e4b157be9049cdf26889c7c7e4d9f7fb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15325,
+                "upload_time": "2018-09-03T11:35:13",
+                "url": "https://files.pythonhosted.org/packages/cb/5b/f4890aaa5a7b362dccc0853eeca135871a73a32d4c9117977f8616c021a2/foxy_tcpproxy-1.1.7.tar.gz"
+            }
+        ],
+        "1.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "865854cb111c2da30f109417c2f29efe",
+                    "sha256": "50d85dadec9a24633d1f00cac889888cb18a45d7619952ae5b9447c372d29356"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "865854cb111c2da30f109417c2f29efe",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 26800,
+                "upload_time": "2018-09-03T11:43:22",
+                "url": "https://files.pythonhosted.org/packages/a9/57/0bc3dcf62cff14e970c831347954fd7b2d4832f3754720f4273ed0e5a43c/foxy_tcpproxy-1.1.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71ababa60de15d721a7edb9e0fe42e91",
+                    "sha256": "6d23f11825425b3c46f174ecfc7a72d8224757a83b50ef8a6554c6a2376d8c74"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "71ababa60de15d721a7edb9e0fe42e91",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15378,
+                "upload_time": "2018-09-03T11:43:20",
+                "url": "https://files.pythonhosted.org/packages/26/c6/3f0d3063b3421cd2d6cb6e6f55e49797ec9e498546efb7d69cf6dd196aaa/foxy_tcpproxy-1.1.8.tar.gz"
+            }
+        ],
+        "1.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2083eae669cbf5803fe7299b2146008e",
+                    "sha256": "c7820991015ae36a6fdf7e0f6f7623672ed2ecddb31f22519b69ca06508f2963"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2083eae669cbf5803fe7299b2146008e",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 27168,
+                "upload_time": "2018-09-03T15:51:15",
+                "url": "https://files.pythonhosted.org/packages/e0/c9/2f08d3f869710e67f4391a3f94656030796adee7f8b4983e0ce6287dc759/foxy_tcpproxy-1.1.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1535b8a61ed92ff5ac5e6d11170380db",
+                    "sha256": "9e0fcb94dd581c5fe94ceb3f9c370057ee770332413da2429452a6b89adb2b41"
+                },
+                "downloads": -1,
+                "filename": "foxy_tcpproxy-1.1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1535b8a61ed92ff5ac5e6d11170380db",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15718,
+                "upload_time": "2018-09-03T15:51:13",
+                "url": "https://files.pythonhosted.org/packages/38/30/00e110b4dd3168a2fe4a0ae8189b7fa4d844640d608bb8cebba35170fc7d/foxy_tcpproxy-1.1.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2a8ad3f88a456052a49b85ce310d7a27",
+                "sha256": "510bb3a9f86ad3de478f0412e59c4b07182a408c1eb5e66a7fd1fd90f996d7d1"
+            },
+            "downloads": -1,
+            "filename": "foxy_tcpproxy-1.1.11-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2a8ad3f88a456052a49b85ce310d7a27",
+            "packagetype": "bdist_wheel",
+            "python_version": "3.6",
+            "requires_python": null,
+            "size": 27638,
+            "upload_time": "2018-09-03T17:04:44",
+            "url": "https://files.pythonhosted.org/packages/d3/8a/6e09e683c75d99ec8f9f7924e5ffb796a369832534c524fd8f9c84bd945e/foxy_tcpproxy-1.1.11-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9925222b15827a3ef2ed7067746f54cb",
+                "sha256": "5fefa37b761dad38d36f6b2835efc341d1674af56906bc2fe58209db3f145ade"
+            },
+            "downloads": -1,
+            "filename": "foxy_tcpproxy-1.1.11.tar.gz",
+            "has_sig": false,
+            "md5_digest": "9925222b15827a3ef2ed7067746f54cb",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 16149,
+            "upload_time": "2018-09-03T17:04:42",
+            "url": "https://files.pythonhosted.org/packages/b0/5e/51db7d42a9b7deff6105fd64f23100d54ceeaa36211a7aa906ded76d765c/foxy_tcpproxy-1.1.11.tar.gz"
+        }
+    ]
+}

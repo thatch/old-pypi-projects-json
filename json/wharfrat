@@ -1,0 +1,190 @@
+{
+    "info": {
+        "author": "Paul Becotte",
+        "author_email": "pjbecotte@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Software Development :: Build Tools"
+        ],
+        "description": "# Wharf-Rat\n\n![Build Status](http://paulbecotte.com:8082/buildStatus/icon?job=Wharfrat)\nCI is at [paulbecotte.com](http://paulbecotte.com:8082)\n\nA simple tool to translate yml config files into docker commands.\n\n## Install\n\n`pip install wharfrat`\n\n## Basics\n\nWharfrat is designed to help automate development workflows involving\ndocker containers.  The idea is extended upon docker-compose, where you\nlay out the details of your containers in a yaml file.  With wharfrat, you\nspecify your containers details in a docker-compose.yml file, and then add\non wharfrat.yml.  wharfrat.yml specifies the tasks that you want to run\nusing them.  The idea is to support workflows like deploying a tagged\nversion of containers, running a command in a set of linked containers and\nthen committing the result to an image, or waiting for one container to\nlaunch before launching the next one.\n\nA task is a set of docker containers that are run together.  The only\nimplemented scheme is a basic task command.  This stands up a list of\ndependent instances daemonized, and then launches one instance in the\nforeground.  When this instance exits it and all of the dependant containers\nare cleaned up (docker rm -fv).  \n\n## Tasks\n\n```\ntest:\n  type: task\n  compose_file: sample-docker-compose.yml\n  primary: webapp\n  images:\n    - redis\n    - mysql\n    - postgres\n    - celeryd\n```\n\nThis creates a task with the name \"test\".  The containers in primary and images\nmust be specified by name elsewhere in the file.  Images are started with\n`docker run -d ...`.  The primary is run with `docker run --rm`.  \n\n## Instances\n\nInstances are read from the yml file specified in the task definition.\nOnly the images listed in the task definition are run.\n\n```\nwebapp:\n  type: instance\n  image: busybox\n  links:\n    - redis:redis\n    - mysql:mysql\n  environment:\n    - ENV=local\n    - PYTHONPATH=/data\n  volumes:\n    - .:/data\n  workdir: /data\n  entrypoint: python\n  command: setup.py test\n```\n\n\nThis is an instance named \"webapp\".  It uses the image \"busybox\".  You can also\ngive it a command `build: mydir` which will cause it to run `docker build mydir`\nand use the resultant image.  If you specify a build command, you can also\nspecify a dockerfile command, witht the same argument as the -f argument to\ndocker build.  If paths in the file are relative, they will be resolved relative\nto the yml file, not the working directory (similar to Make)\n\n## Running a task\n\n`wharfrat -f <CONFIG_FILE.yml> run <MY_TASK>`\n\nIf you don't specify a config file, it will look for \"wharfrat.yml\" in the\ncurrent working directory.  <MY_TASK> is the name of the task to run.\n\n## Templates\n\nYou can use string format blocks in your values for container instances, and\nspecify defaults in your task definitions.  For example-\n\n```yaml\ntest-task:\n\ttype: task\n\tprimary: hello-world\n\tcontext:\n\t  - arg=hello\nhello-world:\n\ttype: instance\n\timage: busybox\n\tcommand: \"echo {arg} world\"\n```\n\nRunning this `wharfrat run test-task` will run `docker run busybox echo hello world`\nIt is important to use quotes around your strings if you are putting variables\nin your yaml file- otherwise yaml may interpret your argument as a dict or\nscalar which won't compile as you like.  You can override template args on the \ncommand line. `wharfrat run test-task arg=goodbye` will run `docker run busybox\ngoodbye world`.\n\n\n# Develop\n\n```\nvirtualenv -p python2.7 venv\nsource venv/bin/activate\npython setup.py develop\npython setup.py test\n```\n\nAlternatively, use Wharfrat to run the tests (requires local docker)...\n\n```\nvirtualenv -p python2.7 venv\nsource venv/bin/activate\npython setup.py develop\nwharfrat run build\n```\n\n## Run docker on OSX\n\n```\nbrew install docker\nbrew install boot2docker\nboot2docker init\nboot2docker up\n```\n\n(copy the three `export` commands that `boot2docker` outputs into your `~/.profile` or similar file)",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": null,
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/pbecotte/wharfrat",
+        "keywords": "docker orchestration dev tools",
+        "license": "Apache License 2.0",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "wharfrat",
+        "package_url": "https://pypi.org/project/wharfrat/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/wharfrat/",
+        "project_urls": {
+            "Homepage": "https://github.com/pbecotte/wharfrat"
+        },
+        "release_url": "https://pypi.org/project/wharfrat/0.2.0/",
+        "requires_dist": [
+            "PyYAML (>=3.11)",
+            "Fabric (>=1.10)"
+        ],
+        "requires_python": null,
+        "summary": "Convert config files into docker commands",
+        "version": "0.2.0"
+    },
+    "last_serial": 1615542,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9990330fbcffbf4a5b81cbe68aa4ca9",
+                    "sha256": "1a7dc67c05cdaf53071527ea6058fb86a6aa81061c1a162b27005e606fb04ff5"
+                },
+                "downloads": -1,
+                "filename": "wharfrat-0.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d9990330fbcffbf4a5b81cbe68aa4ca9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 7197,
+                "upload_time": "2015-05-25T23:04:33",
+                "url": "https://files.pythonhosted.org/packages/bc/1e/1af3dccbf7ab0ab7a892bdb7de60b15f54c56c367009dbf4ef543105b926/wharfrat-0.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6abead4c5f7dbda41991f8a4368d33d1",
+                    "sha256": "c1035a90164b0878650b12e2235817eb2d7da662dba5abc62074c3e379232e3d"
+                },
+                "downloads": -1,
+                "filename": "wharfrat-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6abead4c5f7dbda41991f8a4368d33d1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4149,
+                "upload_time": "2015-05-25T23:04:36",
+                "url": "https://files.pythonhosted.org/packages/44/36/1ed5c185b62d0323f6021e1ac40a2433a65e632955226295b8d0027cfb4e/wharfrat-0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "80bf813c58df1eee606f4fd1b2aa9007",
+                    "sha256": "42390bf432966f26f78b9907fcb0e5500aa8932017c5f5216a2dd0fbceb4902b"
+                },
+                "downloads": -1,
+                "filename": "wharfrat-0.1.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "80bf813c58df1eee606f4fd1b2aa9007",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 7499,
+                "upload_time": "2015-05-26T02:01:40",
+                "url": "https://files.pythonhosted.org/packages/b3/81/095b1046e4c46945216d352909cae692104daf9306c7f50ad41abb7a6e5b/wharfrat-0.1.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "22fa0f36a716c09ba3c72773383501fe",
+                    "sha256": "5db3cc2a6f8d4339e8b710767123de8536ab63c2dc7ab8aeee938ee548739699"
+                },
+                "downloads": -1,
+                "filename": "wharfrat-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "22fa0f36a716c09ba3c72773383501fe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4400,
+                "upload_time": "2015-05-26T02:01:43",
+                "url": "https://files.pythonhosted.org/packages/33/4a/3c044c183ed333db34dab043556392056085400a19897353af38415040d2/wharfrat-0.1.1.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "975e0c52e84e37d3c9db8c0fffbb664b",
+                    "sha256": "010fb2e18926045f6d0c82a34fcaed9760a84e343472368ef83ebdb04463d682"
+                },
+                "downloads": -1,
+                "filename": "wharfrat-0.2.0-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "975e0c52e84e37d3c9db8c0fffbb664b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 9733,
+                "upload_time": "2015-07-01T23:00:43",
+                "url": "https://files.pythonhosted.org/packages/cb/d1/89260bb4c4fdd8ae72a8301cdc9fb52be189e13abe4d72d7cfae3c10ddd6/wharfrat-0.2.0-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "60d6e1989ee81c3fc81cc33163d5a1ae",
+                    "sha256": "0e66dc67530f91433a03e4cd34fd7b678622a7668cf86d3c2a820893f4a2d690"
+                },
+                "downloads": -1,
+                "filename": "wharfrat-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "60d6e1989ee81c3fc81cc33163d5a1ae",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5708,
+                "upload_time": "2015-07-01T23:00:47",
+                "url": "https://files.pythonhosted.org/packages/69/b4/c3f63234192f68c9f3bc187021bc846cf6e0c680cddf6dda4c18f0d4286c/wharfrat-0.2.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "975e0c52e84e37d3c9db8c0fffbb664b",
+                "sha256": "010fb2e18926045f6d0c82a34fcaed9760a84e343472368ef83ebdb04463d682"
+            },
+            "downloads": -1,
+            "filename": "wharfrat-0.2.0-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "975e0c52e84e37d3c9db8c0fffbb664b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 9733,
+            "upload_time": "2015-07-01T23:00:43",
+            "url": "https://files.pythonhosted.org/packages/cb/d1/89260bb4c4fdd8ae72a8301cdc9fb52be189e13abe4d72d7cfae3c10ddd6/wharfrat-0.2.0-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "60d6e1989ee81c3fc81cc33163d5a1ae",
+                "sha256": "0e66dc67530f91433a03e4cd34fd7b678622a7668cf86d3c2a820893f4a2d690"
+            },
+            "downloads": -1,
+            "filename": "wharfrat-0.2.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "60d6e1989ee81c3fc81cc33163d5a1ae",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5708,
+            "upload_time": "2015-07-01T23:00:47",
+            "url": "https://files.pythonhosted.org/packages/69/b4/c3f63234192f68c9f3bc187021bc846cf6e0c680cddf6dda4c18f0d4286c/wharfrat-0.2.0.tar.gz"
+        }
+    ]
+}

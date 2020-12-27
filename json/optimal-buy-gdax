@@ -1,0 +1,98 @@
+{
+    "info": {
+        "author": "Brenden Matthews",
+        "author_email": "brenden@diddyinc.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: Public Domain",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# optimal-buy-gdax\n\n[![Build Status](https://travis-ci.org/brndnmtthws/optimal-buy-gdax.svg?branch=master)](https://travis-ci.org/brndnmtthws/optimal-buy-gdax) [![Maintainability](https://api.codeclimate.com/v1/badges/d3a104f8a9855313e799/maintainability)](https://codeclimate.com/github/brndnmtthws/optimal-buy-gdax/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/d3a104f8a9855313e799/test_coverage)](https://codeclimate.com/github/brndnmtthws/optimal-buy-gdax/test_coverage) [![PyPI version](https://badge.fury.io/py/optimal-buy-gdax.svg)](https://badge.fury.io/py/optimal-buy-gdax)\n\nScheduled buying of BTC, ETH, and LTC from Coinbase Pro optimally! Be your own index/hedge fund, and stop paying those greasy management fees.\n\n![crypto](crypto.gif)\n\n# What is this?\n\nThis is a Python script you can use to automatically buy Bitcoin, Ethereum,\nLitecoin, and more using the Coinbase Pro API. By default, it buys these 3 currencies,\nweighted by market cap (as reported by\n[coinmarketcap.com](https://coinmarketcap.com/)), using a form of [dollar cost\naveraging](https://www.bogleheads.org/wiki/Dollar_cost_averaging) according to\nthe following logic (assuming default values):\n\n1. Check current balances of fiat (USD by default), BTC, ETH, and LTC\n1. If the fiat balance is above \\$25, buy BTC, ETH, and LTC weighted by market\n   cap, as follows:\n   - If there's enough fiat available, place 5 discounted limit orders at the\n     current price minus 0.5% up to 4.5%, each order with 1/5th of the remaining\n     amount to buy for each coin (see\n     \"[Details on the orders placed](#details-on-the-orders-placed)\", below)\n   - If there isn't enough USD available, place 1 buy order at 0.5% off the\n     current price (see\n     \"[Order Minimums](https://support.gdax.com/customer/portal/articles/2725970-trading-rules)\")\n1. If the fiat account balance is below \\$25 (or whatever you specify), withdraw\n   coins to desired addresses\n\nIn effect, this script mimmicks the behaviour of a market cap weighted index\nfund, but without the fees. It also only supports the coins that trade on Coinbase Pro\n(because that's the only exchange that has an API for ACH deposits AFAIK).\n\nYou can also use the same script to schedule deposits from your bank account\nperiodically, such as when you're paid. The parameters may be configured to suit\nyour preferences, such as which coins to buy, external balances, discount\nvalues, number of steps, etc.\n\nOrders, deposits, and withdrawals are tracked in a SQLite DB, and the withdrawn\nbalances are added to the balances on Coinbase Pro to make sure the weights are\nmaintained over time. The SQLite DB can be swapped out for any DB that\nSQLAlchemy supports.\n\nA note on the default parameters: it's likely you'll want to change\n`--starting-discount`, `--discount-step`, or `--order-count`. The more spread\nout the orders are (i.e., difference between the current price and the lowest\npriced order), the longer they will take to fill (if they fill), and the closer\nthe orders are, the more likely you are to miss out on bigger price drops. You\nshould consider your appetite for risk and how much you want to optimize for\ncatching those dips vs. not missing out on gains. There is no magic here. My\npersonal advice is to stick somewhat close to the defaults, and try to\ncontinuously deposit a little more fiat every week to spread the risk but also\ncatch some dips.\n\nIdeally, this script would help to make sure that when we dip\u2014\n\n![dip](buy-the-dip.gif)\n\n**we buy**.\n\n# Will you help me set this up?\n\nFeel free to create a GitHub issue if you need help, and I will help you if it\ndoesn't require too much effort on my part. I generally do not provide\nconsulting services for free. If you want to hire me, find my contact details\nthrough the Internet and contact me using whatever your preferred contact method\nis.\n\n# USE AT OWN RISK\n\nDuh. Not my fault if you lose everything.\n\nUnless you place **absolute trust** in me, some guy from the Internet, I suggest\nyou clone the repo and build your own container to protect yourself from any\ntype of funny business.\n\n# How do I use it?\n\n1.  Get yourself a hardware wallet, such as a\n    [Ledger](https://www.ledgerwallet.com/) or [TREZOR](https://trezor.io/).\n1.  Set up a Coinbase Pro account, and link your bank account\n1.  Create a Coinbase Pro API key with view, trade, manage, transfer, and bypass-2fa\n    permissions\n1.  Determine the payment_method_id value by using the\n    [Coinbase Pro API](https://docs.pro.coinbase.com/#payment-methods) (you can use your browser's\n    developer toolbar,\n    [here's a quick video showing how](https://youtu.be/NmSEBGbn7Mc))\n1.  Get a machine somewhere (GCE, EC2, Digital Ocean) with Docker and systemd\n1.  Copy systemd files over:\n\n        $ sudo cp systemd/optimal-buy-gdax-*.{service,timer} /etc/systemd/system\n\n1.  Edit [`/etc/systemd/system/optimal-buy-gdax-buy.service`](optimal-buy-gdax-buy.service),\n    [`/etc/systemd/system/optimal-buy-gdax-buy.timer`](optimal-buy-gdax-buy.timer),\n    [`/etc/systemd/system/optimal-buy-gdax-deposit.service`](optimal-buy-gdax-deposit.service), and\n    [`/etc/systemd/system/optimal-buy-gdax-deposit.timer`](optimal-buy-gdax-deposit.timer) to your liking. Make sure you:\n\n    - Change the BTC, ETH, and LTC withdrawal addresses to deposit the coins\n      into your wallet (use a Ledger or TREZOR)\n    - Pop in the correct API keys\n    - Check the deposit amount (start with something small, like \\$150, to make\n      sure it actually works first)\n    - Check the timer dates (it would be sensible to change the hh:mm so your\n      script doesn't run the same time as everyone else's), make sure the deposit\n      timer fires according to your deposit schedule (keeping in mind that ACH\n      takes 2-5 business days to clear, typically)\n    - Consider specifying your external balances in order to accurately\n      calculate the weights and amounts to purchase\n\n1.  Enable the systemd units:\n\n        $ sudo systemctl enable optimal-buy-gdax-buy.service\n        $ sudo systemctl enable optimal-buy-gdax-buy.timer\n        $ sudo systemctl enable optimal-buy-gdax-deposit.service\n        $ sudo systemctl enable optimal-buy-gdax-deposit.timer\n\n1.  Start the systemd timers:\n    $sudo systemctl start optimal-buy-gdax-buy.timer$ sudo systemctl start optimal-buy-gdax-deposit.timer\n\n1.  Enjoy!\n\n1.  Alternatively, if you don't want to use Docker, install the package with `pip install optimal-buy-gdax`.\n\n# Configuration\n\n    usage: optimal-buy-gdax [-h] --mode MODE [--amount AMOUNT] --key KEY\n                            --b64secret B64SECRET --passphrase PASSPHRASE\n                            [--api-url API_URL]\n                            [--payment-method-id PAYMENT_METHOD_ID]\n                            [--starting-discount STARTING_DISCOUNT]\n                            [--discount-step DISCOUNT_STEP]\n                            [--order-count ORDER_COUNT]\n                            [--fiat-currency FIAT_CURRENCY]\n                            [--withdrawal-amount WITHDRAWAL_AMOUNT]\n                            [--db-engine DB_ENGINE] [--max-retries MAX_RETRIES]\n                            [--coins COINS]\n\n    Buy coins!\n\n    optional arguments:\n      -h, --help            show this help message and exit\n      --mode MODE           mode (deposit or buy)\n      --amount AMOUNT       amount to deposit\n      --key KEY             API key\n      --b64secret B64SECRET\n                            API secret\n      --passphrase PASSPHRASE\n                            API passphrase\n      --api-url API_URL     API URL (default: https://api.gdax.com)\n      --payment-method-id PAYMENT_METHOD_ID\n                            Payment method ID for fiat deposits\n      --starting-discount STARTING_DISCOUNT\n                            starting discount (default: 0.005)\n      --discount-step DISCOUNT_STEP\n                            discount step between orders (default: 0.01)\n      --order-count ORDER_COUNT\n                            number of orders (default: 5)\n      --fiat-currency FIAT_CURRENCY\n                            Fiat currency (default: USD)\n      --withdrawal-amount WITHDRAWAL_AMOUNT\n                            withdraw when fiat balance drops below this amount\n                            (default: 25)\n      --db-engine DB_ENGINE\n                            SQLAlchemy DB engine (default:\n                            sqlite:///gdax_history.db)\n      --max-retries MAX_RETRIES\n                            Maximum number of times to retry if there are any\n                            failures, such as API issues (default: 3)\n      --coins COINS         Coins to trade, minimum trade size, withdrawal\n                            addresses and external balances. Accepts a JSON\n                            string.\n\n    Default coins are as follows:\n        {\n          \"BTC\":{\n            \"name\":\"Bitcoin\",\n            \"withdrawal_address\":null,\n            \"external_balance\":0\n          },\n          \"ETH\":{\n            \"name\":\"Ethereum\",\n            \"withdrawal_address\":null,\n            \"external_balance\":0\n          },\n          \"LTC\":{\n            \"name\":\"Litecoin\",\n            \"withdrawal_address\":null,\n            \"external_balance\":0\n          }\n        }\n\n# Details on the orders placed\n\nBy default, there are 5 orders placed (for each currency) in steps of 1%,\nstarting at a 0.5% discount from the current price. To illustrate, if the\ncurrent price was $100 (per LTC, let's say), and you had$100 to buy, the orders\nwould look like this:\n\n| Order | Size       | Price  |\n| ----- | ---------- | ------ |\n| 1     | 0.2010 LTC | \\$99.5 |\n| 2     | 0.2030 LTC | \\$98.5 |\n| 3     | 0.2051 LTC | \\$97.5 |\n| 4     | 0.2072 LTC | \\$96.5 |\n| 5     | 0.2094 LTC | \\$95.5 |\n\nFurthermore, the amount of each currency to buy will be based on the current\nmarket cap weighting of each coin. For example, at the time of writing the\nweights are:\n\n| Coin | Market Cap (USD)  | Weight |\n| ---- | ----------------- | ------ |\n| BTC  | \\$195,824,365,435 | 0.791  |\n| ETH  | \\$46,080,472,372  | 0.186  |\n| LTC  | \\$5,592,776,540   | 0.023  |\n\nSo if your USD account had \\$1000 to invest, the amount invested in each would\nbecome:\n\n| Coin | Weight | Amount Invested |\n| ---- | ------ | --------------- |\n| BTC  | 0.791  | \\$791           |\n| ETH  | 0.186  | \\$186           |\n| LTC  | 0.023  | \\$23            |\n\n# Caveats/limitations\n\n- If you try to trade manually or using some other bot at the same time,\n  you're probably going to have a bad time\n- You might have a few dollars (<\\$25, you can change this with\n  `--withdrawal-amount`) sitting in your account at all times,\n  even when all orders have been filled because it's not always possible to\n  fill all orders and there may be small rounding errors (on the order of cents)\n- It makes a best effort with minimal complexity to invest all of your fiat,\n  but it may not be possible to fill all orders right away\n- It may take a few days for the market to drop enough for the buys to fill\n- If the market experiences a significant bull run, your orders won't be\n  filled, but it will reset every 24h (using the default buy timer)\n\n# Tip jar\n\nIf you got some value out of this, please send some coins my way so I can\nretire from my day job:\n\n- BTC: 3EEAE1oKEMnmHGU5Qxibv9mBQyNnes8j8N\n- LTC: 3MxmLzTf4sPsFBGYUnX9MMMbTMeaUSox46",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/brndnmtthws/optimal-buy-gdax",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "optimal-buy-gdax",
+        "package_url": "https://pypi.org/project/optimal-buy-gdax/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/optimal-buy-gdax/",
+        "project_urls": {
+            "Homepage": "https://github.com/brndnmtthws/optimal-buy-gdax"
+        },
+        "release_url": "https://pypi.org/project/optimal-buy-gdax/1.1.4/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Buy the coins, optimally!",
+        "version": "1.1.4"
+    },
+    "last_serial": 4529548,
+    "releases": {
+        "1.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8ec193e967efbad38c98984abcc92b75",
+                    "sha256": "2ac1316e679abdee9bd381676e61084bab0d907d38d56b81f3619dfe575f21c8"
+                },
+                "downloads": -1,
+                "filename": "optimal_buy_gdax-1.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8ec193e967efbad38c98984abcc92b75",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13098,
+                "upload_time": "2018-11-25T18:30:23",
+                "url": "https://files.pythonhosted.org/packages/b1/91/1c300ae72ebdbc3a62c4fee24f23ad4f2908e4f5bd26a412bb2e7998ce5e/optimal_buy_gdax-1.1.3.tar.gz"
+            }
+        ],
+        "1.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21a5dbf3078e7138984262efc890f403",
+                    "sha256": "b96184645aed4fece34102bd8103f199c0f6a255bceb9831abed0a3a5fcb5ef9"
+                },
+                "downloads": -1,
+                "filename": "optimal_buy_gdax-1.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "21a5dbf3078e7138984262efc890f403",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11127,
+                "upload_time": "2018-11-26T13:32:49",
+                "url": "https://files.pythonhosted.org/packages/97/1d/d9ae68b075f12381ca1ab57d5927406620a62279424a085ea70086bd5cef/optimal_buy_gdax-1.1.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "21a5dbf3078e7138984262efc890f403",
+                "sha256": "b96184645aed4fece34102bd8103f199c0f6a255bceb9831abed0a3a5fcb5ef9"
+            },
+            "downloads": -1,
+            "filename": "optimal_buy_gdax-1.1.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "21a5dbf3078e7138984262efc890f403",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11127,
+            "upload_time": "2018-11-26T13:32:49",
+            "url": "https://files.pythonhosted.org/packages/97/1d/d9ae68b075f12381ca1ab57d5927406620a62279424a085ea70086bd5cef/optimal_buy_gdax-1.1.4.tar.gz"
+        }
+    ]
+}

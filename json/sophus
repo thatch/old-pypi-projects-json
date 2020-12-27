@@ -1,0 +1,154 @@
+{
+    "info": {
+        "author": "Craigstar",
+        "author_email": "work.craigzhang@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# SophusPy\nA python binding using pybind11 for Sophus which is a C++ Lie library.(SO3 && SE3)\n\n## installation:\n```bash\npip install sophus\n```\n\n## Examples\n### 1. create SO3 and SE3\n```py\nimport numpy as np\nimport sophus as sp\n\n# 1. default constructor of SO3\nsp.SO3()\n'''\nSO3([[1, 0, 0],\n     [0, 1, 0],\n     [0, 0, 1]])\n'''\n\n# 2. constructor of SO3, accepts numpy and list\nsp.SO3([[1, 0, 0],\n        [0, 1, 0],\n        [0, 0, 1]])\n\n# 3. default constructor of SE3\nsp.SE3()\n'''\nSE3([[1, 0, 0, 0],\n     [0, 1, 0, 0],\n     [0, 0, 1, 0],\n     [0, 0, 0, 1]])\n'''\n\n# 4. constructor of SE3, accepts numpy and list\nsp.SE3(np.eye(4))\n\n# 5. R, t constructor of SE3\nsp.SE3(np.eye(3), np.ones(3)) # R, t\n'''\nSE3([[1, 0, 0, 1],\n     [0, 1, 0, 1],\n     [0, 0, 1, 1],\n     [0, 0, 0, 1]])\n'''\n```\n\n### 2. multiplication\n```py\nR = sp.SO3()\nR1 = sp.SO3([[0, 1, 0],\n             [0, 0, 1],\n             [1, 0, 0]])\n# 1. SO3 * SO3\nR * R1\n'''\nSO3([[0, 1, 0],\n     [0, 0, 1],\n     [1, 0, 0]])\n'''\n\n# 2.\nR1 *= R\n\n\nT = sp.SE3()\nT1 = sp.SE3(R1.matrix(), np.ones(3))\n\n# 3. SE3 * SE3\nT * T1\n'''\nSE3([[0, 1, 0, 1],\n     [0, 0, 1, 1],\n     [1, 0, 0, 1],\n     [0, 0, 0, 1]])\n'''\n\n# 4.\nT1 *= T\n```\n\n### 3. rotate and translate points\n```py\nR = sp.SO3([[0, 1, 0],\n            [0, 0, 1],\n            [1, 0, 0]])\nT = sp.SE3(R.matrix(), np.ones(3))\n\npt = np.array([1, 2, 3])\npts = np.array([[1, 2, 3],\n                [4, 5, 6]])\n\n# 1. single point\nR * pt  # array([2., 3., 1.])\n\n# 2. N points\nR * pts # array([[2., 3., 1.],\n        #        [5., 6., 4.]])\n\n# 3. single point\nT * pt  # array([3., 4., 2.])\n\n# 4. N points\nT * pts # array([[3., 4., 2.],\n        #        [6., 7., 5.]])\n```\n\n### 4. interfaces\n```py\nR = sp.SO3([[0, 1, 0],\n            [0, 0, 1],\n            [1, 0, 0]])\nT = sp.SE3(R.matrix(), np.ones(3))\n\n# 1. \nR.matrix()\n'''\narray([[0., 1., 0.],\n       [0., 0., 1.],\n       [1., 0., 0.]])\n'''\n\n# 2.\nR.log() # array([-1.20919958, -1.20919958, -1.20919958])\n\n# 3.\nR.inverse()\n'''\nSO3([[0, 0, 1],\n     [1, 0, 0],\n     [0, 1, 0]])\n'''\n\n# 4.\nR.copy()\n\n# 5.\nT.matrix()\n'''\narray([[0., 1., 0., 1.],\n       [0., 0., 1., 1.],\n       [1., 0., 0., 1.],\n       [0., 0., 0., 1.]])\n'''\n\n# 6.\nT.matrix3x4()\n'''\narray([[0., 1., 0., 1.],\n       [0., 0., 1., 1.],\n       [1., 0., 0., 1.]])\n'''\n\n# 7.\nT.so3()\n'''\nSO3([[0, 1, 0],\n     [0, 0, 1],\n     [1, 0, 0]])\n'''\n\n# 8.\nT.log() # array([1., 1., 1., -1.20919958, -1.20919958, -1.20919958])\n\n# 9.\nT.inverse()\n'''\nSE3([[ 0,  0,  1, -1],\n     [ 1,  0,  0, -1],\n     [ 0,  1,  0, -1],\n     [ 0,  0,  0,  1]])\n'''\n\n# 10.\nT.copy()\n\n# 11.\nT.translation() # array([1., 1., 1.])\n\n# 12.\nT.rotationMatrix()\n'''\narray([[0., 1., 0.],\n       [0., 0., 1.],\n       [1., 0., 0.]])\n'''\n\n# 13.\nT.setRotationMatrix(np.eye(3))  # set SO3 matrix\n\n# 14.\nT.setTranslation(np.zeros(3))   # set translation\n```\n\n### 5. static methods\n```py\n# 1.\nsp.SO3.hat(np.ones(3))\n'''\narray([[ 0., -1.,  1.],\n       [ 1.,  0., -1.],\n       [-1.,  1.,  0.]])\n'''\n\n# 2.\nsp.SO3.exp(np.ones(3))\n'''\narray([[ 0.22629564, -0.18300792,  0.95671228],\n       [ 0.95671228,  0.22629564, -0.18300792],\n       [-0.18300792,  0.95671228,  0.22629564]])\n'''\n\n# 3.\nsp.SE3.hat(np.ones(6))\n'''\narray([[ 0., -1.,  1.,  1.],\n       [ 1.,  0., -1.,  1.],\n       [-1.,  1.,  0.,  1.],\n       [ 0.,  0.,  0.,  0.]])\n'''\n\n# 4.\nsp.SE3.exp(np.ones(6))\n'''\narray([[ 0.22629564, -0.18300792,  0.95671228,  1.        ],\n       [ 0.95671228,  0.22629564, -0.18300792,  1.        ],\n       [-0.18300792,  0.95671228,  0.22629564,  1.        ],\n       [ 0.        ,  0.        ,  0.        ,  1.        ]])\n'''\n```\n\n### 6. others functions\n```py\n# 1. copy SO3\nsp.copyto(R, R1) # copytoSO3(SO3d &dst, const SO3d &src)\n\n# 2. copy SE3\nsp.copyto(T, T1) # copytoSE3(SE3d &dst, const SE3d &src)\n\n\n# 3.if R is not a strict rotation matrix, normalize it. Uses Eigen3 \n# Eigen::Quaterniond q(R);\n# q.normalized().toRotationMatrix();\nR_matrix = np.array([[1.   , 0.001, 0.   ],\n                     [0.   , 1.   , 0.   ],\n                     [0.   , 0.   , 1.   ]])\n\nsp.to_orthogonal(R_matrix)\n'''\narray([[ 9.99999875e-01,  4.99999969e-04,  0.00000000e+00],\n       [-4.99999969e-04,  9.99999875e-01, -0.00000000e+00],\n       [-0.00000000e+00,  0.00000000e+00,  1.00000000e+00]])\n'''\n\n# 4. invert N poses in a row\npose = T.matrix3x4().ravel()    # array([1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0.])\nsp.invert_poses(pose)           # array([1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0.]) identity matrix returns the same\n\nposes = np.array([[1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0.],\n                  [0., 1., 0., 1., 0., 0., 1., 1., 1., 0., 0., 1.]])\nsp.invert_poses(poses)\n'''\narray([[ 1.,  0.,  0., -0.,  0.,  1.,  0., -0.,  0.,  0.,  1., -0.],\n       [ 0.,  0.,  1., -1.,  1.,  0.,  0., -1.,  0.,  1.,  0., -1.]])\n'''\n\n# 6. transform N points by M poses to form N * M points\npoints = np.array([[1., 2., 3.],\n                   [4., 5., 6.],\n                   [7., 8., 9.]])\nsp.transform_points_by_poses(poses, points)\n'''\narray([[ 1.,  2.,  3.],\n       [ 4.,  5.,  6.],\n       [ 7.,  8.,  9.],\n       [ 3.,  4.,  2.],\n       [ 6.,  7.,  5.],\n       [ 9., 10.,  8.]])\n'''\n```",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/craigstar/SophusPy",
+        "keywords": "Lie Group",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sophus",
+        "package_url": "https://pypi.org/project/sophus/",
+        "platform": "all",
+        "project_url": "https://pypi.org/project/sophus/",
+        "project_urls": {
+            "Homepage": "https://github.com/craigstar/SophusPy"
+        },
+        "release_url": "https://pypi.org/project/sophus/0.0.7/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A python binding using pybind11 for Sophus which is a C++ Lie library.(SO3 && SE3)",
+        "version": "0.0.7"
+    },
+    "last_serial": 5410677,
+    "releases": {
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4b42c52a2997bec15a5e7cbbc24dce72",
+                    "sha256": "7359d88f0c50ec4f09fe88866e810819602aa03115424a85c8c99d5d3576faeb"
+                },
+                "downloads": -1,
+                "filename": "sophus-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4b42c52a2997bec15a5e7cbbc24dce72",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1162220,
+                "upload_time": "2019-06-16T14:50:39",
+                "url": "https://files.pythonhosted.org/packages/31/6c/f4ec193e20f0ab6f75e91bd68e0d5983deb38ff2485b0c6b661e2a841911/sophus-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d745c52445c11d0a6499a1209627f3f",
+                    "sha256": "e7581dbaef882b9ca135502ae4b1927b780d48f7fad3fa5ddab23b16d8e2377f"
+                },
+                "downloads": -1,
+                "filename": "sophus-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4d745c52445c11d0a6499a1209627f3f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1162216,
+                "upload_time": "2019-06-16T14:55:31",
+                "url": "https://files.pythonhosted.org/packages/07/e7/151376452211d7a10991fabf2778f6a23a212f79057e0e350e9d2cbb7e1b/sophus-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dcf5a2f21da0a3bcf6b54bb31b82b720",
+                    "sha256": "e22f47bf36d727006ef9dd2691bd7bf0b398c19c04634a10ac59d5895a3179b0"
+                },
+                "downloads": -1,
+                "filename": "sophus-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dcf5a2f21da0a3bcf6b54bb31b82b720",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1162297,
+                "upload_time": "2019-06-16T15:21:02",
+                "url": "https://files.pythonhosted.org/packages/03/a4/d2757f3b19d4786a87d11191458be9ad7a65b0bd6cd37b931031c384c134/sophus-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e2d51d6c039c306fc077824f15cbcde",
+                    "sha256": "032627159b12f91818f8f5abaa17e2a25641626ebe4e202cc5955619ff55cba1"
+                },
+                "downloads": -1,
+                "filename": "sophus-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4e2d51d6c039c306fc077824f15cbcde",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1162211,
+                "upload_time": "2019-06-17T14:31:04",
+                "url": "https://files.pythonhosted.org/packages/0d/c2/6aea12f953b7323fb769413effa2c43972fadb28fbfa802053f87ee9cd02/sophus-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d0ea8ef079c7e7e82f340a6a86965485",
+                    "sha256": "23a0e03ba2bec3f02718f7cb88b20d473d936dcc6eceb356d3a6850c820263ac"
+                },
+                "downloads": -1,
+                "filename": "sophus-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d0ea8ef079c7e7e82f340a6a86965485",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1162586,
+                "upload_time": "2019-06-17T15:14:02",
+                "url": "https://files.pythonhosted.org/packages/5e/f8/5b36a05619b9f6289b860895e7e318aabfba8138ea5a553e137362cf717d/sophus-0.0.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d0ea8ef079c7e7e82f340a6a86965485",
+                "sha256": "23a0e03ba2bec3f02718f7cb88b20d473d936dcc6eceb356d3a6850c820263ac"
+            },
+            "downloads": -1,
+            "filename": "sophus-0.0.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d0ea8ef079c7e7e82f340a6a86965485",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 1162586,
+            "upload_time": "2019-06-17T15:14:02",
+            "url": "https://files.pythonhosted.org/packages/5e/f8/5b36a05619b9f6289b860895e7e318aabfba8138ea5a553e137362cf717d/sophus-0.0.7.tar.gz"
+        }
+    ]
+}

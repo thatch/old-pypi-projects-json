@@ -1,0 +1,280 @@
+{
+    "info": {
+        "author": "IST-SUPSI",
+        "author_email": "geoservice@supsi.ch",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "Programming Language :: Python :: 3 :: Only"
+        ],
+        "description": "# Qry\n\n## Simple usage example\n\n```python\n\nfrom qry import *\n\nconditions = get_parser(\n    {\n        \"value\": \"value_obs\",\n        \"updated\": \"updated_obs\"\n    }\n).get_conditions(\n    Where(\n        operator=Where.AND,\n        where=[\n            Where(\n                operator=Where.GREATER_THAN,\n                property='value',\n                measure=2.0\n            ),\n            Where(\n                operator=Where.NOT_NULL,\n                property='updated'\n            )\n        ]\n    )\n)\n\nprint(conditions)\n\n```\n\n*get_conditions* call returns a tuple with the SQL and a list of parameters: \n\n```python\n('(value_obs > $1 AND updated_obs IS NOT NULL)', [2.0])\n```\n\n## Comparison operators\n\nSupported operators:\n\n- NULL\n- NOT_NULL\n- EQUALS\n- NOT_EQUALS\n- LIKE\n- GREATER_THAN\n- GREATER_THAN_OR_EQUAL_TO\n- LESS_THAN\n- LESS_THAN_OR_EQUAL_TO\n\n### NULL\n\n```python\nWhere(\n    operator=Where.NULL,\n    property='updated'\n)\n```\nresult:\n\n```python\n(\n    \"updated IS NULL\",\n    []\n)\n```\n\n### NOT_NULL\n\n```python\nWhere(\n    operator=Where.EQUALS,\n    property='updated'\n)\n```\nresult:\n\n```python\n(\n    \"updated IS NOT NULL\",\n    []\n)\n```\n\n### EQUALS\n\n```python\nWhere(\n    operator=Where.EQUALS,\n    property='value',\n    mesaure=10.9\n)\n```\nresult:\n\n```python\n(\n    \"value = $1\",\n    [10.9]\n)\n```\n\n### NOT_EQUALS\n\n```python\nWhere(\n    operator=Where.NOT_EQUALS,\n    property='value',\n    mesaure=10.9\n)\n```\nresult:\n\n```python\n(\n    \"value <> $1\",\n    [10.9]\n)\n```\n\n### LIKE\n\n```python\nWhere(\n    operator=Where.LIKE,\n    property='name',\n    text='%foo'\n)\n```\nresult:\n\n```python\n(\n    \"name IS LIKE $1\",\n    ['%foo]\n)\n```\n\n## Usage with function\n\nSupported functions are:\n\n- STARTS_WITH\n- ST_INTERSECTS\n- ST_DWITHIN\n- ST_CONTAINS\n\n\n### INTERSECTS\n\n```python\n\nfrom qry import *\n\nconditions = get_parser(\n    {\n        \"geom\": \"geom_loc\"\n    }\n).get_conditions(\n    Where(\n        function=Where.ST_INTERSECTS,\n        property='geom',\n        ewkt='SRID=4326;BOX(-180 -90, 180 90)'\n    )\n)\n\nprint(conditions)\n\n```\n*get_conditions* call returns a tuple with the SQL and a list of parameters: \n\n```python\n(\n    \"ST_Intersects(geom_loc, ST_GeomFromEWKT($1))\",\n    ['SRID=4326;BOX(-180 -90, 180 90)']\n)\n```\n\n### DWITHIN\n\n```python\n\nfrom qry import *\n\nconditions = get_parser(\n    {\n        \"geom\": \"geom_loc\"\n    }\n).get_conditions(\n    Where(\n        function=Where.ST_DWITHIN,\n        property='geom',\n        ewkt='SRID=3857;POINT(3072163.4 7159374.1)',\n        xmeasure=200\n    )\n)\n\nprint(conditions)\n\n```\n\n*get_conditions* call returns a tuple with the SQL and a list of parameters: \n\n```python\n(\n    \"ST_DWithin(geom_loc, ST_GeomFromEWKT($1), $2)\",\n    ['SRID=4326;BOX(-180 -90, 180 90)', 200]\n)\n```\n\n### CONTAINS\n\n```python\n\nfrom qry import *\n\nconditions = get_parser(\n    {\n        \"geom\": \"geom_loc\"\n    }\n).get_conditions(\n    Where(\n        function=Where.ST_CONTAINS,\n        property='geom',\n        ewkt='SRID=3857;POINT(3072163.4 7159374.1)',\n        xmeasure=200\n    )\n)\n\nprint(conditions)\n\n```\n\n*get_conditions* call returns a tuple with the SQL and a list of parameters: \n\n```python\n(\n    \"ST_Contains(geom_loc, ST_GeomFromEWKT($1))\",\n    ['SRID=3857;POINT(3072163.4 7159374.1)']\n)\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/ist-supsi/istsosm/utils/qry",
+        "keywords": "istsos sql query",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "qry",
+        "package_url": "https://pypi.org/project/qry/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/qry/",
+        "project_urls": {
+            "Documentation": "https://gitlab.com/ist-supsi/istsosm/utils/qry",
+            "Homepage": "https://gitlab.com/ist-supsi/istsosm/utils/qry",
+            "Source": "https://gitlab.com/ist-supsi/istsosm/utils/qry",
+            "Tracker": "https://gitlab.com/ist-supsi/istsosm/utils/qry/issues"
+        },
+        "release_url": "https://pypi.org/project/qry/0.0.1b5/",
+        "requires_dist": [
+            "googleapis-common-protos",
+            "istsos-proto"
+        ],
+        "requires_python": ">=3.5, <4",
+        "summary": "Query utility to trasform object filters in database queries",
+        "version": "0.0.1b5"
+    },
+    "last_serial": 5584194,
+    "releases": {
+        "0.0.1b1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d81fbc8cd312f40340af1f5be5cd18c6",
+                    "sha256": "1f6efa1a311218d4c371a472e1d7613bd24577c15c5af170990ebcd9252cf96c"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b1-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "d81fbc8cd312f40340af1f5be5cd18c6",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": ">=3, <4",
+                "size": 10131,
+                "upload_time": "2019-07-18T15:14:02",
+                "url": "https://files.pythonhosted.org/packages/c6/38/be65dff6fd93734bf0b1ab80553d79d347709b9729ae1161d3c68b50cbf8/qry-0.0.1b1-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4dd479f3ea321a1be8e9afb952d793db",
+                    "sha256": "ebb62660d43f90975822beb2dff04f4b6ceebe0d25eae2f96fd2b8616ede7d6f"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4dd479f3ea321a1be8e9afb952d793db",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3, <4",
+                "size": 5562,
+                "upload_time": "2019-07-18T15:14:00",
+                "url": "https://files.pythonhosted.org/packages/0e/92/614c1d31b32fa210cbe4e14572ea1112c80912ee4d9029b72ce31a07567d/qry-0.0.1b1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ebac3fd85d35a49a1d555cf93aad8ea3",
+                    "sha256": "2a922d41135b7e45bc0f6ea5c0800846fde79ba43ee09a6457da53de7bb79f02"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ebac3fd85d35a49a1d555cf93aad8ea3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3, <4",
+                "size": 4857,
+                "upload_time": "2019-07-18T15:14:04",
+                "url": "https://files.pythonhosted.org/packages/78/9a/58391b83420e15d22ac9c7234915c240957fdd382b227c9951fc83050ed7/qry-0.0.1b1.tar.gz"
+            }
+        ],
+        "0.0.1b2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a4c0762636b6a1c5605878139fad3a49",
+                    "sha256": "4b27aa374f02d7f42013200d77ca6ae3ab738fa04551c52b39d87ffcf0ff84bb"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b2-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a4c0762636b6a1c5605878139fad3a49",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": ">=3, <4",
+                "size": 2550,
+                "upload_time": "2019-07-24T13:56:43",
+                "url": "https://files.pythonhosted.org/packages/a5/8f/87662efd23061921bc3b22cfffe81b214eee354b14f62582ff13a0ef5350/qry-0.0.1b2-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1928b08c9458288c5b076cc5611ca82",
+                    "sha256": "d6d68c46e614d4812cc0dd2826f3fc015da5f140e5d1b862456e412fc41301f6"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d1928b08c9458288c5b076cc5611ca82",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3, <4",
+                "size": 2608,
+                "upload_time": "2019-07-24T13:56:45",
+                "url": "https://files.pythonhosted.org/packages/9e/68/5239516044980aea486bc27e3651bbbf194b5b16235ef879f35f07ef8e1f/qry-0.0.1b2.tar.gz"
+            }
+        ],
+        "0.0.1b3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "300454d38e3853c36b192d58138d351b",
+                    "sha256": "079d0025685417805e006fd78c97d706c0a37e949d7d7fcf1ff39af57e706212"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "300454d38e3853c36b192d58138d351b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3, <4",
+                "size": 3393,
+                "upload_time": "2019-07-25T09:39:22",
+                "url": "https://files.pythonhosted.org/packages/65/fd/8b458e7548cf5dbdb161047a72438777bb3c4cfb340cb3257a9e3ad4e3b3/qry-0.0.1b3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "36d0914eeab62c5b25cebf97753d9a6b",
+                    "sha256": "02fcb67ddc5524ca63400a71179b9809bd4ff641e52e7ac5523c8d2fb7226e0a"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "36d0914eeab62c5b25cebf97753d9a6b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3, <4",
+                "size": 3485,
+                "upload_time": "2019-07-25T09:39:25",
+                "url": "https://files.pythonhosted.org/packages/13/ac/cfd4b2ee16cca0bdfe169d446f8a7a0dabea169d7a307fde3fb410ac9e5a/qry-0.0.1b3.tar.gz"
+            }
+        ],
+        "0.0.1b4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2d3be96346652b02206a05b42620997",
+                    "sha256": "10d65c10706ed7aeffc0eca58a786d8b1996311251d2060cf0de77f0bba8d141"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f2d3be96346652b02206a05b42620997",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5, <4",
+                "size": 9337,
+                "upload_time": "2019-07-25T10:04:39",
+                "url": "https://files.pythonhosted.org/packages/46/71/d6280c14695bdf8413f1032f006cd9c9df4755ee37f5ef8f390753455d10/qry-0.0.1b4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "250c1b915556a227fbcb2cd1cf986f0d",
+                    "sha256": "0280705fc865cb9a89cd0857f503d94f64c26e0dec3a41fcc7a142f5e36481ab"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "250c1b915556a227fbcb2cd1cf986f0d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 7138,
+                "upload_time": "2019-07-25T10:04:41",
+                "url": "https://files.pythonhosted.org/packages/3a/93/a54921fca25f7f8a0cc230278440fe5e0b389ad649d05747c4a7cf545c81/qry-0.0.1b4.tar.gz"
+            }
+        ],
+        "0.0.1b5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eb78eed0d3c4c1a6133338e6d9032b0a",
+                    "sha256": "7dbf3d09e39ccc4ac674b5a35e78a43cb3e720a6373037c239fabbc7bb342e65"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "eb78eed0d3c4c1a6133338e6d9032b0a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5, <4",
+                "size": 3410,
+                "upload_time": "2019-07-25T16:40:22",
+                "url": "https://files.pythonhosted.org/packages/eb/36/fa3e34abe480ae93a5704c4db9aceb8d59fbe9eb41735d83caacc9c6ac14/qry-0.0.1b5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8fe4412d204b46b280e4a16685229094",
+                    "sha256": "b546c799c766b40497fd484b31df5850198259176e8a32876887455af25850db"
+                },
+                "downloads": -1,
+                "filename": "qry-0.0.1b5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8fe4412d204b46b280e4a16685229094",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 3507,
+                "upload_time": "2019-07-25T16:40:24",
+                "url": "https://files.pythonhosted.org/packages/09/2f/24f81bdd9331604fe271222e58108ad1fcc46270ab36772bd4eafd06ad27/qry-0.0.1b5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "eb78eed0d3c4c1a6133338e6d9032b0a",
+                "sha256": "7dbf3d09e39ccc4ac674b5a35e78a43cb3e720a6373037c239fabbc7bb342e65"
+            },
+            "downloads": -1,
+            "filename": "qry-0.0.1b5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "eb78eed0d3c4c1a6133338e6d9032b0a",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.5, <4",
+            "size": 3410,
+            "upload_time": "2019-07-25T16:40:22",
+            "url": "https://files.pythonhosted.org/packages/eb/36/fa3e34abe480ae93a5704c4db9aceb8d59fbe9eb41735d83caacc9c6ac14/qry-0.0.1b5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8fe4412d204b46b280e4a16685229094",
+                "sha256": "b546c799c766b40497fd484b31df5850198259176e8a32876887455af25850db"
+            },
+            "downloads": -1,
+            "filename": "qry-0.0.1b5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8fe4412d204b46b280e4a16685229094",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5, <4",
+            "size": 3507,
+            "upload_time": "2019-07-25T16:40:24",
+            "url": "https://files.pythonhosted.org/packages/09/2f/24f81bdd9331604fe271222e58108ad1fcc46270ab36772bd4eafd06ad27/qry-0.0.1b5.tar.gz"
+        }
+    ]
+}

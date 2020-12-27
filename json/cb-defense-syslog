@@ -1,0 +1,315 @@
+{
+    "info": {
+        "author": "Carbon Black Developer Network",
+        "author_email": "cb-developer-network@vmware.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7"
+        ],
+        "description": "# Cb Defense Syslog TLS Connector\n\nThis connector allows you to forward alert notifications and audit logs from your Carbon Black Cloud instance \ninto local, on-premise systems that accept industry standard syslog notifications. By default, it will generate \npipe-delimited syslog messages containing the key metadata associated with any alert identified by the Cb Defense \nstreaming prevention system.\n\nThe syslog connector will aggregate data from one or more Carbon Black Cloud organizations into a single syslog stream.\nThe connector can be configured to use UDP, TCP, or encrypted (TCP over TLS) syslog protocols.\n\nThis connector is distributed as a pip package compatible with Python 2.7, running on a 64-bit Intel platform.\n\n## System Requirments:\n\n1. Python 2.7\n2. pip \n\n## Installation\n\n1. Navigate to the Python 2.7 package location `/python2.7/site-packages/cb_defense_syslog`\n\n2. Copy and paste the Configuration File example shown below into your own `.conf` file and modify it to your own \nspecifications. Below is a table of all the configurable inputs that can be used in the syslog connector.\n\n| Input      | Required | Description |     \n| ----------- | ----------- | ----------- | \n| template      | Y       | Template for syslog output.      |\n| back_up_dir      | Y       | Location of the Backup Directory. This will be the location of back up files in the event that results fail to send to Syslog      |\n| policy_action_severity      | Y       | This sets the default severity level for POLICY_ACTION notifications. By default it is 4.      |\n| output_format      | Y       | Output format of the data sent. Currently support json, leef, and cef formats      |\n| output_type      | Y       | Configure the specific output. Valid options are: 'udp', 'tcp', 'tcp+tls', 'http'      |\n| tcpout      | Y       | Output Type: IP:port      |\n| udp_out      | Y       | Output Type: IP:port      |\n| http_out      | Y       | Output Type: http/https endpoint - ie https://server.company.com/endpoint      |\n| http_headers      | Y       | Required if using http: {'key1': 'value1', 'key2': 'value2'}     |\n| https_ssl_verify      | Y       | Required if using http: True or False      |\n| requests_ca_cert      | N       | Override ca file for self signed certificates when using https      |\n| ca_cert      | N       | Specifies a file containing PEM-encoded CA certificates for verifying the peer server when using TLS+TCP syslog      |\n| cert      | N       | Specifies a file containing PEM-encoded client certificate for verifying this client when using TLS+TCP syslog      |\n| key      | N       | Specifies a file containing PEM-encoded private key for verifying this client when using TLS+TCP syslog      |\n| key_password      | N       | Specifies the password to decrypt the given private key when using TLS+TCP syslog      |\n| tls_verify      | N       |  True or False      |\n| api_connector_id      | Y       | API Connector ID      |\n| api_key      | Y       | API Key      |\n| siem_connector_id      | Y       | SIEM Connector ID      |\n| siem_api_key      | Y       |  SIEM Key      |\n| server_url      | Y       | Server URL      |\n\n\n\n\n\n3. Test the new connector.:\n\n    Verify that you are running Python 2.7:\n\n    ```\n    python --version \n    ```\n\n   Then run the following command:\n\n    ```\n    python cb_defense_syslog.py -l [LOG_FILE_LOCATION] -c [CONFIG_FILE_LOCATION]\n    ```\n\n    A successful run will look like:\n\n    ```\n    INFO:__main__:CB Defense Syslog 1.0\n    INFO:__main__:Number of files in store forward: 0\n    INFO:__main__:Found 2 Cb Defense Servers in config file\n    INFO:__main__:Handling notifications for https://defense-test03.cbdtest.io\n    INFO:notifications:Attempting to connect to url: https://defense-test03.cbdtest.io\n    INFO:notifications:<Response [200]>\n    INFO:notifications:successfully connected, no alerts at this time\n    INFO:__main__:Sending Notifications\n    INFO:__main__:There are no messages to forward to host\n    INFO:__main__:Done Sending Notifications\n    INFO:__main__:Sending Audit Logs\n    INFO:__main__:Sending 18 messages to 00.00.000.00:000\n    INFO:__main__:Done Sending Audit Logs\n    INFO:__main__:Handling notifications for https://defense-eap01.conferdeploy.net\n    INFO:notifications:Attempting to connect to url: https://defense-eap01.conferdeploy.net\n    INFO:notifications:<Response [200]>\n    INFO:__main__:Sending Notifications\n    INFO:__main__:Sending 3 messages to 00.00.000.00:000\n    INFO:__main__:Done Sending Notifications\n    INFO:__main__:Sending Audit Logs\n    INFO:__main__:Sending 24 messages to 00.00.000.00:000\n    INFO:__main__:Done Sending Audit Logs\n    ```\n## Sample Config File\n\n    [general]\n\n    #\n    # Template for syslog output.\n    # This is a jinja 2 template\n    # NOTE: The source variable corresponds to the Cb Defense Server used to retrieve results\n    #\n    template = {{source}} {{version}}|{{vendor}}|{{product}}|{{dev_version}}|{{signature}}|{{name}}|{{severity}}|{{extension}}\n\n    #\n    #Location of the Backup Directory\n    #This will be the location of back up files in the event that results fail to send to Syslog\n    #\n\n    back_up_dir = /Users/jdoe/Documents/\n\n    #\n    # This sets the default severity level for POLICY_ACTION notifications.  By default it is 4.\n    #\n    # 0 - Emergency: System is unusable.\n    #\n    # 1 - Alert: Action must be taken immediately.\n    #\n    # 2 - Critical: Critical conditions.\n    #\n    # 3 - Error: Error conditions.\n    #\n    # 4 - Warning: Warning conditions.\n    #\n    # 5 - Notice: Normal but significant condition.\n    #\n    # 6 - Informational: Informational messages.\n    #\n    # 7 - Debug: Debug-level messages.\n    #\n    policy_action_severity = 4\n\n\n    #\n    # Output format of the data sent. Currently support json or cef formats\n    #\n    # Warning: if using json output_format, we recommend NOT using UDP output_type\n    #\n    output_format=cef\n\n    #\n    # Configure the specific output.\n    # Valid options are: 'udp', 'tcp', 'tcp+tls', 'http'\n    #\n    #  udp     - Have the events sent over a UDP socket\n    #  tcp     - Have the events sent over a TCP socket\n    #  tcp+tls - Have the events sent over a TLS+TCP socket\n    #  http    - Have the events sent over a HTTP connection\n    #\n    output_type=tcp\n\n    #\n    # tcpout=IP:port - ie 1.2.3.5:514\n    #\n    tcp_out=\n\n    #\n    # udpout=IP:port - ie 1.2.3.5:514\n    #\n    udp_out=\n\n    #\n    # httpout=http/https endpoint - ie https://server.company.com/endpoint\n    # http_headers= {'key1': 'value1', 'key2': 'value2'} - ie {'content-type': 'application/json'}\n    # https_ssl_verify = True or False\n    #\n    http_out=\n    http_headers= {'content-type': 'application/json'}\n    https_ssl_verify=True\n\n    #\n    # Override ca file for self signed certificates when using https\n    # This is typically a .pem file\n    #\n    #requests_ca_cert=/usr/share/cb/integrations/cb-defense-syslog/cert.pem\n\n    [tls]\n\n    #\n    # Specify a file containing PEM-encoded CA certificates for verifying the peer server when using TLS+TCP syslog\n    #\n    #ca_cert = /etc/cb/integrations/cb-defense/ca.pem\n\n    #\n    # Optionally specify a file containing PEM-encoded client certificate for verifying this client when using TLS+TCP syslog\n    # If cert is specified, key is a required parameter\n    #\n    #cert = /etc/cb/integrations/cb-defense/cert.pem\n\n    #\n    # Optionally specify a file containing PEM-encoded private key for verifying this client when using TLS+TCP syslog\n    # If key is specified, cert is a required parameter\n    #\n    #key = /etc/cb/integrations/cb-defense/cert.key\n\n    #\n    # Optionally specify the password to decrypt the given private key when using TLS+TCP syslog\n    #\n    #key_password = p@ssw0rd1\n\n    #\n    # Uncomment tls_verify and set to \"false\" in order to disable verification of the peer server certificate\n    #\n    #tls_verify = true\n\n    [cbdefense1]\n\n    #\n    # Cb Defense API Connector ID\n    #\n    api_connector_id = GO5M953111\n\n    #\n    # Cb Defense API Key\n    #\n    api_key = BYCRM7BRNSH0CXZR5V1Y3111\n\n    #\n    # Cb Defense SIEM Connector ID\n    #\n    siem_connector_id = UEUWR4U111\n\n    #\n    # Cb Defense SIEM Key\n    #\n    siem_api_key = XNS5UKWZXZMCC3CYC7DFM111\n\n    #\n    # Cb Defense Server URL\n    # NOTE: this is not the url to the web ui, but to the API URL (for example, https://api-prod05.conferdeploy.net)\n    #\n    server_url = https://server1.yourcompany.com\n\n    #\n    # For more than one Cb Defense Server, add another server using the following template including the stanza\n    #\n    #[cbdefenseserver2]\n    #api_connector_id = KJARWBZ111\n    #api_key = CQF35EIH2WDF69PTWKGC4111\n    #server_url = https://server2.yourcompany.com\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/carbonblack/cb-defense-syslog-tls",
+        "keywords": "carbonblack",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "cb-defense-syslog",
+        "package_url": "https://pypi.org/project/cb-defense-syslog/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/cb-defense-syslog/",
+        "project_urls": {
+            "Homepage": "https://github.com/carbonblack/cb-defense-syslog-tls"
+        },
+        "release_url": "https://pypi.org/project/cb-defense-syslog/0.0.8/",
+        "requires_dist": [
+            "Jinja2 (>=2.8.1)",
+            "MarkupSafe (==1.1.1)",
+            "requests (==2.22.0)",
+            "Flask (==1.1.1)"
+        ],
+        "requires_python": "",
+        "summary": "Connector for Cb Defense to send notifications to a tcp+tls host",
+        "version": "0.0.8"
+    },
+    "last_serial": 6605826,
+    "releases": {
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f86bd7b3ca8e04ccc2aec3260b29291e",
+                    "sha256": "108c69f84de7e2586b9c77c287b217153f61a8c5e0b87cd8fb28ea585d3720b3"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.2-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f86bd7b3ca8e04ccc2aec3260b29291e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 31135,
+                "upload_time": "2020-02-06T20:53:09",
+                "upload_time_iso_8601": "2020-02-06T20:53:09.641756Z",
+                "url": "https://files.pythonhosted.org/packages/b8/f2/5f68a3fb34d30b77c89314530e67f9747b1f70e60e61d25a77abbea44677/cb_defense_syslog-0.0.2-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1dc3a51d1aad681e069d3ccd911269da",
+                    "sha256": "fb58222a015b48990b4a6c3a0fa4de693c6e27d48e12599ccc6499ba9fb7649a"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1dc3a51d1aad681e069d3ccd911269da",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 43113,
+                "upload_time": "2020-02-06T20:53:12",
+                "upload_time_iso_8601": "2020-02-06T20:53:12.370993Z",
+                "url": "https://files.pythonhosted.org/packages/79/7e/b49af17bd90bb6d546710937d8aeb5b010be19f6fb49535053a275fa7d9a/cb_defense_syslog-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac6ffcce7ae8c6c4f8634d764ab42183",
+                    "sha256": "d0304305ed090df977bd6b484216d7bf0dddef30179eeda7bc695b4a866e6d9f"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.3-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ac6ffcce7ae8c6c4f8634d764ab42183",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 31114,
+                "upload_time": "2020-02-06T22:12:50",
+                "upload_time_iso_8601": "2020-02-06T22:12:50.553959Z",
+                "url": "https://files.pythonhosted.org/packages/29/fc/ba6422966b37cbc5df3d815bfb0f3e481f56cf4450855e4b82f4f2897de4/cb_defense_syslog-0.0.3-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e5258da882038e80f49d5ad1c20a1d4",
+                    "sha256": "af5aacaa6bea37db286594a289424d2296a95796a8d6f8ce91db80240338b90f"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3e5258da882038e80f49d5ad1c20a1d4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 43110,
+                "upload_time": "2020-02-06T22:12:52",
+                "upload_time_iso_8601": "2020-02-06T22:12:52.183851Z",
+                "url": "https://files.pythonhosted.org/packages/e7/ea/2ee451c1a6e8cccb5fa673da118475247ad389d68221050536c82ca7cc4d/cb_defense_syslog-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5db093036f2eae28b51d59c7b073bfd7",
+                    "sha256": "e77f5ceefb2e2deab821512f7b600280f41c1011cb8efbd6c464cf6945ab7b68"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.4-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5db093036f2eae28b51d59c7b073bfd7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 31304,
+                "upload_time": "2020-02-06T22:23:26",
+                "upload_time_iso_8601": "2020-02-06T22:23:26.435771Z",
+                "url": "https://files.pythonhosted.org/packages/e1/34/d5890162a8c9c32c240893616b259a04802d4826684f68d0519501925d22/cb_defense_syslog-0.0.4-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a7464b05f608b958d55eeb6ae3be07cb",
+                    "sha256": "f1f7a74008221e5a14ccbd54effd32b27ee1b2066970f28b876155493d6e4e22"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a7464b05f608b958d55eeb6ae3be07cb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 43177,
+                "upload_time": "2020-02-06T22:23:27",
+                "upload_time_iso_8601": "2020-02-06T22:23:27.588053Z",
+                "url": "https://files.pythonhosted.org/packages/88/79/914c96be05d34bf37885abd0bac4fadf65384825fcbeca3b0cb7a52531ff/cb_defense_syslog-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ee9f67e9032d3a9e0fb01c45ce25a2e",
+                    "sha256": "bd306743b9a8f53809a4807b245dea74deb47c90e4cc4d2ff95a1847ed8b9dfb"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.5-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2ee9f67e9032d3a9e0fb01c45ce25a2e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 415200,
+                "upload_time": "2020-02-07T18:21:40",
+                "upload_time_iso_8601": "2020-02-07T18:21:40.706080Z",
+                "url": "https://files.pythonhosted.org/packages/4d/d6/9e4db22d20405ecc96eaf1497be36b0e21bbf25de3cd5354deaaa17fe6e6/cb_defense_syslog-0.0.5-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "918a9ffa1d05f247d34cabd35fcec15a",
+                    "sha256": "aaa74bc0a9d396db785c0521c8f29997c53bd1550ec691d0d23948fb2620f600"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "918a9ffa1d05f247d34cabd35fcec15a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 230900,
+                "upload_time": "2020-02-07T18:21:42",
+                "upload_time_iso_8601": "2020-02-07T18:21:42.174218Z",
+                "url": "https://files.pythonhosted.org/packages/39/6f/23b634e4dbe45555e11b4d8b16f71352d03aff1d6beff31d3783ee3ed1bd/cb_defense_syslog-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "764468246759f35d9063a1bbc8b2a410",
+                    "sha256": "52b722507ca6773dd05029b107dab9d5eab49ed095278162cea31efd4c6535ae"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.7-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "764468246759f35d9063a1bbc8b2a410",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 417595,
+                "upload_time": "2020-02-10T18:29:43",
+                "upload_time_iso_8601": "2020-02-10T18:29:43.654718Z",
+                "url": "https://files.pythonhosted.org/packages/b2/26/05e77adafc862a6efd753b1e726b923af4b76ce2f0afeddd9001b59db70e/cb_defense_syslog-0.0.7-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2904d6c23000914858775d1e84fd2921",
+                    "sha256": "6a74dcf26d6732106337102f6f9dff10d56cb57e9c82f84fa0d0371f272bdea2"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2904d6c23000914858775d1e84fd2921",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 233712,
+                "upload_time": "2020-02-10T18:29:45",
+                "upload_time_iso_8601": "2020-02-10T18:29:45.454280Z",
+                "url": "https://files.pythonhosted.org/packages/a0/6f/7eae52a2a94f0327c9c412290ba2a58982214606214afdd8792b6e8a3071/cb_defense_syslog-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a73c6898a4fa65a4b6b801fe4de0be50",
+                    "sha256": "a971c1c0028f2eabe106295c1e8a404818f705f1c35f53ae01762b057287e360"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.8-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a73c6898a4fa65a4b6b801fe4de0be50",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 399005,
+                "upload_time": "2020-02-10T22:47:56",
+                "upload_time_iso_8601": "2020-02-10T22:47:56.859032Z",
+                "url": "https://files.pythonhosted.org/packages/87/a7/a959a5d813d4aa4c35a3167d75bdbc688e24df2e691ab441291d7ff4b58b/cb_defense_syslog-0.0.8-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "40e50104070c09581fbcc4dc66e59d47",
+                    "sha256": "dec5a72e8323cb24b22f7d963aeb98136b2f8d2af63aaa831d4745acc568dba4"
+                },
+                "downloads": -1,
+                "filename": "cb_defense_syslog-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "40e50104070c09581fbcc4dc66e59d47",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 234280,
+                "upload_time": "2020-02-10T22:47:58",
+                "upload_time_iso_8601": "2020-02-10T22:47:58.686701Z",
+                "url": "https://files.pythonhosted.org/packages/97/4f/64741dcbb3a4243ac8541b5df095fd012ff4e5f75bcf4b257bb9e7e831c8/cb_defense_syslog-0.0.8.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a73c6898a4fa65a4b6b801fe4de0be50",
+                "sha256": "a971c1c0028f2eabe106295c1e8a404818f705f1c35f53ae01762b057287e360"
+            },
+            "downloads": -1,
+            "filename": "cb_defense_syslog-0.0.8-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a73c6898a4fa65a4b6b801fe4de0be50",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 399005,
+            "upload_time": "2020-02-10T22:47:56",
+            "upload_time_iso_8601": "2020-02-10T22:47:56.859032Z",
+            "url": "https://files.pythonhosted.org/packages/87/a7/a959a5d813d4aa4c35a3167d75bdbc688e24df2e691ab441291d7ff4b58b/cb_defense_syslog-0.0.8-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "40e50104070c09581fbcc4dc66e59d47",
+                "sha256": "dec5a72e8323cb24b22f7d963aeb98136b2f8d2af63aaa831d4745acc568dba4"
+            },
+            "downloads": -1,
+            "filename": "cb_defense_syslog-0.0.8.tar.gz",
+            "has_sig": false,
+            "md5_digest": "40e50104070c09581fbcc4dc66e59d47",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 234280,
+            "upload_time": "2020-02-10T22:47:58",
+            "upload_time_iso_8601": "2020-02-10T22:47:58.686701Z",
+            "url": "https://files.pythonhosted.org/packages/97/4f/64741dcbb3a4243ac8541b5df095fd012ff4e5f75bcf4b257bb9e7e831c8/cb_defense_syslog-0.0.8.tar.gz"
+        }
+    ]
+}

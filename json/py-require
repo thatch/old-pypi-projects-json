@@ -1,0 +1,229 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 10,
+        "author": "Niklas Rosenstein",
+        "author_email": "rosensteinniklas@gmail.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Other Environment",
+            "Environment :: Plugins",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: Jython",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Utilities"
+        ],
+        "description": "require() for Python\n====================\n\nThis Python module provides a new approach to loading Python modules\nsimilar to Node's ``require()`` that is decoupled from the Python import\nmechanism.\n\n.. code:: python\n\n    import require\n    status = require('./lib/status')\n    status.yell()\n\nThis is particularly useful in Python applications with a plugin\narchitecture and solves potential problems when using traditional Python\nmodules that can easily result in dependency conflicts.\n\nInstallation\n------------\n\n::\n\n    pip install py-require\n\nKnown Issues\n------------\n\n-  In Python 2, no statement must be on the first line of the file. This\n   is due to the fact that require prepends the text\n   ``from __future__ import absolute_import;`` in the first first line\n   to avoid RuntimeWarnings when import other modules using Pythons\n   standard ``import`` mechanism.\n\nAPI\n---\n\n``require.new(path=(), write_bytecode=None)``\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n    Create a new independent instance. Note that the *path* argument is\n    processed with ``require.preprocess_path()``.\n\n``require(file, directory=None, path=(), reload=False, cascade=False, inplace=False, get_exports=True)``\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n    Loads a Python module by filename. If *file* is a relative path\n    starting with ``./``, it will be loaded relative to *directory*.\n    Otherwise, if it is not an absolute path, it will be searched in the\n    search *path*. Note that *file* should be a UNIX-style path on every\n    platform.\n\n    The algorithm will check the following forms of *file*:\n\n    -  ``<file>``\n    -  ``<file>c@x-y``\n    -  ``<file>/__init__.py``\n    -  ``<file>/__init__.pyc@x-y``\n    -  ``<file>.py``\n    -  ``<file>.pyc@x-y``\n\n    ``c@x-y`` is the suffix of bytecode files for the current Python\n    version. If *file* is the string ``'.'``, it will be translated to\n    ``'./__init__.py'``.\n\n    **Parameters**\n\n    -  *file* -- The name of the Python module to load.\n    -  *directory* -- The directory to load a local module from. If\n       omitted, will be determined automatically from the caller's\n       global scope using ``sys._getframe()``.\n    -  *path* -- A list of additional search paths when loading other\n       modules with ``require()``. Subsequent loads inherit this search\n       path. Note that these paths are preprocesed with\n       ``require.preprocess_path()``, thus elements that start with\n       ``!`` (exclamation mark) will be assumed relative to the\n       directory that the ``require()`` function is called from.\n    -  *reload* -- True to force reload the module.\n    -  *cascade* -- If *reload* is True, passing True causes a cascade\n       reload.\n    -  *inplace* -- If *reload* is True, modules will be reloaded\n       in-place instead of creating a new module object.\n    -  *get\\_exports* -- Return the ``exports`` member of the module if\n       there is any. False can be passed to always get the actual module\n       object. Can also be callable that is passed the module object.\n       The result of this callable is returned.\n\n    **Return**\n\n    A ``types.ModuleType`` object, unless the module has a member called\n    ``exports``, in which case the value of this member will be\n    returned.\n\n    **Raises**\n\n    ``require.error`` -- If the module could not be found or loaded.\n\n``require.load_file(load_file, real_file=None, info=None, path=(), reload=False, cascade=False, inplace=False, get_exports=True, cascade_index=None, parent_context=None)``\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n    Load a Python module by filename. If *real\\_file* is specified, it\n    must be the name of the original source file and is the name under\n    which the module is stored. *load\\_file* must be the name of a\n    bytecache file in that case.\n\n    The *info* parameter is passed to ``Require.init_module()`` and\n    ``Require.free_module()`` and must be the same as would be returned\n    by ``Require.find_module()``.\n\n``require.Require(path=(), write_bytecode=None)``\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n    Class of the ``require`` module that can be instantiated to create a\n    new, decoupled require environment. You can also subclass it and\n    overwrite the ``Require.find_module()`` method.\n\n    .. code:: python\n\n        import require\n        require = require.Require()\n        require('./hello').say_hello()\n\n``require.path``\n~~~~~~~~~~~~~~~~\n\n    A list of global search directories that will always be taken into\n    account when using ``require()``.\n\n``require.modules``\n~~~~~~~~~~~~~~~~~~~\n\n    This dictionary maps absolute filenames to the Python modules that\n    are loaded by ``require()``.\n\nChangelog\n---------\n\nv0.17\n~~~~~\n\n-  fix loading the ``require`` module without the ``import`` statement\n   when another instance of the ``require`` module was already imported\n   and present in ``sys.modules``\n\nv0.16\n~~~~~\n\n-  ``require.path`` is now taken into account when searching for modules\n   again\n-  add ``require.new()`` method\n-  add ``require.preprocess_path()`` method\n-  add ``Require(_stackdepth=0)`` argument\n-  ``require.new(path)`` and ``require(path)`` arguments are now\n   preprocessed with the ``require.preprocess_path()`` method\n\nv0.15\n~~~~~\n\n-  add ``require.load_file()`` function\n-  add ``Require.init_module()`` function\n-  add ``Require.free_module()`` function\n-  filenames are now normalized before using them as module names\n-  ``Require.find_module()`` must now return a three-element tuple\n   ``(load_file, real_file, info)`` instead of a two element tuple\n\nv0.14\n~~~~~\n\n-  removed ``require.new()``\n-  add ``Require(write_bytecode)`` argument\n-  add ``RequireModuleContext.path_all`` property\n-  replace ``Require._get_best_candidate()`` with\n   ``Require.find_module()``\n\nv0.13\n~~~~~\n\n-  fix NameError where old ``bcsuffix`` variable was used instead of\n   ``Require.bytecache_suffix``\n\nv0.12\n~~~~~\n\n-  add global ``require`` member to ``require.py`` for cases when\n   ``sys.modules`` can not be patched\n-  prevent ``sys.modules`` being patched when there is already a module\n   named ``require`` that is not the same object as the currently\n   executed ``require`` module\n\nv0.11\n~~~~~\n\n-  rewrite, using ``Require`` class and cleaner code base\n-  add ``require.new()`` (#11)\n-  support for translating ``'.'`` to ``'./__init__.py'`` (#10)\n-  fix bug with parent context not being inherited when calling the\n   ``require`` module directly instead of using ``require.require()``,\n   by introducing a new \\*\\_stackdepth\\* parameter\n\nv0.10\n~~~~~\n\n-  fix #9 \u00e2\u20ac\u201c ``require`` module is now a custom ``types.ModuleType``\n   instance that implements ``__call__()``\n\nv0.9\n~~~~\n\n-  add ``require(get_exports)`` parameter\n\nv0.8\n~~~~\n\n-  removed ``'.'`` path from default value of ``require.path``\n\nv0.7\n~~~~\n\n-  rename module to ``require`` from ``shroud``\n-  ``sys.module`` hook to allow calling ``require`` as a module instead\n   of having to use ``from require import require``\n-  directory to load local modules from (``./``) now falls back to the\n   current working directory\n\nLicense\n-------\n\nThe MIT License (MIT)\n\nCopyright (c) 2016 Niklas Rosenstein\n\nPermission is hereby granted, free of charge, to any person obtaining a\ncopy of this software and associated documentation files (the\n\"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish,\ndistribute, sublicense, and/or sell copies of the Software, and to\npermit persons to whom the Software is furnished to do so, subject to\nthe following conditions:\n\nThe above copyright notice and this permission notice shall be included\nin all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS\nOR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\nIN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\nCLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\nTORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\nSOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/NiklasRosenstein/py-require",
+        "keywords": "require,importer,loader",
+        "license": "UNKNOWN",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "py-require",
+        "package_url": "http://pypi.python.org/pypi/py-require",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/py-require/0.17",
+        "requires_python": null,
+        "summary": "require() for Python",
+        "version": "0.17"
+    },
+    "releases": {
+        "0.10": [
+            {
+                "comment_text": "",
+                "downloads": 86,
+                "filename": "py-require-0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0545e27e47f78d346da474f36ff8e868",
+                "packagetype": "sdist",
+                "path": "21/5f/8b1de07a14666a34375d75bf06146c6efff474efa70caa1c88948efa2532/py-require-0.10.tar.gz",
+                "python_version": "source",
+                "size": 7173,
+                "upload_time": "2016-08-06T16:40:45",
+                "url": "https://pypi.python.org/packages/21/5f/8b1de07a14666a34375d75bf06146c6efff474efa70caa1c88948efa2532/py-require-0.10.tar.gz"
+            }
+        ],
+        "0.11": [
+            {
+                "comment_text": "",
+                "downloads": 85,
+                "filename": "py-require-0.11.zip",
+                "has_sig": false,
+                "md5_digest": "07b8444e2ae33e624336928263184790",
+                "packagetype": "sdist",
+                "path": "4b/9e/86a3b82d5073e6cce99ece5c65b9f372f5c7ee97b6001fefbc536a4a9c5f/py-require-0.11.zip",
+                "python_version": "source",
+                "size": 13401,
+                "upload_time": "2016-08-10T02:15:34",
+                "url": "https://pypi.python.org/packages/4b/9e/86a3b82d5073e6cce99ece5c65b9f372f5c7ee97b6001fefbc536a4a9c5f/py-require-0.11.zip"
+            }
+        ],
+        "0.12": [
+            {
+                "comment_text": "",
+                "downloads": 84,
+                "filename": "py-require-0.12.zip",
+                "has_sig": false,
+                "md5_digest": "2f94ad23363ba84dc60e6db1345b83cf",
+                "packagetype": "sdist",
+                "path": "37/e5/5e9b35f1b44753f0bee7b273bc117d8136f89fe62bd8a1446275d7a9c908/py-require-0.12.zip",
+                "python_version": "source",
+                "size": 13733,
+                "upload_time": "2016-08-10T19:57:35",
+                "url": "https://pypi.python.org/packages/37/e5/5e9b35f1b44753f0bee7b273bc117d8136f89fe62bd8a1446275d7a9c908/py-require-0.12.zip"
+            }
+        ],
+        "0.13": [
+            {
+                "comment_text": "",
+                "downloads": 108,
+                "filename": "py-require-0.13.zip",
+                "has_sig": false,
+                "md5_digest": "c4b0430a05a559b23fc96db7e9a5a982",
+                "packagetype": "sdist",
+                "path": "c7/12/5fe7a00c8d2ef951304a97dc35ee14f936e152700f005abe884449ece4d6/py-require-0.13.zip",
+                "python_version": "source",
+                "size": 13892,
+                "upload_time": "2016-08-20T21:55:22",
+                "url": "https://pypi.python.org/packages/c7/12/5fe7a00c8d2ef951304a97dc35ee14f936e152700f005abe884449ece4d6/py-require-0.13.zip"
+            }
+        ],
+        "0.14": [
+            {
+                "comment_text": "",
+                "downloads": 147,
+                "filename": "py-require-0.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "214898f80e9167da28491de76ab3cfe9",
+                "packagetype": "sdist",
+                "path": "3e/b4/18efdfe923de1147071c7389362c821d2b504b372ad9e6afd353804a6d16/py-require-0.14.tar.gz",
+                "python_version": "source",
+                "size": 7157,
+                "upload_time": "2016-09-03T16:21:59",
+                "url": "https://pypi.python.org/packages/3e/b4/18efdfe923de1147071c7389362c821d2b504b372ad9e6afd353804a6d16/py-require-0.14.tar.gz"
+            }
+        ],
+        "0.15": [
+            {
+                "comment_text": "",
+                "downloads": 130,
+                "filename": "py-require-0.15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a1016b2ba2823898e0791f5a7cfcc424",
+                "packagetype": "sdist",
+                "path": "8f/56/aa3f38151e82415f6adfc28b866165393fd0f2d34e45516862074565ebee/py-require-0.15.tar.gz",
+                "python_version": "source",
+                "size": 7786,
+                "upload_time": "2016-09-16T17:14:39",
+                "url": "https://pypi.python.org/packages/8f/56/aa3f38151e82415f6adfc28b866165393fd0f2d34e45516862074565ebee/py-require-0.15.tar.gz"
+            }
+        ],
+        "0.16": [
+            {
+                "comment_text": "",
+                "downloads": 65,
+                "filename": "py-require-0.16.zip",
+                "has_sig": false,
+                "md5_digest": "2f262ac2af6dd554783f559564f32bc7",
+                "packagetype": "sdist",
+                "path": "ae/6b/8d1c0541b784d264bb561b61c4b09acce19262568f8eafae0b0c47c99c93/py-require-0.16.zip",
+                "python_version": "source",
+                "size": 16586,
+                "upload_time": "2016-10-08T08:07:05",
+                "url": "https://pypi.python.org/packages/ae/6b/8d1c0541b784d264bb561b61c4b09acce19262568f8eafae0b0c47c99c93/py-require-0.16.zip"
+            }
+        ],
+        "0.17": [
+            {
+                "comment_text": "",
+                "downloads": 146,
+                "filename": "py-require-0.17.zip",
+                "has_sig": false,
+                "md5_digest": "f7e98fa11d62ec994350a1720b587594",
+                "packagetype": "sdist",
+                "path": "4d/13/501162f53c4b151884eb0102ec6360ba6f9736802873e0e68051a75cbb6e/py-require-0.17.zip",
+                "python_version": "source",
+                "size": 16724,
+                "upload_time": "2016-10-08T09:53:49",
+                "url": "https://pypi.python.org/packages/4d/13/501162f53c4b151884eb0102ec6360ba6f9736802873e0e68051a75cbb6e/py-require-0.17.zip"
+            }
+        ],
+        "0.7": [
+            {
+                "comment_text": "",
+                "downloads": 87,
+                "filename": "py-require-0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a81009d85c97eda9cddcf7adaa94c356",
+                "packagetype": "sdist",
+                "path": "4a/7d/d3d8be6d373dbc3132fad452118ac52af8533cf7b6812ebb7beab8223c65/py-require-0.7.tar.gz",
+                "python_version": "source",
+                "size": 6739,
+                "upload_time": "2016-08-06T03:51:29",
+                "url": "https://pypi.python.org/packages/4a/7d/d3d8be6d373dbc3132fad452118ac52af8533cf7b6812ebb7beab8223c65/py-require-0.7.tar.gz"
+            }
+        ],
+        "0.8": [
+            {
+                "comment_text": "",
+                "downloads": 85,
+                "filename": "py-require-0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7675c2c6f96fce2790c7b116dc52db3b",
+                "packagetype": "sdist",
+                "path": "3d/8f/3c5d5c5c1b65b3d328f2b476e33d456c28e0741f5ed158164b95c363741c/py-require-0.8.tar.gz",
+                "python_version": "source",
+                "size": 6749,
+                "upload_time": "2016-08-06T12:17:16",
+                "url": "https://pypi.python.org/packages/3d/8f/3c5d5c5c1b65b3d328f2b476e33d456c28e0741f5ed158164b95c363741c/py-require-0.8.tar.gz"
+            }
+        ],
+        "0.9": [
+            {
+                "comment_text": "",
+                "downloads": 307,
+                "filename": "py-require-0.9.zip",
+                "has_sig": false,
+                "md5_digest": "0e51c9f4e524795a5bfdacdd167e13e8",
+                "packagetype": "sdist",
+                "path": "4a/74/99b62b2d350bf2ad58d99da00d79ec898924cc372452582af6291c98fcec/py-require-0.9.zip",
+                "python_version": "source",
+                "size": 13727,
+                "upload_time": "2016-08-06T14:40:50",
+                "url": "https://pypi.python.org/packages/4a/74/99b62b2d350bf2ad58d99da00d79ec898924cc372452582af6291c98fcec/py-require-0.9.zip"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 146,
+            "filename": "py-require-0.17.zip",
+            "has_sig": false,
+            "md5_digest": "f7e98fa11d62ec994350a1720b587594",
+            "packagetype": "sdist",
+            "path": "4d/13/501162f53c4b151884eb0102ec6360ba6f9736802873e0e68051a75cbb6e/py-require-0.17.zip",
+            "python_version": "source",
+            "size": 16724,
+            "upload_time": "2016-10-08T09:53:49",
+            "url": "https://pypi.python.org/packages/4d/13/501162f53c4b151884eb0102ec6360ba6f9736802873e0e68051a75cbb6e/py-require-0.17.zip"
+        }
+    ]
+}

@@ -1,0 +1,267 @@
+{
+    "info": {
+        "author": "Myself",
+        "author_email": "me@mydomain.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Healthcare Industry",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: C++",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 3",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Scientific/Engineering :: Information Analysis",
+            "Topic :: Scientific/Engineering :: Medical Science Apps.",
+            "Topic :: Scientific/Engineering :: Physics",
+            "Topic :: Scientific/Engineering :: Visualization",
+            "Topic :: Software Development"
+        ],
+        "description": "CMakeCatchTemplate\n------------------\n\n[![Build Status](https://travis-ci.com/MattClarkson/CMakeCatchTemplate.svg?branch=master)](https://travis-ci.com/MattClarkson/CMakeCatchTemplate)\n[![Build Status](https://ci.appveyor.com/api/projects/status/5pm89ej732c1ekf0/branch/master)](https://ci.appveyor.com/project/MattClarkson/cmakecatchtemplate)\n\n\nPurpose\n-------\n\nThis is a demo project to demonstrate a reasonable structure for [CMake](https://cmake.org/) based projects,\nthat use [CTest](https://cmake.org/) to run unit tests via [Catch](https://github.com/catchorg/Catch2).\n\n\nCredits\n-------\n\nThis project was developed as a teaching aid for UCL's [\"Research Computing with C++\"](http://rits.github-pages.ucl.ac.uk/research-computing-with-cpp/)\ncourse developed by [Dr. James Hetherington](http://www.ucl.ac.uk/research-it-services/people/james)\nand [Dr. Matt Clarkson](https://iris.ucl.ac.uk/iris/browse/profile?upi=MJCLA42).\n\n\nMain Features\n-------------\n\nThe main idea of this project is to try and help a C++ algorithm developer write their algorithm in a\nC++ library and then deploy the C++ library in a variety of scenarios. \n\nThe main features provided are:\n\n 1. A Meta-Build, also known as a SuperBuild, to optionally download and build any of the following: Boost, Eigen, FLANN, OpenCV, glog, gflags, VTK and PCL. All of these can be left OFF and skipped. This results in a top-level build folder containing the compiled dependencies, and then a sub-folder containing the compiled code of this project.\n 2. A single library into which you can provide your main algorithms.\n 3. Unit tests, using Catch, and run with CTest, so you can ensure correctness and enable regression testing of your functionality.\n 4. A single command line application, to give the end user a minimalist runnable program.\n 5. KWStyle config, so you can check for consistent code style, when you have KWStyle installed on your system.\n 6. CppCheck config, so you can check for some performance, style and correctness issues, when you have CppCheck installed on your system.\n 7. Doxygen config, so you can generate documentation via a ```make docs``` or DOCS task in Visual Studio.\n 8. If your code is open-source, you can register with a Continuous Integration service, so this project provides Travis and Appveyor examples.\n 9. Basic examples of how to create a Qt+VTK, Qt+OpenGL or QML+VTK user interface, ensuring the VTK render engine works in Qt or QML framework, on Windows, Linux and Mac.\n10. CPack setup to produce installers for the GUI apps.\n11. An example of the CMake required to build python interfaces to your C++ code, using ```boost::python```.\n12. An example of the CMake required to build python interfaces to your C++ code, using [pybind11](https://github.com/pybind/pybind11), with credit to [this example](https://github.com/pybind/cmake_example).\n13. An example of the CMake required to export a C-style module into [Unity](https://unity3d.com/).\n14. Support for OpenMP, which is passed through to FLANN, OpenCV and PCL.\n15. Support for CUDA, which is passed through to FLANN, OpenCV and PCL.\n16. Support for MPI, which by default sets up the C++ libraries.\n17. If doing Boost.Python and OpenCV, an example of passing a numpy ndarray to OpenCV, computing something, and returning a cv::Mat as a numpy ndarray, thanks to Gregory Kramida's pyboostcvconverter.\n18. Support for Python Wheels, using [Matthew Brett's multibuild](https://github.com/matthew-brett/multibuild).\n\n\nUse Cases\n---------\n\nThe feature list above is quite diverse, and in reality most developers won't want all of them.\nSo, while you could attempt all of these, within the same project, \nwe envisage the following types of project types:\n\n* C++ command line interfaces. \n* A C++ library in a C++ user interface, using Qt, or QML.\n* A C++ library in a Python module, or perhaps a Python GUI, where the Python is developed separately, outside of this project.\n* A C++ library in an environment such as Unity, developed outside of this project.\n\nSo, the aim for the C++ developer would be to write a small algorithm library, and get the code out there\ninto the hands of their users. This project can accommodate all of the above, and there are CMake\noptions to switch these options OFF/ON.\n\nFurthermore, once you have a successful build for your use-case, you could \ndelete the bits of code that you don't need.  We could have made a different repository \nfor each of the use-cases, but then there would be a lot of code\nduplication and overlap. So, for now, its all one repository. If you want to\nstreamline your project, you could:\n\n* Take a look in the ```Code``` folder. Remove the directories you do not need,\nand change ```Code/CMakeLists.txt``` accordingly.\n\n* Search the top level CMakeLists.txt for code that looks like\n```mpAddSomething``` and ```mpIncludeSomething``` and easily chop out 3rd party libraries\nyou do not need. \n\nWe believe its easier to remove code you don't need than it is to\nbuild up a lot of CMake code, based on hours of searching the internet.\nAt least the CMake code here has been tested... to some degree.\n\n\nBasic Build Instructions\n------------------------\n\nThis project itself can be built if you just want to test it. In Linux terms that\nwould be:\n``` cmake\ngit clone --recursive https://github.com/MattClarkson/CMakeCatchTemplate\nmkdir CMakeCatchTemplate-Build\ncd CMakeCatchTemplate-Build\ncmake ../CMakeCatchTemplate\nmake\n```\nBut ideally, you should use this as a template to create your own project. To do so,\nplease refer to the [CMakeTemplateRenamer](https://github.com/MattClarkson/CMakeTemplateRenamer)\nwhich will show you how to clone this repository, and rename all the variables to names of your choice.\nThen you would simply build your new project, using cmake, as shown above.\n\n\nFurther Build Instructions\n--------------------------\n\nThis project can be configured, using CMake, to build against Eigen, Boost, OpenCV, glog, gflags, \nVTK and PCL. These were chosen as examples of how to use CMake, and some common\nC++ projects. These dependencies are optional, and this project will compile without them.\n\nFurthermore, these dependencies can be downloaded and built,\nor the user can specify directories of previously compiled\nlibraries.\n\nTo download and build dependencies, use CMake to ensure:\n\n  * BUILD_SUPERBUILD:BOOL=ON\n\nwhere ```ON``` is the default. Then to build any of Eigen, Boost or OpenCV etc., use CMake to set:\n\n  * BUILD_Eigen:BOOL=ON|OFF\n  * BUILD_Boost:BOOL=ON|OFF\n  * BUILD_OpenCV:BOOL=ON|OFF\n\nand so on. If you set BUILD_SUPERBUILD=OFF, and these BUILD_whatever variables are on, then CMake will just try finding\nlocally installed versions rather then downloading them.\n\nTo switch between static/dynamic linking, use CMake to set:\n\n  * BUILD_SHARED_LIBS:BOOL=ON|OFF\n\nTo switch between Debug and Release mode, use CMake to set:\n\n  * CMAKE_BUILD_TYPE:STRING=Debug|Release\n\nNote: Only Debug and Release are supported.\n\nNote: your host system is very likely to have a version of Boost that\nis different to the one provided here. So if you want to use Boost,\nyou should probably try and use the one provided by this SuperBuild.\n\n\nWindows Users\n-------------\n\nIf you build the project with shared libraries (BUILD_SHARED_LIBS:BOOL=ON)\nthen after the SuperBuild has successfully completed, you should look for the batch file\nStartVS_Debug.bat or StartVS_Release.bat in the MYPROJECT-build folder.\nThis sets the path before launching Visual Studio, so that when you come to run your\napplication or unit tests within Visual Studio, the dynamically\nloaded libraries are found at run time.\n\n\nRunning a Python Module\n-----------------------\n\nThis project can be used to build Python extensions, using either Boost.Python\nor PyBind11.\n\n* Clone CMakeCatchTemplate (or your generated project), using ```--recursive```.\n* Use CMake to set BUILD_Python_Boost or BUILD_Python_PyBind to ON.\n* Run a C++ build.\n* Set PYTHON_PATH to the directory containing your C++ library.\n\nCode examples are in Code/Lib/PythonBoost or Code/Lib/PythonPybind. \nSo using the Code/Lib/PythonBoost as an example, once PYTHON_PATH is set so\nthat you can pick up your compiled module, you would then be able to:\n```\nimport myprojectPython as mp\nmp.my_first_add_function(1,6)\n```\n\nDeploying wheels is a difficult process. To help here, we have been \ninspired by [Matthew Brett's multibuild](https://github.com/matthew-brett/multibuild), so you would configure \n.travis.yml and appveyor.yml to generate your Python Wheels.\n\n\nTested On\n---------\n\n * Windows - Windows 8, VS2013, CMake 3.6.3, Qt 5.4.2\n * Linux - Centos 7, g++ 4.8.5, CMake 3.5.1, Qt 5.6.2\n * Mac - OSX 10.10.5, clang 6.0, CMake 3.9.4, Qt 5.6.2\n * Also refer to .travis.yml and appveyor.yml for other combinations\n\nMinimum CMake version is 3.5. If you turn GUI options on, then the minimum Qt is version 5. \nQt4 is not supported and not planned to be supported. If you are using VTK you should \ntry a Qt version >= 5.5.0 to take advantage of the new OpenGL2 backend. \nIf you need PyBind11, you need at least C++11, so on Windows you should have at least VS2015.\n\n\nA Note on Packaging and Deployment\n----------------------------------\n\nThere are many different issues and combinations to test when packaging an application.\nFor example:\n\n * System: Windows / Linux / Mac.\n * Linkage: Shared libraries / Static libraries.\n * Executable style: Command line applications / GUI applications / Command line applications bundled together with GUI applications.\n * With or without python modules.\n * With or without Unity modules.\n * The developer runs ```make install``` to install it in a specific directory, linked against known libraries, in known locations.\n * The developer runs ```make package``` to make a relocatable and distributable bundle so that another user can install it anywhere on their system.\n\nIt would take too long to document all of them and all of the issues involved. So, this project suggests\nsome simple starting points, and recommendations.\n\n| Use Case | Important CMake settings | Workflow |\n| -------- | ------------------------ | -------- |\n| Command Line Apps | leave GUIs OFF, BUILD_SHARED_LIBS=OFF, CMAKE_INSTALL_PREFIX=/path/to/install/to | make, make install |\n| C++ Gui Apps | Learn to build Qt5 first, BUILD_SHARED_LIBS=ON, build against your compiled Qt | make, make package | \n| Python Modules | must clone repo with --recursive, leave GUIs OFF, BUILD_SHARED_LIBS=OFF | make, test locally by setting PYTHON_PATH, configure CI builds (see appveyor.yml and .travis.yml) to make wheels, upload to PyPi |\n| Unity Modules |  leave GUIs OFF, BUILD_SHARED_LIBS=ON | make, then point Unity at the module. |\n\nIf you change your use-case, you must do a full clean build. That means completely delete the build folder, not just do a ```make clean```.\n\n\nPreferred Branching Workflow for Contributions.\n-----------------------------------------------\n\nWe welcome contributions to this project. Please use the following workflow.\n\n 1. Raise issue in this project's Github Issue Tracker.\n 2. Fork repository.\n 3. Create a feature branch called ```<issue-number>-<some-short-description>```\n    replacing ```<issue-number>``` with the Github issue number\n    and ```<some-short-description>``` with your description of the thing you are implementing.\n 4. Code on that branch.\n 5. Push to your remote when ready.\n 6. Create pull request.\n 7. We will review code, suggest and required changes and merge to master when it is ready.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "C++ cmake catch project template",
+        "license": "BSD-3 license",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "MyProjectPython",
+        "package_url": "https://pypi.org/project/MyProjectPython/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/MyProjectPython/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/MyProjectPython/0.0.1/",
+        "requires_dist": [
+            "six (>=1.10)",
+            "numpy (>=1.11)"
+        ],
+        "requires_python": "",
+        "summary": "A software package for whatever.",
+        "version": "0.0.1"
+    },
+    "last_serial": 4715403,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5622e47904d83a0e5adc04feaa75bf58",
+                    "sha256": "b404a49b8f7ddafa2e3f304f6090c532a4e5a7fd9e47e17003b87cd22c8a1a1f"
+                },
+                "downloads": -1,
+                "filename": "MyProjectPython-0.0.1-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "5622e47904d83a0e5adc04feaa75bf58",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 185355,
+                "upload_time": "2019-01-19T11:40:39",
+                "url": "https://files.pythonhosted.org/packages/20/20/6b8a1046685123866633c3b34f5fcfa7e3f8f3f60b5596c745415aa6a461/MyProjectPython-0.0.1-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bafcd896f0ed94e86640e8bf2389465e",
+                    "sha256": "787c9de869d8794e9ae5aa1a4b88de2f7bec84c92d3a0b2bb7456ecdcaae8a22"
+                },
+                "downloads": -1,
+                "filename": "MyProjectPython-0.0.1-cp27-cp27m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "bafcd896f0ed94e86640e8bf2389465e",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 83666,
+                "upload_time": "2019-01-19T11:47:46",
+                "url": "https://files.pythonhosted.org/packages/f4/af/3f4f89e4b34a57424be8828021ffb48358af6e2265d3c22a70b1ae12019b/MyProjectPython-0.0.1-cp27-cp27m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "87a324b32c47c61bd9fcc43c89ee0178",
+                    "sha256": "deeeacd9361782c8553fb39e11267c12151edfa7e89f01e0efe7053afbaf7a80"
+                },
+                "downloads": -1,
+                "filename": "MyProjectPython-0.0.1-cp27-cp27mu-manylinux1_i686.whl",
+                "has_sig": false,
+                "md5_digest": "87a324b32c47c61bd9fcc43c89ee0178",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 84558,
+                "upload_time": "2019-01-19T11:48:37",
+                "url": "https://files.pythonhosted.org/packages/b9/70/91e6b63102e4ee4861a005cca6173d220af8b479e05c7dabb070a57f6e20/MyProjectPython-0.0.1-cp27-cp27mu-manylinux1_i686.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b8a93ba28693cbf6fef87517dc019707",
+                    "sha256": "86df62e286d1a031083aa96292c777c0c1589289b6b5a5a1e9f4aad706e6ce37"
+                },
+                "downloads": -1,
+                "filename": "MyProjectPython-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "b8a93ba28693cbf6fef87517dc019707",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 83663,
+                "upload_time": "2019-01-19T11:47:10",
+                "url": "https://files.pythonhosted.org/packages/0c/d6/e61e3b23d264edebf04220f63093180533f3b37c1d8fbd6010f6484a02b7/MyProjectPython-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "165a6704070b413568bd18bae0422c94",
+                    "sha256": "dc0e4621afda62a56cc3b5b8032cd963bd791a716682a2552aac426231257916"
+                },
+                "downloads": -1,
+                "filename": "MyProjectPython-0.0.1-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "165a6704070b413568bd18bae0422c94",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 182526,
+                "upload_time": "2019-01-19T11:39:59",
+                "url": "https://files.pythonhosted.org/packages/99/ae/1cf792f1aff6416a8dc82e8444e3a37078c1593016e227b27c9bbb6e0c82/MyProjectPython-0.0.1-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "555cea3acc3ed6498dc24606530cf4fa",
+                    "sha256": "9f5c42aa4973170403eece746cbd71cc199ae7395f0c121c1c45e5fc2ad1d279"
+                },
+                "downloads": -1,
+                "filename": "MyProjectPython-0.0.1-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "555cea3acc3ed6498dc24606530cf4fa",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 182526,
+                "upload_time": "2019-01-19T11:41:17",
+                "url": "https://files.pythonhosted.org/packages/a4/c2/9a5dcf2f9720b2ca36eb333326d2f64f932c05e370e7827a634e48dd0d22/MyProjectPython-0.0.1-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5622e47904d83a0e5adc04feaa75bf58",
+                "sha256": "b404a49b8f7ddafa2e3f304f6090c532a4e5a7fd9e47e17003b87cd22c8a1a1f"
+            },
+            "downloads": -1,
+            "filename": "MyProjectPython-0.0.1-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "5622e47904d83a0e5adc04feaa75bf58",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 185355,
+            "upload_time": "2019-01-19T11:40:39",
+            "url": "https://files.pythonhosted.org/packages/20/20/6b8a1046685123866633c3b34f5fcfa7e3f8f3f60b5596c745415aa6a461/MyProjectPython-0.0.1-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "bafcd896f0ed94e86640e8bf2389465e",
+                "sha256": "787c9de869d8794e9ae5aa1a4b88de2f7bec84c92d3a0b2bb7456ecdcaae8a22"
+            },
+            "downloads": -1,
+            "filename": "MyProjectPython-0.0.1-cp27-cp27m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "bafcd896f0ed94e86640e8bf2389465e",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 83666,
+            "upload_time": "2019-01-19T11:47:46",
+            "url": "https://files.pythonhosted.org/packages/f4/af/3f4f89e4b34a57424be8828021ffb48358af6e2265d3c22a70b1ae12019b/MyProjectPython-0.0.1-cp27-cp27m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "87a324b32c47c61bd9fcc43c89ee0178",
+                "sha256": "deeeacd9361782c8553fb39e11267c12151edfa7e89f01e0efe7053afbaf7a80"
+            },
+            "downloads": -1,
+            "filename": "MyProjectPython-0.0.1-cp27-cp27mu-manylinux1_i686.whl",
+            "has_sig": false,
+            "md5_digest": "87a324b32c47c61bd9fcc43c89ee0178",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 84558,
+            "upload_time": "2019-01-19T11:48:37",
+            "url": "https://files.pythonhosted.org/packages/b9/70/91e6b63102e4ee4861a005cca6173d220af8b479e05c7dabb070a57f6e20/MyProjectPython-0.0.1-cp27-cp27mu-manylinux1_i686.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b8a93ba28693cbf6fef87517dc019707",
+                "sha256": "86df62e286d1a031083aa96292c777c0c1589289b6b5a5a1e9f4aad706e6ce37"
+            },
+            "downloads": -1,
+            "filename": "MyProjectPython-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "b8a93ba28693cbf6fef87517dc019707",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 83663,
+            "upload_time": "2019-01-19T11:47:10",
+            "url": "https://files.pythonhosted.org/packages/0c/d6/e61e3b23d264edebf04220f63093180533f3b37c1d8fbd6010f6484a02b7/MyProjectPython-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "165a6704070b413568bd18bae0422c94",
+                "sha256": "dc0e4621afda62a56cc3b5b8032cd963bd791a716682a2552aac426231257916"
+            },
+            "downloads": -1,
+            "filename": "MyProjectPython-0.0.1-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "165a6704070b413568bd18bae0422c94",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 182526,
+            "upload_time": "2019-01-19T11:39:59",
+            "url": "https://files.pythonhosted.org/packages/99/ae/1cf792f1aff6416a8dc82e8444e3a37078c1593016e227b27c9bbb6e0c82/MyProjectPython-0.0.1-cp36-cp36m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "555cea3acc3ed6498dc24606530cf4fa",
+                "sha256": "9f5c42aa4973170403eece746cbd71cc199ae7395f0c121c1c45e5fc2ad1d279"
+            },
+            "downloads": -1,
+            "filename": "MyProjectPython-0.0.1-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "555cea3acc3ed6498dc24606530cf4fa",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 182526,
+            "upload_time": "2019-01-19T11:41:17",
+            "url": "https://files.pythonhosted.org/packages/a4/c2/9a5dcf2f9720b2ca36eb333326d2f64f932c05e370e7827a634e48dd0d22/MyProjectPython-0.0.1-cp37-cp37m-macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl"
+        }
+    ]
+}

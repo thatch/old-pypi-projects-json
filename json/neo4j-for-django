@@ -1,0 +1,120 @@
+{
+    "info": {
+        "author": "Lilian Cruanes",
+        "author_email": "cruaneslilian@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Framework :: Django",
+            "Framework :: Django :: 2.2",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Database"
+        ],
+        "description": "### You can find the full documentation on ReadTheDocs [here](https://neo4j-for-django.readthedocs.io/en/latest/).\n\n---\n\n<br/>\n<br/>\n\n# Presentation :\n<br/>\n\n![transparent logo neo4j_for_django](https://neo4j-for-django.readthedocs.io/en/latest/img/transparent_logo_neo4j_for_django.png)\n<br/>\n<br/>\n\nThe **neo4j_for_django** package extends the **_Django_** framework to make it compatible with the **_Neo4j_** databases.  \nTwo other solutions already exist, but they each have their own inconveniences :  \n\n| [**neo4django**](https://github.com/scholrly/neo4django) | [**neomodel**](https://github.com/neo4j-contrib/neomodel) |\n|:--------------:|:------------:|\n| This package is out of date (last update in 2014). His usage is deprecated, cause he runs under very old versions of all its components : _Python 2.X_ / _Django 1.5_ / _Neo4j 1.9_. Furthermore, **neo4django** does not provide support for the Django's sessions nor a complete support for the Django's authentication. | This package is regularly updated, he runs also under last versions of all its components. He provides a very complete adaptation of the Django models, but the philosophy of these contributors is almost to make a 'ready and easy to use' tool, so the user interact only with the highlevel surface . The inconvenience of a such reasoning, it's that under the hood, there are foundations that often ignores primary concepts like separation of writing transactions and reading transactions. This philosophy is perfectly compatible with modest projects, but it conduces to a total remake and to more complex programs the days where we will want to have a finger in the pie, to increase the performance of our project with the establishing of clusters (for example). Furthermore, **neomodel** does not provides support for the Django's sessions nor for the Django's authentication. |\n\n**neo4j_for_django** has a completely different philosophy. It wants to let more responsability to the users of the package, leaving him interact with deeper concepts. First, the database interaction has been developed to let the user use writing queries and reading queries, but also more advanced concepts like make multi-transactions sessions and causal chaining. To reuse the above example (in the neomodel column of table) of clusters, we understand that with **neo4j_for_django**, their implementation and optimisations will not be an heavy task, and even, if you have the reflex to use directly theses concepts in your project, there will be almost nothing to change. But on the other hand, methods have been developed to make easier the use of these concepts. With **neo4j_for_django** you can optimise your queries by doing case by case, but you can also use 'ready to use' writing and reading methods to code faster. \n> NB : The separation of writing and reading queries is the unique condition to set up clusters. So you you could just use these two 'ready to use' methods and get pretty good results.\n\nThen, and to a lesser extent than **neomodel**, we have rewrite the Django's _'models'_ , to make them _'node-models'_. The more basics functionalities have been remade, and especially on the elementary structure of the nodes (to improve clarity), considering that the complex requests works must be done by the developers theirself to increase a lot performance of each query.\n\nFinally, the Django's sessions and authentication packages, have been completely remodeled to make them compatible with Neo4j. Maybe later, we will rewrite the Django's administration (Any volunteer ?).\n\nTo conclude, if you search a very complete adapation of the Django's models for Neo4j and if you don't need to set authentication and sessions in your project, nor use advanced  graph databases' concepts, you should use [**neomodel**](https://github.com/neo4j-contrib/neomodel), but if you need all of this and more flexibility, check the following documentation. \n<br/>\n<br/>\n<br/>\n\n---\n\n# Installation :\n<br/>\n\n1. First, open a terminal.\n<br/>\n<br/>\n\n2. Then, go into your Django project or start your virtual environment if you have one :\n\n    Example :\n```\n> cd my_projects/my_django_project\n```\n<br/>\n<br/>\n\n3. Finally, execute :\n```\n> pip install neo4j-for-django\n```\nor if it doesn't work :\n```\n> python -m pip install neo4j-for-django\n```\n<br/>\n<br/>\n\n4. To check if all works open the terminal, and go in your virtual environment if you have one. Then, run the python shell of your Django project and try to import the **neo4j_for_django** package :\n\n```\n(my_env) > python manage.py shell\nPython 3.7.1 (v3.7.1:260ec2c36a, Oct 20 2018, 14:57:15) [MSC v.1915 64 bit (AMD64)] on win32\nType \"help\", \"copyright\", \"credits\" or \"license\" for more information.\n(InteractiveConsole)\n>>> import neo4j_for_django\n>>>\n```\n\n   If no error message is raised, that's good.  \n<br/>\n<br/>\n<br/>\n\n---\n\n# Getting started :\n<br/>\n\n## Introducing\n\nThe **neo4j_for_django package** is very fast to setup. Just **2 steps** are needed to execute yours first cypher requests.\n\n>> If you don't have already install the package, please see the [installation](https://neo4j-for-django.readthedocs.io/en/latest/installation/) page.  \n<br/>\n<br/>\n\n\n## 1. Set the neo4j_for_django settings to your project \n\nA very simple step, just import the **`set_neo4j_for_django_settings_on()`** in the settings.py file of your Django project :\n\n> <small>_settings.py_</small>\n```python\nfrom neo4j_for_django import set_neo4j_for_django_settings_on\n```\n<br/>\n<br/>\n\nThen, use this method on all the datas contained in your settings.py file. The **`locals()`** function return a dictionary that contains all of these datas.\nSo just put this **at the bottom** of your settings.py file :\n\n> <small>_settings.py_</small>\n```python\nset_neo4j_for_django_settings_on(locals())\n```\n<br/>\n<br/>\n\nFinally, and always in the same file (**just below the method** that we have previously set), configure yours Neo4j credentials with the 3 parameters :  \n    - **`N4D_DATABASE_URI`**,  \n    - **`N4D_DATABASE_ID`**,  \n    - and **`N4D_DATABASE_PASSWORD`**.\n\n**`N4D_DATABASE_URI`** is the bolt address of your database. Generally on a local server, the bolt address is '**bolt://localhost:7687**'. But you can find more details in the parameters of your Neo4j database and on the official [documentation](https://neo4j.com/docs/driver-manual/1.7/client-applications/#driver-connection-uris).\n\n**`N4D_DATABASE_ID`** is your Neo4j database **id** or **username**. By default the id is defined on 'neo4j'.\n\n**`N4D_DATABASE_PASSWORD`** is your Neo4j database **password**. By default the password is defined on 'neo4j' too. But normally and if you don't have change the password before, during the first run of the Neo4j database, we will ask you to replace the default password by another. \n\nExample :\n\n> <small>_settings.py_</small>\n```python\nN4D_DATABASE_URI = \"bolt://localhost:7687\"\n\nN4D_DATABASE_ID = 'neo4j'\n\nN4D_DATABASE_PASSWORD = '1234'\n```\n<br/>\n\n##### **You're project is now configured to work with `neo4j_for_django` !**\n\n<br/>\n<br/>\n\n**WARNING** : don't forget to remove the default admin page at the creation of your project, cause the Django administration is'nt already supported by **neo4j_for_django**. Else, a \"LookupError: No installed app with label 'admin'.\" will be raised.\n\n```python\nfrom django.contrib import admin\nfrom django.urls import path, include\n\nurlpatterns = [\n    # path('admin/', admin.site.urls),\n    path('blog/', include(\"my_project.urls\"))\n]\n```\n<br/>\n<br/>\n\n\n## 2. Run a first cypher query\n\n**neo4j_for_django** can be used in all the files of your project. So in one of these files, import the **`gdbh`** object.\n\n> <small>views.py</small>\n```python\nfrom neo4j_for_django.db import gdbh\n```\n<br/>\n<br/>\n\n**g-db-h** means **_Graph Database Handler_** and it is an instance of the **`GraphDatabaseHandler()`** class. This instance will be used all the times where we will want to interact with the Neo4j database.\n<br/>\n<br/>\n\nNow you can use the **`w_transaction()`** method of the **`gdbh`** object, to send a query to the database :\n\n```python\ngdbh.w_transaction(\"CREATE (:Person) {first_name: 'Adrien', age: 18}\")\n```\n<br/>\n\n>> The **`w_transaction()`** means **writing transaction**, so use it preferably when you want to create or modify datas in the database.  \nWe also find the **`r_transaction()`** method, which one should be used preferably to retrieve datas from the database.\n<br/>\n<br/>\n\nFor now, if you have any doubt, use the **`w_transaction()`** method.\n<br/>\n<br/>\n<br/>\n\n---\n\n### You can find the full documentation on ReadTheDocs [here](https://neo4j-for-django.readthedocs.io/en/latest/).\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/LilianCruanes/neo4j_for_django",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "neo4j-for-django",
+        "package_url": "https://pypi.org/project/neo4j-for-django/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/neo4j-for-django/",
+        "project_urls": {
+            "Homepage": "https://github.com/LilianCruanes/neo4j_for_django"
+        },
+        "release_url": "https://pypi.org/project/neo4j-for-django/0.0.2/",
+        "requires_dist": [
+            "neo4j"
+        ],
+        "requires_python": "",
+        "summary": "This Python 3.X package provides Neo4j support for the Django framework.",
+        "version": "0.0.2"
+    },
+    "last_serial": 5166914,
+    "releases": {
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "822c2ba4a54eb3ae740c89d8aaa5b09a",
+                    "sha256": "579866e1c331736aa5041475fc26c6977295c75e5c2b1e1403c5e1fbe0f1539b"
+                },
+                "downloads": -1,
+                "filename": "neo4j_for_django-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "822c2ba4a54eb3ae740c89d8aaa5b09a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 46608,
+                "upload_time": "2019-04-20T04:01:14",
+                "url": "https://files.pythonhosted.org/packages/f9/a9/b55614d5dd7af921117f64ad5b1db35bcd45752160daf249bb3512527933/neo4j_for_django-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "38e293c808922d64ff55452962d53a4a",
+                    "sha256": "06e1d73463fefc0859a92450cce9888143c043cc4ea32bd2a410c710a94c1ea7"
+                },
+                "downloads": -1,
+                "filename": "neo4j_for_django-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "38e293c808922d64ff55452962d53a4a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 28334,
+                "upload_time": "2019-04-20T04:01:15",
+                "url": "https://files.pythonhosted.org/packages/1a/96/129d0236ad202e9905fac5b4d3e01f6ed2fd6676872d4f6453ff87fd6b5e/neo4j_for_django-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "822c2ba4a54eb3ae740c89d8aaa5b09a",
+                "sha256": "579866e1c331736aa5041475fc26c6977295c75e5c2b1e1403c5e1fbe0f1539b"
+            },
+            "downloads": -1,
+            "filename": "neo4j_for_django-0.0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "822c2ba4a54eb3ae740c89d8aaa5b09a",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 46608,
+            "upload_time": "2019-04-20T04:01:14",
+            "url": "https://files.pythonhosted.org/packages/f9/a9/b55614d5dd7af921117f64ad5b1db35bcd45752160daf249bb3512527933/neo4j_for_django-0.0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "38e293c808922d64ff55452962d53a4a",
+                "sha256": "06e1d73463fefc0859a92450cce9888143c043cc4ea32bd2a410c710a94c1ea7"
+            },
+            "downloads": -1,
+            "filename": "neo4j_for_django-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "38e293c808922d64ff55452962d53a4a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 28334,
+            "upload_time": "2019-04-20T04:01:15",
+            "url": "https://files.pythonhosted.org/packages/1a/96/129d0236ad202e9905fac5b4d3e01f6ed2fd6676872d4f6453ff87fd6b5e/neo4j_for_django-0.0.2.tar.gz"
+        }
+    ]
+}

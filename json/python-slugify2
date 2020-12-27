@@ -1,0 +1,182 @@
+{
+    "info": {
+        "author": "Ronie Martinez",
+        "author_email": "ronmarti18@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython"
+        ],
+        "description": "# python-slugify2\n\nFork of [un33k/python-slugify](https://github.com/un33k/python-slugify) to fix [issue 68](https://github.com/un33k/python-slugify/issues/68).\n\n<table>\n    <tr>\n        <td>License</td>\n        <td><img src='https://img.shields.io/pypi/l/python-slugify2.svg'></td>\n        <td>Version</td>\n        <td><img src='https://img.shields.io/pypi/v/python-slugify2.svg'></td>\n    </tr>\n    <tr>\n        <td>Travis CI</td>\n        <td><img src='https://travis-ci.org/roniemartinez/python-slugify2.svg?branch=develop'></td>\n        <td>Coverage</td>\n        <td><img src='https://codecov.io/gh/roniemartinez/python-slugify2/branch/develop/graph/badge.svg'></td>\n    </tr>\n    <tr>\n        <td>AppVeyor</td>\n        <td><img src='https://ci.appveyor.com/api/projects/status/srpweajn7vq7hq02/branch/develop?svg=true'></td>\n        <td>Supported versions</td>\n        <td><img src='https://img.shields.io/pypi/pyversions/python-slugify2.svg'></td>\n    </tr>\n    <tr>\n        <td>Wheel</td>\n        <td><img src='https://img.shields.io/pypi/wheel/python-slugify2.svg'></td>\n        <td>Implementation</td>\n        <td><img src='https://img.shields.io/pypi/implementation/python-slugify2.svg'></td>\n    </tr>\n    <tr>\n        <td>Status</td>\n        <td><img src='https://img.shields.io/pypi/status/python-slugify2.svg'></td>\n        <td>Downloads</td>\n        <td><img src='https://img.shields.io/pypi/dm/python-slugify2.svg'></td>\n    </tr>\n    <tr>\n        <td>Show your support</td>\n        <td><a href='https://saythanks.io/to/roniemartinez'><img src='https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg'></a></td>\n    </tr>\n</table>\n\n## Improvements\n\n- Support for `extras_require` and `cmdclass`\n- Refactored\n- Deploy from Travis CI\n- Added Appveyor Integration\n- Uses `pytest`\n- Uses CodeCov\n\n## How to install\n\nBy default, python-slugify2 uses [Unidecode](https://github.com/avian2/unidecode) as decoder which is GPL-licensed.\n\n```bash\npip install python-slugify2\n```\n\n### Specifying decoder\n\nYou can specify which decoder will be used:\n\n- [Unidecode](https://github.com/avian2/unidecode) - *(GPL-licensed)*.\n\n    ```bash\n    pip install python-slugify2[unidecode]\n    easy_install python-slugify2[unidecode]\n    ```\n\n- [text-unidecode](https://github.com/kmike/text-unidecode) *(GPL & Perl Artistic)*\n\n    ```bash\n    pip install python-slugify2[text-unidecode]\n    easy_install python-slugify2[text-unidecode]\n    ```\n\n## How to use\n\n```python\n# -*- coding: utf-8 -*-\nfrom slugify import slugify\n\ntxt = \"This is a test ---\"\nr = slugify(txt)\nassert r == \"this-is-a-test\"\n\ntxt = '\u5f71\u5e2b\u55ce'\nr = slugify(txt)\nassert r == \"ying-shi-ma\"\n\ntxt = 'C\\'est d\u00e9j\u00e0 l\\'\u00e9t\u00e9.'\nr = slugify(txt)\nassert r == \"c-est-deja-l-ete\"\n\ntxt = 'N\u00edn h\u01ceo. W\u01d2 sh\u00ec zh\u014dng gu\u00f3 r\u00e9n'\nr = slugify(txt)\nassert r == \"nin-hao-wo-shi-zhong-guo-ren\"\n\ntxt = '\u041a\u043e\u043c\u043f\u044c\u044e\u0442\u0435\u0440'\nr = slugify(txt)\nassert r == \"kompiuter\"\n\ntxt = 'jaja---lol-m\u00e9m\u00e9m\u00e9oo--a'\nr = slugify(txt, max_length=9)\nassert r == \"jaja-lol\"\n\ntxt = 'jaja---lol-m\u00e9m\u00e9m\u00e9oo--a'\nr = slugify(txt, max_length=15, word_boundary=True)\nassert r == \"jaja-lol-a\"\n\ntxt = 'jaja---lol-m\u00e9m\u00e9m\u00e9oo--a'\nr = slugify(txt, max_length=20, word_boundary=True, separator=\".\")\nassert r == \"jaja.lol.mememeoo.a\"\n\ntxt = 'one two three four five'\nr = slugify(txt, max_length=13, word_boundary=True, save_order=True)\nassert r == \"one-two-three\"\n\ntxt = 'the quick brown fox jumps over the lazy dog'\nr = slugify(txt, stopwords=['the'])\nassert r == 'quick-brown-fox-jumps-over-lazy-dog'\n\ntxt = 'the quick brown fox jumps over the lazy dog in a hurry'\nr = slugify(txt, stopwords=['the', 'in', 'a', 'hurry'])\nassert r == 'quick-brown-fox-jumps-over-lazy-dog'\n\ntxt = 'thIs Has a stopword Stopword'\nr = slugify(txt, stopwords=['Stopword'], lowercase=False)\nassert r == 'thIs-Has-a-stopword'\n\ntxt = \"___This is a test___\"\nregex_pattern = r'[^-a-z0-9_]+'\nr = slugify(txt, regex_pattern=regex_pattern)\nassert r == \"___this-is-a-test___\"\n\ntxt = \"___This is a test___\"\nregex_pattern = r'[^-a-z0-9_]+'\nr = slugify(txt, separator='_', regex_pattern=regex_pattern)\nassert r != \"_this_is_a_test_\"\n\ntxt = '10 | 20 %'\nr = slugify(txt, replacements=[['|', 'or'], ['%', 'percent']])\nassert r == \"10-or-20-percent\"\n\n```\n\n## References\n\n- [Add ability to specify \"default\" extras_require](https://github.com/pypa/setuptools/issues/1139)\n- [setup.py not ran on wheels](https://stackoverflow.com/questions/40433168/running-custom-code-with-pip-install-fails#comment75920547_40434969)\n\n## Author\n\n- Original - [Val Neekman](https://github.com/un33k/python-slugify)\n- Modified by [Ronie Martinez](mailto:ronmarti18@gmail.com)",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "https://github.com/roniemartinez/python-slugify2/tarball/2.1.2",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/roniemartinez/python-slugify2",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "python-slugify2",
+        "package_url": "https://pypi.org/project/python-slugify2/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/python-slugify2/",
+        "project_urls": {
+            "Download": "https://github.com/roniemartinez/python-slugify2/tarball/2.1.2",
+            "Homepage": "https://github.com/roniemartinez/python-slugify2"
+        },
+        "release_url": "https://pypi.org/project/python-slugify2/2.1.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Fork of un33k/python-slugify to fix issue #68",
+        "version": "2.1.2"
+    },
+    "last_serial": 4688530,
+    "releases": {
+        "2.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b7c49d7e0434d9b740c40f5ced47f996",
+                    "sha256": "414044acc1ef18efc76253f0177a259a6d9a62a4d547a592b8eb9cc535f35e39"
+                },
+                "downloads": -1,
+                "filename": "python-slugify2-2.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b7c49d7e0434d9b740c40f5ced47f996",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7089,
+                "upload_time": "2019-01-12T12:11:51",
+                "url": "https://files.pythonhosted.org/packages/2f/dd/4897f0a280d50c368ba189a7fdfe1d4913a3aa568db4a46835543c265166/python-slugify2-2.1.0.tar.gz"
+            }
+        ],
+        "2.1.0rc1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2cbe69994b2e8504adfc34f85331072b",
+                    "sha256": "bf7bb4bee9e0821cc4403109aa33bab3ce984b695b19f70098784e921523f981"
+                },
+                "downloads": -1,
+                "filename": "python_slugify2-2.1.0rc1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2cbe69994b2e8504adfc34f85331072b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 6164,
+                "upload_time": "2019-01-12T11:24:05",
+                "url": "https://files.pythonhosted.org/packages/19/1b/d733da245005caba270be0467327c32a4328496e443d9d77d8410c7c2fb5/python_slugify2-2.1.0rc1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dd1127f66de776935df74f071b6aa86b",
+                    "sha256": "9a67f11d64c38f645f6c90f28debc2465bdf454fdcd8f50376fcc9cb5af9ef3d"
+                },
+                "downloads": -1,
+                "filename": "python-slugify2-2.1.0rc1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dd1127f66de776935df74f071b6aa86b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7016,
+                "upload_time": "2019-01-12T11:24:07",
+                "url": "https://files.pythonhosted.org/packages/1f/5d/b562ea53871ef412366e8c9ddd947ea3643c460aa0c70a2eace1f109c000/python-slugify2-2.1.0rc1.tar.gz"
+            }
+        ],
+        "2.1.0rc2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1829f4ea86fb3c21031c64b8b68d538d",
+                    "sha256": "e8c6bc0e007f94461ddc5ec381de1913e2c3a4c12f9d3e1660f3a78f1998e6fe"
+                },
+                "downloads": -1,
+                "filename": "python-slugify2-2.1.0rc2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1829f4ea86fb3c21031c64b8b68d538d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7096,
+                "upload_time": "2019-01-12T11:58:52",
+                "url": "https://files.pythonhosted.org/packages/74/89/c4e666b3b6d9ca2da380d867919617fb14ec487d541f955addc45ad5596d/python-slugify2-2.1.0rc2.tar.gz"
+            }
+        ],
+        "2.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "99bd84aa247366cb8f44c02df217cdad",
+                    "sha256": "b5a7fc012215d06c39195d9ac6ca032846f2e0637a81de9bed7c42c5abdc6607"
+                },
+                "downloads": -1,
+                "filename": "python-slugify2-2.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "99bd84aa247366cb8f44c02df217cdad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7054,
+                "upload_time": "2019-01-12T12:55:38",
+                "url": "https://files.pythonhosted.org/packages/bf/17/5245a5c73dab5ae98fdd81d8774ee313429ebd87d8425fe9ddce354393de/python-slugify2-2.1.1.tar.gz"
+            }
+        ],
+        "2.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "096763c63aac4aa44a7713fb6844a341",
+                    "sha256": "266b69ef8e9441a8db7ff7977c5134c3b877de098bacc1d85d9bc818a5940c5c"
+                },
+                "downloads": -1,
+                "filename": "python-slugify2-2.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "096763c63aac4aa44a7713fb6844a341",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7101,
+                "upload_time": "2019-01-12T14:21:34",
+                "url": "https://files.pythonhosted.org/packages/8c/0a/f996f21b98fde02de89d798981453043c8ced26c7b9834ee3b8079eb7e16/python-slugify2-2.1.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "096763c63aac4aa44a7713fb6844a341",
+                "sha256": "266b69ef8e9441a8db7ff7977c5134c3b877de098bacc1d85d9bc818a5940c5c"
+            },
+            "downloads": -1,
+            "filename": "python-slugify2-2.1.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "096763c63aac4aa44a7713fb6844a341",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7101,
+            "upload_time": "2019-01-12T14:21:34",
+            "url": "https://files.pythonhosted.org/packages/8c/0a/f996f21b98fde02de89d798981453043c8ced26c7b9834ee3b8079eb7e16/python-slugify2-2.1.2.tar.gz"
+        }
+    ]
+}

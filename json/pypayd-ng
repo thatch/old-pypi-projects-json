@@ -1,0 +1,150 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 5,
+        "author": "Serge Victor",
+        "author_email": "pyhon@random.re",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Console",
+            "Framework :: CherryPy",
+            "Framework :: Flask",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Topic :: Office/Business :: Financial"
+        ],
+        "description": ".. image:: https://img.shields.io/travis/ser/pypayd-ng.svg\n    :target: https://travis-ci.org/ser/pypayd-ng\n.. image:: https://img.shields.io/pypi/pyversions/pypayd-ng.svg\n    :target: https://pypi.python.org/pypi/pypayd-ng\n.. image:: https://img.shields.io/pypi/v/pypayd-ng.svg\n    :target: https://pypi.python.org/pypi/pypayd-ng\n.. image:: https://img.shields.io/pypi/l/pypayd-ng.svg\n    :target: https://pypi.python.org/pypi/pypayd-ng\n.. image:: https://img.shields.io/pypi/status/pypayd-ng.svg\n    :target: https://pypi.python.org/pypi/pypayd-ng\n.. image:: https://img.shields.io/pypi/format/pypayd-ng.svg\n    :target: https://pypi.python.org/pypi/pypayd-ng\n.. image:: https://coveralls.io/repos/github/ser/pypayd-ng/badge.svg?branch=master\n    :target: https://coveralls.io/github/ser/pypayd-ng?branch=master \n\npypayd-ng\n=========\n\nPypayd is a minimalistic daemon for accepting bitcoin payments,\noriginally written by Alexander Maznev. This is meant to be a good\nalternative if you do not want setup an account with a third-party\npayment processor. Pypayd provides an API for creating orders and\nautomatically records order fulfillment (payment received) as well as\ninvalid payments.\n\nPypayd-NG is a rewritten version of pypayd, which automatically creates\nreceiving addresses for provided HD wallet, a wrapper around the pycoin\nimplementation of BIP32. It generates addresses compatible with modern\nHD wallets from a public master-key only (note that there is no need to\nstore the private key on the server, it's much safer to use the public\nkey only!).\n\nInstallation\n------------\n\nThe recommended installation is to use ``pip3 install pypayd-ng``.\n\nIf you prefer to use a developement version:\n``git clone https://github.com/ser/pypayd-ng``\n\nfollowing that ``cd`` into the pypayd-ng directory and execute:\n``pip3 install -r requirements.txt``.\n\nConfiguration\n-------------\n\nYou are able to configure pypayd via creating ``pypayd.conf`` file.\nConsult ``pypayd_ng/pypayd/config.py`` for configuration values.\n\ncurrency exchange rates\n^^^^^^^^^^^^^^^^^^^^^^^\n\nCurrently there are three sources of live currency exchange rates\navailable:\n\n-  ``btcavga``: https://api.bitcoinaverage.com/ticker/global/all\n-  ``bitstamp``: https://www.bitstamp.net/api/ticker\n-  ``coindesk``: https://api.coindesk.com/v1/bpi/currentprice.json\n\nExample usage\n-------------\n\nGet a wallet. Pypayd supports the following wallets out of the box:\n\n-  Copay: ``copay`` (supports Live and Test BTC networks)\n-  Electrum: ``electrum`` (supports Live BTC network only, Electrum\n   versions >=2.0)\n-  Mycelium: ``mycelium`` (supports Live and Test BTC networks)\n\n| Obtain a publickey from your wallet. It should look like:\n| ``tpubD8z6BcZQGXU6AVeqgkqmhDKAtfMPoX2sNyYaSzoiZYHRdJjG75f5CTbzmQ9sWCWsijwnwW9MEvVbQuckbKQoZktBjJyxL1ui4rSoAyQDnwF``\n  (please do not use that public key, as it is an example only)\n\nInsert the publickey into a file ``payment_wallet.txt`` on your online\nserver. Then run pypayd, specifying type of the wallet you are using\n(for example Copay):\n\n``pypayd_ng.py --server wallet --wallet-type=\"copay\" --from-file=\"payment_wallet.txt\"``\n\nThen from your webserver (i.e. to create an order for a payment of 20\nUSD):\n\n::\n\n    import requests\n    import json\n    url = \"http://127.0.0.1:3080\"\n    headers = {'content-type': 'application/json'}\n    payload = {\n        \"method\": \"create_order\",\n        \"params\": {\"amount\": 20.0, \"qr_code\": True},\n        \"jsonrpc\": \"2.0\",\n        \"id\": 0,\n    }\n    response = requests.post( url, data=json.dumps(payload), headers=headers).json()\n\nThis will return an automatically created order\\_id, a price converted\nto Bitcoin from the ``DEFAULT_CURRENCY`` by the ``DEFAULT_TICKER``, a\nreceiving address, as well as a time left on the transaction (note that\nthe timeleft on the transaction is the time-lapse after which a payment\nreceived for the order will not be considered valid; it may be\npreferable to set a longer ``TX_LIFE`` then the one displayed to the\ncustomer). The full argument list for ``create_order`` as follows:\n\n::\n\n    * amount          order amount in native currency\n    * currency        takes a string such as 'USD', config.DEFAULT_CURRENCY if none\n    * item_number     specify an item-number to associate  with the order in the database\n    * order_id        specify an order-id, if one is not given an order-id will be created by hashing other order attributes\n    * gen_new         generate a new address for the order if True, otherwise uses config settings\n    * qr_code         generate a qr_code for the corresponding receiving address if True\n\ndependencies\n------------\n\n-  Python3\n-  See ``requirements.txt``\n-  ``zbarimg`` binary is required for tests only, you can find it in ``zbar-tools`` package in debian/ubuntu\n\nto do\n-----\n\nSee the ``TODO.md`` list.\n\ninterfaces\n----------\n\nPypayd-NG supports insight-api (run locally or hosted:\nhttps://insight.bitpay.com/) and blockr (https://blockr.io/). I'll\nprobably add support for jmcorgan's fork of bitcoin-core with address\nindexing in the near future. To configure set ``BLOCKCHAIN_SERVICE`` to\nthe interface Pypayd should load (\"insight\" or \"blockr\") and\n``BLOCKCHAIN_CONNECT`` to the complete url in the ``pypayd.conf`` file.",
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/ser/pypayd-ng/",
+        "keywords": null,
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "pypayd-ng",
+        "package_url": "http://pypi.python.org/pypi/pypayd-ng",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/pypayd-ng/0.0.6",
+        "requires_python": null,
+        "summary": "A small daemon for processing bitcoin payments compatible with modern HD wallets",
+        "version": "0.0.6"
+    },
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "downloads": 280,
+                "filename": "pypayd_ng-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e162718c6777d28696a06a94d6e2ff94",
+                "packagetype": "bdist_wheel",
+                "path": "63/43/24a2303137632ce64b49ff402221cf7e1ddbc809410b916f2b5a3f1dd58a/pypayd_ng-0.0.1-py3-none-any.whl",
+                "python_version": "3.5",
+                "size": 41122,
+                "upload_time": "2016-01-19T01:41:29",
+                "url": "https://pypi.python.org/packages/63/43/24a2303137632ce64b49ff402221cf7e1ddbc809410b916f2b5a3f1dd58a/pypayd_ng-0.0.1-py3-none-any.whl"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "downloads": 299,
+                "filename": "pypayd_ng-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5384e71bfabd03c0546a491d5707a7da",
+                "packagetype": "bdist_wheel",
+                "path": "a4/17/c22de29e8ed5362e9ee240e04a55876cc52b34d00db01e53bceae02e0c5a/pypayd_ng-0.0.2-py3-none-any.whl",
+                "python_version": "3.5",
+                "size": 41307,
+                "upload_time": "2016-01-19T03:53:38",
+                "url": "https://pypi.python.org/packages/a4/17/c22de29e8ed5362e9ee240e04a55876cc52b34d00db01e53bceae02e0c5a/pypayd_ng-0.0.2-py3-none-any.whl"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "downloads": 273,
+                "filename": "pypayd_ng-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8ec59416060f39eb2b56e03c62729e60",
+                "packagetype": "bdist_wheel",
+                "path": "2d/21/3facd2c3226988b8ccc0cbdfabd3e4fcce3dbe74c02883cfcbddf7666c5d/pypayd_ng-0.0.3-py3-none-any.whl",
+                "python_version": "3.5",
+                "size": 41306,
+                "upload_time": "2016-01-19T06:27:06",
+                "url": "https://pypi.python.org/packages/2d/21/3facd2c3226988b8ccc0cbdfabd3e4fcce3dbe74c02883cfcbddf7666c5d/pypayd_ng-0.0.3-py3-none-any.whl"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "downloads": 279,
+                "filename": "pypayd_ng-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "baf70e304d5efe9e14e85d5f30ea7c66",
+                "packagetype": "bdist_wheel",
+                "path": "06/21/68a2e9e8db77e03bbd8ec530842547b69b8b5b743db870a691954b563dd2/pypayd_ng-0.0.4-py3-none-any.whl",
+                "python_version": "3.5",
+                "size": 41306,
+                "upload_time": "2016-01-19T06:32:04",
+                "url": "https://pypi.python.org/packages/06/21/68a2e9e8db77e03bbd8ec530842547b69b8b5b743db870a691954b563dd2/pypayd_ng-0.0.4-py3-none-any.whl"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "downloads": 618,
+                "filename": "pypayd_ng-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c9713f7b98f51ecfd35ef1dbd8f09822",
+                "packagetype": "bdist_wheel",
+                "path": "12/27/c8546eaddd40b55b341eae31e2db31e09698e828258d8fd9df933786b491/pypayd_ng-0.0.5-py3-none-any.whl",
+                "python_version": "3.5",
+                "size": 41313,
+                "upload_time": "2016-01-19T07:24:04",
+                "url": "https://pypi.python.org/packages/12/27/c8546eaddd40b55b341eae31e2db31e09698e828258d8fd9df933786b491/pypayd_ng-0.0.5-py3-none-any.whl"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "downloads": 294,
+                "filename": "pypayd_ng-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2ea000c39a7d1da4016906c5f2bb02fc",
+                "packagetype": "bdist_wheel",
+                "path": "cf/8c/5cce1212cd221ea0bff9388471357e50770e66a697df82af058a750409d2/pypayd_ng-0.0.6-py3-none-any.whl",
+                "python_version": "3.5",
+                "size": 58116,
+                "upload_time": "2016-01-19T07:33:01",
+                "url": "https://pypi.python.org/packages/cf/8c/5cce1212cd221ea0bff9388471357e50770e66a697df82af058a750409d2/pypayd_ng-0.0.6-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 294,
+            "filename": "pypayd_ng-0.0.6-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2ea000c39a7d1da4016906c5f2bb02fc",
+            "packagetype": "bdist_wheel",
+            "path": "cf/8c/5cce1212cd221ea0bff9388471357e50770e66a697df82af058a750409d2/pypayd_ng-0.0.6-py3-none-any.whl",
+            "python_version": "3.5",
+            "size": 58116,
+            "upload_time": "2016-01-19T07:33:01",
+            "url": "https://pypi.python.org/packages/cf/8c/5cce1212cd221ea0bff9388471357e50770e66a697df82af058a750409d2/pypayd_ng-0.0.6-py3-none-any.whl"
+        }
+    ]
+}

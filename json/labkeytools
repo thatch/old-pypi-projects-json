@@ -1,0 +1,163 @@
+{
+    "info": {
+        "author": "AICS",
+        "author_email": "AICS_SW_Team@alleninstitute.org",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# LabKey tools for AICS\nThis repo provides access tools for development with LabKey.\n\n## Install\nThe labkey tools can be installed from the AICS Artifactory PyPi repository using pip. Hence you must have your pip configuration setup correctly first.\n\n### Ensure correct pip configuration\nThis can be done using Ansible. If you only need access to the released version of\nlabkeytools, then install the pip.config using this.\n\n```\n> ansible-playbook -b -K -c local -i inventory/dev.ini playbooks/pip_config.yml\n```\n\nTo ensure that you can also access pre-release versions in the snapshot repository\nrun the following\n```\n> ansible-playbook -b -K -c local -i inventory/dev.ini -e \"pip_user=${USER}\" playbooks/pip_config.yml\n```\nThe release-only install creates `/etc/pip.conf`. The second one for development version also adds\n`~/.config/pip/pip.conf`.\n\n### Install the actual tools\nOnce we have the pip configuration setup, create a **Python 3** virtual environment for labkey tools. This is required.\nActivate the environment and then pip install labkeytools.\n\n```\nmkdir -p ~/venv\nvirtualenv -p python3 ~/venv/lk_tools\nsource ~/venv/lk_tools/bin/activate\npip install -U labkeytools\n```\n\nYou should be able to run the tools mentioned below withing the activated virtual environment.\n\n## Tools\n- <a href=\"#lk_run\">lk_run</a>\n- Tools associated with lk_run\n  - <a href=\"#lk_default\">lk_default</a>\n  - <a href=\"#lk_feature\">lk_feature</a>\n  - <a href=\"#lk_dev_mms\">lk_dev_mms</a>\n  - <a href=\"#lk_stop\">lk_stop</a>\n  - <a href=\"#lk_clean\">lk_clean</a>\n  - <a href=\"#lk_restore\">lk_restore</a>\n  - <a href=\"#lk_add_pass\">lk_add_pass</a>\n- <a href=\"#lk_dbschema\">lk_dbschema</a>\n\n### Tool: <a name=\"lk_run\"></a>lk_run\nWe use **lk_run** create a locally running instance of labkey for development\npurposes. This does the following.\n- Instantiate a Postgres docker container using an image from the AICS Artifactory\nregistry.\n- Populate the database with a backup of the production database. The backup is\ncopied from the production backup store on the Allen NFS mount. If necessary\nspecially designated database backups can be pulled from Artifactory for test\nscenarios.\n- Instantiate a LabKey docker container using an image from the AICS Artifactory\nregistry.\n- Add the latest production custom modules to LabKey. The module versions are\ndetermined by looking the production version set in the AICS Ansible repository.\n\n#### Tool: <a name=\"lk_default\"></a>lk_default\nThis runs lk_run with the **latest** production backup - the one generated the\nmorning of the run. It does not need any parameters.\n\nTo override the docker image for MMS, set the environment variable LK_MMS_IMAGE:\n```bash\n$ export LK_MMS_IMAGE=docker-staging-local.artifactory.corp.alleninstitute.org/metadata-management-service:1.2.2-3.0.0\n```\nSimilarly, the image used for the proxy container can be set with the environment variable LK_PROXY_IMAGE.\n\n#### Tool: <a name=\"lk_stop\"></a>lk_stop [DEPRECATED. See <a href=\"#lk_clean\">lk_clean</a>]\nIf the labkey and postgres containers were started with lk_default, this will stop\nand remove the containers. If the containers were started with lk_feature you can\nuse this but you need to provide the labkey and posgres container names\nrespectively as command line arguments\n\n#### Tool: <a name=\"lk_clean\"></a>lk_clean\nStops and removes all containers and network belonging to a network created with lk_run.\nIf the specified (or default) network does not exist, the tool will attempt to remove\nall expected containers by name provided or default.\n\n#### Tool: <a name=\"lk_restore\"></a>lk_restore\nRestores the postgres data directory with the backup saved during lk_run.\nRunning this script will stop and restart all containers.\n\n#### Tool: <a name=\"lk_feature\"></a>lk_feature\nThis is used to setup a labkey instance to allow multiple users to test a feature\nin development without requiring installation on the staging setup. _It must be run\nfrom the root of the repo corresponding to the module being developed_. It creates\nthe labkey and postgres instances on random open ports and assigns the\ncontainers names associated with the feature branch name. It builds the module and\ncopies it into LabKey for deployment. It also provides a URL to be shared that will\nlet other users access and test the instance. Due to the random port assignment,\nusers cannot access this over VPN.\n\n#### Tool: <a href=\"#lk_dev_mms\"></a>lk_dev_mms\nThis works similarly to lk_default but excludes the MMS container so that it can be\nrun separately during development.\n\n#### Tool: <a name=\"lk_add_pass\"></a>lk_add_pass\nThis tool is used to set or update the password and/or apikey for a LabKey user.\nThis is intended for setting non-AD user passwords and apikeys, e.g. mms, fss,\njenkins, etc.\n\nTo access the PostgreSQL database to update, you need to provide either a docker\ncontainer name for the container running the LabKey PostgresDB, or the host access\ninformation of the host running the DB. If you provide a container name, and also\nhave host information the container will be chosen by default.\n\n### Tool: <a name=\"lk_dbschema\"></a>lk_dbschema\nThis is used to create the LabKey required XML form of the each database schema\nfrom a DDL file corresponding to the creation of the full database. It does not\nhandle database alterations right now, so when you create a migration script you\nalso need to update the associated full DLL.\n\nSee the [tool's README](labkeytools/labkeysql/README.md) file for details.\n\n### Release Notes\nSee [RELEASE_NOTES.md](RELEASE_NOTES.md) for details.\n\n## Level of Support\nWe are not currently supporting this code, but simply releasing it to the community AS IS. It is used for internal purposes. We are not able to provide any guarantees of support. The community is welcome to submit issues, but you should not expect an active response.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "Allen Institute Software License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "labkeytools",
+        "package_url": "https://pypi.org/project/labkeytools/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/labkeytools/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/labkeytools/1.0.18/",
+        "requires_dist": [
+            "PyParsing",
+            "xmltodict",
+            "json5",
+            "docker",
+            "labkey (>=1.0.1)",
+            "requests",
+            "pyyaml",
+            "pytest ; extra == 'all'",
+            "pytest-cov ; extra == 'all'",
+            "flake8 ; extra == 'all'",
+            "flake8 ; extra == 'lint_group'",
+            "pytest ; extra == 'test_group'",
+            "pytest-cov ; extra == 'test_group'"
+        ],
+        "requires_python": "",
+        "summary": "Tools for LabKey related development",
+        "version": "1.0.18"
+    },
+    "last_serial": 4789120,
+    "releases": {
+        "1.0.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0fc39b1fc9d86575d9e6a5ee8082bd2a",
+                    "sha256": "4ce58fa1c5472eaf7aa970a868772546d7dc49d3f992b1b5a50abbd9f7c2a0d5"
+                },
+                "downloads": -1,
+                "filename": "labkeytools-1.0.14-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0fc39b1fc9d86575d9e6a5ee8082bd2a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 54791,
+                "upload_time": "2019-01-28T19:54:30",
+                "url": "https://files.pythonhosted.org/packages/1e/4e/52d45a92b9bd4649b5d9eccb30e732fc56d859c9b25bf8bbbe11741e01b8/labkeytools-1.0.14-py2.py3-none-any.whl"
+            }
+        ],
+        "1.0.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cb9679d1a65829842e622e101882b725",
+                    "sha256": "4ffe9569c67a37e5059e3dd741862f7c6ab9e18dba5b9faf61eac86058af5450"
+                },
+                "downloads": -1,
+                "filename": "labkeytools-1.0.15-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "cb9679d1a65829842e622e101882b725",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 55401,
+                "upload_time": "2019-01-30T15:02:23",
+                "url": "https://files.pythonhosted.org/packages/28/d7/76cfa2700de330017fdd5eb5e41e4a6b4325cbcb8736ce5bd30654153802/labkeytools-1.0.15-py2.py3-none-any.whl"
+            }
+        ],
+        "1.0.16": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6a79b76b865c8835156a2ca132dfdbe5",
+                    "sha256": "d6b15d656cec921e8fc50e21c94c753a1eee40d3de4b0427779a50ca6a2c413c"
+                },
+                "downloads": -1,
+                "filename": "labkeytools-1.0.16-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6a79b76b865c8835156a2ca132dfdbe5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 55664,
+                "upload_time": "2019-01-31T22:34:30",
+                "url": "https://files.pythonhosted.org/packages/4b/b7/72fec72b43ede288a83c225691918a4d27931d6e07317c74c0050b773005/labkeytools-1.0.16-py2.py3-none-any.whl"
+            }
+        ],
+        "1.0.17": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3d7b742f7c26aec6bacb585614dd7bc",
+                    "sha256": "6323c7f59a3851269bd034969d21449206ffcb266b657039477e352e7c9bbdc9"
+                },
+                "downloads": -1,
+                "filename": "labkeytools-1.0.17-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f3d7b742f7c26aec6bacb585614dd7bc",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 60384,
+                "upload_time": "2019-02-01T21:32:38",
+                "url": "https://files.pythonhosted.org/packages/dd/de/26733fafaaa0633eec70dbe7ae813763aa3cbb68303a89741386398572e2/labkeytools-1.0.17-py2.py3-none-any.whl"
+            }
+        ],
+        "1.0.18": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14c787ea3eb031ae58ac9c9a8bf91269",
+                    "sha256": "a5973f940a142613e719754ae9fdc115dca01dc4abd45b11ab08a270f4a02044"
+                },
+                "downloads": -1,
+                "filename": "labkeytools-1.0.18-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "14c787ea3eb031ae58ac9c9a8bf91269",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 60793,
+                "upload_time": "2019-02-07T00:22:14",
+                "url": "https://files.pythonhosted.org/packages/4d/45/91764221a3379ee3a17ec6868c1ee77db0fe1c0af2b70f400153aff6cad4/labkeytools-1.0.18-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "14c787ea3eb031ae58ac9c9a8bf91269",
+                "sha256": "a5973f940a142613e719754ae9fdc115dca01dc4abd45b11ab08a270f4a02044"
+            },
+            "downloads": -1,
+            "filename": "labkeytools-1.0.18-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "14c787ea3eb031ae58ac9c9a8bf91269",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 60793,
+            "upload_time": "2019-02-07T00:22:14",
+            "url": "https://files.pythonhosted.org/packages/4d/45/91764221a3379ee3a17ec6868c1ee77db0fe1c0af2b70f400153aff6cad4/labkeytools-1.0.18-py2.py3-none-any.whl"
+        }
+    ]
+}

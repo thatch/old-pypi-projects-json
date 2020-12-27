@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "Paulo Porto",
+        "author_email": "cesarpaulomp@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Batchflows for Python 3\n\nThis tool will help you create and process a lot of data in an organized manner.\nYou can create batches of processing synchronously and asynchronously.\n\n*remember it's in BETA :D*\n\n## Get Started\n\n```python\nfrom batchflows.Batch import Batch, Step\n\n#First extend Step class and implement method execute\nclass SaveValueStep(Step):\n    def __init__(self, name, value_name, value):\n        #Remember name is required\n        super().__init__(name)\n        self.value_name = value_name\n        self.value = value\n\n    # \"_context\" is used to store values that will be used in other steps.\n    def execute(self, _context):\n        #do what u have to do here!\n        _context[self.value_name] = self.value\n\n#creating a second step just to make the explanation richer\nclass SumCalculatorStep(Step):\n    def __init__(self, name, attrs):\n        super().__init__(name)\n        self.attrs = attrs\n\n    def execute(self, _context):\n        calc = 0.0\n        for attr in self.attrs:\n            calc += _context[attr]\n\n        _context[self.name] = calc\n\n#Here we create our batch!\nbatch = Batch()\nbatch.add_step(SaveValueStep('step01', 'value01', 1))\nbatch.add_step(SaveValueStep('step02', 'value02', 4))\nbatch.add_step(SumCalculatorStep('step03', ['value01', 'value02', 'other_value']))\n\n#You can add something useful to your steps before starting bath!\nbatch.add_to_context('other_value', 5)\n\n#than execute your batch and be happy ;)\nbatch.execute()\n```\n\n## Let's try run some async\n\n```python\nfrom batchflows.Batch import Batch, Step, AsyncFlow\nimport time\n\nclass SomeStep(Step):\n    def execute(self, _context):\n        #count to 10 slowly\n        c = 0\n        while c < 10:\n            c += 1\n            print(c)\n            time.sleep(1)\n\n#Create your AsyncFlow\nlazy_counter = AsyncFlow('LazySteps01')\n#add steps so they run in parallel\nlazy_counter.add_step(SomeStep('lazy01'))\nlazy_counter.add_step(SomeStep('lazy02'))\n\nlazy_counter2 = AsyncFlow('LazySteps02')\nlazy_counter2.add_step(SomeStep('lazy03'))\nlazy_counter2.add_step(SomeStep('lazy04'))\n\nbatch = Batch()\nbatch.add_step(lazy_counter)\nbatch.add_step(lazy_counter2)\n\n#batchfllows will wait for each step to finish before executing the next one.\n#In this example lazy_counter will be called first and execute steps \"lazy01\" and \"lazy02\" in parallel.\n#Only when both steps finish ,the batch will star lazy_counter2\nbatch.execute()\n```\n\n## Next features:\n  * AsyncFlow thread pool size\n  * AsyncFlow timeout\n  * Resumable Steps\n  * Remote Flow\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/pcmporto/batchflows/src/master",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "batchflows-pporto",
+        "package_url": "https://pypi.org/project/batchflows-pporto/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/batchflows-pporto/",
+        "project_urls": {
+            "Homepage": "https://bitbucket.org/pcmporto/batchflows/src/master"
+        },
+        "release_url": "https://pypi.org/project/batchflows-pporto/1.0b1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "library for executing batches of data processing sequentially or asynchronously to python 3",
+        "version": "1.0b1"
+    },
+    "last_serial": 5739767,
+    "releases": {
+        "1.0b1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48ea1dcc931a076f6863c3b37046b3e9",
+                    "sha256": "5e0747f9590fe1491667c254f73d5dbca1806b2f090fb04c113c1a1c33ae186a"
+                },
+                "downloads": -1,
+                "filename": "batchflows_pporto-1.0b1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "48ea1dcc931a076f6863c3b37046b3e9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5785,
+                "upload_time": "2019-08-27T22:40:46",
+                "url": "https://files.pythonhosted.org/packages/b7/e7/8ee8c106bed4630dc24f7f65b012c1b3a02559a4631233ef797e557ebc3e/batchflows_pporto-1.0b1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "62a6e13582c1504ca1a76281e71f5f9f",
+                    "sha256": "201e98e1c5bd077a6e8f6c446012d4f968f0a2ad0a578dd60e40ae76b0b8f39d"
+                },
+                "downloads": -1,
+                "filename": "batchflows-pporto-1.0b1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "62a6e13582c1504ca1a76281e71f5f9f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3950,
+                "upload_time": "2019-08-27T22:40:49",
+                "url": "https://files.pythonhosted.org/packages/f9/c9/f97385dcd034e5014eb9cb73a1555772d79bd1432d899721e739bec4e8da/batchflows-pporto-1.0b1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "48ea1dcc931a076f6863c3b37046b3e9",
+                "sha256": "5e0747f9590fe1491667c254f73d5dbca1806b2f090fb04c113c1a1c33ae186a"
+            },
+            "downloads": -1,
+            "filename": "batchflows_pporto-1.0b1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "48ea1dcc931a076f6863c3b37046b3e9",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 5785,
+            "upload_time": "2019-08-27T22:40:46",
+            "url": "https://files.pythonhosted.org/packages/b7/e7/8ee8c106bed4630dc24f7f65b012c1b3a02559a4631233ef797e557ebc3e/batchflows_pporto-1.0b1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "62a6e13582c1504ca1a76281e71f5f9f",
+                "sha256": "201e98e1c5bd077a6e8f6c446012d4f968f0a2ad0a578dd60e40ae76b0b8f39d"
+            },
+            "downloads": -1,
+            "filename": "batchflows-pporto-1.0b1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "62a6e13582c1504ca1a76281e71f5f9f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 3950,
+            "upload_time": "2019-08-27T22:40:49",
+            "url": "https://files.pythonhosted.org/packages/f9/c9/f97385dcd034e5014eb9cb73a1555772d79bd1432d899721e739bec4e8da/batchflows-pporto-1.0b1.tar.gz"
+        }
+    ]
+}

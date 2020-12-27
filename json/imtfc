@@ -1,0 +1,221 @@
+{
+    "info": {
+        "author": "Simon J",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# imtfc\n\nIn-Memory Time-based Function Caching for Python 3\n\nSimilar to [`@functools.lru_cache`](https://docs.python.org/3/library/functools.html#functools.lru_cache), this allows you to cache the return value of a function\n\n`@imtfc.imtfc_cache` is different as it only caches the most recent value, and renewing the cache depends on a time limit. Unlike `lru_cache`, function parameters do not have anything to do with the caching\n\nIt essentially allows you to store the returned variable from a function, and only allows that function to be executed again if a certain time has passed since it was last executed\n\nSee the example below for a more visual explanation\n\n## Example\n\n```python\nfrom imtfc import imtfc_cache\nfrom time import sleep\n\n@imtfc_cache(seconds=6)\ndef double(x):\n    return x*2\n\nfor num in range(10):\n    doubled = double(num)\n    print(\"num: \" + str(num) + \" - doubled: \" + str(doubled))\n    sleep(2)\n```\n\nStep by step:\n\n- Import what we need\n- Define a function, `double`, that will double `x`\n- Decorate `double` using the `imtfc_cache` decorator and use a cache expiry time of 6 seconds\n- Start a loop, which calls `double` on all the numbers in `range(10)`\n- Wait for 2 seconds between each iteration of the loop\n\nWhen `double` gets called, this is what happens inside the cache:\n\n- If the cache has expired, run `double` directly and return the calculated value\n- Else, return the previously calculated value that has been stored in memory\n\n\"Expired\" means that, in this instance, 6 seconds have passed since the last time `double` was called\n\nThe output will looks like this (with added comments to explain what is happening):\n\n```python\n# Cache initialised, call double() on 0 and store the returned value in memory\nnum: 0 - doubled: 0\n# It has not been 6 seconds since we last called double(), so return our last calculated value from memory\nnum: 1 - doubled: 0\nnum: 2 - doubled: 0\n# It has now been 6 seconds, clear the cache and call double() on the new number, save this in memory\nnum: 3 - doubled: 6\nnum: 4 - doubled: 6\nnum: 5 - doubled: 6\n# It has been another 6 seconds, call double() again on the current number and store the new value\nnum: 6 - doubled: 12\nnum: 7 - doubled: 12\nnum: 8 - doubled: 12\n# Another 6 seconds have passed, do the same\nnum: 9 - doubled: 18\n```\n\n## Installation\n\n**`pip install imtfc`**\n\n## [Documentation](https://github.com/psidex/imtfc/blob/master/docs/README.md)\n\n## Why?\n\nOne use case for this is if you have a function that relies on heavy CPU / GPU / Memory usage. If you are calling a function like this very frequently, you probably don't want to destroy your machines CPU / GPU / Memory usage by actually running the function\n\nAnother use case would be is if you run an API request on an event (such as a user loading a webpage). You don't want to execute this API request every time this event happens, otherwise you would just be spamming the API with requests. Instead, using this caching method, you still get normal API responses, but you will actually only be requesting from the API when the cache expires\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/psidex/imtfc",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "imtfc",
+        "package_url": "https://pypi.org/project/imtfc/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/imtfc/",
+        "project_urls": {
+            "Homepage": "https://github.com/psidex/imtfc"
+        },
+        "release_url": "https://pypi.org/project/imtfc/0.0.5/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "In-Memory Time-based Function Caching for Python 3",
+        "version": "0.0.5"
+    },
+    "last_serial": 5274437,
+    "releases": {
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "33e46e8f5ae73c29a904dbe9fb024f64",
+                    "sha256": "491d5c90e4b8e9a2b32e2e9854612d8db9478cd4458ed89453bb4f005ebad3e2"
+                },
+                "downloads": -1,
+                "filename": "imtfc-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "33e46e8f5ae73c29a904dbe9fb024f64",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3064,
+                "upload_time": "2018-06-11T21:16:46",
+                "url": "https://files.pythonhosted.org/packages/13/3a/81d1b5107d749751240ba1bf6881a4668b9ff9e4963c4d01daaf3bfe1088/imtfc-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bec4d0d64968cd32cb3c1d4283b5f3c2",
+                    "sha256": "e209da6b81cb63a9b139160ff9e0acb7a23537ccb0c993d32d5e1a449d206080"
+                },
+                "downloads": -1,
+                "filename": "imtfc-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bec4d0d64968cd32cb3c1d4283b5f3c2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2901,
+                "upload_time": "2018-06-11T21:16:47",
+                "url": "https://files.pythonhosted.org/packages/2f/8e/326aa4eb75865ad4caf0780757d07edc9e86ca06f62bec95b068eff0faba/imtfc-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8b4362abbbb0c20b1731da0b82d2dda7",
+                    "sha256": "baa0c5fe6408ae8c2b9d4b1a9dff36fb8a6d1dd87e0ce2bc7db2ef7cc62fb4e9"
+                },
+                "downloads": -1,
+                "filename": "imtfc-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8b4362abbbb0c20b1731da0b82d2dda7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3195,
+                "upload_time": "2018-06-15T14:56:09",
+                "url": "https://files.pythonhosted.org/packages/55/a2/b163328a1abe14ad669c563bffc98c2336940937127ac7992269b21b6fcd/imtfc-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a6c5cd94f0e67dcf2b289a3c8570fbcf",
+                    "sha256": "15879b1243156635ba65075a79569bb5426bd4ad2a8983781e264b6e6adbfd14"
+                },
+                "downloads": -1,
+                "filename": "imtfc-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a6c5cd94f0e67dcf2b289a3c8570fbcf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3017,
+                "upload_time": "2018-06-15T14:56:10",
+                "url": "https://files.pythonhosted.org/packages/24/18/9a3097e68502b3e80cfa68d7d7885b55a58a8524eddbac24ae968e8eec6e/imtfc-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4800acd3988b62f1237908fc2cd8d73a",
+                    "sha256": "402c61a58b3a35bdfcad73c1b71fa18fa7a9e30962dba9b20f31b9d947bad62a"
+                },
+                "downloads": -1,
+                "filename": "imtfc-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4800acd3988b62f1237908fc2cd8d73a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3202,
+                "upload_time": "2018-06-15T14:59:00",
+                "url": "https://files.pythonhosted.org/packages/00/1d/81992d2fb70b30fca2ddebe7648204a1b8eb6c1a9e3d92512a6076cd2b63/imtfc-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8b3818270d208e0d90297cf0005616a1",
+                    "sha256": "eccf7dce0c3baadfc1015f461af43fb446de18b8c2d6d54e28bd8248322dfc21"
+                },
+                "downloads": -1,
+                "filename": "imtfc-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8b3818270d208e0d90297cf0005616a1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3013,
+                "upload_time": "2018-06-15T14:59:01",
+                "url": "https://files.pythonhosted.org/packages/00/7a/782f993dc747003ef15a069b3328d06e03a90608558e7988bf4cc38167b7/imtfc-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7308a4421aa08c9791494f6953219d55",
+                    "sha256": "2a4619514bc278d6d77df8f638eaf7937ddcd8d0c5129da4b9acf8e7e7e38268"
+                },
+                "downloads": -1,
+                "filename": "imtfc-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7308a4421aa08c9791494f6953219d55",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4008,
+                "upload_time": "2019-05-15T15:49:09",
+                "url": "https://files.pythonhosted.org/packages/7a/2c/e1b34c01addeef142c1317dedacb518661e92825987da1cfbdcab8bea7a1/imtfc-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cfd9517e8d6cfaa3c74897659c7ffa1e",
+                    "sha256": "6a782ff302e024d8001972cc8ec59ab292ea3ae4ed70616d503b1e510a2a30b6"
+                },
+                "downloads": -1,
+                "filename": "imtfc-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cfd9517e8d6cfaa3c74897659c7ffa1e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2996,
+                "upload_time": "2019-05-15T15:49:10",
+                "url": "https://files.pythonhosted.org/packages/01/6d/00fa84ba51b4d2e1a408c9efb3a2adb9610c4155f0c68240a2572df7d753/imtfc-0.0.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7308a4421aa08c9791494f6953219d55",
+                "sha256": "2a4619514bc278d6d77df8f638eaf7937ddcd8d0c5129da4b9acf8e7e7e38268"
+            },
+            "downloads": -1,
+            "filename": "imtfc-0.0.5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "7308a4421aa08c9791494f6953219d55",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 4008,
+            "upload_time": "2019-05-15T15:49:09",
+            "url": "https://files.pythonhosted.org/packages/7a/2c/e1b34c01addeef142c1317dedacb518661e92825987da1cfbdcab8bea7a1/imtfc-0.0.5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "cfd9517e8d6cfaa3c74897659c7ffa1e",
+                "sha256": "6a782ff302e024d8001972cc8ec59ab292ea3ae4ed70616d503b1e510a2a30b6"
+            },
+            "downloads": -1,
+            "filename": "imtfc-0.0.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "cfd9517e8d6cfaa3c74897659c7ffa1e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 2996,
+            "upload_time": "2019-05-15T15:49:10",
+            "url": "https://files.pythonhosted.org/packages/01/6d/00fa84ba51b4d2e1a408c9efb3a2adb9610c4155f0c68240a2572df7d753/imtfc-0.0.5.tar.gz"
+        }
+    ]
+}

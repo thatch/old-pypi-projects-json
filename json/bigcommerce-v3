@@ -1,0 +1,255 @@
+{
+    "info": {
+        "author": "Neal Wong",
+        "author_email": "neal.wkacc@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Office/Business",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "Bigcommerce API V3 Python Client\n==================================\n\nWrapper over the ``bigcommerce`` library to support Bigcommerce v3 API.\n\nInstall with ``pip install bigcommerce_v3`` or ``easy_install bigcommerce_v3``. Tested with\npython 2.7, 3.4, 3.5, 3.6 and 3.7.\n\nUsage\n-----\n\nConnecting\n~~~~~~~~~~\n\n.. code:: python\n\n    import bigcommerce_v3\n\n    # Public apps (OAuth)\n    # Access_token is optional, if you don't have one you can use oauth_fetch_token (see below)\n    api = bigcommerce_v3.api.BigcommerceApi(client_id='', store_hash='', access_token='')\n\n    # Private apps (Basic Auth)\n    api = bigcommerce_v3.api.BigcommerceApi(host='store.mybigcommerce.com', basic_auth=('username', 'api token'))\n\n``BigcommerceApi`` also provides two helper methods for connection with OAuth2:\n\n-  ``api.oauth_fetch_token(client_secret, code, context, scope, redirect_uri)``\n   -- fetches and returns an access token for your application. As a\n   side effect, configures ``api`` to be ready for use.\n\n-  ``BigcommerceApi.oauth_verify_payload(signed_payload, client_secret)``\n   -- Returns user data from a signed payload.\n\nAccessing and objects\n~~~~~~~~~~~~~~~~~~~~~\n\nThe ``api`` object provides access to each API resource, each of which\nprovides CRUD operations, depending on capabilities of the resource:\n\n.. code:: python\n\n    api.Products.all()                         # GET /catalog/products (returns only a single page of products as a list)\n    api.Products.iterall()                     # GET /catalog/products (autopaging generator that yields all\n                                               #                  products from all pages product by product.)\n    api.Products.get(1)                        # GET /catalog/products/1\n    api.Products.create(name='', type='', ...) # POST /catalog/products\n    api.Products.get(1).update(price='199.90') # PUT /catalog/products/1\n    api.Products.delete_all()                  # DELETE /catalog/products\n    api.Products.get(1).delete()               # DELETE /catalog/products/1\n\nThe client provides full access to subresources, both as independent\nresources:\n\n::\n\n    api.ProductOptions.get(1, 2)               # GET /catalog/products/1/options/2\n\nAnd as helper methods on the parent resource:\n\n::\n\n    api.Products.get(1).variants()              # GET /catalog/products/1/variants\n    api.Products.get(1).variants(1)             # GET /catalog/products/1/variants/1\n\nThese subresources implement CRUD methods in exactly the same way as\nregular resources:\n\n::\n\n    api.Products.get(1).variants(1).delete()\n\nFilters\n~~~~~~~\n\nFilters can be applied to ``all`` methods as keyword arguments:\n\n.. code:: python\n\n    customer = api.Customers.all(first_name='John', last_name='Smith')[0]\n    orders = api.Orders.all(customer_id=customer.id)\n\nError handling\n~~~~~~~~~~~~~~\n\nMinimal validation of data is performed by the client, instead deferring\nthis to the server. A ``HttpException`` will be raised for any unusual\nstatus code:\n\n-  3xx status code: ``RedirectionException``\n-  4xx status code: ``ClientRequestException``\n\nThe low level API\n~~~~~~~~~~~~~~~~~\n\nThe high level API provided by ``bigcommerce_v3.api.BigcommerceApi`` is a\nwrapper around a lower level api in ``bigcommerce_v3.connection``. This can\nbe accessed through ``api.connection``, and provides helper methods for\nget/post/put/delete operations.\n\nManaging OAuth Rate Limits\n~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nYou can optionally pass a ``rate_limiting_management`` object into ``bigcommerce_v3.api.BigcommerceApi`` or ``bigcommerce_v3.connection.OAuthConnection`` for automatic rate limiting management, ex:\n\n.. code:: python\n\n    import bigcommerce_v3\n\n    api = bigcommerce_v3.api.BigcommerceApi(client_id='', store_hash='', access_token=''\n                                         rate_limiting_management= {'min_requests_remaining':2,\n                                                                    'wait':True,\n                                                                    'callback_function':None})\n\n``min_requests_remaining`` will determine the number of requests remaining in the rate limiting window which will invoke the management function\n\n``wait`` determines whether or not we should automatically sleep until the end of the window\n\n``callback_function`` is a function to run when the rate limiting management function fires. It will be invoked *after* the wait, if enabled.\n\n``callback_args`` is an optional parameter which is a dictionary passed as an argument to the callback function.\n\nFor simple applications which run API requests in serial (and aren't interacting with many different stores, or use a separate worker for each store) the simple sleep function may work well enough for most purposes. For more complex applications that may be parallelizing API requests on a given store, it's adviseable to write your own callback function for handling the rate limiting, use a ``min_requests_remaining`` higher than your concurrency, and not use the default wait function.\n\nFurther documentation\n---------------------\n\nFull documentation of the API is available on the Bigcommerce\n`Developer Portal <http://developer.bigcommerce.com>`__\n\nTo do\n-----\n\nFor now just support Catalog APIs.\n\n-  Add Price Lists API, Subscribers API, Scripts API, Themes API, BigCommerce Widgets API, Order, Transactions API, Payments API support\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/sfds-dev/bigcommerce-v3",
+        "keywords": "bigcommerce,api,v2,v3,client",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "bigcommerce-v3",
+        "package_url": "https://pypi.org/project/bigcommerce-v3/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/bigcommerce-v3/",
+        "project_urls": {
+            "Homepage": "https://bitbucket.org/sfds-dev/bigcommerce-v3"
+        },
+        "release_url": "https://pypi.org/project/bigcommerce-v3/0.1.8/",
+        "requires_dist": [
+            "bigcommerce",
+            "wrapt"
+        ],
+        "requires_python": "",
+        "summary": "Connect Python applications with the Bigcommerce API",
+        "version": "0.1.8"
+    },
+    "last_serial": 5504603,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9fcb2f3d1305da84f106c0ad7c262236",
+                    "sha256": "cfa1cda001cc71cb19bef9c49c7244745d363e7aed4b8bfcb71002cb70b0521d"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9fcb2f3d1305da84f106c0ad7c262236",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 14245,
+                "upload_time": "2019-05-04T04:20:59",
+                "upload_time_iso_8601": "2019-05-04T04:20:59.078768Z",
+                "url": "https://files.pythonhosted.org/packages/47/77/99c387adf6b70e172c1e128684e5994b55bb32287376b94f971f35fa5677/bigcommerce_v3-0.1.0-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "35b8ab98eb26472bd5f8d5ec0433efad",
+                    "sha256": "f1d60ca8b652432bdbc9eeb50c78115de8d2e6b7a6922a331d314bde163400d2"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "35b8ab98eb26472bd5f8d5ec0433efad",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 14598,
+                "upload_time": "2019-05-07T19:06:42",
+                "upload_time_iso_8601": "2019-05-07T19:06:42.301929Z",
+                "url": "https://files.pythonhosted.org/packages/25/06/d157c830030aea0cf6eb3ccf37b274d3a237d20bcb7c7809e1bf35622c73/bigcommerce_v3-0.1.1-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a55ff618bb959bcf40930b3f521f867c",
+                    "sha256": "b4102548b1c2ae757ccc584ff0af3c6e35d6846d0f71026494be9dfdb794a67f"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a55ff618bb959bcf40930b3f521f867c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15160,
+                "upload_time": "2019-05-18T04:35:04",
+                "upload_time_iso_8601": "2019-05-18T04:35:04.935843Z",
+                "url": "https://files.pythonhosted.org/packages/d1/9e/5caa78e088fa2c2cba1b72317c1213565936f4dd43da112f5f8615680764/bigcommerce_v3-0.1.2-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c902f0cc9d115ba3ca7d864a500718d",
+                    "sha256": "48d7feeabf4afb96e1ff2e4de733cf13366c0d8db5c5f2eda60be16af3207a6b"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8c902f0cc9d115ba3ca7d864a500718d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15174,
+                "upload_time": "2019-05-21T22:33:38",
+                "upload_time_iso_8601": "2019-05-21T22:33:38.999807Z",
+                "url": "https://files.pythonhosted.org/packages/04/27/bf61657445b80707ccd5c5cc04d7ceee7aa6279eedcc25b34c490e2a5149/bigcommerce_v3-0.1.3-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c4324ceebe6f1947ec9236611f7e1b8",
+                    "sha256": "0427431deca6f36bf65bd754effd70adb8af38e337cfcb6991c17032a65bcee4"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7c4324ceebe6f1947ec9236611f7e1b8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15260,
+                "upload_time": "2019-05-24T23:27:33",
+                "upload_time_iso_8601": "2019-05-24T23:27:33.793497Z",
+                "url": "https://files.pythonhosted.org/packages/d2/47/238a5f4388684555416e853b705b3b9df2a265e766fad289bc8517484f4c/bigcommerce_v3-0.1.4-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "17af13debee5ecd97576127bb6c39d8d",
+                    "sha256": "8e4c7167a45ed75868dae7c9fd0f01f06fc8d13621f29a8767e8f9cf65005c6f"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "17af13debee5ecd97576127bb6c39d8d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15301,
+                "upload_time": "2019-05-28T04:02:22",
+                "upload_time_iso_8601": "2019-05-28T04:02:22.362506Z",
+                "url": "https://files.pythonhosted.org/packages/6f/8a/727b78d33c830cd00c2f84595a052e7d739a28df9029f60e03dc2b25bab3/bigcommerce_v3-0.1.5-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d612125839277765f3b7de6df8387c5a",
+                    "sha256": "1e8e5f15ff4984efe2702fa1784930a74262548a33abb8095615c38156333311"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.6-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d612125839277765f3b7de6df8387c5a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15684,
+                "upload_time": "2019-06-01T15:51:53",
+                "upload_time_iso_8601": "2019-06-01T15:51:53.452493Z",
+                "url": "https://files.pythonhosted.org/packages/0a/05/e4bc7ffb8fb69dcec5c9b6c17358fa696d41ebac1d80d606d70d43bea222/bigcommerce_v3-0.1.6-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b5e6b650200dde78c69c08bc2c37f9d7",
+                    "sha256": "5e0931b9674607caa0a77aae485ecd53cccf0b7efbd11ef65b943de1f0b7cfb6"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.7-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b5e6b650200dde78c69c08bc2c37f9d7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15587,
+                "upload_time": "2019-07-08T23:35:14",
+                "upload_time_iso_8601": "2019-07-08T23:35:14.408513Z",
+                "url": "https://files.pythonhosted.org/packages/02/be/d839bd94676619cd070aac134e634556982610d47b81c3ac810bb3228624/bigcommerce_v3-0.1.7-py2.py3-none-any.whl"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "763ec268f9cbcdb40bb9571213c41fcf",
+                    "sha256": "3fc58343b09211e19821f744c9276ef68cd5686a038339fb4e35a4469ae20a00"
+                },
+                "downloads": -1,
+                "filename": "bigcommerce_v3-0.1.8-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "763ec268f9cbcdb40bb9571213c41fcf",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 15571,
+                "upload_time": "2019-07-09T03:56:21",
+                "upload_time_iso_8601": "2019-07-09T03:56:21.946575Z",
+                "url": "https://files.pythonhosted.org/packages/cb/ea/cf7295326bb8009a832ab92530068853fc9e74b477b275c8f739b9549e87/bigcommerce_v3-0.1.8-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "763ec268f9cbcdb40bb9571213c41fcf",
+                "sha256": "3fc58343b09211e19821f744c9276ef68cd5686a038339fb4e35a4469ae20a00"
+            },
+            "downloads": -1,
+            "filename": "bigcommerce_v3-0.1.8-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "763ec268f9cbcdb40bb9571213c41fcf",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 15571,
+            "upload_time": "2019-07-09T03:56:21",
+            "upload_time_iso_8601": "2019-07-09T03:56:21.946575Z",
+            "url": "https://files.pythonhosted.org/packages/cb/ea/cf7295326bb8009a832ab92530068853fc9e74b477b275c8f739b9549e87/bigcommerce_v3-0.1.8-py2.py3-none-any.whl"
+        }
+    ]
+}

@@ -1,0 +1,79 @@
+{
+    "info": {
+        "author": "author",
+        "author_email": "gm.moppers@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "# RPG Dungeon Builder #\n\nGenerate dungeon maps for RPG games, with map and room names.\n\n## Using with Python\n\nSample output (at 9 x 9 size).\n\n    >>> import DungeonBuilder\n    >>> my_map = DungeonBuilder.Dungeon(xsize=9, ysize=9, connectivity=67)\n    \n    >>> from pprint import pprint\n    >>> pprint(my_map.dictionary)\n    {'map': ['00 01-02-03-04-05-06-07 08 ',\n             ' |        |     |     |  | ',\n             '09-10-11 12-13-14 15-16-17 ',\n             ' |  |  |        |          ',\n             '18-19-20-21-22-23 24-25-26 ',\n             ' |     |  |  |  |  |     | ',\n             '27-28 29-30 31-32-33-34 35 ',\n             ' |  |        |  |     |  | ',\n             '36-37 38-39-40 41-42-43 44 ',\n             ' |  |  |                 | ',\n             '45-46-47 48-49-50 51-52-53 ',\n             ' |  |  |  |     |  |  |  | ',\n             '54 55 56 57-58-59-60-61-62 ',\n             ' |  |  |     |        |    ',\n             '63 64 65-66-67 68-69 70-71 ',\n             ' |  |           |  |  |  | ',\n             '72 73-74-75-76-77-78-79-80 '],\n    'xsize': 9,\n    'ysize': 9,\n     0: ['Dragons Tunnel of the Hells', ['S']],\n     1: ['Diamond Spire of Chaos', ['E']],\n     2: ['Dark Nursery of Chaos', ['E', 'W']],\n     3: ['Desecrated House', ['S', 'E', 'W']],\n     4: ['Infernal Sanctuary of Dragons', ['E', 'W']],\n     5: ['Profane Turret of Wickedness', ['S', 'E', 'W']],\n     6: ['Infernal Canyon of Secrets', ['E', 'W']],\n     7: ['Secret Spire of Sapphire', ['S', 'W']],\n     8: ['Emerald Mausoleum of Earth', ['S']],\n     9: ['Chaotic Cloister of Rock', ['N', 'S', 'E']],\n    10: ['Infernal Sanctuary of Blasphemy', ['S', 'E', 'W']],\n    11: ['Heavenly Catacomb of the Forgotten', ['S', 'W']],\n    12: ['Sapphire Oubliette of Blasphemy', ['N', 'E']],\n    13: ['Dark Temple of Wickedness', ['E', 'W']],\n    14: ['Ghostly Chasm of the Sacred One', ['N', 'S', 'W']],\n    15: ['Blasphemous Den of the Heavens', ['E']],\n    16: ['Diamond Cloister of Chaos', ['N', 'E', 'W']],\n    17: ['Starry Cavern of Enchantment', ['N', 'W']],\n    18: ['Drowned Vestibule of Doom', ['N', 'S', 'E']],\n    19: ['Devilish Pit of Darkness', ['N', 'E', 'W']],\n    20: ['Great Keep of Stars', ['N', 'S', 'E', 'W']],\n    21: ['Charnel Courtyard of the Dead', ['S', 'E', 'W']],\n    22: ['Starry House', ['S', 'E', 'W']],\n    23: ['Chaotic Den of Doom', ['N', 'S', 'W']],\n    24: ['Chaotic Belfry of Profanity', ['S', 'E']],\n    25: ['Chaotic Throne', ['E', 'W']]\n    ... snipped for brevity ...\n    }\n\n## Using with Terminal\n\nFor quick rpg usage from command line, a program is provided\n\n    $ dungeonbuilder -x3 -y3\n    [0] Vault of Devils\n    [1] Dragonly Catacomb of Sorcery\n    [2] Ghostly Bridge\n    [3] Starry Halls of the Ancients\n    [4] Chaotic Stronghold\n    [5] Stronghold of Divinity\n    [6] Ghoulish Antechamber\n    [7] Room of the Sacred One\n    [8] Room of Sorcery\n    0 1-2 \n    |   | \n    3-4 5 \n      | | \n    6-7-8 \n    Generation completed in 0.003 seconds.\n\n## Using with other Prog Lang\n\nTo interop with a different language, the command line client\naccepts `--json` switch and returns json to stdout.\n\n    $ dungeonbuilder -x3 -y3\n    {\"xsize\": 3, \"ysize\": 3, \"size\": 9, \"0\": [\"Wicked Stronghold of Death\", [\"E\"]], \"1\": [\"Decrepit Portal\", [\"S\", \"W\"]], \"2\": [\"Doomed Oubliette of Blasphemy\", [\"S\"]], \"3\": [\"Foul Canyon\", [\"S\", \"E\"]], \"4\": [\"Demonic Maze of Lies\", [\"N\", \"W\"]], \"5\": [\"Hall of Diamond\", [\"N\", \"S\"]], \"6\": [\"Chaotic Crypt\", [\"N\", \"E\"]], \"7\": [\"Turret of Terror\", [\"E\", \"W\"]], \"8\": [\"Belfry of Darkness\", [\"N\", \"W\"]], \"map\": [\"0-1 2 \", \"  | | \", \"3-4 5 \", \"|   | \", \"6-7-8 \"], \"key\": [\"[0] Wicked Stronghold of Death\", \"[1] Decrepit Portal\", \"[2] Doomed Oubliette of Blasphemy\", \"[3] Foul Canyon\", \"[4] Demonic Maze of Lies\", \"[5] Hall of Diamond\", \"[6] Chaotic Crypt\", \"[7] Turret of Terror\", \"[8] Belfry of Darkness\"]}\n\n## Parameters\n\nWhen creating, the following parameters are supported:\n\n`names` is the full path name of text file containing the names for area generation. If not\npresent or set to None, default fantasy is used. Look at the file `fantasy.dat` for format\ndetails.\n\n`connectivity` is the % of the exits that are filled. 100 would represent a fully-connected map\nwith every room having the maximum number of exits physically possible. We default to about 67.\nNote that there's a minimum connectivity value that depends on the map size, because every room\nmust be reachable *somehow* so you may get more exits than your connectivity.\n\nLow connectivity values produce mazes with only 1 route. \n\n`-x` and `-y` set the x and y size. X-size is size in x direction, which is number of columns.\n\n## Stuff in Dict\n\nThe full list of items in the dictionary are as follows:\n\n`xsize`, `ysize`: These do what you think they do, so long as you realise x-size means size in\nx-direction, which means number of *columns*.\n\n`size`: xsize * ysize\n\n`map`: As shown above, as a list of strings.\n\n`key`: For user convenience when running interactively, a list of tuples of (location number, name).\nIt can be printed directly to terminal for the map key.\n\n## Implementation Info ##\n\nOrigin is top left and grid array is y, x.\n\nif `xsize = 4, ysize = 3` then the map is\n\n    00 01 02 03\n    04 05 06 07\n    08 09 10 11\n\nand grid is\n\n    [\n        [ 0,  1,  2,  3]\n        [ 4,  5,  6,  7]\n        [ 8,  9, 10, 11]\n    ]\n\nwhich means the grid array is (y, x). However, functions take (x, y) parameters.\n\n## To-do ##\n\nImportant\n\n* Add \"alignment\" to names so that we don't get prefix and suffix pairs that contradict, such as\nWATERY FORGE OF FIRE. The system already won't use the same prefix and suffix together (no fear\nof WATERY PALACE OF WATER appearing).'\n\nNot important\n\n* The way names are generated is crappy and we can do better than this. Pre-gen a list of\ncombos on init, and use those. Then we don't have to randomly loop until we find one.\n\n## LICENSE ##\n\nMIT EXPAT\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/Moppy/dungeonbuilder",
+        "keywords": "",
+        "license": "MIT EXPAT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "dungeonbuilder",
+        "package_url": "https://pypi.org/project/dungeonbuilder/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/dungeonbuilder/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/Moppy/dungeonbuilder"
+        },
+        "release_url": "https://pypi.org/project/dungeonbuilder/1.1.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Generate random maps for tabletop RPG.",
+        "version": "1.1.2"
+    },
+    "last_serial": 3859437,
+    "releases": {
+        "1.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18a182687bd7afbe86b10fc4fbca20c8",
+                    "sha256": "ee552d380dbe219d5ae96c5a567eaf64b907b5a2be364a7c5c31b430f65e6e17"
+                },
+                "downloads": -1,
+                "filename": "dungeonbuilder-1.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18a182687bd7afbe86b10fc4fbca20c8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9221,
+                "upload_time": "2018-05-13T23:45:46",
+                "url": "https://files.pythonhosted.org/packages/a3/49/3ea65a9cdd391afe00ccb26d56ca5fc5d95df5432d4b31ad54b7c040141d/dungeonbuilder-1.1.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "18a182687bd7afbe86b10fc4fbca20c8",
+                "sha256": "ee552d380dbe219d5ae96c5a567eaf64b907b5a2be364a7c5c31b430f65e6e17"
+            },
+            "downloads": -1,
+            "filename": "dungeonbuilder-1.1.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "18a182687bd7afbe86b10fc4fbca20c8",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 9221,
+            "upload_time": "2018-05-13T23:45:46",
+            "url": "https://files.pythonhosted.org/packages/a3/49/3ea65a9cdd391afe00ccb26d56ca5fc5d95df5432d4b31ad54b7c040141d/dungeonbuilder-1.1.2.tar.gz"
+        }
+    ]
+}

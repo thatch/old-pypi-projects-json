@@ -1,0 +1,654 @@
+{
+    "info": {
+        "author": "yan",
+        "author_email": "yangaoucla@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# PARRIS: Profiling and Annotating ciRcular RNA with Iso-Seq\n\n## Getting started\n### Installation\n**PARRIS** is written with `python2`, please use `pip` to install **PARRIS**:\n```\npip install parris\n```\nOr, you can follow the instructions to install **PARRIS** from source:\n```\ngit clone https://github.com/yangao07/PARRIS.git\ncd PARRIS\npython setup.py install          # install main package\npip install -r requirements.txt  # install dependencies\n```\nAlso, please make sure [`samtools`(>=v1.6)](https://github.com/samtools/samtools) and [`bedtools`(>=v2.26.0)](https://bedtools.readthedocs.io/) are installed in your system.\n\n### Running **PARRIS**\nExample command #1:\n```angular2html\nparris -t 8 long_circRNA.fa reference.fa gene_anno.gtf circRNA.bed output_folder\n```\nExample command #2:\n```angular2html\nparris -t 8 long_circRNA.fa reference.fa gene_anno.gtf circRNA.bed output_folder \\\n    --short-read short_read.fa \\\n    --Alu ./anno/hg19/alu.bed   \\\n    --all-repeat ./anno/hg19/all_repeat.bed\n```\n\nDetailed arguments:\n```angular2html\nparris -h\nusage: parris [-h] [-v] [-t THREADS] [--short-read short.fa] [--lordec LORDEC]\n              [--kmer KMER] [--solid SOLID] [--trf TRF] [--match MATCH]\n              [--mismatch MISMATCH] [--indel INDEL] [--match-frac MATCH_FRAC]\n              [--indel-frac INDEL_FRAC] [--min-score MIN_SCORE]\n              [--max-period MAX_PERIOD] [--fxtools FXTOOLS]\n              [--min-len MIN_LEN] [--min-copy MIN_COPY] [--min-frac MIN_FRAC]\n              [--minimap MINIMAP] [-f] [--high-max-ratio HIGH_MAX_RATIO]\n              [--high-min-ratio HIGH_MIN_RATIO]\n              [--high-iden-ratio HIGH_IDEN_RATIO]\n              [--high-repeat-ratio HIGH_REPEAT_RATIO]\n              [--low-repeat-ratio LOW_REPEAT_RATIO] [--Alu ALU]\n              [--flank-len FLANK_LEN] [--all-repeat ALL_REPEAT] [-s SITE_DIS]\n              [-S END_DIS]\n              long.fa ref.fa anno.gtf circRNA.bed/gtf output\n\nPARRIS: Profiling and Annotating ciRcular RNA with Iso-Seq\n\npositional arguments:\n  long.fa               Long read data generated from long-read circRNA\n                        sequencing technique.\n  ref.fa                Reference genome sequence file.\n  anno.gtf              Whole gene annotation file in GTF format.\n  circRNA.bed/gtf       circRNA annotation file in BED12 or GTF format.\n  output                Output directory for final result and temporary files.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  -v, --version         show program's version number and exit\n\nGeneral options:\n  -t THREADS, --threads THREADS\n                        Number of thread to use. (default: 8)\n\nHybrid error-correction with short-read data (LoRDEC):\n  --short-read short.fa\n                        Short-read data for error correction. Use ',' to\n                        connect multiple or paired-end short read data.\n                        (default: )\n  --lordec LORDEC       Path to lordec-correct. (default: lordec-correct)\n  --kmer KMER           k-mer size. (default: 21)\n  --solid SOLID         Solid k-mer abundance threshold. (default: 3)\n\nDetecting tandem-repeat with TRF(Tandem Repeat Finder):\n  --trf TRF             Path to trf program. (default: trf409.legacylinux64)\n  --match MATCH         Match score. (default: 2)\n  --mismatch MISMATCH   Mismatch penalty. (default: 7)\n  --indel INDEL         Indel penalty. (default: 7)\n  --match-frac MATCH_FRAC\n                        Match probability. (default: 80)\n  --indel-frac INDEL_FRAC\n                        Indel probability. (default: 10)\n  --min-score MIN_SCORE\n                        Minimum alignment score to report. (default: 100)\n  --max-period MAX_PERIOD\n                        Maximum period size to report. (default: 2000)\n\nExtracting and aligning consensus sequence to genome (minimap2):\n  --fxtools FXTOOLS     Path to fxtools. (default: fxtools)\n  --min-len MIN_LEN     Minimum consensus length to keep. (default: 30)\n  --min-copy MIN_COPY   Minimum copy number of consensus to keep. (default:\n                        2.0)\n  --min-frac MIN_FRAC   Minimum fraction of original long read to keep.\n                        (default: 0.0)\n  --minimap MINIMAP     Path to minimap2. (default: minimap2)\n  -f, --do-classify     Classify circRNA alignment into high-quality and low-\n                        quality. (default: False)\n  --high-max-ratio HIGH_MAX_RATIO\n                        Maximum mappedLen / consLen ratio for high-quality\n                        alignment. (default: 1.1)\n  --high-min-ratio HIGH_MIN_RATIO\n                        Minimum mappedLen /consLen ratio for high-quality\n                        alignment. (default: 0.9)\n  --high-iden-ratio HIGH_IDEN_RATIO\n                        Minimum identicalBases/ consLen ratio for high-quality\n                        alignment. (default: 0.75)\n  --high-repeat-ratio HIGH_REPEAT_RATIO\n                        Maximum mappedLen / consLen ratio for high-quality\n                        self-tandem consensus. (default: 0.6)\n  --low-repeat-ratio LOW_REPEAT_RATIO\n                        Minimum mappedLen / consLen ratio for low-quality\n                        self-tandem alignment. (default: 1.9)\n\nEvaluating circRNA with annotation:\n  --Alu ALU             Alu repetitive element annotation in BED format.\n                        (default: )\n  --flank-len FLANK_LEN\n                        Length of upstream and downstream flanking sequence to\n                        search for Alu. (default: 500)\n  --all-repeat ALL_REPEAT\n                        All repetitive element annotation in BED format.\n                        (default: )\n  -s SITE_DIS, --site-dis SITE_DIS\n                        Allowed distance between circRNA internal-splice-site\n                        and annoated splice-site. (default: 0)\n  -S END_DIS, --end-dis END_DIS\n                        Allowed distance between circRNA back-splice-site and\n                        annoated splice-site. (default: 10)\n\n```\n## Changelog (v1.5.9)\n1. Fix bug in the searching for known splice-junction.\n2. Use known and canonical internal splice strand information to guide the searching for back-splice-junction.\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/yangao07/PARRIS",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "parris",
+        "package_url": "https://pypi.org/project/parris/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/parris/",
+        "project_urls": {
+            "Homepage": "https://github.com/yangao07/PARRIS"
+        },
+        "release_url": "https://pypi.org/project/parris/1.5.10/",
+        "requires_dist": [
+            "biopython",
+            "gffutils",
+            "mappy",
+            "matplotlib",
+            "numpy",
+            "pandas",
+            "pyfaidx",
+            "pysam"
+        ],
+        "requires_python": "",
+        "summary": "PARRIS: Profiling and Annotating ciRcular RNA with Iso-Seq",
+        "version": "1.5.10"
+    },
+    "last_serial": 4799757,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ddf0865a35808c162d160ea5f9b8c336",
+                    "sha256": "a9e82cc61d2c0fc42c892ae3a8cad5a08d93109c30a38b4d6cd89d381fffa41a"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.0-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ddf0865a35808c162d160ea5f9b8c336",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25663086,
+                "upload_time": "2018-10-27T03:08:28",
+                "upload_time_iso_8601": "2018-10-27T03:08:28.255046Z",
+                "url": "https://files.pythonhosted.org/packages/07/77/a91e9564141eb223fd1ec9af15bacfe17f704ad5edfe83d03a34d0969ba3/parris-1.0.0-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0fd8a86101cb1ed94d402f543069a984",
+                    "sha256": "c4fe310f938e4717ee3ad651da0d9968ccc5e2a853a512a37906c2bfd37089be"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0fd8a86101cb1ed94d402f543069a984",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25506975,
+                "upload_time": "2018-10-27T03:08:36",
+                "upload_time_iso_8601": "2018-10-27T03:08:36.965121Z",
+                "url": "https://files.pythonhosted.org/packages/d1/c2/e3172f490187ab8e22aee3eee1514e91b1f6d0b0879a95a1441499109b20/parris-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9ae1bc798139a9e3c48fb3144e910368",
+                    "sha256": "ee788e43c4436e6df2cdf1eae7bad674e5aba5c12bffb490dcccdfe3d29e9b7f"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.1-py2.7.egg",
+                "has_sig": false,
+                "md5_digest": "9ae1bc798139a9e3c48fb3144e910368",
+                "packagetype": "bdist_egg",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 25714050,
+                "upload_time": "2018-11-17T08:57:58",
+                "upload_time_iso_8601": "2018-11-17T08:57:58.903076Z",
+                "url": "https://files.pythonhosted.org/packages/25/d1/5013e6112a4c4c5c4a0d6d486ef45f8ce36e58880c4691696ba052aa84a8/parris-1.0.1-py2.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "000ea6061d8f9588cd1fffa669432efd",
+                    "sha256": "d9d0395b76cb9381a376afe40cdcd2bc08ad90038db92fc23d016227498998d7"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "000ea6061d8f9588cd1fffa669432efd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25663100,
+                "upload_time": "2018-11-01T05:39:41",
+                "upload_time_iso_8601": "2018-11-01T05:39:41.446870Z",
+                "url": "https://files.pythonhosted.org/packages/b2/00/bb1fc25ae0e962d8d513baa12c16970c56dfe53a2ee0df2cad775fb81449/parris-1.0.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e1a495c3a997623ff77eb8e64d4bed5",
+                    "sha256": "e5df01d3709e12b3eb17d5d6f7d5fe6875d2f8a1ebaab75e33b95361c702cc46"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0e1a495c3a997623ff77eb8e64d4bed5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25506997,
+                "upload_time": "2018-11-01T05:39:48",
+                "upload_time_iso_8601": "2018-11-01T05:39:48.910752Z",
+                "url": "https://files.pythonhosted.org/packages/a8/0d/b5846f3212faf4b986af02a2447b817900811b369461fdcefb3d93bb6d2c/parris-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14ee1a70698b3a8b8e0831e8a7b5899c",
+                    "sha256": "5e8bf1298f3a6b04d3e203fa8180e69eb58681b743b298b82e4df05cc731aa99"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.2-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "14ee1a70698b3a8b8e0831e8a7b5899c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25664280,
+                "upload_time": "2018-11-17T09:08:29",
+                "upload_time_iso_8601": "2018-11-17T09:08:29.509977Z",
+                "url": "https://files.pythonhosted.org/packages/c6/af/25ed8e9468891e6665f19d09159fec9b68c4a40c8974b8a6cf4cd39594d8/parris-1.0.2-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec19a721b9e29b0c870b639d2207c37b",
+                    "sha256": "e376db20e3bb323e162e348ea424b6dda5ecfc13604a69bc4df63534d8686c28"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ec19a721b9e29b0c870b639d2207c37b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25508393,
+                "upload_time": "2018-11-17T09:08:38",
+                "upload_time_iso_8601": "2018-11-17T09:08:38.111517Z",
+                "url": "https://files.pythonhosted.org/packages/73/90/a5903f23002af310c46980e5cb354f635c048248be68c43b00c38471967b/parris-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "20fb84842dc9cfacca63111d9653d2c6",
+                    "sha256": "0f7f642a7a6aa7e6757caaae86088cd5d551f28b5cb6695aa0c1ef326bbecc1f"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.4-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "20fb84842dc9cfacca63111d9653d2c6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25714162,
+                "upload_time": "2018-11-28T09:17:29",
+                "upload_time_iso_8601": "2018-11-28T09:17:29.133403Z",
+                "url": "https://files.pythonhosted.org/packages/2b/1d/7cdb384db62ddefdc5b7b220acf3c926a73046ea4ba134ea1b40092183ee/parris-1.0.4-py2-none-any.whl"
+            }
+        ],
+        "1.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "385d95bc8484ae3df954a3b3325ba73d",
+                    "sha256": "75bcae7a642de1081a6f015b8ec9e1f023492aa77d13aee07d6a24672f7205de"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.5-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "385d95bc8484ae3df954a3b3325ba73d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25715891,
+                "upload_time": "2018-12-13T02:23:40",
+                "upload_time_iso_8601": "2018-12-13T02:23:40.620361Z",
+                "url": "https://files.pythonhosted.org/packages/5f/a6/2c48ca15cc82bf930386e9e9b7b0580e40b30a85a2835bce313450c87e46/parris-1.0.5-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e9d3e7b58efd4d6b6ccc1d74540de1f",
+                    "sha256": "1de8053d5f25cd5a2c986550c095a36b6682addf470c9906526c14d182efa46e"
+                },
+                "downloads": -1,
+                "filename": "parris-1.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9e9d3e7b58efd4d6b6ccc1d74540de1f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25559684,
+                "upload_time": "2018-12-13T02:23:49",
+                "upload_time_iso_8601": "2018-12-13T02:23:49.093434Z",
+                "url": "https://files.pythonhosted.org/packages/7a/41/c7d6cd56e32e0f9aa92e28a6fb339d5b0e52e3b7ff7b28e8c613752e4ca8/parris-1.0.5.tar.gz"
+            }
+        ],
+        "1.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f6904c9a5771af13e7d211d68ff8242",
+                    "sha256": "408ed84909cbaaa84aede7319816e4e32f23d8a6cf086f5f5911075b58cea396"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8f6904c9a5771af13e7d211d68ff8242",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25715890,
+                "upload_time": "2018-12-13T19:04:58",
+                "upload_time_iso_8601": "2018-12-13T19:04:58.382319Z",
+                "url": "https://files.pythonhosted.org/packages/f7/77/c8b8f0afb8d65ec1788d5b05014913921398be2b3075d57da45153322e34/parris-1.5.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "51c3602d1e15b6bead36cf023d2ae3d6",
+                    "sha256": "5419d9d8cb575a73025b615426cf146fbc4e64f1dd146d9adcad6ddea20e0cf8"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "51c3602d1e15b6bead36cf023d2ae3d6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25559664,
+                "upload_time": "2018-12-13T19:05:08",
+                "upload_time_iso_8601": "2018-12-13T19:05:08.526519Z",
+                "url": "https://files.pythonhosted.org/packages/60/fc/b63a4083f5ab87469bdb1dc9b27cfd28cec037c69aefa27fd63165727f09/parris-1.5.1.tar.gz"
+            }
+        ],
+        "1.5.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c522c421fed8a669faeb0d247c848c76",
+                    "sha256": "707945908a68dc7c69636edb69b3c84aa63927538e5ee38677d3c0c8ed70d9bb"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.10-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c522c421fed8a669faeb0d247c848c76",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25769027,
+                "upload_time": "2019-02-09T16:44:18",
+                "upload_time_iso_8601": "2019-02-09T16:44:18.742610Z",
+                "url": "https://files.pythonhosted.org/packages/0a/21/a6fd955649cdba7e37c76b71acbafd41fd2d0522a88b0ead686eb9487d46/parris-1.5.10-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e45ece5c7cb6129171cfb381ac18e23",
+                    "sha256": "2d8f44f5b57047172f4afe22bff2d3ed98cfc034c98cf5b9505055ccc5e25e28"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8e45ece5c7cb6129171cfb381ac18e23",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25601575,
+                "upload_time": "2019-02-09T16:44:24",
+                "upload_time_iso_8601": "2019-02-09T16:44:24.900879Z",
+                "url": "https://files.pythonhosted.org/packages/f5/d6/7d9bc8254c053279a7ecf1bebc0e04fb44876ec777b940d7492673174c05/parris-1.5.10.tar.gz"
+            }
+        ],
+        "1.5.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1f71ea70dedcab2f03b11a18d2480e4",
+                    "sha256": "dd4ac80e7330a215ba7914e50ff89b3abcbfd92fb3342cdd9e98e30f700e622d"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.2-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d1f71ea70dedcab2f03b11a18d2480e4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25715925,
+                "upload_time": "2018-12-24T18:41:29",
+                "upload_time_iso_8601": "2018-12-24T18:41:29.205415Z",
+                "url": "https://files.pythonhosted.org/packages/90/2a/35425c24dc0116147e9c3143ec96a0e706e35e955c0ac07adc80eee8f6f2/parris-1.5.2-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0ce8cb5b10c49f12b3f32006c3a39a70",
+                    "sha256": "c5e135e333745daa4a88fd3b598b05a576308cf46eca4f25b66831b3fe71b833"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0ce8cb5b10c49f12b3f32006c3a39a70",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25559721,
+                "upload_time": "2018-12-24T18:41:38",
+                "upload_time_iso_8601": "2018-12-24T18:41:38.917338Z",
+                "url": "https://files.pythonhosted.org/packages/1b/6c/f0f25342d5aad6afabeaf981e06b66b77fb530fcef043ce7aa9453d937ed/parris-1.5.2.tar.gz"
+            }
+        ],
+        "1.5.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1c5932a79280fec4c3117d3308c1b9ea",
+                    "sha256": "91c619a32c256c27bf65436e6287cea66610c9dcb4d8972230e27e21f16a05bc"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.3-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1c5932a79280fec4c3117d3308c1b9ea",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25718476,
+                "upload_time": "2018-12-28T00:14:37",
+                "upload_time_iso_8601": "2018-12-28T00:14:37.996089Z",
+                "url": "https://files.pythonhosted.org/packages/4e/57/06a15b166ebb89bf76770212494f00538975412a4b42ad7e4e5825ef6958/parris-1.5.3-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "55eea51edf2f7c1766883d451f0d0bd5",
+                    "sha256": "0325471cf7413c3345f4834ddcb3fba18ab0e1d28125c8c573fe585f936eb351"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "55eea51edf2f7c1766883d451f0d0bd5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25550256,
+                "upload_time": "2018-12-28T00:14:51",
+                "upload_time_iso_8601": "2018-12-28T00:14:51.477924Z",
+                "url": "https://files.pythonhosted.org/packages/41/ec/0247e06f694ae844a4f1a7bcd1b058c2e2a61e6c09a536223f9bda5de212/parris-1.5.3.tar.gz"
+            }
+        ],
+        "1.5.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "be73ee75b8bc4bce1f8438393595fb69",
+                    "sha256": "f6cc8203d1a6ab348ff19664c5512b4b18ae47d9ebd98eefd575b9ae127201d6"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.4-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "be73ee75b8bc4bce1f8438393595fb69",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25721976,
+                "upload_time": "2019-01-12T00:06:32",
+                "upload_time_iso_8601": "2019-01-12T00:06:32.829631Z",
+                "url": "https://files.pythonhosted.org/packages/a5/39/2274aea69fa23cfac6b270bf93b8b2a49cad33198ab46a952d33826d36be/parris-1.5.4-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "370a3078d9b39eca56b2ad9d0b1d7ed6",
+                    "sha256": "bfda10b3f4e46cf624a2b6440f0f9ea1dbc61dee9051a24a7312187d8f1a2c06"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "370a3078d9b39eca56b2ad9d0b1d7ed6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25556551,
+                "upload_time": "2019-01-12T00:06:39",
+                "upload_time_iso_8601": "2019-01-12T00:06:39.169924Z",
+                "url": "https://files.pythonhosted.org/packages/42/8f/9703e2d704613a9b167a2c191c989522fdea3b9957990ee6a4a259866d27/parris-1.5.4.tar.gz"
+            }
+        ],
+        "1.5.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c47338c0739f6232aeaf0479039089b",
+                    "sha256": "3e5f3ab15014ccfe06a7ae8c474831ba6f6010f8ac072d689c15fb32e3826fa6"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.5-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7c47338c0739f6232aeaf0479039089b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25721984,
+                "upload_time": "2019-01-12T00:15:55",
+                "upload_time_iso_8601": "2019-01-12T00:15:55.346180Z",
+                "url": "https://files.pythonhosted.org/packages/61/c5/cb888638250fb07e43a13e2a77040073618a2cc36900464e32683343c239/parris-1.5.5-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6481f8b256c26d9635eb2773c54c34a1",
+                    "sha256": "4db31de3acf6cb1d3b94b39dd7253596613c85b8f9f551af361e5b3516457664"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6481f8b256c26d9635eb2773c54c34a1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25556588,
+                "upload_time": "2019-01-12T00:16:04",
+                "upload_time_iso_8601": "2019-01-12T00:16:04.629482Z",
+                "url": "https://files.pythonhosted.org/packages/e8/f4/daf98c48378cd847ad6a28e949dc732214b83e9e2c8d204eccdae4ff93f0/parris-1.5.5.tar.gz"
+            }
+        ],
+        "1.5.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "72fc4b994af14c431ca797f3c8789786",
+                    "sha256": "bde898fcc22eac7bdbeadbef848840417733f130a8989a133a69ead24f56635c"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.6-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "72fc4b994af14c431ca797f3c8789786",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25764085,
+                "upload_time": "2019-02-01T00:07:24",
+                "upload_time_iso_8601": "2019-02-01T00:07:24.402716Z",
+                "url": "https://files.pythonhosted.org/packages/26/c6/96e5e6ee5ccb568357530889406193054290fc0eb02f61dfea189f485dc5/parris-1.5.6-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d2efd109db944c42d6d6cc7aa1a38748",
+                    "sha256": "29deb5cb3374bd5185b131e9aac83028def76389625bc742ff54092b9cc09365"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d2efd109db944c42d6d6cc7aa1a38748",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25597967,
+                "upload_time": "2019-02-01T00:07:30",
+                "upload_time_iso_8601": "2019-02-01T00:07:30.419434Z",
+                "url": "https://files.pythonhosted.org/packages/0e/a9/947171ac2febcc9acf14d61b9794eedddb558212301b3be7614e823fb431/parris-1.5.6.tar.gz"
+            }
+        ],
+        "1.5.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed6f87cf5f4fd3efad2068ddba8b9b1c",
+                    "sha256": "d915cb4ca8a04aa031e3aa1cfbe73385f41f6cd18966947a59d624855bf73128"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.7-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ed6f87cf5f4fd3efad2068ddba8b9b1c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25765744,
+                "upload_time": "2019-02-04T23:21:33",
+                "upload_time_iso_8601": "2019-02-04T23:21:33.434827Z",
+                "url": "https://files.pythonhosted.org/packages/e6/14/c5676fc4bad14e2ad9059d19638ee92e4860368df02e4480a7e686a56ce9/parris-1.5.7-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cb952984128a4070cd21cf8148b22712",
+                    "sha256": "c8c9d3abb8140e89206e2cf7abe7bc47f4a858286d86fb547a62d39b64182990"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cb952984128a4070cd21cf8148b22712",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25599174,
+                "upload_time": "2019-02-04T23:21:39",
+                "upload_time_iso_8601": "2019-02-04T23:21:39.966673Z",
+                "url": "https://files.pythonhosted.org/packages/9a/73/adab91536a3ac786390dbfc0c462f0143b1a243fbb582e613cf1dac26092/parris-1.5.7.tar.gz"
+            }
+        ],
+        "1.5.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48ba1d42d7d670224bcbb87dbe2e44af",
+                    "sha256": "75e996f7a8267ed98a5666de98371eecfbdba27b78a2e28d808589af9722c1e7"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.8-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "48ba1d42d7d670224bcbb87dbe2e44af",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25765806,
+                "upload_time": "2019-02-07T20:22:25",
+                "upload_time_iso_8601": "2019-02-07T20:22:25.872500Z",
+                "url": "https://files.pythonhosted.org/packages/99/4b/221b557d40af26cde2095ee4ad1b62ea540118b5c0ede80164040bec08e3/parris-1.5.8-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2232036d804c6e2e14bbb281cd90cb65",
+                    "sha256": "4035edc26d2afb4fd652c22b2f1be0aae119021b0eb3f15d426b563b948c02c8"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2232036d804c6e2e14bbb281cd90cb65",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25599215,
+                "upload_time": "2019-02-07T20:22:32",
+                "upload_time_iso_8601": "2019-02-07T20:22:32.392375Z",
+                "url": "https://files.pythonhosted.org/packages/40/0a/c35697cffe45cdeb19ae3cd71c436cf35bb9425afb2b5554705c12bc0e2e/parris-1.5.8.tar.gz"
+            }
+        ],
+        "1.5.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d14a765dde88d4f0cf9b74fe9fe80722",
+                    "sha256": "56a47f179d4ad7d763c6c547f87983398aafd7b3bf1a2f201c796f92808aaacd"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.9-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d14a765dde88d4f0cf9b74fe9fe80722",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 25765736,
+                "upload_time": "2019-02-08T21:07:57",
+                "upload_time_iso_8601": "2019-02-08T21:07:57.220639Z",
+                "url": "https://files.pythonhosted.org/packages/71/67/0e03b6b432fb20394cf8d283b07dd9767fe8dcf836c4c8ecf0169afe76bf/parris-1.5.9-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f3b16a0918fff5be47c4b21ab268a50",
+                    "sha256": "6429adbe25d3a93a88b33e04a5f99072afa26b057665ed982d21b152fdf6ea94"
+                },
+                "downloads": -1,
+                "filename": "parris-1.5.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3f3b16a0918fff5be47c4b21ab268a50",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 25598950,
+                "upload_time": "2019-02-08T21:08:04",
+                "upload_time_iso_8601": "2019-02-08T21:08:04.183426Z",
+                "url": "https://files.pythonhosted.org/packages/5e/f9/e1027db72d154910f0f809896225257671d21194c6b758fdc338f742e45b/parris-1.5.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c522c421fed8a669faeb0d247c848c76",
+                "sha256": "707945908a68dc7c69636edb69b3c84aa63927538e5ee38677d3c0c8ed70d9bb"
+            },
+            "downloads": -1,
+            "filename": "parris-1.5.10-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c522c421fed8a669faeb0d247c848c76",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 25769027,
+            "upload_time": "2019-02-09T16:44:18",
+            "upload_time_iso_8601": "2019-02-09T16:44:18.742610Z",
+            "url": "https://files.pythonhosted.org/packages/0a/21/a6fd955649cdba7e37c76b71acbafd41fd2d0522a88b0ead686eb9487d46/parris-1.5.10-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8e45ece5c7cb6129171cfb381ac18e23",
+                "sha256": "2d8f44f5b57047172f4afe22bff2d3ed98cfc034c98cf5b9505055ccc5e25e28"
+            },
+            "downloads": -1,
+            "filename": "parris-1.5.10.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8e45ece5c7cb6129171cfb381ac18e23",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 25601575,
+            "upload_time": "2019-02-09T16:44:24",
+            "upload_time_iso_8601": "2019-02-09T16:44:24.900879Z",
+            "url": "https://files.pythonhosted.org/packages/f5/d6/7d9bc8254c053279a7ecf1bebc0e04fb44876ec777b940d7492673174c05/parris-1.5.10.tar.gz"
+        }
+    ]
+}

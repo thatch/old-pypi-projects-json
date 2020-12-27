@@ -1,0 +1,79 @@
+{
+    "info": {
+        "author": "William Morriss",
+        "author_email": "wjmelements@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Binance Chain Transaction Library\nThis library provides a low-level interface for interacting with different Binance Chain transactions.\n\n## Installation\nTODO\n\n## Usage\nThe following is an example that uses the `ecdsa` library to sign.\n\n```python3\nimport ecdsa\ndef uncompressed_public_key(sk):\n    \"\"\" Derive uncompressed public key \"\"\"\n    order = sk.curve.generator.order()\n    p = sk.verifying_key.pubkey.point\n    x_str = ecdsa.util.number_to_string(p.x(), order)\n    y_str = ecdsa.util.number_to_string(p.y(), order)\n    uncompressed = b'\\x04' + x_str + y_str\n    return uncompressed\n\n\nfrom binance_transaction import BnbTransaction, NewOrder, address_bytes, BUY, GTE, LIMIT_ORDER\n\nsk = ecdsa.SigningKey.from_pem(open('secp256k1-key.pem').read())\nfrom_address = 'bnb100dxzy02a6k7vysc5g4kk4fqamr7jhjg4m83l0'\naccount_number = 96025  # https://docs.binance.org/api-reference/dex-api/paths.html#apiv1accountaddress\nsequence_number = 888\ntx = BnbTransaction(account_number, sequence_number)\norder_id = f'{address_bytes(from_address).hex().upper()}-{sequence_number + 1}'\ntx.add_msg(NewOrder(from_address, order_id, 'BNB_TUSDB-888', LIMIT_ORDER, BUY, 3500000000, 500000000, GTE))\nprint(tx.signing_json())\nsig = sk.sign_digest(tx.signing_hash())\npublic_key = uncompressed_public_key(sk)\ntx.apply_sig(sig, public_key)\nsigned_transaction_bytes = tx.encode()\nprint(f'Signed bytes: {signed_transaction_bytes.hex()}')\n```\n\n## Support\nNot all transaction types are supported.\nPlease consult this table for details.\nIf you need support, please submit a [pull request](https://github.com/trusttoken/bnb-tx-python/pulls).\n\n|  Message Type | encode | decode | from\\_obj |\n|---------------|--------|--------|-----------|\n| Send          | \u2705     |        | \u2705        |\n| NewOrder      | \u2705     |        | \u2705        |\n| CancelOrder   | \u2705     |        | \u2705        |\n| Issue         | \u2705     |        | \u2705        |\n| Mint          | \u2705     |        | \u2705        |\n| Burn          | \u2705     |        | \u2705        |\n| Freeze        | \u2705     |        | \u2705        |\n| Unfreeze      | \u2705     |        | \u2705        |\n| TimeLock      | \u2705     |        | \u2705        |\n| TimeUnlock    | \u2705     |        | \u2705        |\n| TimeRelock    | \u2705     |        | \u2705        |\n| Proposal      | \u2705     |        | \u2705        |\n| Vote          | \u2705     |        | \u2705        |\n\n\n\n## Contributing\nSee [CONTRIBUTING](CONTRIBUTING.md).\n\n\n## License\nLGPL3",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/trusttoken/bnb-tx-python",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "binance-transaction",
+        "package_url": "https://pypi.org/project/binance-transaction/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/binance-transaction/",
+        "project_urls": {
+            "Homepage": "https://github.com/trusttoken/bnb-tx-python"
+        },
+        "release_url": "https://pypi.org/project/binance-transaction/0.0.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Binance Chain Transactions",
+        "version": "0.0.3"
+    },
+    "last_serial": 5626912,
+    "releases": {
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca3928a208a978afc046387ff9a330f9",
+                    "sha256": "725bbe8228c0a58f0e1e49b1502487b4afdbf546ddb6a8997fd27f1689b07c95"
+                },
+                "downloads": -1,
+                "filename": "binance_transaction-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ca3928a208a978afc046387ff9a330f9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11678,
+                "upload_time": "2019-08-03T00:40:27",
+                "url": "https://files.pythonhosted.org/packages/e6/cd/b8684957bee80016dbd7bec17d3bbd9fc26502d1b0394737c345e49e192d/binance_transaction-0.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ca3928a208a978afc046387ff9a330f9",
+                "sha256": "725bbe8228c0a58f0e1e49b1502487b4afdbf546ddb6a8997fd27f1689b07c95"
+            },
+            "downloads": -1,
+            "filename": "binance_transaction-0.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "ca3928a208a978afc046387ff9a330f9",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11678,
+            "upload_time": "2019-08-03T00:40:27",
+            "url": "https://files.pythonhosted.org/packages/e6/cd/b8684957bee80016dbd7bec17d3bbd9fc26502d1b0394737c345e49e192d/binance_transaction-0.0.3.tar.gz"
+        }
+    ]
+}

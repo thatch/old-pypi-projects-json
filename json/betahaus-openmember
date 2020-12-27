@@ -1,0 +1,163 @@
+{
+    "info": {
+        "author": "Betahaus",
+        "author_email": "robin@betahaus.net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Framework :: Plone",
+            "Programming Language :: Python",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "Contents\n========\n\n* `Introduction`_\n* `Installation`_\n* `Configuration`_\n* `Extending the control panel`_\n* `Contributors`_\n\n\nIntroduction\n------------\n\n``betahaus.openmember`` is a database for managing members and tracking changes to their personal information. \nThis includes memberships to fiscal years, participation to events etc.\n\n\nInstallation\n------------\n\nbuildout:\n - Add ``betahaus.openmember`` entries to eggs and zcml in the appropriate buildout configuration file. (typcially buildout.cfg) \n - Re-run buildout. (./bin/buildout)\n - Restart the instance\n - Install via portal_quickinstaller or Site Setup in plone\n\nEvents\n------\nThere are four events available OMemberAddedEvent, OMemberWillBeModifiedEvent, OMemberModifiedEvent and OMemberDeletedEvent.\nRegister a listener like::\n\n    <subscriber \n      for=\"betahaus.openmember.interfaces.IOMemberAddedEvent\"\n      handler=\".handlers.added\" \n      />\n      \nwhere handlers.py looks like::\n\n    >>> def added(event):\n    ...     contenttype_object = event.object\n    ...     databse_object = event.om_object\n\n\nConfiguration\n-------------\n\nAfter following the install instructions you need to configure the database for what content to monitor and what fields of that content to monitor.\nNow you can choose to use a shipped content type called MemberPerson. \nOr you can take any content type that you like and make sure it implements the interface ``betahaus.openmember.interfaces.IOpenMember``. \nThe recommended way is to add a zcml ``five:implements`` entry::\n\n    <five:implements\n        class=\"path.to.your.contentType\" \n        interface=\"betahaus.openmember.interfaces.IOpenMember\"/> \n\n \nNext you need to configure what fields on your content type that will be monitored. \nThis is done via the openmember controlpanel reachable from the Site Setup. Each field configuration should have the structure of::\n\n    field_name | index_type | label\n    \nfield_name\n This is the field name of the content type.\n \nindex_type\n This is the type of index to be used, typical indexes are ``ZCTextIndex``, ``DateIndex`` and ``KeywordIndex``.\n\nlabel\n What should be displayed for this field. This parameter is optional.\n\nYou can also set what fields that should be title fields. These fields are the fields that show up in the search portlet and result table.\n\nExtending the control panel\n---------------------------\n\nOpen Member can easily be extended with extra functionality. Sometimes the extension requires configuration using a configuration panel.\nTo help the user in having all the configurations related to ``OpenMember`` in the same place you can register sub sections to the \nOpenMember configuration panel. \n\nTwo parts are needed to register an extension to the configuration panel. One schema that defines the fields that make up the configuration panel,\nand one adapter the implements the schema and takes care of reading/writing the values.\n\nThe schema should have the following structure::\n\n    >>> from betahaus.openmember.interfaces import IOMControlPanelForm\n    >>> from zope import schema\n    >>> class ExampleSchema(IOMControlPanelForm):\n    ...     \"\"\"Example schema for openmember sub control panel\"\"\"\n    ...     example = schema.List(name='example')\n    \n\nThe key point here is that the schema must inherit from the ``IOMControlPanelForm`` and have a schema based on zope.schema.\n\nThe adapter should have the following structure::\n\n    >>> from Products.CMFDefault.formlib.schema import SchemaAdapterBase\n    >>> from Products.CMFPlone.interfaces import IPloneSiteRoot\n    >>> from betahaus.openmember.browser.controlpanel import \n    >>> from betahaus.exports.openmember import PROJECTNAME\n    >>> class ExamplePanelAdapter(SchemaAdapterBase):\n    ...     \"\"\"Openmember control panel extension for examples settings.\"\"\"\n    ...     implements(ExampleSchema)\n    ...     adapts(IPloneSiteRoot)\n    ...\n    ...     def getId(self):\n    ...         \"\"\"The Id must be lowercase\"\"\"\n    ...         return 'example'\n    ...\n    ...     def getLabel(self):\n    ...         \"\"\"The label can be translated to any language\"\"\"\n    ...         return _(u'Example')\n    ...\n        --- Getters and setters for the schema defined above. ---\n    >>> registerForm(ExampleSchema, PROJECTNAME)\n\nThe key points here are::\n - The adapter should inherit from ``SchemaAdapterBase`` or has that in the inheritance chain.\n - The adapter must implement the Schema defined previously, including the functions ``getId`` and ``getLabel``\n - The registration of the schema with the OpenMember control panel\n\nThe last step is to register the adapter in zcml::\n\n    <adapter factory=\".controlpanel.ExamplePanelAdapter\" />\n    \nNow you are done.\n\nContributors\n------------\n\n* `Martin Lundwall <http://plone.org/author/mlundwall/>`_, Author.\n* `Robin Harms Oredsson <http://www.betahaus.net/>`_, Author.\n* Jocke Sundqvist, General stuff and keeping us on track.\n* `Svea <http://svea.org/>`_, Financial Support\n* `CIU <http://ciu.se/>`_, Financial Support\n* `SweFOR <http://www.krf.se/en>`_, Financial Support\n\n* Made by `Betahaus <http://www.betahaus.net>`_ - if you want to contribute, go to `http://dev.betahaus.net <http://dev.betahaus.net>`_\n\n\nChange history\n==============\n\n0.2b (2011-03-23)\n-----------------\n\n* Fixed duplicate GopipIndex that caused controlpanel to die. [mlundwall]\n* Fixed problem to display catalog contents in ZMI. [mlundwall]\n* Fixed search results table compatibility with Plone 4. [mlundwall]\n* Added deprecation to install method in setuphandlers - this can be done with GS [robinharms]\n* Changed i18n translations to locales [robinharms]\n* Added possibility for not-operations in the portlet and search view [robinharms]\n* Temporary patch to removed orphaned objects from catalog search results [robinharms]\n* Memberdata shoudln't be created if id isn't passed as an argument [robinharms]\n* Added index for mapped portal type [robinharms]\n* Added delete functionality [robinharms]\n* Fixed situation where the search result template could pass an empty query to the catalog [robinharms]\n\n0.1b3 (2010-10-08)\n------------------\n\n* Made the options list sorted by Title. [mlundwall]\n* Fixed a bug of clearing indexes on reinstall. [mlundwall]\n* Added possibility to on field level define om_accessor. [mlundwall]\n* Changed the reference caching in the table view to lookup on need. [mlundwall]\n* Fixed a bug with modified date on database objects. [mlundwall]\n* Made an Archetypes independent MemberData implementation [mlundwall]\n* Added roles for searching and managing the database. [mlundwall]\n* MemberData is now responsible for versioning. [mlundwall]\n* Removed import of private AT function that doesn't exist in Plone 4. [robinharms]\n* Plone 4 compatibility check [mlundwall, robinharms]\n\n\n0.1b2 (2010-02-15)\n------------------\n\n* Made the controlpanel extensions a bit more intelligent. [mlundwall]\n* Easier configuration of indexes in controlpanel. [mlundwall]\n* Update member information if UID in database even on InitializedEvent. [mlundwall]\n\n\n0.1b (2010-02-10)\n-----------------\n\n* Results have a link to the original content [mlundwall]\n* Configuration of indexes to show in table and portlet [mlundwall]\n* Batching on search page and Fiscal Year [mlundwall]\n* Lots more...\n\n0.1a1 - (2009-06-16)\n--------------------\n\n* First Alpha release\n\n\nKnown Issues\n============\n\n* Unicode characters are displayed weird in Safari. They are not handled properly. \n* The results template don't display labels from vocabularies but the ids instead.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://www.betahaus.net",
+        "keywords": "plone",
+        "license": "GPL",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "betahaus.openmember",
+        "package_url": "https://pypi.org/project/betahaus.openmember/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/betahaus.openmember/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://www.betahaus.net"
+        },
+        "release_url": "https://pypi.org/project/betahaus.openmember/0.2b/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "A member database to track membership over time",
+        "version": "0.2b"
+    },
+    "last_serial": 786816,
+    "releases": {
+        "0.1a": [],
+        "0.1adev-r1651": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8491a1db0205fe961d2b8a4a8692c264",
+                    "sha256": "a84bb2b4a1355f3601f67505a82819d257c11fae645265d5a9f7837d03432534"
+                },
+                "downloads": -1,
+                "filename": "betahaus.openmember-0.1adev-r1651.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8491a1db0205fe961d2b8a4a8692c264",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 30414,
+                "upload_time": "2009-06-16T14:14:10",
+                "upload_time_iso_8601": "2009-06-16T14:14:10.392391Z",
+                "url": "https://files.pythonhosted.org/packages/bf/e8/fc34ac11154c8140fc4d1223e0cfec4bc39f26822dc9683f76ef93361ab4/betahaus.openmember-0.1adev-r1651.tar.gz"
+            }
+        ],
+        "0.1b": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5f7a74007b303c153be573f13f7682c",
+                    "sha256": "317d41a33afec08471020406b6de05714de6ddbea842ff5fc5fc46d2b6a9f37f"
+                },
+                "downloads": -1,
+                "filename": "betahaus.openmember-0.1b.zip",
+                "has_sig": false,
+                "md5_digest": "a5f7a74007b303c153be573f13f7682c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 76285,
+                "upload_time": "2010-02-10T11:37:07",
+                "upload_time_iso_8601": "2010-02-10T11:37:07.823100Z",
+                "url": "https://files.pythonhosted.org/packages/11/64/20ffd9c2dd81cdf3e26c759568880c833811dae6fcdb3c490e7a59ceed21/betahaus.openmember-0.1b.zip"
+            }
+        ],
+        "0.1b2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6d18b6e870e62bdc770cc6092abc08a9",
+                    "sha256": "912192ce1e0d7d79ed6fe28bee693b0d10d0015d3114b126edf027836b267693"
+                },
+                "downloads": -1,
+                "filename": "betahaus.openmember-0.1b2.zip",
+                "has_sig": false,
+                "md5_digest": "6d18b6e870e62bdc770cc6092abc08a9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 77939,
+                "upload_time": "2010-02-15T15:34:56",
+                "upload_time_iso_8601": "2010-02-15T15:34:56.929986Z",
+                "url": "https://files.pythonhosted.org/packages/d0/bf/6d25c2d395b3725e27bf6a4303e978d33dcb07ecfc39b4c694acbb3ce4cc/betahaus.openmember-0.1b2.zip"
+            }
+        ],
+        "0.1b3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f667c3d50c81a4b570a382cb4b875f2",
+                    "sha256": "bb247e1eba2005aec89947ee326a80436c473b5b16b054a7dcbbb64c809c9075"
+                },
+                "downloads": -1,
+                "filename": "betahaus.openmember-0.1b3.zip",
+                "has_sig": false,
+                "md5_digest": "8f667c3d50c81a4b570a382cb4b875f2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 93536,
+                "upload_time": "2010-10-08T10:29:47",
+                "upload_time_iso_8601": "2010-10-08T10:29:47.550598Z",
+                "url": "https://files.pythonhosted.org/packages/84/a8/e64658bc8e23e3a9a06c496871de5355bc9834d8d6864f31fbff12b3054b/betahaus.openmember-0.1b3.zip"
+            }
+        ],
+        "0.2b": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6c02441a3c14f875f64d8077e1b67a6c",
+                    "sha256": "b1a4d674d2ba2e340954001578dfb67b9fbb112c7cffb35c5c2d4dd34f34a734"
+                },
+                "downloads": -1,
+                "filename": "betahaus.openmember-0.2b.zip",
+                "has_sig": false,
+                "md5_digest": "6c02441a3c14f875f64d8077e1b67a6c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 98776,
+                "upload_time": "2011-03-23T12:59:27",
+                "upload_time_iso_8601": "2011-03-23T12:59:27.317529Z",
+                "url": "https://files.pythonhosted.org/packages/e7/cd/15037d59b237c62bf3d42559e55fe2426b644587a60f5381c050be834539/betahaus.openmember-0.2b.zip"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6c02441a3c14f875f64d8077e1b67a6c",
+                "sha256": "b1a4d674d2ba2e340954001578dfb67b9fbb112c7cffb35c5c2d4dd34f34a734"
+            },
+            "downloads": -1,
+            "filename": "betahaus.openmember-0.2b.zip",
+            "has_sig": false,
+            "md5_digest": "6c02441a3c14f875f64d8077e1b67a6c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 98776,
+            "upload_time": "2011-03-23T12:59:27",
+            "upload_time_iso_8601": "2011-03-23T12:59:27.317529Z",
+            "url": "https://files.pythonhosted.org/packages/e7/cd/15037d59b237c62bf3d42559e55fe2426b644587a60f5381c050be834539/betahaus.openmember-0.2b.zip"
+        }
+    ]
+}

@@ -1,0 +1,86 @@
+{
+    "info": {
+        "author": "Ozzy",
+        "author_email": "cfhamlet@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy"
+        ],
+        "description": "# os-3m-engine\n\n[![Build Status](https://www.travis-ci.org/cfhamlet/os-3m-engine.svg?branch=master)](https://www.travis-ci.org/cfhamlet/os-3m-engine)\n[![codecov](https://codecov.io/gh/cfhamlet/os-3m-engine/branch/master/graph/badge.svg)](https://codecov.io/gh/cfhamlet/os-3m-engine)\n[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/os-3m-engine.svg)](https://pypi.python.org/pypi/os-3m-engine)\n[![PyPI](https://img.shields.io/pypi/v/os-3m-engine.svg)](https://pypi.python.org/pypi/os-3m-engine)\n\nMulti-thread engine for 3(or 2) stages job.\n\n\n\nAlthough multi-thread of python is buggy and slow, it is still necessary to write multi-thread program. Typically, producer-consumer is the most common model(so called 2-stage job), further more a transporter is needed between them(3-stage job). This library is used to simplify creating 3(or 2) stages program. \n\n\n\nThe 3 stages are:\n\n* Frontend: think as producer, usually used to create or receive data.\n* Transport: receive data from frontend stage, transform and send the transformed data to backend.\n* Backend: think as consumer, process the data received from transport.\n\n\n\nSomething else need to know:\n\n* Each of the stage can be multi-thread.\n* Frontend is required, transport or backend can be omitted.\n\n\n\n\n# Install\n\n`pip install os-3m-engine`\n\n# API\n\n* Create default engine, a typical 3-stage job:\n\n    - frontend: ``os_3m_engine.ootb.StdinFrontend``, read from stdin, send to transport stage\n    - transport: ``os_3m_engine.ootb.LogTransport``, log data received from fronted, send to backend stage\n    - backend: ``os_3m_engine.ootb.LogBackend``, log data received from transport\n\n    ```\n    from os_3m_engine.launcher import create\n    \n    engine = create()\n    ```\n\n* Create engine with custom defined stage:\n\n    ```\n    from os_3m_engine.launcher import create\n    \n    engine = create(transport_cls='transport_class_path_or_class')\n    ```\n\n* Create engine with custom engine config:\n\n    ```\n    from os_3m_engine.launcher import create\n    \n    config = WhateverOjbectYouWant\n    config.thread_num = 10\n    engine = create(transport_cls='your_transport_cls', engine_transport_config=config) \n    ```\n\n* Start the engine:\n\n    ``start`` will block the current thread until all of the stage threads stopped\n    \n    ```\n    engine.start()\n    ```\n\n* The regular practice of stopping the engine\n\n    ```\n    from signal\n    from os_3m_engine.launcher import create\n    \n    engine = create()\n    \n    def stop(signum, frame):\n        engine.stop()\n    \n    signal.signal(signal.SIGINT, stop)\n    \n    engine.start()\n    ```\n    \n* Custom frontend class:\n\n    - inherit from ``os_3m_engine.core.frontend.Frontend``\n    - define ``produce`` method as generator\n\n    ```\n    from os_3m_engine.core.frontend import Frontend\n    \n    class CustomFrontend(Frontend):\n        def produce(self):\n            yield 'Hello world!'\n    ```\n    \n* Custom transport class:\n\n    - inherit from ``os_3m_engine.core.transport.Transport``\n    - define ``transport`` method, the only parameter is the data received, the return value will be sent to backend\n\n    ```\n    from os_3m_engine.core.transport import Transport\n    \n    class CustomTransport(Transport):\n        def transport(self, data):\n            return data\n    ```\n\n* Custom backend class:\n\n    - inherit from ``os_3m_engine.core.backend.Backend``\n    - define ``process`` method, the only parameter is the data received, no need return\n\n    ```\n    from os_3m_engine.core.backend import Backend\n    \n    class CustomBackend(Backend):\n        def process(self, data):\n            print(data)\n    ```\n\n* Passing parameters\n\n    - create engine with custom config object\n    - use ``self.config`` to get the config in stage class\n\n    ```\n    from os_3m_engine.launcher import create\n    \n    config = WhateverOjbectYouWant\n    engine = create(app_config=config)\n    ```\n\n\n* Custom ``setup``, ``cleanup`` behavior\n  \n    - each stage class can define ``setup``, ``cleanup`` methods\n    - these will be called at each thread start/stop\n    \n    \n    ```\n    from os_3m_engine.core.backend import Backend\n    \n    class CustomBackend(Backend):\n    \n        def setup(self):\n            print('Setup')\n            \n        def cleanup(self):\n            print('Cleanup')\n        \n        def process(self, data):\n            print(data)\n    ```\n\n\n\n# Unit Tests\n\n`$ tox`\n\n# License\n\nMIT licensed.",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/cfhamlet/os-3m-engine",
+        "keywords": "",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "os-3m-engine",
+        "package_url": "https://pypi.org/project/os-3m-engine/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/os-3m-engine/",
+        "project_urls": {
+            "Homepage": "https://github.com/cfhamlet/os-3m-engine"
+        },
+        "release_url": "https://pypi.org/project/os-3m-engine/0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "3 stage multithread engine.",
+        "version": "0.1"
+    },
+    "last_serial": 4567624,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "928f6ecad42920274a90724f33111cfb",
+                    "sha256": "63f03efa219f7923b1bdf4890a050c3f9a46942c3aaea4289d9564c74e76cd3a"
+                },
+                "downloads": -1,
+                "filename": "os-3m-engine-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "928f6ecad42920274a90724f33111cfb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10427,
+                "upload_time": "2018-12-06T11:58:27",
+                "url": "https://files.pythonhosted.org/packages/2e/5a/6a56bb7e63dd8cbc1d66ca7cfeff425379500316ef713324a3e3eecb5991/os-3m-engine-0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "928f6ecad42920274a90724f33111cfb",
+                "sha256": "63f03efa219f7923b1bdf4890a050c3f9a46942c3aaea4289d9564c74e76cd3a"
+            },
+            "downloads": -1,
+            "filename": "os-3m-engine-0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "928f6ecad42920274a90724f33111cfb",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 10427,
+            "upload_time": "2018-12-06T11:58:27",
+            "url": "https://files.pythonhosted.org/packages/2e/5a/6a56bb7e63dd8cbc1d66ca7cfeff425379500316ef713324a3e3eecb5991/os-3m-engine-0.1.tar.gz"
+        }
+    ]
+}

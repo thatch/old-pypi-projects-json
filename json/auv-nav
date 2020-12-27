@@ -1,0 +1,115 @@
+{
+    "info": {
+        "author": "Jin Lim, Blair Thornton",
+        "author_email": "author@example.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# auv_nav\n## Downloading and Updating the code ##\n\nTo download the code, go to directory you want download the code to, open a terminal/command prompt there and type \n```\ngit clone https://github.com/ocean-perception/auv_nav.git\n```\n\nTo push updates you made to the repository on github (assuming you are using the master branch, which is the default), type\n```\ngit add -u\ngit commit -m \"Some message about the change\"\ngit push origin master\n```\n\n## Libraries Required ##\n\n*Requires [python3.6.2](https://www.python.org/downloads/release/python-362/) or later*\n\n1. [matplotlib](https://matplotlib.org/2.0.2/users/installing.html) (version used: 2.2.2) `pip3 install matplotlib`\n2. [numpy](https://pypi.python.org/pypi/numpy) (version used: 1.14.5) `pip3 install numpy`\n3. [PyYAML](http://pyyaml.org/download/pyyaml/PyYAML-3.12.tar.gz) (version used: 3.12) `pip3 install pyyaml`\n4. [plotly](https://pypi.python.org/pypi/plotly) (version used: 2.5.1) `pip3 install plotly`\n5. [pandas](https://pypi.org/project/pandas/0.22.0/) (version used: 0.22.0) `pip3 install pandas`\n6. [xlrd](https://pypi.org/project/xlrd/) (version used: 1.1.0) `pip3 install xlrd`\n7. [prettytable](https://pypi.python.org/pypi/PrettyTable) (version used: 0.7.2) `pip3 install prettytable`\n\nDepending on the Python distribution you are using, you might already have these packages, or you might have to install them manually. If you are using Anaconda (https://www.anaconda.com/download/) will proably only have to install prettytable and plotly, which you can install from the Conda prompt: \n```\npip install prettytable\nconda install plotly\n```\n(In general, when using Conda, it is preferable to use `conda` for installing packages rather than `pip`, but if `conda` doesn't work, `pip` can be used.)  \nIf you are using a different distribution, you might have to to install all packages manually using one of the following commands (depending on your distribution it might be  `pip` instead of `pip3` and `python` instead of `python3`):\n```\npip3 install matplotlib numpy pyyaml plotly pandas xlrd prettytable --user\n```\nSome of the packages above are in [third_party](third_party) which can be installed by:\n* executing the following terminal commands within the folder...\n```\npython3 setup.py install\npython3 setup.py test\n```\n* ... or executing this command for whl files (if you are using Windows)\n```\npip3 install pandas-0.22.0-cp36-cp36m-win_amd64.whl\n```\n\n## Usage ##\n\nauv_nav has 2 commands:  \n- `parse`, which reads raw data from multiple sensors and writes it in chornological order to a text file in an intermediate data format. There are 2 different intermediate formats to choose: \"oplab\" or \"acfr\"\n- `process`, which outputs previously parsed data in a format that the 3D mapping pipeline can read\n\n`auv_nave parse' usage:\n```\nauv_nav.py parse [-h] [-f FORMAT] path\n\npositional arguments:\n  path                  Folderpath where the (raw) input data is. Needs to be\n                        a subfolder of 'raw' and contain the mission.yaml\n                        configuration file.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  -f FORMAT, --format FORMAT\n                        Format in which the data is output. 'oplab' or 'acfr'.\n                        Default: 'oplab'.\n```\nThe algorithm replicated the same folder structure as the input data, but instead of using a subfolder of 'raw', a folder 'processed' is created (if doesn't already exist), with the same succession of subfolders as there are in 'raw'. The mission.yaml and the vehicle.yaml files are copied to this folder. When using the 'oplab' format, the interlaced data is written in oplab format to a file called 'nav_standard.json' in a subfolder called 'nav'. When using the 'acfr' format, the interlaced data is written in acfr format to a file called combined.RAW.auv in a folder called dRAWLOGS_cv.\n\n\n`auv_nav.py process` usage:\n```\nauv_nav.py process [-h] [-f FORMAT] [-s START_DATETIME] [-e END_DATETIME] path\n\npositional arguments:\n  path                  Path to folder where the data to process is. The\n                        folder has to be generated using auv_nav parse.\n\noptional arguments:\n  -h, --help            show this help message and exit\n  -f FORMAT, --format FORMAT\n                        Format in which the data to be processed is stored.\n                        'oplab' or 'acfr'. Default: 'oplab'.\n  -s START_DATETIME, --start START_DATETIME\n                        Start date & time in YYYYMMDDhhmmss from which data\n                        will be processed. If not set, start at beginning of\n                        dataset.\n  -e END_DATETIME, --end END_DATETIME\n                        End date & time in YYYYMMDDhhmmss up to which data\n                        will be processed. If not set process to end of\n                        dataset.\n```\n\n\n## Examples ##\n\nFor OPLAB output format:\n1. Parse raw data into json file format 'nav_standard.json' and visualise data output\n\n    `python3 auv_nav.py parse -f oplab '\\\\oplab-surf\\data\\reconstruction\\raw\\2017\\SSK17-01\\ts_un_006'`\n\n    Example of output:\n    ```\n    'oplab' - nav_standard.json\n    [{\"epoch_timestamp\": 1501974125.926, \"epoch_timestamp_dvl\": 1501974125.875, \"class\": \"measurement\", \"sensor\": \"phins\", \"frame\": \"body\", \"category\": \"velocity\", \"data\": [{\"x_velocity\": -0.075, \"x_velocity_std\": 0.200075}, {\"y_velocity\": 0.024, \"y_velocity_std\": 0.200024}, {\"z_velocity\": -0.316, \"z_velocity_std\": 0.20031600000000002}]},\n    {\"epoch_timestamp\": 1501974002.1, \"class\": \"measurement\", \"sensor\": \"phins\", \"frame\": \"inertial\", \"category\": \"orientation\", \"data\": [{\"heading\": 243.777, \"heading_std\": 2.0}, {\"roll\": 4.595, \"roll_std\": 0.1}, {\"pitch\": 0.165, \"pitch_std\": 0.1}]},\n    {\"epoch_timestamp\": 1501974125.926, \"epoch_timestamp_dvl\": 1501974125.875, \"class\": \"measurement\", \"sensor\": \"phins\", \"frame\": \"body\", \"category\": \"altitude\", \"data\": [{\"altitude\": 31.53, \"altitude_std\": 0.3153}, {\"sound_velocity\": 1546.0, \"sound_velocity_correction\": 0.0}]},\n    {\"epoch_timestamp\": 1501974002.7, \"epoch_timestamp_depth\": 1501974002.674, \"class\": \"measurement\", \"sensor\": \"phins\", \"frame\": \"inertial\", \"category\": \"depth\", \"data\": [{\"depth\": -0.958, \"depth_std\": -9.58e-05}]},\n    {\"epoch_timestamp\": 1502840568.204, \"class\": \"measurement\", \"sensor\": \"gaps\", \"frame\": \"inertial\", \"category\": \"usbl\", \"data_ship\": [{\"latitude\": 26.66935735000014, \"longitude\": 127.86623359499968}, {\"northings\": -526.0556603025898, \"eastings\": -181.08730736724087}, {\"heading\": 174.0588800058365}], \"data_target\": [{\"latitude\": 26.669344833333334, \"latitude_std\": -1.7801748803947248e-06}, {\"longitude\": 127.86607166666667, \"longitude_std\": -1.992112444781924e-06}, {\"northings\": -527.4487693247576, \"northings_std\": 0.19816816183128352}, {\"eastings\": -197.19537408743128, \"eastings_std\": 0.19816816183128352}, {\"depth\": 28.8}]},{\"epoch_timestamp\": 1501983409.56, \"class\": \"measurement\", \"sensor\": \"unagi\", \"frame\": \"body\", \"category\": \"image\", \"camera1\": [{\"epoch_timestamp\": 1501983409.56, \"filename\": \"PR_20170816_023649_560_LC16.tif\"}], \"camera2\": [{\"epoch_timestamp\": 1501983409.56, \"filename\": \"PR_20170816_023649_560_RC16.tif\"}]}\n    ]\n    ```\n\n2. Extract information from nav_standard.json output (start and finish time can be selected based on output in step 2)\n\n    `python3 auv_nav.py process -f oplab -s 20170817032000 -e 20170817071000 '\\\\oplab-surf\\data\\reconstruction\\processed\\2017\\SSK17-01\\ts_un_006'`\n\nFor ACFR output format:\n1. Parse raw data into combined.RAW.auv and mission.cfg\n\n    `python3 auv_nav.py parse -f acfr '\\\\oplab-surf\\data\\reconstruction\\raw\\2017\\SSK17-01\\ts_un_006'`\n\n    Example of output:\n    ```\n    'acfr' - combined.RAW.auv\n        PHINS_COMPASS: 1444452882.644 r: -2.29 p: 17.21 h: 1.75 std_r: 0 std_p: 0 std_h: 0\n        RDI: 1444452882.644 alt:200 r1:0 r2:0 r3:0 r4:0 h:1.75 p:17.21 r:-2.29 vx:0.403 vy:0 vz:0 nx:0 ny:0 nz:0 COG:0 SOG:0 bt_status:32768 h_true:0 p_gimbal:0 sv: 1500\n        PAROSCI: 1444452882.644 298.289\n        VIS: 1444452882.655 [1444452882.655] sx_073311_image0003805_AC.tif exp: 0\n        VIS: 1444452882.655 [1444452882.655] sx_073311_image0003805_FC.tif exp: 0\n        SSBL_FIX: 1444452883 ship_x: 402.988947 ship_y: 140.275056 target_x: 275.337171 target_y: 304.388346 target_z: 299.2 target_hr: 0 target_sr: 364.347071 target_bearing: 127.876747\n    ```\n\n## Folder Structure ##\n\nThe output files are stored in a mirrored file location where the input raw data is stored as follows with the paths to raw data as defined in mission.yaml\n```\ne.g. \n    raw /<YEAR> /<CRUISE> /<DIVE>   /mission.yaml\n                                    /vehicle.yaml\n                                    /nav/gaps/\n                                    /nav/phins/\n                                    /image/r20170816_023028_UG069_sesoko/i20170816_023028/\n```\n\nFor this example, the outputs would be stored in the follow location, where folders will be automatically generated\n```\ne.g.\n    processed /<YEAR> /<CRUISE> /<DIVE> /nav/nav_standard.json\n                                        /dRAWLOGS_cv/combined.RAW.auv\n                                        /mission.cfg\n```\n\n## Example of Required YAML Configuration Files ##\n\nThese files need to be in the root raw folder. Further examples can be found in [sample_yaml](sample_yaml)\n\nmission.yaml:\n```\n#YAML 1.0\norigin:\n    latitude: 26.674083\n    longitude: 127.868054               \n    coordinate_reference_system: wgs84  \n    date: 2017/08/17              \n\nvelocity:\n    format: phins\n    thread: dvl\n    filepath: nav/phins/\n    filename: 20170817_phins.txt\n    timezone: utc\n    timeoffset: 0.0\n    headingoffset: -45.0\n\norientation:\n    format: phins\n    filepath: nav/phins/\n    filename: 20170817_phins.txt\n    timezone: utc\n    timeoffset: 0.0\n    headingoffset: -45.0\n\ndepth:\n    format: phins\n    filepath: nav/phins/\n    filename: 20170817_phins.txt\n    timezone: utc\n    timeoffset: 0.0\n\naltitude:\n    format: phins\n    filepath: nav/phins/\n    filename: 20170817_phins.txt\n    timezone: utc\n    timeoffset: 0.0\n\nusbl:\n    format: gaps\n    filepath: nav/gaps/\n    timezone: utc\n    timeoffset: 0.0\n    id: 1\n\nimage:\n    format: acfr_standard\n    filepath: image/r20170817_041459_UG117_sesoko/i20170817_041459/\n    camera1: LC\n    camera2: RC\n    timezone: utc\n    timeoffset: 0.0\n```\n\nvehicle.yaml\n```\n#YAML 1.0\norigin: #centre of robot\n  x_offset: 0\n  y_offset: 0\n  z_offset: 0\n\n# distance with reference to origin/centre of robot\nusbl:\n  x_offset: 0.1\n  y_offset: 0\n  z_offset: -0.5\n\nins:\n  x_offset: 0.1\n  y_offset: 0\n  z_offset: 0\n\ndvl:\n  x_offset: -0.45\n  y_offset: 0\n  z_offset: 0.45\n\ndepth:\n  x_offset: 0.16\n  y_offset: 0\n  z_offset: 0\n\ncamera1:\n  x_offset: -0.05\n  y_offset: -0.3\n  z_offset: 0.18\n\ncamera2:\n  x_offset: -0.05\n  y_offset: -0.1\n  z_offset: 0.18\n```\n\n## Example Dataset for testing ##\nAn example dataset can be downloaded from the following link with the expected folder structure: https://drive.google.com/drive/folders/0BzYMMCBxpT8BUF9feFpEclBzV0k?usp=sharing\n\nDownload, extract and specify the folder location and run as\n```\nACFR format:\npython3 auv_nav.py parse ~/raw/2017/cruise/dive -f acfr\n\nOPLAB format:\npython3 auv_nav.py parse ~/raw/2017/cruise/dive -f oplab\npython3 auv_nav.py process ~/processed/2017/cruise/dive -f oplab -s 20170816032345 -e 20170816034030\n```        \n\nThe coordinate frames used are those defined in Thor Fossen Guidance, Navigation and Control of Ocean Vehicles\n    \ni.e. Body frame:\n        x-direction: +ve aft to fore\n        y-direction: +ve port to starboard\n        z-direction: +ve top to bottom\ni.e. Intertial frame:\n        north-direction: +ve north\n        east-direction: +ve east\n        down-direction: +ve depth downwards\n\nParameter naming conventions\n    long and descriptive names should be used with all lower case letters.",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ocean-perception/auv_nav",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "auv-nav",
+        "package_url": "https://pypi.org/project/auv-nav/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/auv-nav/",
+        "project_urls": {
+            "Homepage": "https://github.com/ocean-perception/auv_nav"
+        },
+        "release_url": "https://pypi.org/project/auv-nav/0.0.1rc1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Parsers for navigation data for oplab and acfr formats",
+        "version": "0.0.1rc1"
+    },
+    "last_serial": 4338735,
+    "releases": {
+        "0.0.1rc0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4523afc9e3ccb7452aae056b7ba55158",
+                    "sha256": "5ae8d1ad6da45817e1fc24cb9afecf65dfa8015d63223429251dd7ded222b2a1"
+                },
+                "downloads": -1,
+                "filename": "auv_nav-0.0.1rc0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4523afc9e3ccb7452aae056b7ba55158",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 61846,
+                "upload_time": "2018-10-03T19:58:47",
+                "url": "https://files.pythonhosted.org/packages/b1/2b/9322954f9cd33b6e8dd0cb849d94fa713d95496f0a9be1a9799f3f89e837/auv_nav-0.0.1rc0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b07369b48d7ccc2a6b40acb0a35f8aa3",
+                    "sha256": "2097c70579a0534c3492a12472e8e260d9a06abc9fe13755a91ae2104754d192"
+                },
+                "downloads": -1,
+                "filename": "auv_nav-0.0.1rc0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b07369b48d7ccc2a6b40acb0a35f8aa3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 52030,
+                "upload_time": "2018-10-03T19:58:49",
+                "url": "https://files.pythonhosted.org/packages/db/e4/13c5efdd4f01f5660c38a1adebc6e8d51eaded1ca58a2dfc0f5b230acc01/auv_nav-0.0.1rc0.tar.gz"
+            }
+        ],
+        "0.0.1rc1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "68c4c623a1bd3ab19e64b2341aab1827",
+                    "sha256": "d08f75d869f7b7be713396a79e67bdbf660645eb58185ede653a51e1a82c5097"
+                },
+                "downloads": -1,
+                "filename": "auv_nav-0.0.1rc1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "68c4c623a1bd3ab19e64b2341aab1827",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 52045,
+                "upload_time": "2018-10-03T20:07:36",
+                "url": "https://files.pythonhosted.org/packages/36/9e/4be406f92219e5961b5c6c1c7c765fdf4bbe9a52ca81c3f6bc134900ab75/auv_nav-0.0.1rc1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "68c4c623a1bd3ab19e64b2341aab1827",
+                "sha256": "d08f75d869f7b7be713396a79e67bdbf660645eb58185ede653a51e1a82c5097"
+            },
+            "downloads": -1,
+            "filename": "auv_nav-0.0.1rc1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "68c4c623a1bd3ab19e64b2341aab1827",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 52045,
+            "upload_time": "2018-10-03T20:07:36",
+            "url": "https://files.pythonhosted.org/packages/36/9e/4be406f92219e5961b5c6c1c7c765fdf4bbe9a52ca81c3f6bc134900ab75/auv_nav-0.0.1rc1.tar.gz"
+        }
+    ]
+}

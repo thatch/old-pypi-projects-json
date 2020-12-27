@@ -1,0 +1,131 @@
+{
+    "info": {
+        "author": "Petr Kasalick\u00fd",
+        "author_email": "kasape@atlas.cz",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Console",
+            "Environment :: Web Environment",
+            "Framework :: Flask",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+            "Topic :: Software Development :: Version Control :: Git"
+        ],
+        "description": "GHIA - GitHub Issue Assigner\n============================\n\nGHIA is an automation tool for assigning GitHub issues using GitHub API. It contains a command-line interface (CLI) or it can be imported as module to get Flask application.\nExample: When the text of the issue contains \"network error,\" it is assigned to a PepaNovak user because he is an expert in networks. \n\nInstallation\n----------------------\n\nInstall GHIA from testpypi:\n\n.. code-block:: bash\n\n  python -m pip install --extra-index-url https://test.pypi.org/pypi ghia_kasape\n\nor build this repository:\n\n.. code-block:: bash\n\n  git clone git@github.com:Kasape/mi-pyt-ghia.git\n  cd mi-pyt-ghia\n  python setup.py install\n\n\nDocumentation\n-------------\nOn this page you will find the most important of the documentation. The full version of the documentation can be found `here <https://mi-pyt-ghia.readthedocs.io/>`_ or you can build it from a repository with code \n\n.. code-block:: bash\n\n  git clone git@github.com:Kasape/mi-pyt-ghia.git\n  cd mi-pyt-ghia/docs\n  make html\n\nand open it with your browser on address ``file://<path_to_repo>/docs/_build/html/index.html``.\n\nCommand-line interface\n----------------------\n\nThe application is launched using the ``ghia`` command or with a ``python -m ghia`` as a module.\n\n\nThe option ``--help`` will give you a basic idea about the usage:\n\n.. code-block:: bash\n\n  Usage: ghia [OPTIONS] REPOSLUG \n     CLI tool for automatic issue assigning of GitHub issues\n\n  Options:\n    -s, --strategy [append|set|change]\n                                  How to handle assignment collisions.\n                                  [default: append]\n    -d, --dry-run                 Run without making any changes.\n    -a, --config-auth FILENAME    File with authorization configuration.\n                                  [required]\n    -r, --config-rules FILENAME   File with assignment rules configuration.\n                                  [required]\n    --help                        Show this message and exit.\n\n\nThe argument is used to select repository which issues should be processed.\nIt is given in the format ``reposlug`` (``user/name`` or ``organization/name``). The application goes through all open issues in the specified repository and assigns users according to the selected strategy and configuration.\n\nOptions\n*******\n\n``--strategy [append|set|change]``:\n  The application can use one of three strategies to assign users to an issue. When choosing ``append``, the matched users are added to the existing ones. The ``set`` strategy works in such a way that only when no one has been assigned to the issue new users can be assigned according to the rules. The last ``change`` is the most radical. It will add new users like ``append`` strategy, but also remove users originally assigned to the issue that should not be assigned by the rules.\n\n``--dry-run``:\n  If this mode is enabled, all issues are processed, but no real changes are done on GitHub and are only logged.\n\n``--config-auth``:\n  Path to configuration file with GitHub token.\n\n``--config-rules``:\n  Path to a configuration file with rules for assigning users to issues and a label in case there is no one to assign. The same file may or may not be used for both configurations.\n\nConfiguration\n*************\n\nThe application uses 2 configuration files. One has a token to the GitHub API, the other has definitions of rules for assigning users to issues. Both are written in the `configparser <https://docs.python.org/3/library/configparser.html>`_ format. \n\ncredentials.cfg\n\n.. code-block:: ini\n\n  [github]\n  token=xxxxxxxxxxxxxxxxxxxxx\n\nrules.cfg\n\n.. code-block:: ini\n\n  [patterns]\n  MarekSuchanek=\n      title:network\n      text:protocol\n      text:http[s]{0,1}://localhost:[0-9]{2,5}\n      label:^(network|networking)$\n  hroncok=any:Python\n\n  [fallback]\n  label=Need assignment\n\n\nRules always begin with one of the words ``title``, ``text``, ``label``, ``any`` defining,\nwhere to look for the expression. The colon is followed by a regular expression (case\ninsensitive) for use with library `re <https://docs.python.org/3/library/re.html>`_.\nBeware, there are potentially more rules for users (one rule on each line).\nIn addition, this file configures the label (``fallback``). When no user should be left assigned in the end, this label is given to the issue. Section `fallback` is optional and if not in the configuration file not found, then no label configured.\n\n\nOutput\n******\n\nThe application produces the output in the form of colored text in the following format:\n\n.. image:: screenshots/screen_changes.png\n\n.. image:: screenshots/screen_fallback_label.png\n\n\nFor each issue processed, the output starts with an arrow and a space ``\u2192``, after which the repository name (reposlug) is bold, together with the issue number after the ``#`` symbol, followed by a link to the issue page in parentheses on the line after the bold identifier in normal font. This opening line is always followed by a listing of what happened to the issue (in the case of ``--dry-run`` what should happen) with 3 spaces (the same length as ``\u2192``). Assigned users are listed on the issue and before their username symbol. Removed users with red bold minus, added with bold green plus and left with blue bold equal sign. In case a fallback label has been or should have been set, the line starts with the yellow bold word ``FALLBACK``, followed by the ``added label <label>`` or ``already has label <label>`` message, depending on whether it has already been set.\n\nIndividual issues are sorted as they come from the GitHub API by default. Assigned users are listed alphabetically with the case ignored. Closed issues are not processed at all, nor do they appear in the listing.\n\nErrors\n******\n\nThe input format of the reposlug argument and configuration files are validated. In the case of invalid reposlug argument the click.BadParameter exception with the ``not in owner/repository format`` message is raised. The same exception is raised for missing section in configuration files or invalid syntax, only the message is ``incorrect configuration format``.\n\n.. image:: screenshots/screen_error_issue.png\n\n.. image:: screenshots/screen_error_repo.png\n\n\nIf an error occurs while processing the entire repository (for example, it does not exist or an incorrect token is specified), the message ``Could not list issues for repository <reposlug>`` appears in the output after the bold red ``ERROR``, and the program ends with code 10. If an error occurs while processing the issue, then the line is indented and the message ``Could not update issue`` is written along between ``ERROR`` ``<reposlug>#<issue_number>``, but the processing proceeds with another issue.\n\n\nWeb application interface\n-----------------------------\n\nThe web version of the application can be obtained from the module using the ``create_app`` function. At the same time, the environment variable that says where the application should look for the configuration file(s) can be adjusted. Using the variable ``GHIA_CONFIG``, you can set the path to a single configuration file, or multiple files, separated by a colon.\n\nThere is a simple HTML page at `/` for GET request, that is showing what rules are applied and what user will do the actions. The user name shown on the page is based on the used GitHub token.\n\nThe application is listening on the address ``/`` for `webhooks <https://developer.github.com/webhooks/>`_ sent by GitHub using POST method. Is able to process ``issues`` a ``ping`` webhooks in JSON format. \n\nThe both of these webhooks are correctly responded according to the documentation. The ``issues`` webhook also triggers the whole application and assigns users (or adds ``fallback`` label) according to the configuration. Assignment only takes place when the event has been triggered by an action ``opened``, ``edited``,\n``transferred``, ``reopened``, ``assigned``, ``unassigned``, ``labeled``, ``unlabeled``.\nThe appplication supports security using webhook secret.\n\nExample of the running application can be found at `<http://kasape.pythonanywhere.com/>`_ that is connected to `this <https://github.com/mi-pyt-ghia/kasape-web>`_ GitHub repository. Feel free to try it. You can create issue in this repository, that will trigger GitHub to generate webhook. This webhook will be sent to `<http://kasape.pythonanywhere.com/>`_ where will be processed. The application will connect back to the repository and assign the new issue according to the rules listed in application.\n\nConfiguration\n*************\nThe application takes configuration files in the same format as CLI version. It searches for ``github`` and ``patterns`` sections in configuration files (optionally also ``fallback``). Configuration errors are handled identically as in the CLI application (messages and return code). In addition, you can modify the strategy using ``strategy`` and dry-run mode using ``dry_run`` in the ``user_settings`` section. \n\n\nLicence\n-------\nThis project has MIT License. Feel free to use it anyway you like.\n\n\n",
+        "description_content_type": "text/x-rst",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Kasape/mi-pyt-ghia",
+        "keywords": "github,issue,automatization,webhook",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ghia-kasape",
+        "package_url": "https://pypi.org/project/ghia-kasape/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ghia-kasape/",
+        "project_urls": {
+            "Homepage": "https://github.com/Kasape/mi-pyt-ghia"
+        },
+        "release_url": "https://pypi.org/project/ghia-kasape/0.5.0/",
+        "requires_dist": [
+            "Flask",
+            "click",
+            "requests"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "GitHub issue assigner",
+        "version": "0.5.0"
+    },
+    "last_serial": 6268541,
+    "releases": {
+        "0.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aabf0fbd46a1204134a3cdadbee9ecd1",
+                    "sha256": "eebc993c19c73c1211371b75ffc9796e406a838c51a86bd23a12cfc276013666"
+                },
+                "downloads": -1,
+                "filename": "ghia_kasape-0.5.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "aabf0fbd46a1204134a3cdadbee9ecd1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 13507,
+                "upload_time": "2019-12-09T20:42:58",
+                "upload_time_iso_8601": "2019-12-09T20:42:58.314241Z",
+                "url": "https://files.pythonhosted.org/packages/0f/f8/96e0597fa9957fc50f455326518407081345c90de845b3c246d102e678e7/ghia_kasape-0.5.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d2e49afc28a739ad3df82376ba10c5d0",
+                    "sha256": "a175b518e326011f01b945613eeadc6adc2f00f040ee9adc2fc9832b33a09e18"
+                },
+                "downloads": -1,
+                "filename": "ghia_kasape-0.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d2e49afc28a739ad3df82376ba10c5d0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 14936,
+                "upload_time": "2019-12-09T20:43:00",
+                "upload_time_iso_8601": "2019-12-09T20:43:00.897904Z",
+                "url": "https://files.pythonhosted.org/packages/51/51/5b5d2aa17979c3678bf0e3616c3d9df4062c7aa763b8e30ee2338a7df5a7/ghia_kasape-0.5.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "aabf0fbd46a1204134a3cdadbee9ecd1",
+                "sha256": "eebc993c19c73c1211371b75ffc9796e406a838c51a86bd23a12cfc276013666"
+            },
+            "downloads": -1,
+            "filename": "ghia_kasape-0.5.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "aabf0fbd46a1204134a3cdadbee9ecd1",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 13507,
+            "upload_time": "2019-12-09T20:42:58",
+            "upload_time_iso_8601": "2019-12-09T20:42:58.314241Z",
+            "url": "https://files.pythonhosted.org/packages/0f/f8/96e0597fa9957fc50f455326518407081345c90de845b3c246d102e678e7/ghia_kasape-0.5.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d2e49afc28a739ad3df82376ba10c5d0",
+                "sha256": "a175b518e326011f01b945613eeadc6adc2f00f040ee9adc2fc9832b33a09e18"
+            },
+            "downloads": -1,
+            "filename": "ghia_kasape-0.5.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d2e49afc28a739ad3df82376ba10c5d0",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 14936,
+            "upload_time": "2019-12-09T20:43:00",
+            "upload_time_iso_8601": "2019-12-09T20:43:00.897904Z",
+            "url": "https://files.pythonhosted.org/packages/51/51/5b5d2aa17979c3678bf0e3616c3d9df4062c7aa763b8e30ee2338a7df5a7/ghia_kasape-0.5.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,45 @@
+{
+    "info": {
+        "author": "Jacek Bzdak",
+        "author_email": "jbzdak@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Intended Audience :: Developers",
+            "License :: Public Domain",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python"
+        ],
+        "description": "===============================\nDjango migration manager\n===============================\n\nThis is a package that is manages folders containing handmane migration sql code, applies this code,\nand allows trawersal between versions.\n\nWhat this application enables:\n\n* Keeps a repository of migration files (either sql, xml or whatever).\n\n * Helps to manage such a repository\n\n* Allows automatical migration between versions (backward migrations supported)\n\n * Executes scripts via `psql` command, this is due to the fact that there is no way (at least none\n    I'm aware of) to execute multicommand sql scripts via python DB-API, without parsing this\n    sql by hand.\n\nand that's all.\n\nIt works with postgresql only (but I guess that using other databases would be straightforward).\n\nSide note\n----------\n\nOrdinarily you should rather try to use django ORM and South to provide migration functionality!\nBut then I needed a database that has some psql extensions (which transcend django's orm\nfunctionality).\n\nConcepts\n========\n\nRepository\n----------\nSomething that stores migrations. Repositories should use api of `migration_manager.api.Repository`.\n\nThere is one repository defined, namely the `FileSystemRepository`, that storesm= migration in\nparticular folder using following naming convention:\n'\"<migration_id>_<migration_name>.<file extension>\"'\n\nDb location\n-----------\n\nSomething that stores database credentials, it is able to get these from settings, but most probably\nyou'll want to override these, as django database user shouldn't be able to change schema.\n\nSerializer\n----------\n\nSometing that stores sql snippets to a file.\n\nThere are following defined serializers:\n\nPlaintextSerializer:\n    this serializer stores sql snippets as plain sql, unicode encoded, files. It does not support\n    backward migrations.\nXmlSerializer:\n   stores sql migration snippets as XML files with brain dead simple schema. It supports backward\n   migrations.\n\nVersion check\n-------------\n\nIs an object that checks current version of schema stored in the database, and is able to produce\nSQL string that updates this version no.\n\n\nManager\n-------\n\nObject that manages the repository.\n\nProvided Commands\n=================\n\nThese are django commands that provide this module's functionality.\n\nNew migration\n-------------\n\nAdds new migration.\n\nMigrate\n-------\n\nMigrates to particular migration number, raising error if there is no migration path.\n\n\nSetup\n=====\n\nCreate version checker\n----------------------\n\nIs an object that checks current version of schema stored in the database, and is able to produce\nSQL string that updates this version no.\n\nI use following::\n\n class VersionCheck(object):\n\n    def __init__(self, db_location):\n        super(VersionCheck, self).__init__()\n        self.db_location = db_location\n\n    @property\n    def using(self):\n        return self.db_location.using\n\n    def schema_update_script(self, version):\n        return \"SELECT set_schema_version('{:05d}');\\n\".format(int(version))\n\n    @property\n    def version(self):\n        return int(utils.execute_string_query(\"SELECT get_schema_version();\", database=self.using)[0][0][0])\n\n\nCreate repository instance\n---------------------------\n\nCreate a repository instance and put it somewhere global::\n\n def my_manager(db_location = None, repository = REPOSITORY):\n\n    if db_location is None:\n        db_location = migration_manager.PostgresDBLocation()\n        db_location.update_from_django_config('default')\n\n    manager = migration_manager.PsqlManager(\n        db_location,\n        repository= migration_manager.FileSystemRepository(repository),\n        serializer=migration_manager.XmlSerializer(),\n        version_check=version check\n    )\n    return manager\n\nSetup settings py\n-----------------\n\nSet `MIGRATION_MANAGERS` setting. It should look like that::\n\n MIGRATION_MANAGERS = (\n    (\"manager_name\", \"manager_module.MANAGER\"),\n    (\"other\", \"manager_module.OTHER_MANAGER\"),\n )\n\nit is a touple of name -- manager path mappings. Paths should point to\n`migration_manager.api.Manager` instances. Names can be passed to management commands.\n\nFirst defined manager is the 'default' one.\n\n\nI want to do\n============\n\nI want to manage part of my django database that doesn't use ORM, and I use postgresql\n---------------------------------------------------------------------------------------\n\nThan you have found your solution.\n\nI want to manage part of my django database that doesn't use ORM, and I **don't** use postgresql\n------------------------------------------------------------------------------------------------\n\nIf you are willing to write code that connects to the database it will work.\n\nYou will have to write own `migration_manager.api.Transaction` that connects to your database.\n\nI want to manage database but I don't use django\n------------------------------------------------\n\nShould be easy, look at 'django_commands' and rewrite this code using your command line utility.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jbzdak/migration_manager",
+        "keywords": null,
+        "license": "UNKNOWN",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "Django-migration-manager",
+        "package_url": "https://pypi.org/project/Django-migration-manager/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/Django-migration-manager/",
+        "release_url": "https://pypi.org/project/Django-migration-manager/1.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "A simple manager for migrations stored as plain SQL files",
+        "version": "1.1"
+    },
+    "last_serial": 710269,
+    "releases": {
+        "1.0": [],
+        "1.1": []
+    },
+    "urls": []
+}

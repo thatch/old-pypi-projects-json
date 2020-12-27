@@ -1,0 +1,81 @@
+{
+    "info": {
+        "author": "Elliot Hofman",
+        "author_email": "elliot.hofman@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Software Development :: Build Tools"
+        ],
+        "description": "Author : Elliot Hofman\n\nThis is a package to perform sentiment analysis in spanish.\n\n## THE DATA\n\nThe model is fed data crawled from various websites : \nTrip Advisor, PedidosYa, Apestan, QuejasOnline, MercadoLibre, SensaCine, OpenCine, TASS, Twitter\n(See the files under /crawlers if interested)\n\n## THE MODEL\n\nThe model is a pipeline that includes : \n- A vectorizer : go from the text/string representation of the comment to a vectorized representation.\n\t\t\t\tThis is done with a TfIdfVectorizer\n- A feature Selector : The vectorizer will output a n_samples*n_features very sparse matrix (scipy sparse \t\t\t\t\tmatrices are already used by the sklean algorithm). This will reduce the number n_features, \t\t\t\tchecking weather a feature is relevant or not.\n- A classifier : The model used is a Multinomial Naive Bayes, which performs really well for text \n\t\t\t\tclassification.\n\nThe parameters and hyper-parameters of this pipeline are found by the use of a GridSearch K - cross validation with K = 3\n\n## THE PREPROCESSING\n\nAll the comments are preprocessed before the training is done :\n- They are set to lowercase\n- Accents are removed and replaced (\u00ed ==>i, etc)\n- 're' and '100%' are replaced by 'muy', which most of the time will have the same meaning in spanish\n- ' x ' are replaced by ' por ', ' q ' and ' k ' by 'que'\n- Regex is used to replace all possible forms of 'jajajajaja', 'ajajaaaajjaj', 'jjjjaajj', 'ajaja', 'jejejej', etc ...  by the normalized form 'jaja'\n- Regex is used to replace duplicated characters ('Que buenoooooo' -> 'Que bueno' etc), paying attention to the special case of the 'l' (It is actually normal in spanish to have words with repeated 'll')\n- Reg ex is used to clean spaces ('No me gusto la comida.Vos que opinas?Sisi estuvo mala estoy de acuerdo' -> No me gusto la comida. Vos que opinas? Sisi estuvo mala estoy de acuerdo)\n- Regex is used to clean 'k' (askeroso - > asqueroso)\n- Reg ex is used to clean numbers (remove them all, except the 100% that is already replaced before)\n- a dictionnary of spanish expressions is used to factorize expressions in the comments (por supuesto -> por_supuesto, poco a poco -> poco_a_poco, etc...)\n- a dictionnary crawled from the web is used to set a list of chosen verbs to their infinitive form\n('me cayo mal la comida'-> 'me caer mal la comida', etc ...)\n- a function is applied to apply 'not_' to the words contained between a negation term and min(3, a stopNeg term) terms further. (Las papas no son ricas -> Las papas no not_son not_ricas) \n\tThe model will then learn that the fictive word 'not_ricas' is associated to a bad sentiment.\n- a list of customed neutral words is used to remove useless words from the comment before the prediction is made.\n\n## THE PREDICTION\n\nThe prediction is calculated with a few rules:\n- If 'pero' is found in the comment to classify,\n\tpreScore = prediction(sentence before the 'pero')\n\tpostScore = prediction(sentence before the 'pero')\n\n\tand a barycenter of those two quantities is calculated ((decayRate-t)*preScore + t*postScore)/decayRate\n\tso that the score remains from the same side of 0.5 than postScore\n\tThis because the comments might say something kind of good, and then finish 'pero ...' and say something kind of good. In this case, usually the global sentiment of the comment is carried by the second part of the phrase.\n- If 'muy' is found in the comment to classify:\n\timportantScore = prediction(next word just after 'muy' if that word is an adjective)\n\tscore = globalScore of the sentence\n\n\tand the same barycenter method is used so that the final prediction will predict the same thing as the important word placed after the 'muy'.\n\tThis is used because the comment might say a lot of things ('bla balab blalal') and the classifier could eventually get confused (if there was some piece of irony, a too big quantity of unknown words, ...), but if the comment started by ('Muy recomendable') anyway it will know the comment is good.\n- The comments are processed the same way the training data was prepared, and the words that are not in the vocabulary are removed, to reduce the noise that they bring to the comment.\n\n## MORE DOCUMENTATION ON USAGE COMING SOON ...",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "natural language processing sentiment analysis",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sondeos-sentiment",
+        "package_url": "https://pypi.org/project/sondeos-sentiment/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/sondeos-sentiment/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/sondeos-sentiment/1.0.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A sentiment analysis classifier in spanish.",
+        "version": "1.0.0"
+    },
+    "last_serial": 2974539,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3cfbfa1362d8d5ff6e08a0b7eeabdf2",
+                    "sha256": "b89a5c81ec61ad0c3bd59557079ec700b2d0781d7b55ae050e2ff53a16dcf402"
+                },
+                "downloads": -1,
+                "filename": "sondeos-sentiment-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e3cfbfa1362d8d5ff6e08a0b7eeabdf2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15692348,
+                "upload_time": "2017-06-23T20:46:04",
+                "url": "https://files.pythonhosted.org/packages/14/b6/365418ad332ff50c0409bcc5c4b18a0016cdabf91a90e183b74412f5a607/sondeos-sentiment-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e3cfbfa1362d8d5ff6e08a0b7eeabdf2",
+                "sha256": "b89a5c81ec61ad0c3bd59557079ec700b2d0781d7b55ae050e2ff53a16dcf402"
+            },
+            "downloads": -1,
+            "filename": "sondeos-sentiment-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e3cfbfa1362d8d5ff6e08a0b7eeabdf2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 15692348,
+            "upload_time": "2017-06-23T20:46:04",
+            "url": "https://files.pythonhosted.org/packages/14/b6/365418ad332ff50c0409bcc5c4b18a0016cdabf91a90e183b74412f5a607/sondeos-sentiment-1.0.0.tar.gz"
+        }
+    ]
+}

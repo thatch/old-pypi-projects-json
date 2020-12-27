@@ -1,0 +1,664 @@
+{
+    "info": {
+        "author": "Clemens Wolff",
+        "author_email": "clemens.wolff+pypi@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "Opwen cloudserver\n=================\n\n.. image:: https://travis-ci.org/ascoderu/opwen-cloudserver.svg?branch=master\n  :target: https://travis-ci.org/ascoderu/opwen-cloudserver\n\n.. image:: https://img.shields.io/pypi/v/opwen_email_server.svg\n  :target: https://pypi.python.org/pypi/opwen_email_server/\n\n.. image:: https://pyup.io/repos/github/ascoderu/opwen-cloudserver/shield.svg\n  :target: https://pyup.io/repos/github/ascoderu/opwen-cloudserver/\n\nWhat's this?\n------------\n\nThis repository contains the source code for the Opwen cloud server. Its purpose\nis to connect the `application <https://github.com/ascoderu/opwen-webapp>`_\nrunning on the Opwen Lokole devices to the rest of the world.\n\nThe server has two main responsibilities:\n\n1. Receive emails from the internet that are addressed to Lokole users and\n   forward them to the appropriate Lokole device.\n2. Send new emails created by Lokole users to the rest of the internet.\n\nSystem overview\n---------------\n\n.. image:: docs/system-overview.png\n  :width: 800\n  :align: center\n  :alt: Overview of the Lokole system\n  :target: https://raw.githubusercontent.com/ascoderu/opwen-cloudserver/master/docs/system-overview.png\n\nData exchange format\n--------------------\n\nIn order to communicate between the Opwen cloud server and the Opwen\nweb-application (aka Lokole), a protocol based on gzipped jsonl files uploaded\nto Azure Blob Storage is used. The files contains a JSON object per line.\nEach JSON object describes an email, using the following schema:\n\n.. sourcecode :: json\n\n  {\n    \"sent_at\": \"yyyy-mm-dd HH:MM\",\n    \"to\": [\"email\"],\n    \"cc\": [\"email\"],\n    \"bcc\": [\"email\"],\n    \"from\": \"email\",\n    \"subject\": \"string\",\n    \"body\": \"html\",\n    \"attachments\": [{\"filename\": \"string\", \"content\": \"base64\"}]\n  }\n\nDevelopment setup\n-----------------\n\nFirst, get the source code.\n\n.. sourcecode :: sh\n\n  git clone git@github.com:ascoderu/opwen-cloudserver.git\n  cd opwen-cloudserver\n\nSecond, install the system-level dependencies using your package manager,\ne.g. on Ubuntu:\n\n.. sourcecode :: sh\n\n  sudo apt-get install -y make python3-venv shellcheck\n\nYou can use the makefile to verify your checkout by running the tests and\nother CI steps such as linting. The makefile will automatically install all\nrequired dependencies into a virtual environment.\n\n.. sourcecode :: sh\n\n  make tests\n  make lint\n\nThis project consists of a number of microservices and background jobs. You\ncan run all the pieces via the makefile, however, it's easiest to run and\nmanage all of the moving pieces via Docker, so install Docker on your machine\nby following the `Docker setup instructions <https://docs.docker.com/install/>`_\nfor your platform.\n\nThe project uses Sendgrid, so to emulate a full production environment,\nfollow these `Sendgrid setup instructions <https://sendgrid.com/free/>`_ to\ncreate a free account and take note of you API key for sending emails.\n\nThe project also makes use of a number of Azure services such as Blobs,\nTables, Queues, Application Insights, and so forth. To set up all the\nrequired cloud resources programmatically, you'll need to create a service\nprincipal by following these `Service Principal instructions <https://aka.ms/create-sp>`_.\nAfter you created the service principal, you can run the Docker setup script\nto initialize the required cloud resources.\n\n.. sourcecode :: sh\n\n  docker build -t opwenserversetup -f docker/setup/Dockerfile .\n\n  docker run \\\n    -e SP_APPID={appId field of your service principal} \\\n    -e SP_PASSWORD={password field of your service principal} \\\n    -e SP_TENANT={tenant field of your service principal} \\\n    -e SUBSCRIPTION_ID={subscription id of your service principal} \\\n    -e LOCATION={an azure location like eastus} \\\n    -e RESOURCE_GROUP_NAME={the name of the resource group to create or reuse} \\\n    -e SENDGRID_KEY={the sendgrid key you created earlier} \\\n    -v ${PWD}/secrets:/secrets \\\n    opwenserversetup\n\nThe secrets to access the Azure resources created by the setup script will be\nstored in files in the :code:`secrets` directory. Other parts of the\nproject's tooling (e.g. docker-compose) depend on these files so make sure to\nnot delete them.\n\nFinall, run the application stack via Docker:\n\n.. sourcecode :: sh\n\n  docker-compose up --build\n\nThere are OpenAPI specifications that document the functionality of the\napplication and provide references to the entry points into the code\n(look for \"some-api-name-spec.yaml\" files in the repository).\n\nProduction setup\n----------------\n\nTo set up a production-ready deployment of the system, follow the development\nsetup scripts described above, but additionally also pass the following\nenvironment variables to the Docker setup script:\n\n- :code:`KUBERNETES_RESOURCE_GROUP_NAME`: The resource group into which to\n  provision the Azure Kubernetes Service cluster.\n\n- :code:`KUBERNETES_NODE_COUNT`: The number of VMs to provision into the\n  cluster. This should be an odd number and can be dynamically changed later\n  via the Azure CLI.\n\n- :code:`KUBERNETES_NODE_SKU`: The type of VMs to provision into the cluster.\n  This should be one of the supported `Linux VM sizes <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/sizes>`_.\n\nThe script will then provision a cluster in Azure Kubernetes Service and\ninstall the project via Helm. The secrets to connect to the provisioned\ncluster will be stored in the :code:`secrets` directory.",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ascoderu/opwen-cloudserver",
+        "keywords": "",
+        "license": "License :: OSI Approved :: Apache Software License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "opwen_email_server",
+        "package_url": "https://pypi.org/project/opwen_email_server/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/opwen_email_server/",
+        "project_urls": {
+            "Homepage": "https://github.com/ascoderu/opwen-cloudserver"
+        },
+        "release_url": "https://pypi.org/project/opwen_email_server/0.1.53/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Email server for the Opwen project",
+        "version": "0.1.53"
+    },
+    "last_serial": 3993829,
+    "releases": {
+        "0.1.16": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4da65f0d250e7690c844f023cc6be985",
+                    "sha256": "98ee4e57c2758ea314ca5c6833e3d851a6213363df33142ceab2d3ec4f4208ef"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.16.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4da65f0d250e7690c844f023cc6be985",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21066,
+                "upload_time": "2017-11-17T16:43:21",
+                "url": "https://files.pythonhosted.org/packages/6d/ba/da64077c078c5658e072453185493debd1c6a2315d294c9dd2d6ffd57f6d/opwen_email_server-0.1.16.tar.gz"
+            }
+        ],
+        "0.1.17": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7ff5d7fd890dcfab986254f203c53f2d",
+                    "sha256": "5385ba974ef6e5cb699ba36ddfd6349036e9b52fe75290c1be518b1886fca91c"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.17.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7ff5d7fd890dcfab986254f203c53f2d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21180,
+                "upload_time": "2017-11-26T04:53:59",
+                "url": "https://files.pythonhosted.org/packages/45/9b/03af21e3bc068d9f721a2b9f11c93baaae84a41c6c52860cb2f552bdef80/opwen_email_server-0.1.17.tar.gz"
+            }
+        ],
+        "0.1.18": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6de3063f1957c92764b0c22533ae1f51",
+                    "sha256": "73229a2e4cdd33b8490f9e00beb4f1338726f553c24c56f9c10729c50d271e66"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.18.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6de3063f1957c92764b0c22533ae1f51",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21187,
+                "upload_time": "2017-11-26T08:06:31",
+                "url": "https://files.pythonhosted.org/packages/a4/73/03c2688a6ee5768f6591155576fe3825bfa8509569c4918345647757f7e7/opwen_email_server-0.1.18.tar.gz"
+            }
+        ],
+        "0.1.19": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1ffee9bed68c85d4ef8abfea1c26907d",
+                    "sha256": "b260049b421771f2ba3d612d12700f46897aa0d70a3f639a4a832468f7fe1ee4"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.19.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1ffee9bed68c85d4ef8abfea1c26907d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21445,
+                "upload_time": "2017-11-27T04:16:35",
+                "url": "https://files.pythonhosted.org/packages/78/12/1fa0896d7fe2e93e8853a41017c4b56144c848fce03416615edcd3026ecc/opwen_email_server-0.1.19.tar.gz"
+            }
+        ],
+        "0.1.20": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b0400daf405f29ddce96de2ed4957f88",
+                    "sha256": "2e169f6200bbdcd25276792617fd63267c13c66948251f6d34c413db7d9cbfb5"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.20.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b0400daf405f29ddce96de2ed4957f88",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21478,
+                "upload_time": "2017-11-27T04:38:24",
+                "url": "https://files.pythonhosted.org/packages/d3/7f/9ed3642a63d5bf66364cfb396f73332db4ca60e68260b3417eb6805537d1/opwen_email_server-0.1.20.tar.gz"
+            }
+        ],
+        "0.1.21": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5587bf9f49de72335ff0df0b95b293d1",
+                    "sha256": "c1b4f3409f7884cfcf809d6f40194b8eab1d6b585b700e3d311b9b85bfb956ae"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.21.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5587bf9f49de72335ff0df0b95b293d1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21474,
+                "upload_time": "2017-11-29T17:15:26",
+                "url": "https://files.pythonhosted.org/packages/4c/8f/ce9b114cfd5deb79dae627fc0a2363e82e0e48a8e4f8b13ef1f955c84543/opwen_email_server-0.1.21.tar.gz"
+            }
+        ],
+        "0.1.22": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f003e5747b74253e748d04426d78e1e6",
+                    "sha256": "68412a034849cdee52e34bbac4804c506a18a62eb2f38904c56524e9825c98a7"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.22.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f003e5747b74253e748d04426d78e1e6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20758,
+                "upload_time": "2018-01-13T19:10:20",
+                "url": "https://files.pythonhosted.org/packages/c6/d2/996c52c7b9abee31dc36348371a99066349cdf67516ca0fea7f324c9b195/opwen_email_server-0.1.22.tar.gz"
+            }
+        ],
+        "0.1.23": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca92f02b4183a055d35ab1ecda0f0c22",
+                    "sha256": "ee67fa86d2c401950758ade3cb41cb1ed51c30a0017fabe0de7d013c6a42be23"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.23.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ca92f02b4183a055d35ab1ecda0f0c22",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20770,
+                "upload_time": "2018-01-14T10:02:19",
+                "url": "https://files.pythonhosted.org/packages/02/74/85266b989e4f645a3d9a533de26ecae36a8c670d752e7007f0e93159ed3f/opwen_email_server-0.1.23.tar.gz"
+            }
+        ],
+        "0.1.24": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bd95695f72a0234ca7a4225f8b959cec",
+                    "sha256": "fe16bd86f4a149fb6f0ef47abbaa90e1627ad3063c07def02eb3593a92ac4a44"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.24.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bd95695f72a0234ca7a4225f8b959cec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20775,
+                "upload_time": "2018-01-14T10:21:52",
+                "url": "https://files.pythonhosted.org/packages/3c/71/7dfbdd49ac131b1fd2e41a919cc2bb1fa44fc5e6c32224745f188fb54cc5/opwen_email_server-0.1.24.tar.gz"
+            }
+        ],
+        "0.1.25": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1a1b12611a5451fcc9306e9e444e678a",
+                    "sha256": "0c3eac25e766927b781977f48dbff22f517c17475ef1f1dc36a39ee1dfaf1b05"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.25.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1a1b12611a5451fcc9306e9e444e678a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20767,
+                "upload_time": "2018-01-14T10:57:30",
+                "url": "https://files.pythonhosted.org/packages/1c/ea/f2a2c080c2cfa1965383fef13caf644d9eacf63ae63d800f6f738918c805/opwen_email_server-0.1.25.tar.gz"
+            }
+        ],
+        "0.1.26": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fe2e3ed4b029e8117f8f3c1062460d0d",
+                    "sha256": "d03e9656fb48e6b2229018e930ffe56136095ab595f26abdec28bcfe74f67b0e"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.26.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fe2e3ed4b029e8117f8f3c1062460d0d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20829,
+                "upload_time": "2018-01-14T11:08:53",
+                "url": "https://files.pythonhosted.org/packages/12/2e/428896a4fd30b1ef5c936b267b0bf8521ab70381e36ebde6c68bc5e52cc7/opwen_email_server-0.1.26.tar.gz"
+            }
+        ],
+        "0.1.27": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "287dc3c1939a5ab9ec97fc4262db8d8f",
+                    "sha256": "2680f85444c7e22ecb6efad87a557357a72db3c5d5b7df28c1673db4f0816046"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.27.tar.gz",
+                "has_sig": false,
+                "md5_digest": "287dc3c1939a5ab9ec97fc4262db8d8f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20843,
+                "upload_time": "2018-01-14T12:06:51",
+                "url": "https://files.pythonhosted.org/packages/fd/be/abdea158167f6a1b378111d648ef610275ba3dfc8880525095b06088088c/opwen_email_server-0.1.27.tar.gz"
+            }
+        ],
+        "0.1.28": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5a08c91bde72ed169a3d6e3f694cce44",
+                    "sha256": "ade8d95f5fd05c257fef911675cabb90a9149e8812f82d528d2111e3eb5521b5"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.28.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5a08c91bde72ed169a3d6e3f694cce44",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20895,
+                "upload_time": "2018-01-15T02:04:29",
+                "url": "https://files.pythonhosted.org/packages/0a/0b/ff0bde69bdda263897847f0c893edbc6281e70867c6e157410daee9f6bd0/opwen_email_server-0.1.28.tar.gz"
+            }
+        ],
+        "0.1.29": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8def5e29d74c8e5a8295fc9ef87763c",
+                    "sha256": "b5c70f111dcb86fccb88c1da5994e97d9133456e442afb877abbf1faf27a1a3b"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.29.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c8def5e29d74c8e5a8295fc9ef87763c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20911,
+                "upload_time": "2018-01-15T02:24:06",
+                "url": "https://files.pythonhosted.org/packages/62/09/e4f51b5551dc71aeee395da99ce54550caecab887578300341f12da5c493/opwen_email_server-0.1.29.tar.gz"
+            }
+        ],
+        "0.1.30": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3dcb9fab2834b0f372acdbc61337445f",
+                    "sha256": "a6d8675d945fa05ca013ddf1533663b00a8381fa154d4ef9fe48ade8a08a9aaf"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.30.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3dcb9fab2834b0f372acdbc61337445f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20917,
+                "upload_time": "2018-01-15T02:38:45",
+                "url": "https://files.pythonhosted.org/packages/47/2b/762b3c3ed26c6c14c1c4072bb036065f0d09f709ece18659b93013e292cb/opwen_email_server-0.1.30.tar.gz"
+            }
+        ],
+        "0.1.33": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5fb8a2ad30fcdd42240a722f98818daf",
+                    "sha256": "f3a4e3d962e8aa4597ed9a8216b29f12a677994789a546b7ba781dbef8f9e876"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.33.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5fb8a2ad30fcdd42240a722f98818daf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20911,
+                "upload_time": "2018-02-19T02:34:44",
+                "url": "https://files.pythonhosted.org/packages/b6/58/1a8855cdfe13958e3073df2fe0e20f3b7567de1de6cc568ec31ff02d0a01/opwen_email_server-0.1.33.tar.gz"
+            }
+        ],
+        "0.1.34": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4851ac1d4bfe11c0a413b06b2bf6d970",
+                    "sha256": "18e6a359efd4923615125b954d275be4fde45fef20304636d8877ee85e61be58"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.34.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4851ac1d4bfe11c0a413b06b2bf6d970",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20917,
+                "upload_time": "2018-02-19T03:12:25",
+                "url": "https://files.pythonhosted.org/packages/de/ea/e18353570aa5b6c1360b006302c7d9582a8a75df046a0128f71468931df8/opwen_email_server-0.1.34.tar.gz"
+            }
+        ],
+        "0.1.37": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d86557b2dd4c28283908e72a7ada46b3",
+                    "sha256": "cfdbba007d71bf2eca9c67c3756f7f8ff8aa1bec4791645eedaa16b9f055a804"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.37.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d86557b2dd4c28283908e72a7ada46b3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16024,
+                "upload_time": "2018-03-22T01:43:46",
+                "url": "https://files.pythonhosted.org/packages/f3/e8/31850010c2a42c9fc4f1591bdb78dcdf2e835af93ef623cfc9c2ef94d64c/opwen_email_server-0.1.37.tar.gz"
+            }
+        ],
+        "0.1.38": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b5829759cbd639f4962a28235a8262de",
+                    "sha256": "d9645dff5224c19c2308a8d7d63fdfaed67270c338839b963a8200c168672674"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.38.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b5829759cbd639f4962a28235a8262de",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16030,
+                "upload_time": "2018-03-22T02:00:28",
+                "url": "https://files.pythonhosted.org/packages/65/4b/33e9a3d0b381bdcfe8fc3cf0db1d3eed539c138c31569126d542c3772cf2/opwen_email_server-0.1.38.tar.gz"
+            }
+        ],
+        "0.1.39": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3690d841a8ed8f8c5ad5967c109b6cd9",
+                    "sha256": "cb355ab796cdcd32d90e3d98a8f75b45560396e18b6ed326dd24da9d6f58fb07"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.39.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3690d841a8ed8f8c5ad5967c109b6cd9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16020,
+                "upload_time": "2018-03-22T02:06:58",
+                "url": "https://files.pythonhosted.org/packages/dc/c7/fc6d4e93e44a01cc4200d6e16f10f4d3eda1b66defa53f563cb0e8a11295/opwen_email_server-0.1.39.tar.gz"
+            }
+        ],
+        "0.1.40": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0ccc4dec44571a9b295185048b8eeb61",
+                    "sha256": "04ddc668c118c1a60365ce190002c856c337d9f0fc8032f366946641199bf9c1"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.40.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0ccc4dec44571a9b295185048b8eeb61",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16089,
+                "upload_time": "2018-03-24T21:26:53",
+                "url": "https://files.pythonhosted.org/packages/48/97/da88bcc36b78493ec9364dc941177e874e7d34a8c9073f68e63b7a2b8385/opwen_email_server-0.1.40.tar.gz"
+            }
+        ],
+        "0.1.41": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2fd429c88b6c9fd93cb533deb007f178",
+                    "sha256": "d9000d0def17c8b22c34230f0258319c1151ee75ac0aad8814b58da3ad4bf961"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.41.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2fd429c88b6c9fd93cb533deb007f178",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16089,
+                "upload_time": "2018-04-01T21:49:12",
+                "url": "https://files.pythonhosted.org/packages/bd/e0/1f49d621e45123d4fc938cd826358c901ba95a391595c80134a3d58297d3/opwen_email_server-0.1.41.tar.gz"
+            }
+        ],
+        "0.1.44": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3986e909d907dbf028d043c19ab59418",
+                    "sha256": "68c015bcdb5a70a511f99bb992b6288f88f67fb30a27fb3658789dd97e3db322"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.44.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3986e909d907dbf028d043c19ab59418",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17807,
+                "upload_time": "2018-05-27T23:54:31",
+                "url": "https://files.pythonhosted.org/packages/a2/03/126949daa19d95d210a119682569beb544ecedc651cc268f17ecc817d3ba/opwen_email_server-0.1.44.tar.gz"
+            }
+        ],
+        "0.1.45": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "465a494897d84926889f0d41fe963d0e",
+                    "sha256": "3ae358ce0b7f7a8ee3c5678425560456d10e1a186efdc2a87022c648cb66c955"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.45.tar.gz",
+                "has_sig": false,
+                "md5_digest": "465a494897d84926889f0d41fe963d0e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17809,
+                "upload_time": "2018-05-28T00:06:24",
+                "url": "https://files.pythonhosted.org/packages/17/a6/fcbbea6db0ba6f2a82e0733f4a6e4aebbabd5141b0158821744adbcd6c16/opwen_email_server-0.1.45.tar.gz"
+            }
+        ],
+        "0.1.46": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "77e2572df9e42ce7aa9231eace0edbfa",
+                    "sha256": "22076c7edbba9f8daa089b04033562df2130a8e0791f5c28e822f73af568319c"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.46.tar.gz",
+                "has_sig": false,
+                "md5_digest": "77e2572df9e42ce7aa9231eace0edbfa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17808,
+                "upload_time": "2018-05-28T00:14:21",
+                "url": "https://files.pythonhosted.org/packages/31/13/70ffae2b184b2498b54f6b69f2a07f766c0bc9afff4425efc25f06f3507e/opwen_email_server-0.1.46.tar.gz"
+            }
+        ],
+        "0.1.47": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6beb28296ce282f96348daaf124682af",
+                    "sha256": "9096853fe2a0bace8a6cd2034f94d8bdd1d0511fc90efc28eaaf3040d15270e3"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.47.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6beb28296ce282f96348daaf124682af",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17807,
+                "upload_time": "2018-05-28T00:23:14",
+                "url": "https://files.pythonhosted.org/packages/d9/55/529439ba7087faf70981081d9be8908f7c06072e88e29532c64756cd77e6/opwen_email_server-0.1.47.tar.gz"
+            }
+        ],
+        "0.1.48": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "85743fbf2686abea0baf4198b17bd36c",
+                    "sha256": "ed93b8c50060c12567f1ec7fb72e851e6566a21f6d3ce9c85c0c45ba4251cb07"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.48.tar.gz",
+                "has_sig": false,
+                "md5_digest": "85743fbf2686abea0baf4198b17bd36c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17814,
+                "upload_time": "2018-05-28T00:32:14",
+                "url": "https://files.pythonhosted.org/packages/b2/f8/a7b680bab0d6afafb0d80b68f495e96df086103588aff4b0bf997cbf5e4d/opwen_email_server-0.1.48.tar.gz"
+            }
+        ],
+        "0.1.49": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1bf25c3a75738ba7aa9d6b8a534d0a99",
+                    "sha256": "a67cc7d9d3a860ac6d2abef481f2019006de6b106268b6a2c858b5cb0e9d62e2"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.49.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1bf25c3a75738ba7aa9d6b8a534d0a99",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17811,
+                "upload_time": "2018-05-28T00:45:36",
+                "url": "https://files.pythonhosted.org/packages/dc/ef/95332093469bec61d3a121432c8565c2c8fd3d63a5b2c936c121924b1d92/opwen_email_server-0.1.49.tar.gz"
+            }
+        ],
+        "0.1.50": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f19dbe889208c1ed34a1bac5299d56b2",
+                    "sha256": "aacb4aa857591746a21a53cb67e3e15e8cde93972d65da5c4a836de56bdc7902"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.50.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f19dbe889208c1ed34a1bac5299d56b2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17815,
+                "upload_time": "2018-05-28T00:59:20",
+                "url": "https://files.pythonhosted.org/packages/63/90/58d0cd0f500f5877044b1e25a6e2bff0dd59cd58af4f058a094f8eb36350/opwen_email_server-0.1.50.tar.gz"
+            }
+        ],
+        "0.1.51": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "da1b4a19d6dda49e36249e76fadcc7a5",
+                    "sha256": "5aa72cec059e7a6f1ae239a07de040596915c68dcc14cf132ae91e317fa56648"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.51.tar.gz",
+                "has_sig": false,
+                "md5_digest": "da1b4a19d6dda49e36249e76fadcc7a5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18019,
+                "upload_time": "2018-05-28T17:35:21",
+                "url": "https://files.pythonhosted.org/packages/9c/54/6b96580b696676db0bcc9eac43c2ef75565b89974f41470a60c03a715034/opwen_email_server-0.1.51.tar.gz"
+            }
+        ],
+        "0.1.52": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0a5723c7ab21892ce2374abb9aa2ec37",
+                    "sha256": "be677c812c1300eba1a2d65931bde6be4d5cdccd227804c09213526921e8aa88"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.52.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0a5723c7ab21892ce2374abb9aa2ec37",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18199,
+                "upload_time": "2018-05-28T18:10:15",
+                "url": "https://files.pythonhosted.org/packages/9d/c5/2d4be32130bf93e8b3604b3df6db6885aab084de9d430f55054ffd52ea7b/opwen_email_server-0.1.52.tar.gz"
+            }
+        ],
+        "0.1.53": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "881938eadf217da3bc78932bd3bbe783",
+                    "sha256": "fae47022994a6c19732be678ffec0856656812807cc47ddd2bf2826489b18d22"
+                },
+                "downloads": -1,
+                "filename": "opwen_email_server-0.1.53.tar.gz",
+                "has_sig": false,
+                "md5_digest": "881938eadf217da3bc78932bd3bbe783",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18383,
+                "upload_time": "2018-06-23T23:17:18",
+                "url": "https://files.pythonhosted.org/packages/9a/87/f416ba6376396e1100f7499748e2b666189d3a0ece8b19ecc3f4f7bbcf1e/opwen_email_server-0.1.53.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "881938eadf217da3bc78932bd3bbe783",
+                "sha256": "fae47022994a6c19732be678ffec0856656812807cc47ddd2bf2826489b18d22"
+            },
+            "downloads": -1,
+            "filename": "opwen_email_server-0.1.53.tar.gz",
+            "has_sig": false,
+            "md5_digest": "881938eadf217da3bc78932bd3bbe783",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 18383,
+            "upload_time": "2018-06-23T23:17:18",
+            "url": "https://files.pythonhosted.org/packages/9a/87/f416ba6376396e1100f7499748e2b666189d3a0ece8b19ecc3f4f7bbcf1e/opwen_email_server-0.1.53.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,186 @@
+{
+    "info": {
+        "author": "Theo (Lattay) Cavignac",
+        "author_email": "theo.cavignac@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Information Technology",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# MiniTemple\n\nMiniTemple is a templating engine working with UTF-8 and inspired by EJS and PHP.\nIt is not designed specificaly for web technologies. Altought I wrote it to generate C++ files.\n\nJust like PHP and EJS it print everything it meet until it enter a code block delimited by a specific pair of tags.\nThe default tags are `<%` and `%>` but can be easily replaced with any string of at least two characters.\n\nAs a simple pure python program it should be fully compatible with any interpreter for Python 3.\nAlso any valid Python 3 code can be embed into the templates.\n\n## Disclaimer\n\nThis is a work in progress and my change and be buggy. Feel free to open an issue\nor fork the project. This software is distributed as is without any kind of guaranties.\n\n\n## Printing text\n\nThere is three way to output text from a template :\n- Outside of the tags everything is printed without modification with the exception \nof the escaped tags `\\<%` and `\\%>` wich are just tags on output\n- Inside of the tags you can use the direct output : a `=` as the first non blank \ncharacter of a line or of a code block will automatically output the evaluation \nof the rest of the line\n- Inside of the tags you can explicitely use the python functions `echo` and `write`\nto output text. `echo` output any number of argument separated by spaces and\nappend a newline at the end. Write just output one argument with no implicit\nnewline at the end.\n\n\n## Including other templates\n\nYou can include other templates into the current one with the #include directive\nfollowed by any number of file names separated by spaces. The file names are \nnot strings, do not use `\"` or `'`. If a filename is a relative path it it taken\nrelatively to the file being compiled. Absolute path are also valid. The \nincluded files are loaded in order of apparition and inherit from the level of \nindentation of the parent wich means that if you write :\n```\n<%\nif some_condition:\n    #include some_file\n%>\n```\nThe included file will only be executed if ```some_condition``` is true.\n\n## The indentation\n\nIndentation is a part of the syntax in python but here we mix at least two different languages that have different syntaxes.\nInside a pair of tags the indentation work just like standard python, you can code as usual. \nThe specificity appear when you include a bit of text between two part of the same if block for example.\nWith MiniTemple you are not forced to match the indentations of two different code blocks if they are not in the same pair of tags.\nThat allow you to rather follow the indentation of the content for more readability.\nThe counterpart is that you may have to explicitaly decrease the indentation.\nFor example the following code :\n```\n<%\n    if some_condition:\n        do_something()\n%>\nSome content\n<%\n    do_something_else()\n%>\n```\nis equivalent to :\n```\n<%\n    if some_condition:\n        do_something()\n        echo(\"Some texte\")\n        do_something_else()\n%>\n```\nbut if you meant :\n```\n<%\n    if some_condition:\n        do_something()\n    echo(\"Some texte\")\n    do_something_else()\n%>\n```\nyou could write :\n\n```\n<%\n    if some_condition:\n        do_something()\n    #end\n%>\nSome texte\n<%\n    do_something_else()\n%>\n```\n\nThat can be important for loops for example. If you want to produce a HTML list, you would write :\n\n```\n<% for el in elements: %>\n<li> <%= el %> </li>\n<% #end %>\n```\n\nIf you omit the final #end every thing else will also be in the for loop.\n\nNote that if a line is a `else` or `elif` clause it is detected and the indentation is\ndecremented so you would __not__ write the following :\n\n```\n<% if a_bool: %>\nOK\n<% #end\n   else: %>\nNope\n```\n\nbut the more intuitive\n\n```\n<% if a_bool: %>\nOK\n<% else: %>\nNope\n```\n\nIn case of nested `if` blocks you have to use `#end` to unindent the outer block:\n\n```\n<% if a_bool: %>\n<%   if another_bool: %>\nHere a_bool and another_bool are both true\n<%   else: %>\nHere a_bool is true but not another_bool\n<% #end %>\n<% else:\n# the #end close the inner if block explicitely so the else is associated to the outer if %>\nHere both conditions aree false \n```\n\n## The scope\n\nWhen you render a template you have to provide a scope wich will be used for execution of python code. \nIf you use a variable that is neither declared in the file nor in the scope you will have an error.\n\n## Installation\n\nThere is three ways to go :\n\n1) The standard python way : use `pip install MiniTemple`\n2) The git way : use `git clone https://github.com/Lattay/MiniTemple` in your project.\n3) The brutal way : copy the *MiniTemple* directory to your project.\n\n## Usage\n\nYou can use MiniTemple in a python program by importing the module :\n```\nfrom MiniTemple import compile_file\n\nt = compile_file('some_file.mt')\n\nprint(t.render({'a_variable' : 5, 'another' : 'someValue'})\nprint(t.render({'a_variable' : 0, 'another' : 'someOtherValue'})\n```\n\nYou can also use it in command line mode if you installed it with method 1 or 3.\nThe *-s* option allow you to provide a key/value pair for the scope. You can add as many as you want.\nIf possible the value will be converted to int or float or bool (if it match True or False). If no type match\nthe value will be passed as a string. The *-t* option allow you to provide the two tags you want to use.\n```\n$ python -m Minitemple.py a_template_file -t \"<?\" \"?>\" -s a_variable 5 -s another someValue\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Lattay/MiniTemple",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "MiniTemple",
+        "package_url": "https://pypi.org/project/MiniTemple/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/MiniTemple/",
+        "project_urls": {
+            "Homepage": "https://github.com/Lattay/MiniTemple"
+        },
+        "release_url": "https://pypi.org/project/MiniTemple/0.2.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A simple general purpose templating engine",
+        "version": "0.2.2"
+    },
+    "last_serial": 4489377,
+    "releases": {
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6e91e756f4bbcc28327b9cb5af851dff",
+                    "sha256": "dff3f744e3bc19336d63c6d409901981e91c6e991c0e41be4928040247ee3dee"
+                },
+                "downloads": -1,
+                "filename": "MiniTemple-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6e91e756f4bbcc28327b9cb5af851dff",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7496,
+                "upload_time": "2018-08-27T20:18:35",
+                "url": "https://files.pythonhosted.org/packages/f9/39/7658611762b7341869021ddea92a7dcdf7161a641259b4b080d6802fa763/MiniTemple-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a3c8b9701b0773eebec4bf96bf5da2e",
+                    "sha256": "2367c4d105bad9f11a7c96e6e48eacd9f43c7a0984d45877f8b9f947c3608d1e"
+                },
+                "downloads": -1,
+                "filename": "MiniTemple-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8a3c8b9701b0773eebec4bf96bf5da2e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6995,
+                "upload_time": "2018-08-27T20:18:37",
+                "url": "https://files.pythonhosted.org/packages/c9/70/92b09fbeb69dea638a1a0ebaa18fe5894d4d0321e0972d80e42b2306f5a9/MiniTemple-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0d6eb622affeddd9fbde688cee83a692",
+                    "sha256": "3d36ecda601ada28600467128782eb3081141152be5e72aa9d3f15e981cd80ea"
+                },
+                "downloads": -1,
+                "filename": "MiniTemple-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0d6eb622affeddd9fbde688cee83a692",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7500,
+                "upload_time": "2018-08-27T20:31:48",
+                "url": "https://files.pythonhosted.org/packages/32/a3/a6786267d715ce7ae90089fdd1577b4dc531bd4193a4ac2df9165b2cf2d9/MiniTemple-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "acadf6144e7e5c3ee30fe99fadc21ed5",
+                    "sha256": "0cd1023593f1961c75731d7e838ff90a7d759a6a5bc770d28be40045afb742cb"
+                },
+                "downloads": -1,
+                "filename": "MiniTemple-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "acadf6144e7e5c3ee30fe99fadc21ed5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7008,
+                "upload_time": "2018-08-27T20:31:49",
+                "url": "https://files.pythonhosted.org/packages/b2/e3/7da0a96eab5b6c167d42506bc72895953396719989182c1c4c49c9ce1ff1/MiniTemple-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1530819a46adc6c3d5f0c003ed63f9ac",
+                    "sha256": "84c4ecb48f509ec07cf1023d548905e4acffa33417f1a7cb5227035d6f9984db"
+                },
+                "downloads": -1,
+                "filename": "MiniTemple-0.2.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1530819a46adc6c3d5f0c003ed63f9ac",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8687,
+                "upload_time": "2018-11-15T11:48:01",
+                "url": "https://files.pythonhosted.org/packages/bc/eb/be6903bbf5aabe86815fed21995205316a165271da96e290fe8e884eb500/MiniTemple-0.2.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2766fa24d07954627b26c3d85ee4f963",
+                    "sha256": "a9d975b3aeb47bd421adc9f3eeb8d235e9c47c095f3bfdd7c728a7f2ffc4a168"
+                },
+                "downloads": -1,
+                "filename": "MiniTemple-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2766fa24d07954627b26c3d85ee4f963",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7278,
+                "upload_time": "2018-11-15T11:48:03",
+                "url": "https://files.pythonhosted.org/packages/7d/83/314f736e50c76cf739ce43a081d8a6ca9d68813189e384037def59f8418c/MiniTemple-0.2.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1530819a46adc6c3d5f0c003ed63f9ac",
+                "sha256": "84c4ecb48f509ec07cf1023d548905e4acffa33417f1a7cb5227035d6f9984db"
+            },
+            "downloads": -1,
+            "filename": "MiniTemple-0.2.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "1530819a46adc6c3d5f0c003ed63f9ac",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 8687,
+            "upload_time": "2018-11-15T11:48:01",
+            "url": "https://files.pythonhosted.org/packages/bc/eb/be6903bbf5aabe86815fed21995205316a165271da96e290fe8e884eb500/MiniTemple-0.2.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2766fa24d07954627b26c3d85ee4f963",
+                "sha256": "a9d975b3aeb47bd421adc9f3eeb8d235e9c47c095f3bfdd7c728a7f2ffc4a168"
+            },
+            "downloads": -1,
+            "filename": "MiniTemple-0.2.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "2766fa24d07954627b26c3d85ee4f963",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7278,
+            "upload_time": "2018-11-15T11:48:03",
+            "url": "https://files.pythonhosted.org/packages/7d/83/314f736e50c76cf739ce43a081d8a6ca9d68813189e384037def59f8418c/MiniTemple-0.2.2.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,92 @@
+{
+    "info": {
+        "author": "Max W. Y. Lam",
+        "author_email": "maxingaussian@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "#SCFGP\n\nSCFGP is a proposed improvement of [Sparse Spectrum Gaussian Process](http://quinonero.net/Publications/lazaro-gredilla10a.pdf) (SPGP), which is a new branch of method to speed up Gaussian process model taking advantage of [Fourier features](https://papers.nips.cc/paper/3182-random-features-for-large-scale-kernel-machines.pdf). Recall that using Gaussian processes for machine learning is a state-of-the-art technique that originate from and popularize by [Carl Edward Rasmussen and Christopher K. I. Williams](http://www.gaussianprocess.org/gpml/).\n\nBased on minimization of the marginal likelihood, SCFGP selects a set of vectors to obtain a [Gramian matrix](https://en.wikipedia.org/wiki/Gramian_matrix), which is treated as the frequency matrix for later computation of Fourier features. This procedure indeed can be viewed as constructing sparsely correlated Fourier features. \n\nNote that the Fourier features are identically and independently distributed in SPGP, therefore the size of optimization parameters is proportional to the number of Fourier features times the number of dimension. This is undoubtedly an unfavorable property, since the model is likely to stick in local minima and becomes very unstable when dealing with very high dimensional data, such as images, speech signals, text, etc.\n\nThe formulation of SCFGP is briefly described in this sheet: (Derivation will be included in the future)\n\n![SCFGP Formulas](SCFGP_formulas.png?raw=true \"SCFGP Formulas\")\n\nSCFGP is implemented in python using Theano and originally designed by Max W. Y. Lam (maxingaussian@gmail.com).\n\n###Highlights of SCFGP\n\n- SCFGP optimizes\nthe Fourier features so as to \"learn\" a tailmade covariance matrix from the data. \nThis removes the necessity of deciding which kernel function to use in different problems.\n\n- SCFGP implements a variety of formulation to transform the optimized Fourier features to covariance matrix, including the typical sin-cos concatenation introduced by [Miguel](http://www.jmlr.org/papers/v11/lazaro-gredilla10a.html), and the generalized approach described by [Yarin](http://jmlr.org/proceedings/papers/v37/galb15.html).\n\n- SCFGP uses low-rank frequency matrix for sparse approximation of Fourier features. It is \nintended to show that low-rank frequency matrix is able to lower the computational \nburden in each step of optimization, and also render faster convergence and a stabler result.\n\n- Compared with other \nstate-of-the-art regressors, SCFGP usually gives the most accurate prediction on the benchmark datasets of regression.\n\n# Installation\n   \n### SCFGP\n\nTo install SCFGP, use pip:\n\n    $ pip install SCFGP\n\nOr clone this repo:\n\n    $ git clone https://github.com/MaxInGaussian/SCFGP.git\n    $ python setup.py install\n\n## Dependencies\n### Theano\n    Theano is used due to its nice and simple syntax to set up the tedious formulas in SCFGP, and\n    its capability of computing automatic differentiation.\n    \nTo install Theano, see this page:\n\n   http://deeplearning.net/software/theano/install.html\n\n### scikit-learn (only used in the experiments)\n    \nTo install scikit-learn, see this page:\n\n   https://github.com/scikit-learn/scikit-learn\n# Try SCFGP with Only 3 Lines of Code\n```python\nfrom SCFGP import *\n# <>: necessary inputs, {}: optional inputs\nmodel = SCFGP(rank=<rank_of_frequency_matrix>,\n              feature_size=<number_of_Fourier_features>,\n              fftype={feature_type},\n              msg={print_message_or_not})\nmodel.fit(X_train, y_train, {X_test}, {y_test})\npredict_mean, predict_std = model.predict(X_test, {y_test})\n```\n\n# Analyze Training Process on Real Time\n## Training on High-dimensional Inputs (Boston Housing)\n```python\nmodel.fit(X_train, y_train, X_test, y_test, plot_training=True)\n```\n![PlotTraining](experiments/plot_training.gif?raw=true \"Plot Training\")\n## Training on One-dimensional Inputs (Mauna Loa Atmospheric CO2)\n```python\nmodel.fit(X_train, y_train, X_test, y_test, plot_1d_function=True)\n```\n![Plot1DFunction](experiments/plot_1d_function.gif?raw=true \"Plot 1D Function\")\n\n# Performance of SCFGP on Benchmark Datasets\n| Benchmark Dataset | Number of Attributes | Size of Training Data | Size of Testing Data |\n| :---: | :---: | :---: | :---: |\n| Bostion Housing | 13 | 400 | 106 |\n| Abalone | 10 | 3133 | 1044 |\n| Kin8nm | 10 | 5000 | 3192 |\n##Predict Boston Housing Prices\n| Regression Model | MAE | MSE | RMSE | NMSE | MNLP | Training Time (s) |\n| :---: | :---: | :---: | :---: | :---: | :---: | :---: |\n| **SCFGP** | **1.3398** | **3.1828** | **1.7841** | **0.0405** | **2.0106** | 12.8740 |\n| [Boosting](http://professordrucker.com/Pubications/ImprovingRegressorsUsingBoostingTechniques.pdf) | N/A | 10.7 | N/A | N/A | N/A | N/A |\n| [MARK-L](http://dl.acm.org/citation.cfm?id=775051) | N/A | 12.4 | N/A | N/A | N/A | **6.0** |\n| [PS-SVR](http://epubs.siam.org/doi/abs/10.1137/1.9781611972726.16) | N/A | 7.887 | N/A | 0.0833 | N/A | N/A |\n| [spLGP](http://www2.stat.duke.edu/~st118/Publication/TokdarZhuGhosh.pdf) | 1.73 | N/A | N/A | N/A | N/A | N/A |\n| [Student-t GP](http://people.ee.duke.edu/~lcarin/NIPS2009_0224.pdf) | N/A | N/A | N/A | 0.0824 | N/A | N/A |\n\nP.S. SCFGP's performance refers to this model:\n```python\nboston_housing_best_model = SCFGP()\nboston_housing_best_model.load(\"experiments/boston_housing/best_model.pkl\")\n```\n\n## Predict Age of Abalone\n| State-Of-The-Art Model | MAE | MSE | RMSE | NMSE | MNLP | Training Time (s) |\n| :---: | :---: | :---: | :---: | :---: | :---: | :---: |\n| **SCFGP** | **1.4113** | **3.8153** | **1.9533** | **0.3715** | **2.0916** | **9.5621** |\n| [MARK-L](http://dl.acm.org/citation.cfm?id=775051) | N/A | 4.65 | N/A | N/A | N/A | 57.0 |\n\nP.S. SCFGP's performance refers to this model:\n```python\nabalone_best_model = SCFGP()\nabalone_best_model.load(\"experiments/abalone/best_model.pkl\")\n```\n\n## Predict Kinematics of 8-link Robot Arm\n| State-Of-The-Art Model | MAE | MSE | RMSE | NMSE | MNLP | Training Time (s) |\n| :---: | :---: | :---: | :---: | :---: | :---: | :---: |\n| **SCFGP** | **0.0561** | **0.0052** | **0.0718** | **0.0741** | **-1.2170** | **355.6762** |\n\n\nP.S. SCFGP's performance refers to this model:\n```python\nkin8nm_best_model = SCFGP()\nkin8nm_best_model.load(\"experiments/kin8nm/best_model.pkl\")\n```\n\n# Performance of SCFGP v.s. Number of Fourier features\n<h2 align=\"center\">\nBostion Housing\n</h2>\n![BostonHousingMAE](experiments/boston_housing/plots/mae.png?raw=true \"Boston Housing MAE\")\n![BostonHousingMSE](experiments/boston_housing/plots/mse.png?raw=true \"Boston Housing MSE\")\n![BostonHousingRMSE](experiments/boston_housing/plots/rmse.png?raw=true \"Boston Housing RMAE\")\n![BostonHousingNMSE](experiments/boston_housing/plots/nmse.png?raw=true \"Boston Housing NMSE\")\n![BostonHousingMNLP](experiments/boston_housing/plots/mnlp.png?raw=true \"Boston Housing MNLP\")\n![BostonHousingTime](experiments/boston_housing/plots/time(s).png?raw=true \"Boston Housing Time\")\n<h2 align=\"center\">\nAbalone\n</h2>\n![AbaloneMAE](experiments/abalone/plots/mae.png?raw=true \"Abalone MAE\")\n![AbaloneMSE](experiments/abalone/plots/mse.png?raw=true \"Abalone MSE\")\n![AbaloneRMSE](experiments/abalone/plots/rmse.png?raw=true \"Abalone RMAE\")\n![AbaloneNMSE](experiments/abalone/plots/nmse.png?raw=true \"Abalone NMSE\")\n![AbaloneMNLP](experiments/abalone/plots/mnlp.png?raw=true \"Abalone MNLP\")\n![AbaloneTime](experiments/abalone/plots/time(s).png?raw=true \"Abalone Time\")\n<h2 align=\"center\">\nKin8nm\n</h2>\n![Kin8nmMAE](experiments/kin8nm/plots/mae.png?raw=true \"Kin8nm MAE\")\n![Kin8nmMSE](experiments/kin8nm/plots/mse.png?raw=true \"Kin8nm MSE\")\n![Kin8nmRMSE](experiments/kin8nm/plots/rmse.png?raw=true \"Kin8nm RMAE\")\n![Kin8nmNMSE](experiments/kin8nm/plots/nmse.png?raw=true \"Kin8nm NMSE\")\n![Kin8nmMNLP](experiments/kin8nm/plots/mnlp.png?raw=true \"Kin8nm MNLP\")\n![Kin8nmTime](experiments/kin8nm/plots/time(s).png?raw=true \"Kin8nm Time\")\n<h3 align=\"center\">\nTraining time of SCFGP is not quite sensitive to the size of training data.<br>\nOn the contrary, it is to a large extent dependent on the number of Fourier features.\n</h3>\n\n#License\nCopyright (c) 2016, Max W. Y. Lam\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:\n\n1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.\n\n2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.\n\n3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "https://github.com/MaxInGaussian/SCFGP/tarball/0.1.0",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/MaxInGaussian/SCFGP",
+        "keywords": "",
+        "license": "BSD",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "SCFGP",
+        "package_url": "https://pypi.org/project/SCFGP/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/SCFGP/",
+        "release_url": "https://pypi.org/project/SCFGP/0.1.0/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Regression Model: Sparsely Correlated Fourier Features Based Gaussian Process",
+        "version": "0.1.0"
+    },
+    "last_serial": 2350067,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "993c19d4c0f66dc2921c9e9b1cd371cb",
+                    "sha256": "46cdc4156c1b8c7da019658aba8e13163e3bacd5cfe5631f2de9b168477b8110"
+                },
+                "downloads": -1,
+                "filename": "SCFGP-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "993c19d4c0f66dc2921c9e9b1cd371cb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 11205,
+                "upload_time": "2016-09-01T08:30:57",
+                "url": "https://files.pythonhosted.org/packages/59/2e/a0f20dcd4eae3710bab5756bd7dfb5142e471a7f201f22dd106962d9294d/SCFGP-0.0.1.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c7bdf92ab76a769891e7c065ff9268d5",
+                    "sha256": "6b06f1cb37e3a0e65852840ebb07a778d2b9702d56d33d4ff2d945d4c7ed01f7"
+                },
+                "downloads": -1,
+                "filename": "SCFGP-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c7bdf92ab76a769891e7c065ff9268d5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 12089,
+                "upload_time": "2016-09-19T06:58:49",
+                "url": "https://files.pythonhosted.org/packages/c9/9c/b5eed2c8da35a9e31f7f68ddd67e8ef27dc7f3835b9c0b7ee2ca5d88d45b/SCFGP-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c7bdf92ab76a769891e7c065ff9268d5",
+                "sha256": "6b06f1cb37e3a0e65852840ebb07a778d2b9702d56d33d4ff2d945d4c7ed01f7"
+            },
+            "downloads": -1,
+            "filename": "SCFGP-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c7bdf92ab76a769891e7c065ff9268d5",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 12089,
+            "upload_time": "2016-09-19T06:58:49",
+            "url": "https://files.pythonhosted.org/packages/c9/9c/b5eed2c8da35a9e31f7f68ddd67e8ef27dc7f3835b9c0b7ee2ca5d88d45b/SCFGP-0.1.0.tar.gz"
+        }
+    ]
+}

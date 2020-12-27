@@ -1,0 +1,333 @@
+{
+    "info": {
+        "author": "Dominik George",
+        "author_email": "nik@naturalnet.de",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Web Environment",
+            "Framework :: Django :: 1.11",
+            "Framework :: Django :: 2.0",
+            "Intended Audience :: Developers",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: BSD License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: System :: Systems Administration :: Authentication/Directory :: LDAP"
+        ],
+        "description": "django-ldapdb2\n==============\n\nTHIS FORK IS DISCONTINUED!\n\n``django-ldapdb2`` is an LDAP database backend for Django, allowing to manipulate\nLDAP entries through Django models.\n\nThis is a fork of ``django-ldapdb`` by Rapha\u00ebl Barrois.\n\nIt supports most of the same APIs as a Django model:\n\n* ``MyModel.objects.create()``\n* ``MyModel.objects.filter(x=1, y__contains=2)``\n* Full admin support and browsing\n\n\n``django-ldapdb`` supports Django versions 1.11 / 2.0, and Python 2.7 / 3.4 / 3.5 / 3.6.\n\nDifferences between django-ldapdb and django-ldapdb2\n----------------------------------------------------\n\n * TextField as multi-line CharField\n * DateField can be compared with gte, lte and in operators\n * Allows modification of objects found further down in the tree.\n\nOriginally, upstream was unresponsive and thus django-ldapdb was forked. It\nseems that they are now working on the issues, so django-ldapdb2 might go\naway soon.\n\nInstalling django-ldapdb2\n-------------------------\n\nLinux\n~~~~~\n\nUse pip: ``pip install django-ldapdb2``\n\nYou might also need the usual ``LDAP`` packages from your distribution, usually named ``openldap`` or ``ldap-utils``.\n\n\nWindows\n~~~~~~~\n\n``django-ldapdb2`` depends on the `python-ldap <https://pypi.python.org/pypi/python-ldap>` project.\nEither follow `its Windows installation guide <https://www.python-ldap.org/en/latest/installing.html>`_,\nor install a pre-built version from https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap\n(choose the ``.whl`` file matching your Python/Windows combination, and install it with ``pip install python-ldap-3...whl``).\n\nand then you can also install ``django-ldapdb2`` with\n\n``pip install django-ldapdb2``\n\n\nUsing django-ldapdb\n-------------------\n\nAdd the following to your ``settings.py``:\n\n.. code-block:: python\n\n    DATABASES = {\n        'ldap': {\n            'ENGINE': 'ldapdb.backends.ldap',\n            'NAME': 'ldap://ldap.nodomain.org/',\n            'USER': 'cn=admin,dc=nodomain,dc=org',\n            'PASSWORD': 'some_secret_password',\n         },\n        'default': {\n            'ENGINE': 'django.db.backends.sqlite3',\n            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),\n         },\n    }\n    DATABASE_ROUTERS = ['ldapdb.router.Router']\n\n\n\nIf you want to access posixGroup entries in your application, you can add\nsomething like this to your ``models.py``:\n\n\n.. code-block:: python\n\n    from ldapdb.models.fields import CharField, IntegerField, ListField\n    import ldapdb.models\n\n    class LdapGroup(ldapdb.models.Model):\n        \"\"\"\n        Class for representing an LDAP group entry.\n        \"\"\"\n        # LDAP meta-data\n        base_dn = \"ou=groups,dc=nodomain,dc=org\"\n        object_classes = ['posixGroup']\n\n        # posixGroup attributes\n        gid = IntegerField(db_column='gidNumber', unique=True)\n        name = CharField(db_column='cn', max_length=200, primary_key=True)\n        members = ListField(db_column='memberUid')\n\n        def __str__(self):\n            return self.name\n\n        def __unicode__(self):\n            return self.name\n\nand add this to your ``admin.py``:\n\n.. code-block:: python\n\n    from django.contrib import admin\n    from . import models\n\n    class LDAPGroupAdmin(admin.ModelAdmin):\n        exclude = ['dn', 'objectClass']\n        list_display = ['gid', 'name']\n\n    admin.site.register(models.LDAPGroup, LDAPGroupAdmin)\n\n\n**Important note:**\n    You **must** declare an attribute to be used as the primary key.\n    This attribute will play a special role, as it will be used to build\n    the Relative Distinguished Name of the entry.\n    \n    For instance in the example above, a group whose cn is ``foo``\n    will have the DN ``cn=foo,ou=groups,dc=nodomain,dc=org``.\n\n\nSupported fields\n----------------\n\ndjanglo-ldapdb provides the following fields, all imported from ``ldapdb.models.fields``:\n\nSimilar to Django:\n\n    * ``IntegerField``\n    * ``FloatField``\n    * ``CharField``\n    * ``ImageField``\n    * ``DateTimeField``\n\nSpecific to a LDAP server:\n    * ``ListField`` (holds a list of text values)\n    * ``TimestampField`` (Stores a datetime as a posix timestamp, typically for posixAccount)\n\nLegacy:\n    * ``DateField`` (Stores a date in an arbitrary format. A LDAP server has no notion of ``Date``).\n\n\nTuning django-ldapdb\n--------------------\n\nIt is possible to adjust django-ldapdb's behavior by defining a few parameters in the ``DATABASE`` section:\n\n``PAGE_SIZE`` (default: ``1000``)\n    Define the maximum size of a results page to be returned by the server\n\n``QUERY_TIMEOUT`` (default: no limit)\n    Define the maximum time in seconds we'll wait to get a reply from the server (on a per-query basis).\n\n    .. note:: This setting applies on individual requests; if a high-level operation requires many\n              queries (for instance a paginated search yielding thousands of entries),\n              the timeout will be used on each individual request;\n              the overall processing time might be much higher.\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://edugit.org/nik/django-ldapdb2",
+        "keywords": "django",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django-ldapdb2",
+        "package_url": "https://pypi.org/project/django-ldapdb2/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-ldapdb2/",
+        "project_urls": {
+            "Homepage": "https://edugit.org/nik/django-ldapdb2"
+        },
+        "release_url": "https://pypi.org/project/django-ldapdb2/1.2.0.post2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "An LDAP database backend for Django",
+        "version": "1.2.0.post2"
+    },
+    "last_serial": 4113271,
+    "releases": {
+        "0.9.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5a0e0887955c004a049a87867a0de428",
+                    "sha256": "44a093fc235b58ffe748ad8ef2f89c784815f19f6badd6821666504fb8719350"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-0.9.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "5a0e0887955c004a049a87867a0de428",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18151,
+                "upload_time": "2017-11-29T21:00:47",
+                "upload_time_iso_8601": "2017-11-29T21:00:47.854172Z",
+                "url": "https://files.pythonhosted.org/packages/bb/9d/8b986eb37ea5db8c8a5837c204a757b9fc9ea02d70572848e3ee8caf429d/django-ldapdb2-0.9.1.tar.gz"
+            }
+        ],
+        "0.9.1.post1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "379275a56b75809062c6695078538145",
+                    "sha256": "7e263830498dee4706b1801f1ac86719e4dfbca1eb82b245c182e5a16cff91b0"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-0.9.1.post1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "379275a56b75809062c6695078538145",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17839,
+                "upload_time": "2017-11-29T21:06:16",
+                "upload_time_iso_8601": "2017-11-29T21:06:16.285812Z",
+                "url": "https://files.pythonhosted.org/packages/47/73/1b603a0aa7d286e226ab4471e988394210846f638a726c352e8fedc381fb/django-ldapdb2-0.9.1.post1.tar.gz"
+            }
+        ],
+        "0.9.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6ecb9ae9ef987208a84b0455538dbf8e",
+                    "sha256": "5155d04e996218dd1efa6efcf638dc214394447ec93efa2da84006c26b03b351"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-0.9.2.tar.gz",
+                "has_sig": true,
+                "md5_digest": "6ecb9ae9ef987208a84b0455538dbf8e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18122,
+                "upload_time": "2017-11-29T21:25:26",
+                "upload_time_iso_8601": "2017-11-29T21:25:26.139295Z",
+                "url": "https://files.pythonhosted.org/packages/e3/27/2ed974652d3e115a22bef55b755ff27585a98139169bc2f9bbf4745aec16/django-ldapdb2-0.9.2.tar.gz"
+            }
+        ],
+        "0.9.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dfcaaa26238fef6041f8350ef3ecd36a",
+                    "sha256": "d3342b749b6659654fab7ba81c3a528370cf470a7955b0ce517f34aa2fe8692e"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-0.9.3.tar.gz",
+                "has_sig": true,
+                "md5_digest": "dfcaaa26238fef6041f8350ef3ecd36a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18129,
+                "upload_time": "2017-11-30T16:40:58",
+                "upload_time_iso_8601": "2017-11-30T16:40:58.411584Z",
+                "url": "https://files.pythonhosted.org/packages/0e/07/cb851035767ec6b785790106d24a46503b25446c1471f5c4c090c661d9cb/django-ldapdb2-0.9.3.tar.gz"
+            }
+        ],
+        "0.9.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d26db2bc1565457e4ed139b3368db9b4",
+                    "sha256": "ff0a794bbc6318bad38b7967f447d10fdb1989d9b5aefd4ed4b77288830cf093"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-0.9.4.tar.gz",
+                "has_sig": true,
+                "md5_digest": "d26db2bc1565457e4ed139b3368db9b4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17845,
+                "upload_time": "2018-01-05T00:17:31",
+                "upload_time_iso_8601": "2018-01-05T00:17:31.549612Z",
+                "url": "https://files.pythonhosted.org/packages/c5/e1/06af77ff4530c3621202af59f8f14d9696920c698cadac1b5e8da4bd7857/django-ldapdb2-0.9.4.tar.gz"
+            }
+        ],
+        "0.9.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "77566116251937b6abf346463b3e36a1",
+                    "sha256": "2e33e028f1c024a4ee0014bfc288ab4b0177de6e1bedebf638d308caa5ff409b"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-0.9.5.tar.gz",
+                "has_sig": true,
+                "md5_digest": "77566116251937b6abf346463b3e36a1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17901,
+                "upload_time": "2018-01-21T15:52:26",
+                "upload_time_iso_8601": "2018-01-21T15:52:26.806373Z",
+                "url": "https://files.pythonhosted.org/packages/14/3d/85c1b4945389708a6f3a6735f7f802b65e20b6a89f7c8b362c03df58ea1c/django-ldapdb2-0.9.5.tar.gz"
+            }
+        ],
+        "1.0.1.dev0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "876359ccd58e85c4244d6ce986f41b93",
+                    "sha256": "d3ddff66a89953a266359c68a43d1d5b06011f1e564df21ac629ddf8f639c498"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-1.0.1.dev0.tar.gz",
+                "has_sig": true,
+                "md5_digest": "876359ccd58e85c4244d6ce986f41b93",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24590,
+                "upload_time": "2018-07-02T12:14:35",
+                "upload_time_iso_8601": "2018-07-02T12:14:35.583715Z",
+                "url": "https://files.pythonhosted.org/packages/c0/ee/0aeea760d9b72824692c4daf79825543c582700754c8f978ec72803b9ac6/django-ldapdb2-1.0.1.dev0.tar.gz"
+            }
+        ],
+        "1.0.1.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab4c2addf4518babba6b0c1f601e0fcc",
+                    "sha256": "1153224ac4095aee9cbbd30ceb98617a84c515231b7e64e08b525643ae39616f"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-1.0.1.dev1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "ab4c2addf4518babba6b0c1f601e0fcc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 26446,
+                "upload_time": "2018-07-20T09:20:06",
+                "upload_time_iso_8601": "2018-07-20T09:20:06.126985Z",
+                "url": "https://files.pythonhosted.org/packages/33/96/cfa360263dbb1481d435dc8e475858d8aa796840fd1f7fc8d754c79e1cf3/django-ldapdb2-1.0.1.dev1.tar.gz"
+            }
+        ],
+        "1.0.1.dev2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42c0950f621774dd77436a1d07e05c5a",
+                    "sha256": "a5edad24607b983591f132c0e5200928d2933c7299872511afe7e24c35a3b83a"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-1.0.1.dev2.tar.gz",
+                "has_sig": true,
+                "md5_digest": "42c0950f621774dd77436a1d07e05c5a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 26617,
+                "upload_time": "2018-07-24T11:06:28",
+                "upload_time_iso_8601": "2018-07-24T11:06:28.513434Z",
+                "url": "https://files.pythonhosted.org/packages/f5/bb/850b89f49bb1b7784e8ec2e3b5248ea7d475591f6e6716a3e43bfe522b85/django-ldapdb2-1.0.1.dev2.tar.gz"
+            }
+        ],
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e8b925030e5fbbfc1701c2b63eb51bb",
+                    "sha256": "6ce229100ab8a278463cd1098c44e0e7528354e36665910a28be34b8d573dc5a"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-1.1.0.tar.gz",
+                "has_sig": true,
+                "md5_digest": "9e8b925030e5fbbfc1701c2b63eb51bb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27739,
+                "upload_time": "2018-07-20T08:14:35",
+                "upload_time_iso_8601": "2018-07-20T08:14:35.268711Z",
+                "url": "https://files.pythonhosted.org/packages/ee/7d/56a7c7f628fc7da097e77635c701e449295c3e7cc67894fa897eccbc8ef3/django-ldapdb2-1.1.0.tar.gz"
+            }
+        ],
+        "1.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "649f7300a7a4072ef92c79a866778589",
+                    "sha256": "ebeb3ffaa12f5ec3b3d793d09517dd642711edd2333f2b52b5aa22d5ee4e2a25"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-1.2.0.tar.gz",
+                "has_sig": true,
+                "md5_digest": "649f7300a7a4072ef92c79a866778589",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29951,
+                "upload_time": "2018-07-28T19:42:56",
+                "upload_time_iso_8601": "2018-07-28T19:42:56.499076Z",
+                "url": "https://files.pythonhosted.org/packages/7f/bb/63262ec91dd4e074a7ffc92d04f6ac487992b23ee037a9139ab0ccae73e1/django-ldapdb2-1.2.0.tar.gz"
+            }
+        ],
+        "1.2.0.post1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d30b5c78462d78a7b0e924179a1fbf35",
+                    "sha256": "301669240efde57a80f56a6883665252d0271392992b32648cd66b16af5be4bb"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-1.2.0.post1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "d30b5c78462d78a7b0e924179a1fbf35",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29875,
+                "upload_time": "2018-07-28T19:44:44",
+                "upload_time_iso_8601": "2018-07-28T19:44:44.117925Z",
+                "url": "https://files.pythonhosted.org/packages/94/d1/f3aa238f958d6e34a621b8de1e92129b5a2dbd31a3e65ae84e8e67500b98/django-ldapdb2-1.2.0.post1.tar.gz"
+            }
+        ],
+        "1.2.0.post2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "28b8c3b11740166331a4189dcf282a1a",
+                    "sha256": "849808128ec7afabc527903f9687b0bf998e3f11e1bf769e144d665e3c3729f6"
+                },
+                "downloads": -1,
+                "filename": "django-ldapdb2-1.2.0.post2.tar.gz",
+                "has_sig": true,
+                "md5_digest": "28b8c3b11740166331a4189dcf282a1a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29530,
+                "upload_time": "2018-07-29T08:40:45",
+                "upload_time_iso_8601": "2018-07-29T08:40:45.262588Z",
+                "url": "https://files.pythonhosted.org/packages/c1/fa/96a78a859d7fa2a647361e0336bd824ffab989bc42348a3e996b13def37c/django-ldapdb2-1.2.0.post2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "28b8c3b11740166331a4189dcf282a1a",
+                "sha256": "849808128ec7afabc527903f9687b0bf998e3f11e1bf769e144d665e3c3729f6"
+            },
+            "downloads": -1,
+            "filename": "django-ldapdb2-1.2.0.post2.tar.gz",
+            "has_sig": true,
+            "md5_digest": "28b8c3b11740166331a4189dcf282a1a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 29530,
+            "upload_time": "2018-07-29T08:40:45",
+            "upload_time_iso_8601": "2018-07-29T08:40:45.262588Z",
+            "url": "https://files.pythonhosted.org/packages/c1/fa/96a78a859d7fa2a647361e0336bd824ffab989bc42348a3e996b13def37c/django-ldapdb2-1.2.0.post2.tar.gz"
+        }
+    ]
+}

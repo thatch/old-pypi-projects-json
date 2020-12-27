@@ -1,0 +1,218 @@
+{
+    "info": {
+        "author": "Jeff Tanner",
+        "author_email": "jeff00seattle@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": ".. -*- mode: rst -*-\n\nlogger-fortified\n-----------------------\n\nExtension to Python `logging <https://docs.python.org/3/library/logging.html>`_ functionality\nintended for requests-collector and requests-extractor.\n\n\nBadges\n------\n\n.. start-badges\n\n.. list-table::\n    :stub-columns: 1\n\n    * - info\n      - |hits| |license|\n    * - tests\n      - |travis| |coveralls|\n    * - package\n      - |version| |supported-versions|\n\n\n.. |docs| image:: https://readthedocs.org/projects/logger-fortified/badge/?style=flat\n    :alt: Documentation Status\n    :target: http://logger-fortified.readthedocs.io\n\n.. |hits| image:: http://hits.dwyl.io/jeff00seattle/logger-fortified.svg\n    :alt: Hit Count\n    :target: http://hits.dwyl.io/jeff00seattle/logger-fortified\n\n.. |contributors| image:: https://img.shields.io/github/contributors/jeff00seattle/logger-fortified.svg\n    :alt: Contributors\n    :target: https://github.com/jeff00seattle/logger-fortified/graphs/contributors\n\n.. |license| image:: https://img.shields.io/badge/License-MIT-yellow.svg\n    :alt: License Status\n    :target: https://opensource.org/licenses/MIT\n\n.. |travis| image:: https://travis-ci.org/jeff00seattle/logger-fortified.svg?branch=master\n    :alt: Travis-CI Build Status\n    :target: https://travis-ci.org/jeff00seattle/logger-fortified\n\n.. |coveralls| image:: https://coveralls.io/repos/jeff00seattle/logger-fortified/badge.svg?branch=master&service=github\n    :alt: Code Coverage Status\n    :target: https://coveralls.io/r/jeff00seattle/logger-fortified\n\n.. |requires| image:: https://requires.io/github/jeff00seattle/logger-fortified/requirements.svg?branch=master\n    :alt: Requirements Status\n    :target: https://requires.io/github/jeff00seattle/logger-fortified/requirements/?branch=master\n\n.. |version| image:: https://img.shields.io/pypi/v/logger_fortified.svg?style=flat\n    :alt: PyPI Package latest release\n    :target: https://pypi.python.org/pypi/logger_fortified\n\n.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/logger-fortified.svg?style=flat\n    :alt: Supported versions\n    :target: https://pypi.python.org/pypi/logger-fortified\n\n.. end-badges\n\n\nInstall\n-------\n\n.. code-block:: bash\n\n    pip install logger_fortified\n\n\nArchitecture\n------------\n\n``logger-fortified`` is an extension of the `logging facility for Python <https://docs.python.org/3/library/logging.html>`_\nused for providing custom logger levels, format, and output.\n\n.. image:: ./images/logger_fortified.png\n   :scale: 50 %\n   :alt: UML logger-fortified\n\n\nFunction: get_logger()\n----------------------\n\n.. code-block:: python\n\n    def get_logger(\n        logger_name,\n        logger_version=None,\n        logger_level=logging.INFO,\n        logger_format=LoggingFormat.JSON,\n        logger_output=LoggingOutput.STDOUT_COLOR,\n        logger_handler=None\n    ):\n\n\nget_logger(): Parameters\n^^^^^^^^^^^^^^^^^^^^^^^^\n\n+-----------------+-------------------------------------------------------------------------------------------------------------------------+\n| Parameter       | Purpose                                                                                                                 |\n+=================+=========================================================================================================================+\n| logger_name     | Return a logger with the specified name or, if name is None, return a logger which is the root logger of the hierarchy. |\n+-----------------+-------------------------------------------------------------------------------------------------------------------------+\n| logger_version  |                                                                                                                         |\n+-----------------+-------------------------------------------------------------------------------------------------------------------------+\n| logger_format   | LoggingFormat                                                                                                           |\n+-----------------+-------------------------------------------------------------------------------------------------------------------------+\n| logger_output   | LoggingOutput                                                                                                           |\n+-----------------+-------------------------------------------------------------------------------------------------------------------------+\n| logger_handler  | logging.StreamHandler() or logging.FileHandler()                                                                        |\n+-----------------+-------------------------------------------------------------------------------------------------------------------------+\n\n\n\nLogging Levels\n^^^^^^^^^^^^^^\n\nSame Python logging levels, including one additional level NOTE.\n\n+------------+------------------------------------------------------------------------------------------------------------------------------------------------+\n| Level      | Purpose                                                                                                                                        |\n+============+================================================================================================================================================+\n| DEBUG      | Detailed information, typically of interest only when diagnosing problems.                                                                     |\n+------------+------------------------------------------------------------------------------------------------------------------------------------------------+\n| NOTE       | Detailed information, request processing, for example, request using cURL.                                                                     |\n+------------+------------------------------------------------------------------------------------------------------------------------------------------------+\n| INFO       | Confirmation that things are working as expected.  *[DEFAULT]*                                                                                 |\n+------------+------------------------------------------------------------------------------------------------------------------------------------------------+\n| WARNING    | An indication that something unexpected happened, or indicative of some problem in the near future. The software is still working as expected. |\n+------------+------------------------------------------------------------------------------------------------------------------------------------------------+\n| ERROR      | Due to a more serious problem, the software has not been able to perform some function.                                                        |\n+------------+------------------------------------------------------------------------------------------------------------------------------------------------+\n| CRITICAL   | A serious error, indicating that the program itself may be unable to continue running.                                                         |\n+------------+------------------------------------------------------------------------------------------------------------------------------------------------+\n\n\n\nLogging Format\n^^^^^^^^^^^^^^\n\n+------------+-------------------------------------------------------------------------------------------------------+\n| Format     | Purpose                                                                                               |\n+============+=======================================================================================================+\n| STANDARD   | Standard logging format.                                                                              |\n+------------+-------------------------------------------------------------------------------------------------------+\n| JSON       | JSON logging format.  *[DEFAULT]*                                                                     |\n+------------+-------------------------------------------------------------------------------------------------------+\n\n\n.. code-block:: python\n\n    class LoggingFormat(object):\n        \"\"\"Logging Format ENUM\n        \"\"\"\n        STANDARD = \"standard\"\n        JSON = \"json\"\n\n\n\nLogging Output\n^^^^^^^^^^^^^^\n\n+--------------+----------------------------------------------------------------------------------------------+\n| Output       | Purpose                                                                                      |\n+==============+==============================================================================================+\n| STDOUT       | Standard Output to terminal                                                                  |\n+--------------+----------------------------------------------------------------------------------------------+\n| STDOUT_COLOR | Standard Output using colored terminal                                                       |\n+--------------+----------------------------------------------------------------------------------------------+\n| FILE         | Standard Output to file created within *./tmp/log_<epoch time seconds>.json*.                |\n+--------------+----------------------------------------------------------------------------------------------+\n\n\n.. code-block:: python\n\n    class LoggingOutput(object):\n        \"\"\"Logging Output ENUM\n        \"\"\"\n        STDOUT = \"stdout\"\n        STDOUT_COLOR = \"color\"\n        FILE = \"file\"\n\n\nLogging JSON Format\n^^^^^^^^^^^^^^^^^^^\n\n.. code-block:: python\n\n    import logging\n    from logger_fortified import (LoggingFormat, get_logger, __version__)\n\n    log = get_logger(\n        logger_name=__name__,\n        logger_version=__version__,\n        logger_format=LoggingFormat.JSON,\n        logger_level=logging.NOTE\n    )\n\n    log.info(\"logging: info\", extra={'test': __name__})\n    log.note(\"logging: note\", extra={'test': __name__})\n    log.debug(\"logging: debug\", extra={'test': __name__})\n    log.warning(\"logging: warning\", extra={'test': __name__})\n    log.error(\"logging: error\", extra={'test': __name__})\n    log.critical(\"logging: critical\", extra={'test': __name__})\n    log.exception(\"logging: exception\", extra={'test': __name__})\n\n\nLogging JSON Example Output\n^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n.. code-block:: bash\n\n    $ python3 examples/example_logging_json.py\n\n    {\"asctime\": \"2017-10-20 08:31:14 -0700\", \"levelname\": \"INFO\", \"name\": \"__main__\",\n    \"version\": \"0.1.6\", \"message\": \"logging: info\", \"test\": \"__main__\"}\n    {\"asctime\": \"2017-10-20 08:31:14 -0700\", \"levelname\": \"NOTE\", \"name\": \"__main__\",\n    \"version\": \"0.1.6\", \"message\": \"logging: note\", \"test\": \"__main__\"}\n    {\"asctime\": \"2017-10-20 08:31:14 -0700\", \"levelname\": \"WARNING\", \"name\": \"__main__\",\n    \"version\": \"0.1.6\", \"message\": \"logging: warning\", \"test\": \"__main__\"}\n    {\"asctime\": \"2017-10-20 08:31:14 -0700\", \"levelname\": \"ERROR\", \"name\": \"__main__\",\n    \"version\": \"0.1.6\", \"message\": \"logging: error\", \"test\": \"__main__\"}\n    {\"asctime\": \"2017-10-20 08:31:14 -0700\", \"levelname\": \"CRITICAL\", \"name\": \"__main__\",\n    \"version\": \"0.1.6\", \"message\": \"logging: critical\", \"test\": \"__main__\"}\n    {\"asctime\": \"2017-10-20 08:31:14 -0700\", \"levelname\": \"ERROR\", \"name\": \"__main__\",\n    \"version\": \"0.1.6\", \"message\": \"logging: exception\", \"exc_info\": \"NoneType: None\",\n    \"test\": \"__main__\"}\n\n\nRequirements\n------------\n\n``logger-fortified`` module is built upon Python 3 and has dependencies upon\nseveral Python modules available within `Python Package Index PyPI <https://pypi.python.org/pypi>`_.\n\n.. code-block:: bash\n\n    make install-requirements\n\nor\n\n\n.. code-block:: bash\n\n    python3 -m pip uninstall --yes --no-input -r requirements.txt\n    python3 -m pip install --upgrade -r requirements.txt\n\n\nDependencies\n^^^^^^^^^^^^\n\n- coloredlogs: https://pypi.python.org/pypi/coloredlogs\n- pprintpp: https://pypi.python.org/pypi/pprintpp\n- python-json-logger: https://pypi.python.org/pypi/python-json-logger\n- Pygments: https://pypi.python.org/pypi/Pygments\n- safe-cast: https://pypi.python.org/pypi/safe-cast\n- wheel: https://pypi.python.org/pypi/wheel\n\n\n.. :changelog:\n\nRelease History\n===============\n\n0.1.0 (2018-05-03)\n------------------\n- Created for github/jeff00seattle\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "https://github.com/jeff00seattle/logger-fortified/archive/v0.1.4.tar.gz",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jeff00seattle/logger-fortified",
+        "keywords": "logger logging fortified",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "logger-fortified",
+        "package_url": "https://pypi.org/project/logger-fortified/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/logger-fortified/",
+        "release_url": "https://pypi.org/project/logger-fortified/0.1.4/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Extension to Python `logging` functionality.",
+        "version": "0.1.4"
+    },
+    "last_serial": 3834419,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "07de84394e734734e00aa528736bb15c",
+                    "sha256": "4c7cb85ae8204f3e0e8734f4f77d3c83dcde3f93837b6f6f721b36c6a3d72494"
+                },
+                "downloads": -1,
+                "filename": "logger-fortified-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "07de84394e734734e00aa528736bb15c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 11576,
+                "upload_time": "2018-05-04T13:05:31",
+                "url": "https://files.pythonhosted.org/packages/2b/f9/6437bcf09b1ee2454fbae98837494903e13f1b051295c01ca5624d93dace/logger-fortified-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "33907188b835b2654f6b8bc5878f1f36",
+                    "sha256": "6272d4b116d70da836179e104d73c88d7d5bb974f1e8aab0175c9732cc85dbd6"
+                },
+                "downloads": -1,
+                "filename": "logger-fortified-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "33907188b835b2654f6b8bc5878f1f36",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32640,
+                "upload_time": "2018-05-04T13:24:22",
+                "url": "https://files.pythonhosted.org/packages/ed/35/86c7daf4bf98750ec2731da4358104295d2df40ea3021f28cd12f3db12f9/logger-fortified-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f73651e4ee71329ae2af75facd124dd",
+                    "sha256": "d145fbf972cb12d98db8a80b4391a425b16503ff0c5491667ceb0ffb8536237a"
+                },
+                "downloads": -1,
+                "filename": "logger_fortified-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8f73651e4ee71329ae2af75facd124dd",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "size": 13273,
+                "upload_time": "2018-05-04T13:26:02",
+                "url": "https://files.pythonhosted.org/packages/a7/33/e9cae96d6ed6338f629cff8a479374aa3aa12bb1e2429210861a6aee3235/logger_fortified-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0cebf52dbc01cf6b6260564d66ba325c",
+                    "sha256": "cb447f24700538ecb09fcb614f9e50b1f447beb6983911c42cb5de7a587e41e9"
+                },
+                "downloads": -1,
+                "filename": "logger-fortified-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0cebf52dbc01cf6b6260564d66ba325c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32636,
+                "upload_time": "2018-05-04T13:26:00",
+                "url": "https://files.pythonhosted.org/packages/6b/cc/4522df462560922216384af43b0bc6350f302e9a52d08f9a7a3a5cdae4cb/logger-fortified-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6d61bb91559cb729088cd03631b507af",
+                    "sha256": "bbf764576ec4800ca54295a6e0cfa0299f92059107adc4bf4518321c7511837b"
+                },
+                "downloads": -1,
+                "filename": "logger_fortified-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6d61bb91559cb729088cd03631b507af",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "size": 13260,
+                "upload_time": "2018-05-04T13:29:45",
+                "url": "https://files.pythonhosted.org/packages/5f/ad/d3c68952a05ab203b3fa144a29c5e973300c4df596439f3d35aa0163f6c6/logger_fortified-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21086915ffaa252f5a33a9bbe3c7e6fe",
+                    "sha256": "dacdab058af18a30fac9d81a602649ba5f6a7dc96630a6da3c2bb5fea26a76f2"
+                },
+                "downloads": -1,
+                "filename": "logger-fortified-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "21086915ffaa252f5a33a9bbe3c7e6fe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32626,
+                "upload_time": "2018-05-04T13:29:43",
+                "url": "https://files.pythonhosted.org/packages/6c/93/b3ced7c2d0949d379f69c992b51b4f9c8b0e4ace9013453aba52bd0f355a/logger-fortified-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0c8da1392744d433c7e79b574ddfbf3c",
+                    "sha256": "78afff0d7a523c3363830ba6a1cee040598129ec4f79e284329538c7377ce9a6"
+                },
+                "downloads": -1,
+                "filename": "logger_fortified-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0c8da1392744d433c7e79b574ddfbf3c",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.6",
+                "size": 13261,
+                "upload_time": "2018-05-04T13:44:16",
+                "url": "https://files.pythonhosted.org/packages/0a/34/0cf88d67c4a8d0ade71e02831280e4fad6ac6af438975db80419325da409/logger_fortified-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "209ad247d01a155a78c0a240ebe22b40",
+                    "sha256": "221197f6a208d80bfcfcda8311f4bf2f9e971856a08a318815df9a25106d5f0d"
+                },
+                "downloads": -1,
+                "filename": "logger-fortified-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "209ad247d01a155a78c0a240ebe22b40",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32609,
+                "upload_time": "2018-05-04T13:44:14",
+                "url": "https://files.pythonhosted.org/packages/0d/72/3856f0509a956b13395ad4a641d96f18b211dd6cc9cd83bbab4cca9d8803/logger-fortified-0.1.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0c8da1392744d433c7e79b574ddfbf3c",
+                "sha256": "78afff0d7a523c3363830ba6a1cee040598129ec4f79e284329538c7377ce9a6"
+            },
+            "downloads": -1,
+            "filename": "logger_fortified-0.1.4-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "0c8da1392744d433c7e79b574ddfbf3c",
+            "packagetype": "bdist_wheel",
+            "python_version": "3.6",
+            "size": 13261,
+            "upload_time": "2018-05-04T13:44:16",
+            "url": "https://files.pythonhosted.org/packages/0a/34/0cf88d67c4a8d0ade71e02831280e4fad6ac6af438975db80419325da409/logger_fortified-0.1.4-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "209ad247d01a155a78c0a240ebe22b40",
+                "sha256": "221197f6a208d80bfcfcda8311f4bf2f9e971856a08a318815df9a25106d5f0d"
+            },
+            "downloads": -1,
+            "filename": "logger-fortified-0.1.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "209ad247d01a155a78c0a240ebe22b40",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 32609,
+            "upload_time": "2018-05-04T13:44:14",
+            "url": "https://files.pythonhosted.org/packages/0d/72/3856f0509a956b13395ad4a641d96f18b211dd6cc9cd83bbab4cca9d8803/logger-fortified-0.1.4.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "Jo\u00e3o D. Ferreira",
+        "author_email": "jotomicron@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Safe Parser\n\nPython's standard library provides a function, `ast.literal_eval`, which safely evaluates string representation of a python literal, such as a list or a string. This allows one to parse, for example, `'[\"string\", {}, 12.34]'` and other such safe literals.\n\nThis package provides an improvement of that ideia.\n\nA safe parser is an object that can take a string containing a valid python code that contains  assignments, and produces a dictionary of the resulting where environment dictionary. As such, it permits parsing and executing this:\n```python\na = ['a', 'list']\nb = {'content': a}\n```\nwhich is parsed into the following:\n```python\n{\n    'a': ['a', 'list'],\n    'b': {'content': ['a', 'list']}\n}\n```\n\nThe parser also allows executing functions, as long as it knows that they are safe to execute. For example, if there is a function \n```python\ndef repeat(x, n):\n    return [x] * n\n```\nthen a parser can parse the string `a = repeat('x', 3)` into:\n```python\n{\n    'a': ['x', 'x', 'x']\n}\n```\n\nThe safety is guaranteed becuase the parser is aware of which functions are safe to execute, by using a plugin system. All parsers contain a (initially empty) plugin store, which can be used to register new plugins:\n```python\nfrom safeparser import Parser\n\nparser = Parser()\n\n@parser.plugin_store.register\ndef repeat(x, n):\n    return [x] * n\n\nparser.parse('a = repeat(\"x\", 3)')\n\nprint(parser.env)\n\n# output: {'a': ['x', 'x', 'x']}\n```\n\n## Motivation\n\nThe parser provided with this package enables, foremost, the ability to run user input in a safe and controlled manner. Python, as a general purpose programming language, can \"execute anything\", and as such is not appropriate for user input. However, there are situations where a system is so complex that users may need the ability to talk more expressively with a third party.\n\nThe primary goal of this package is to serve as a user input processor for a system that allows users to ask a server to call a function with a series of input values. For example, a user may be interested in the similarity between any pair of a set of provided entities. Thus, the user needs to provide the entities and the pairs. For _n_ complex entities, this would mean providing _O_(_n<sup>2</sup>_) pairs, which may be impractical. If the system knows how to make the pairs itself, then the user does needs only to provide the entities.\n\n## What is safe?\n\nFor the purposes of this package, a safe statement is one that, once executed, produces no visible side effect other than creating or editing a variable (or multiple variables) in a dictionary.\n\n## Features\n\n- A parser can parse strings and file objects. The following two are valid\n```python\nparser.parse('a = 1')\nwith open('filename.txt') as f:\n    parser.parse(f)\n```\n\n- A parser can parse multiple inputs, each one building on top of the resulting dictionray of the previous\n```python\nparser.parse('a = 1')\nparser.parse('b = 2')\nprint(parser.env)\n# output: {'a': 1, 'b': 2}\n```\n\n- A parser can be started with an existing environment\n```python\nparser = Parser(env={'a': 1})\nparser.parse('b = a')\nprint(parser.env)\n# output: {'a': 1, 'b': 1}\n```\n\n- A plugin can be registered using a decorator or a method. The following are equivalent\n```python\n@parser.plugin_store.register\ndef add(a, b):\n    return a + b\n\ndef add(a, b):\n    return a + b\nparser.plugin_store.add(add)\n```\n\n- Plugins have direct access to the environment being constructed and can alter it\n```python\n@parser.plugin_store.register\ndef new_variable(*, env):\n    env['var'] = 0\n```\n\n\n## Limitations\n\n- Because of how the code works, and also to not hinder future development, double-underscore variable names are not allowed. This is, on the one hand, so that we can safely inject an empty __builtins__` into the evaluation of the code, as well as to allow injecting the current environment's state into plugins that request it (see above).\n\n- At the moment, I am not allowing expressions other than calls and literal. This means that the input does not allow binray operation, for example, unlike the `ast.literal_eval` function.\n\n- Methods cannot be executed. It is impossible to execute\n```python\nl = []\nl.append(0)\n```\neven though this is safe from the definition above\n\n- Note that plugins are only safe as long as the code they execute is safe. However, since the parser itself is in control of what plugins it supports, the ideia of executing unsafe user-provided code is still impossible.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jdferreira/simpleparser",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "jdferreira-safeparser",
+        "package_url": "https://pypi.org/project/jdferreira-safeparser/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/jdferreira-safeparser/",
+        "project_urls": {
+            "Homepage": "https://github.com/jdferreira/simpleparser"
+        },
+        "release_url": "https://pypi.org/project/jdferreira-safeparser/0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A simple parser of python-line code that can be safely executed",
+        "version": "0.1"
+    },
+    "last_serial": 4766011,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f755e327aa35962eabd82b02a9c057c8",
+                    "sha256": "bc160a231a05dba46d99caff714003b26d15e423ce02c95fc3d1642276e957dd"
+                },
+                "downloads": -1,
+                "filename": "jdferreira_safeparser-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f755e327aa35962eabd82b02a9c057c8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 7717,
+                "upload_time": "2019-01-31T23:46:39",
+                "url": "https://files.pythonhosted.org/packages/37/4a/7b004286afc952e9a45e21076805f7d6a37d622aff17708fe7aaabe41eb5/jdferreira_safeparser-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a95a0d975a6249b53760862bcaf40b7b",
+                    "sha256": "e2340fad6a3fcb194f5672385f0e02912d9514b8e88f9c76b3da88da0d5de864"
+                },
+                "downloads": -1,
+                "filename": "jdferreira-safeparser-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a95a0d975a6249b53760862bcaf40b7b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6127,
+                "upload_time": "2019-01-31T23:46:41",
+                "url": "https://files.pythonhosted.org/packages/31/40/bd3fe1524d59b3fca9ed1cf9d38a66b576ea389b5c30f7aac47889dd9770/jdferreira-safeparser-0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f755e327aa35962eabd82b02a9c057c8",
+                "sha256": "bc160a231a05dba46d99caff714003b26d15e423ce02c95fc3d1642276e957dd"
+            },
+            "downloads": -1,
+            "filename": "jdferreira_safeparser-0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "f755e327aa35962eabd82b02a9c057c8",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 7717,
+            "upload_time": "2019-01-31T23:46:39",
+            "url": "https://files.pythonhosted.org/packages/37/4a/7b004286afc952e9a45e21076805f7d6a37d622aff17708fe7aaabe41eb5/jdferreira_safeparser-0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a95a0d975a6249b53760862bcaf40b7b",
+                "sha256": "e2340fad6a3fcb194f5672385f0e02912d9514b8e88f9c76b3da88da0d5de864"
+            },
+            "downloads": -1,
+            "filename": "jdferreira-safeparser-0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a95a0d975a6249b53760862bcaf40b7b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 6127,
+            "upload_time": "2019-01-31T23:46:41",
+            "url": "https://files.pythonhosted.org/packages/31/40/bd3fe1524d59b3fca9ed1cf9d38a66b576ea389b5c30f7aac47889dd9770/jdferreira-safeparser-0.1.tar.gz"
+        }
+    ]
+}

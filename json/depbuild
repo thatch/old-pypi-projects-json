@@ -1,0 +1,82 @@
+{
+    "info": {
+        "author": "Benjamin Le Forestier",
+        "author_email": "benjamin@leforestier.org",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "The Builder class helps recompute a value only when some dependencies have changed. Dependencies can be nested.\n\nYou can use it to express \"reactive programming\" kind of relations between variables.\n\nYou can also see that as a kind of cache.\n\nTODO: write better doc.\n\nHere are some examples though (this is the doctest):\n\n.. code:: python\n\n    >>> from depbuild import Builder\n    \n    >>> firstname = None\n    >>> lastname = \"Marmite\"\n    >>> street = ''\n    >>> zipcode = ''\n    >>> city = ''\n    \n    >>> fullname_builder = Builder(lambda: \"%s %s\" % (firstname, lastname))\n    \n    >>> fullname_builder.set_requirement(\n    ...     'firstname',\n    ...     (lambda: bool(firstname)),\n    ...     \"firstname was not set\"\n    ... )\n    \n    >>> fullname_builder.set_requirement(\n    ...     'lastname',\n    ...     (lambda: bool(lastname)),\n    ...     \"lastname was not set\"\n    ... )\n    \n    >>> fullname_builder.set_dependency('firstname', (lambda: firstname))\n    >>> fullname_builder.set_dependency('lastname', (lambda: lastname))\n    \n    >>> def address(): return \"%s, %s %s %s\" % (fullname_builder.getvalue(), street, city, zipcode)\n    \n    >>> address_builder = Builder(address)\n    \n    >>> address_builder.set_dependency('address_items', lambda: (street, zipcode, city))\n    \n    >>> address_builder.set_import_dependency('fullname_builder', fullname_builder)\n    \n    >>> fullname_builder.getvalue()\n    Traceback (most recent call last):\n        ...\n    RequirementNotMet: firstname was not set\n    \n    >>> address_builder.getvalue()\n    Traceback (most recent call last):\n        ...\n    RequirementNotMet: firstname was not set\n    \n    >>> firstname = \"Piotr\"\n    \n    >>> address_builder.getvalue() == \"Piotr Marmite,   \"\n    True\n    \n    >>> lastname = 'Casserole'\n    \n    >>> address_builder.getvalue() == \"Piotr Casserole,   \"\n    True\n    \n    >>> street = \"rue de Rivoli\"\n    >>> zipcode = \"75001\"\n    >>> city = \"Paris\"\n    \n    >>> address_builder.getvalue() == \"Piotr Casserole, rue de Rivoli Paris 75001\"\n    True\n    \n    >>> fullname_builder.getvalue() == \"Piotr Casserole\"\n    True\n    \n    >>> firstname = \"Sacha\"\n    \n    >>> address_builder.getvalue() == \"Sacha Casserole, rue de Rivoli Paris 75001\"\n    True\n    \n    >>> zipcode = \"75110\"\n    \n    >>> address_builder.getvalue() == \"Sacha Casserole, rue de Rivoli Paris 75110\"\n    True\n    \nNote: the class is not thread safe. I might look into making it thread safe in the future.\n\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "dependencies",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "depbuild",
+        "package_url": "https://pypi.org/project/depbuild/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/depbuild/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/depbuild/0.1.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Recompute a value only when some (possibly nested) dependencies have changed.",
+        "version": "0.1.0"
+    },
+    "last_serial": 6129256,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18fbe13588a9f93e90a015961b6b9d7f",
+                    "sha256": "6a592eb9905f4742a1740854272c4bf66f425c0072572331e4ba195abee46e4a"
+                },
+                "downloads": -1,
+                "filename": "depbuild-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18fbe13588a9f93e90a015961b6b9d7f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2362,
+                "upload_time": "2019-11-13T10:56:24",
+                "upload_time_iso_8601": "2019-11-13T10:56:24.821397Z",
+                "url": "https://files.pythonhosted.org/packages/66/00/bfac8930f88a2b7bbf753412a47bc3e321b9c4fa1dbf9511cef972bfafe0/depbuild-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "18fbe13588a9f93e90a015961b6b9d7f",
+                "sha256": "6a592eb9905f4742a1740854272c4bf66f425c0072572331e4ba195abee46e4a"
+            },
+            "downloads": -1,
+            "filename": "depbuild-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "18fbe13588a9f93e90a015961b6b9d7f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 2362,
+            "upload_time": "2019-11-13T10:56:24",
+            "upload_time_iso_8601": "2019-11-13T10:56:24.821397Z",
+            "url": "https://files.pythonhosted.org/packages/66/00/bfac8930f88a2b7bbf753412a47bc3e321b9c4fa1dbf9511cef972bfafe0/depbuild-0.1.0.tar.gz"
+        }
+    ]
+}

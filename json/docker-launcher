@@ -1,0 +1,142 @@
+{
+    "info": {
+        "author": "ATS Advanced Telematic Systems GmbH",
+        "author_email": "UNKNOWN",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "[![Circle CI](https://circleci.com/gh/advancedtelematic/docker-launcher.svg?style=svg)](https://circleci.com/gh/advancedtelematic/docker-launcher)\n\n# Docker Launcher\n\nLaunches Docker container stacks on EC2 or localhost.\n\n## Installing\n\nTo build and install `docker-launcher`:\n\n```sh\ncd docker-launcher\npython setup.py sdist\nsudo pip install dist/docker-launcher-0.1.tar.gz\n```\n\n**Note:** You can install both packages with `pip install --user PACKAGE_NAME`\nto install to `~/.local/bin` and avoid installing with root rights.\n\n### Installing on ArchLinux\n\nYou need to have `python2` and `python2-pip` installed.\n\n```sh\ncd docker-launcher\npython2 setup.py sdist\nsudo pip2 install dist/docker-launcher-0.1.tar.gz\n# OR\npip2 install --user dist/docker-launcher-0.1.tar.gz\n```\n\nOn ArchLinux you will also need to configure `docker-launcher` to use `python2`\nfor `ansible`. See Section **Configuration** on how to do that.\n\n## Running\n\n```sh\n> docker-launcher -h\n\nusage: docker-launcher [-h] [-c CONFIG] [-v] [--python EXEC] [--version]\n                       [--teardown] [--jenkins NUM]\n                       STACK\n\npositional arguments:\n  STACK                 The stack configuration to use\n\noptional arguments:\n  -h, --help            show this help message and exit\n  -c CONFIG, --config CONFIG\n                        The launcher configuration to use\n  -v, --verbose         Level of verbosity (specify multiple times)\n  --python EXEC         The local python version to use (defaults to python)\n  --version             show program's version number and exit\n  --teardown            Stop and teardown the STACK\n  --jenkins NUM         Deploy the STACK, run the test suite and tear it down\n                        again. Try NUM times to deploy before failing.\n\n\n> bin/docker-launcher auth-plus.yml\n...deploys auth-plus.yml...\n```\n\n`docker-launcher` will create a temporary playbook and inventory file. If the\ndeployment fails for some reason, these will not get cleaned up, so you can dig\ninto what went wrong. You should always be able to run them with\n`ansible-playbook -i tmp-inventory tmp-playbook`.\n\n## Configuration\n\nDocker Launcher reads a configuration in either\n`$XDG_CONFIG_HOME/docker-launcher/default.yml` or\n`$HOME/.config/docker-launcher/default.yml`, whichever it finds first, unless\nyou specify one explicitly on the command line. If the specified configuration\nfile doesn't exist, `docker-launcher` will write a default configuration file at\nthe specified path. You will need to edit it to match your setup.\n\nAn example configuration can be found in `tests/test-config.yml`. The following\nkeys are mandatory:\n\n```yaml\n---\nreboot_strategy: 'off'         # CoreOS update strategy (quotes are needed)\nregistry:                      # login credentials for DockerHub\n  user: atsjenkins\n  email: jenkins@advancedtelematic.com\nec2:                           # default settings for EC2\n  key: integration_tests       # SSH key to be used\n  image: ami-07fd8270          # ami to be deployed\n  region: eu-west-1            # EC2 region to deploy to\n```\n\nOptionally you can include the following keys:\n\n```yaml\nverbosity: 3                   # default level of verbosity\n                               # can be raised by -v flags\npython: python2                # local python executable to be used by ansible,\n                               # this is needed on ArchLinux for example\n                               # can be overwritten by --python flag\nvars:                          # a map of keys, that get expanded to value in the stack configuration\n  key: value\n```\n\n## Stack Config\n\nThe setup of a Docker container stack is defined in stack config files, which\nare yaml files in the following form:\n\n```yaml\n---\nsecurity_groups:                  # list of security groups to create (optional)\n  - name:                         # name of the security group\n    description:                  # description of the security group\n    rules:                        # list of security group rules\n      - proto: tcp                # The syntax is the same as the ansible\n        from_port: 80             # ec2_group module\n        to_port: 80               # http://docs.ansible.com/ec2_group_module.html\n        cidr_ip: 0.0.0.0/0\n    rules_egress:                 # the security group outbound rules\n      - proto: all                # syntax same as ec2_group module\n        cidr_ip: 0.0.0.0/0\n\nlogging: true                     # adds logspout, logstash, elasticsearch and kibana \n\nnodes:                            # list of different node types, that are required\n  - name: node-name               # name for this kind of node\n    group: security-group-name    # EC2 security group\n    services:                     # services to run on this kind of node\n      - one\n      - two\n    size: t2.medium               # EC2 size\n    count: 1                      # amount of nodes to be created\n    logging_master: true          # When set, logstash, elasticsearch and kibana are\n                                  # added to this host. Kibana is available on \n                                  # port 5454\n    volumes:                      # EBS volumes to create, attach, format and mount\n      - dev: /dev/xvda1\n        size: 30                  # in GB\n        fs: btrfs\n        mountpoint: /mnt\n  - name: another-node\n    group: default\n    services:\n      - three\n    size: t2.medium\n    count: 3\n\nservices:                         # definition of services\n  - name: one                     # service name (same as in nodes)\n    version: 0.1                  # version of the application (e.g. Docker tag)\n    repo: some-repo/on-dockerhub  # repo on DockerHub\n    command: /bin/true            # change the command that gets run\n    wait:                         # this service needs some time to start\n      post: 9042                  # wait for it on this port\n      delay: 30                   # for that many seconds\n    env:\n      SOME_ENV: \"some value\"      # manipulates the environment of the container\n      ANOTHER: \"{{ key }}\"        # You can use jinja2 to expand keys from the var section in the configuration\n    advertised_port: 3000         # This port gets advertised to services linking to this service\n                                  # if not provided, defaults to left # side of first value in ports (eg. 3000)\n    ports:                        # ports to be exposed and published\n      - 3000:3001\n      - 4000                      # you can give one int here, the other one is set to the same value\n    expose:                       # ports to be exposed\n      - 5000/udp\n      - 6000\n    links:                        # connections to other services\n      - one                       # links via docker --link on localhost and via HAProxy on EC2\n      - two\n      - three[direct]             # Adding [direct] links straight to host, not through proxy,\n                                  # only use if you really need to.\n    volumes:                      # volumes to be attached to the container\n      - /some/path                # same semantic as in docker --volume (this defines a volume)\n      - /some/path:/another/path  # same semantic as in docker --volume (this mounts a volume to the host at '/some/path')\n    volumes_from:                 # attach all defined volumes from container 'one'\n      - one\n    files:                        # files that need to be uploaded to the node\n      - some/local/file:/some/absolute/remote/path\n    migrations:\n      cql:                        # Requires a cassandra container to be linked\n        - schema.cql              # Array of cql files that will be executed\n        - default-data.cql        # against the linked cassandra\n    restart_policy: always        # Container restart policy, defaults to 'always'\n                                  # Available options are 'no', 'on-failure', 'always'\n    attach: True                  # Run container with an open tty, you can jump into it by running `docker attach`\n    pull: False                   # Disables unconditional pull, useful if your images are not on DockerHub, or you want to bypass those\n  - name: cronjob\n    repo: some-repo/cronjob\n    schedule:                     # you can run containers periodically with schedule\n      onboot: 3min                # cronjob will run 3min after boot and then every 2 hours\n      schedule: 2h                # see systemd.time(7) for details on the time format\n      description: \"a simple cronjob\"\n\n\n# The tests are considered successful, if all tests exit cleanly (with a return value of 0).\ntests:\n  - name: integration\n    target: haproxy               # You can use the IP of this service with the %TARGET variable\n                                  # %TARGET is expanded in the values of env:, command: and args:\n    docker:\n      name: integration-test\n      version: latest\n      repo: some/integration-test\n      command: /run.sh --host %TARGET\n      env:\n        SOME_ENV: \"some value\"\n        HOST: %TARGET\n\n  - name: load\n    target: haproxy\n    shell:\n      name: ./some_script.sh\n      args: --host %TARGET\n```\n\nSome values are required, `docker-launcher` will refuse to run, if you leave\nthem out. The smallest possible stack config is:\n\n```yaml\nservices:\n  - name: one\n    repo: someone/something\n```\n\nWhich spawns `someone/something:latest` as `one` on `localhost`. The smallest\npossible stack config, that sets up nodes on EC2 is:\n\n```yaml\nnodes:\n  - name: one\n    group: default\n    services:\n      - one\n    size: t2.micro\n    count: 1\nservices:\n  - name: one\n    repo: someone/something\nsecurity_groups:\n  - name: example-grp\n    description: \"This cannot be left blank\"\n    rules:           #need this so ansible can connect to the node\n      - proto: tcp\n        from_port: 22\n        to_port: 22\n        cidr_ip: 0.0.0.0/0\n    rules_egress:     #need this so the instance can connect out to dockerhub\n      - proto: all\n        cidr_ip: 0.0.0.0/0\n```\n\nSee the example directory for more examples. You can also take a look at the Rx\nschema for stack config in `launcher/util/schema/stack_conf.yml`, have a look\nat [the Rx documentation](http://rx.codesimply.com/coretypes.html) to understand\nthe syntax.\n\n### **Example**: data container\n\nThis is example starts a database with its data being stored in another\ncontainer (data-only container). We need to specify a restart policy, as restart\nis the default since version `0.1.5`, which would lead to the data container\nbeing restarted over and over again.\n\n```yaml\n---\nservices:\n  - name: mysql-data\n    restart_policy: \"on-failure\"\n    repo: busybox\n    volumes:\n      - /var/lib/mysql\n    command: \"true\"\n\n  - name: mysql\n    repo: mysql\n    ports:\n      - 3306\n    env:\n      MYSQL_ROOT_PASSWORD: \"super-secret\"\n      MYSQL_USER: \"test\"\n      MYSQL_PASSWORD: \"super-secret\"\n    volumes_from:\n      - mysql-data\n```\n\n## Problems/Known Bugs\n\n- migrations will run every time\n- no sanity checks on the cloud config (no HAProxy etc)\n- services connect via public IPs\n- suboptimal type checking (Rx types) on yaml files\n- support more scheduling techniques/schedules\n- insufficient documentation on jinja2 usage in stack configurations\n\n### SSH Errors\n\nIf you get an error like the following when deploying to EC2:\n\n`SSH Error: data could not be sent to the remote host. Make sure this host can\nbe reached over ssh`\n\nPut the content below into `~/.ansible.cfg` (create it if it doesn't exist):\n\n```\n[defaults]\n# disable SSH key host checking\nhost_key_checking = False\ntimeout = 30\ntransport = paramiko\n[paramiko_connection]\n# do not record new host keys\nrecord_host_keys = False\n```\n\n## Development Virtualenv\n\nThe steps for installing the requirements in a virtualenv for developing on\n`docker-launcher` are as follows:\n\n```sh\nvirtualenv venv\n. venv/bin/activate\n\npip install -r requirements.txt\npip install -e .\n```\n\n## Tests\n\nThe tests require py.test. Install it with:\n\n```sh\npip install pytest\n```\n\nThey can be run with:\n\n```sh\npy.test tests/\n```\n\nFor code coverage run:\n\n```sh\npy.test --cov launcher tests/\n```\n\n## Examples of docker-launcher in production\n\nTo get a picture of how docker-launcher is used in the real world, you can take a look at the ATS-developed [GENIVI SOTA project](http://advancedtelematic.github.io/rvi_sota_server/). It uses docker-launcher to deploy both the server and client, as well as the RVI communication nodes.\n\n## Copyright\n\nCopyright \u00a9 2015 ATS Advanced Telematic Systems GmbH\n\nThis file is part of Docker Launcher.\n\nDocker Launcher is free software: you can redistribute it and/or modify it under\nthe terms of the GNU General Public License as published by the Free Software\nFoundation, either version 3 of the License, or (at your option) any later\nversion.\n\nDocker Launcher is distributed in the hope that it will be useful, but WITHOUT\nANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\nFOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with\nDocker Launcher. If not, see <http://www.gnu.org/licenses/>.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "UNKNOWN",
+        "keywords": null,
+        "license": "UNKNOWN",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "docker-launcher",
+        "package_url": "https://pypi.org/project/docker-launcher/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/docker-launcher/",
+        "release_url": "https://pypi.org/project/docker-launcher/0.1.10/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Deploy multi-node, multi-container clusters from simple configuration files",
+        "version": "0.1.10"
+    },
+    "last_serial": 1790014,
+    "releases": {
+        "0.1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "229eb928effd9036d0697d2a1808535b",
+                    "sha256": "3beaaf041b40ca162297e10a602d17149c745a215e87e9c169a833a95b65e6ff"
+                },
+                "downloads": -1,
+                "filename": "docker-launcher-0.1.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "229eb928effd9036d0697d2a1808535b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 31192,
+                "upload_time": "2015-10-28T10:58:08",
+                "url": "https://files.pythonhosted.org/packages/98/c6/194776f5c9bddc8314a458256eac619893f37a50cd9ebaf12e7e87811cc9/docker-launcher-0.1.10.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "202fce6d3290ca71167e841940a5520f",
+                    "sha256": "b778d5eb95138a783c573a0b33cba7ba5d44e2fe16400de1ac5324ef8758f140"
+                },
+                "downloads": -1,
+                "filename": "docker-launcher-0.1.4.tar.gz",
+                "has_sig": true,
+                "md5_digest": "202fce6d3290ca71167e841940a5520f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 29110,
+                "upload_time": "2015-08-26T08:46:01",
+                "url": "https://files.pythonhosted.org/packages/45/eb/748841b9f1a57ee6825825045666a8ab53a97c63c71cdb2f812e344021f3/docker-launcher-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a9b6eaea944be5305ad7e6bb87d0cfbd",
+                    "sha256": "1404658dafcff8e06193032929e153fefefe503eca52e8ab072a83a2f35961b0"
+                },
+                "downloads": -1,
+                "filename": "docker-launcher-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a9b6eaea944be5305ad7e6bb87d0cfbd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 29094,
+                "upload_time": "2015-09-25T14:27:03",
+                "url": "https://files.pythonhosted.org/packages/8b/c9/fbb7dba4301d822d39973ad0555daf2383792c2fb37b7b05c79f77652999/docker-launcher-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "00626884cfb8e2ce41399da8658b7fe1",
+                    "sha256": "e3eff3feecc292aeced24aac602f55437d77a558b02c3f3ded68d2bb0bfbad86"
+                },
+                "downloads": -1,
+                "filename": "docker-launcher-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "00626884cfb8e2ce41399da8658b7fe1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 30640,
+                "upload_time": "2015-10-13T09:41:31",
+                "url": "https://files.pythonhosted.org/packages/3b/f7/4cec82b569486d180d39b9942e893ba38b5866c8ef0284ea609af447af54/docker-launcher-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0593c91ffe49778358b419deba9e90a1",
+                    "sha256": "e0fe95a59b29128819d15cf346b9c3376df6e1510d083bebb8f20fd434c38aba"
+                },
+                "downloads": -1,
+                "filename": "docker-launcher-0.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0593c91ffe49778358b419deba9e90a1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 30748,
+                "upload_time": "2015-10-14T12:29:23",
+                "url": "https://files.pythonhosted.org/packages/a6/94/cd7caabd46b0bebe180af9257d90f48524b8f2b8846291aa64f287a18abd/docker-launcher-0.1.8.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "229eb928effd9036d0697d2a1808535b",
+                "sha256": "3beaaf041b40ca162297e10a602d17149c745a215e87e9c169a833a95b65e6ff"
+            },
+            "downloads": -1,
+            "filename": "docker-launcher-0.1.10.tar.gz",
+            "has_sig": false,
+            "md5_digest": "229eb928effd9036d0697d2a1808535b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 31192,
+            "upload_time": "2015-10-28T10:58:08",
+            "url": "https://files.pythonhosted.org/packages/98/c6/194776f5c9bddc8314a458256eac619893f37a50cd9ebaf12e7e87811cc9/docker-launcher-0.1.10.tar.gz"
+        }
+    ]
+}

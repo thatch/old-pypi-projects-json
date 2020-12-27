@@ -1,0 +1,787 @@
+{
+    "info": {
+        "author": "Victor Stinner",
+        "author_email": "UNKNOWN",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console :: Curses",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: GNU General Public License (GPL)",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Multimedia"
+        ],
+        "description": "hachoir-metadata extracts metadata from multimedia files: music, picture,\nvideo, but also archives. It supports most common file formats:\n\n * Archives: bzip2, gzip, zip, tar\n * Audio: MPEG audio (\"MP3\"), WAV, Sun/NeXT audio, Ogg/Vorbis (OGG), MIDI,\n   AIFF, AIFC, Real audio (RA)\n * Image: BMP, CUR, EMF, ICO, GIF, JPEG, PCX, PNG, TGA, TIFF, WMF, XCF\n * Misc: Torrent\n * Program: EXE\n * Video: ASF format (WMV video), AVI, Matroska (MKV), Quicktime (MOV),\n   Ogg/Theora, Real media (RM)\n\nIt tries to give as much information as possible. For some file formats,\nit gives more information than libextractor for example, such as the RIFF\nparser, which can extract creation date, software used to generate the file,\netc. But hachoir-metadata cannot guess informations. The most complex operation\nis just to compute duration of a music using frame size and file size.\n\nhachoir-metadata has three modes:\n\n * classic mode: extract metadata, you can use --level=LEVEL to limit quantity\n   of information to display (and not to extract)\n * --type: show on one line the file format and most important informations\n * --mime: just display file MIME type\n\nThe command 'hachoir-metadata --mime' works like 'file --mime',\nand 'hachoir-metadata --type' like 'file'. But today file command supports\nmore file formats then hachoir-metadata.\n\nWebsite: http://bitbucket.org/haypo/hachoir/wiki/hachoir-metadata\n\n\nExample\n=======\n\nExample on AVI video (RIFF file format)::\n\n    $ hachoir-metadata pacte_des_gnous.avi\n    Common:\n    - Duration: 4 min 25 sec\n    - Comment: Has audio/video index (248.9 KB)\n    - MIME type: video/x-msvideo\n    - Endian: Little endian\n    Video stream:\n    - Image width: 600\n    - Image height: 480\n    - Bits/pixel: 24\n    - Compression: DivX v4 (fourcc:\"divx\")\n    - Frame rate: 30.0\n    Audio stream:\n    - Channel: stereo\n    - Sample rate: 22.1 KHz\n    - Compression: MPEG Layer 3\n\nModes --mime and --type\n=======================\n\nOption --mime ask to just display file MIME type (works like UNIX\n\"file --mime\" program)::\n\n    $ hachoir-metadata --mime logo-Kubuntu.png sheep_on_drugs.mp3 wormux_32x32_16c.ico\n    logo-Kubuntu.png: image/png\n    sheep_on_drugs.mp3: audio/mpeg\n    wormux_32x32_16c.ico: image/x-ico\n\nOption --file display short description of file type (works like\nUNIX \"file\" program)::\n\n    $ hachoir-metadata --type logo-Kubuntu.png sheep_on_drugs.mp3 wormux_32x32_16c.ico\n    logo-Kubuntu.png: PNG picture: 331x90x8 (alpha layer)\n    sheep_on_drugs.mp3: MPEG v1 layer III, 128.0 Kbit/sec, 44.1 KHz, Joint stereo\n    wormux_32x32_16c.ico: Microsoft Windows icon: 16x16x32\n\nSimilar projects\n================\n\n * Kaa - http://freevo.sourceforge.net/cgi-bin/freevo-2.0/Kaa (written in Python)\n * libextractor: http://gnunet.org/libextractor/ (written in C)\n\nA *lot* of other libraries are written to read and/or write metadata in MP3\nmusic and/or EXIF photo.\n\nhachoir-metadata 1.3.3 (2010-07-26)\n===================================\n\n * Support WebM video (update Matroska extractor)\n * Matroska parser extracts audio bits per sample\n\nhachoir-metadata 1.3.2 (2010-02-04)\n===================================\n\n * Include hachoir_metadata/qt/dialog_ui.py in MANIFEST.in\n * setup.py ignores pyuic4 error if dialog_ui.py is present\n * setup.py installs hachoir_metadata.qt module\n\nhachoir-metadata 1.3.1 (2010-01-28)\n===================================\n\n * setup.py compiles dialog.ui to dialog_ui.py and install\n   hachoir-metadata-qt. Create --disable-qt option to skip\n   hachoir-metadata-qt installation.\n * Create a MANIFEST.in file to include extra files like ChangeLog, AUTHORS,\n   gnome and kde subdirectories, test_doc.py, etc.\n\nhachoir-metadata 1.3 (2010-01-20)\n=================================\n\n * Create hachoir-metadata-qt: a graphical interface (Qt toolkit)\n   to display files metadata\n * Create ISO9660 extractor\n * Hide Hachoir warnings by default (use --verbose to show them)\n * hachoir-metadata program: create --force-parser option to choose the parser\n\nhachoir-metadata 1.2.1 (2008-10-16)\n===================================\n\n * Using --raw, strings are not normalized (don't strip trailing space, new\n   line, nul byte, etc.)\n * Extract much more informations from Microsoft Office documents (.doc, .xsl,\n   .pps, etc.)\n * Improve OLE2 (Word) extractor\n * Fix ASF extractor for hachoir-parser 1.2.1\n\nhachoir-metadata 1.2 (2008-09-03)\n=================================\n\n * Create --maxlen option for hachoir-metadata program: --maxlen=0 disable\n   the arbitrary string length limit\n * Create FLAC metadata extractor\n * Create hachoir_metadata.config, especially MAX_STR_LENGTH option\n   (maximum string length)\n * GIF image may contains multiple comments\n\nhachoir-metadata 1.1 (2008-04-01)\n=================================\n\n * More extractors are more stable and fault tolerant\n * Create basic Gtk+ GUI: hachoir-metadata-gtk\n * Catch error on data conversion\n * Read width and height DPI for most image formats\n * JPEG (EXIF): read GPS informations\n * Each data item can has its own \"setter\"\n * Add more ID3 keys (TCOP, TDAT, TRDA, TORY, TIT1)\n * Create datetime filter supporting timezone\n * Add \"meters\", \"pixels\", \"DPI\" suffix for human display\n * Create SWF extractor\n * RIFF: read also informations from headers field, compute audio\n   compression rate\n * MOV: read width and height\n * ASF: read album artist\n\nhachoir-metadata 1.0.1 (???)\n============================\n\n * Only use hachoir_core.profiler with --profiler command line option\n   so 'profiler' Python module is now optional\n * Set shebang to \"#!/usr/bin/python\"\n\nhachoir-metadata 1.0 (2007-07-11)\n=================================\n\n * Real audio: read number of channel, bit rate, sample rate and\n   compute compression rate\n * JPEG: Read user commment\n * Windows ANI: Read frame rate\n * Use Language from hachoir_core to store language from ID3 and MKV\n * OLE2 and FLV: Extractors are now fault tolerant",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "http://bitbucket.org/haypo/hachoir/wiki/hachoir-metadata",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://bitbucket.org/haypo/hachoir/wiki/hachoir-metadata",
+        "keywords": null,
+        "license": "GNU GPL v2",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "hachoir-metadata",
+        "package_url": "https://pypi.org/project/hachoir-metadata/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/hachoir-metadata/",
+        "project_urls": {
+            "Download": "http://bitbucket.org/haypo/hachoir/wiki/hachoir-metadata",
+            "Homepage": "http://bitbucket.org/haypo/hachoir/wiki/hachoir-metadata"
+        },
+        "release_url": "https://pypi.org/project/hachoir-metadata/1.3.3/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Program to extract metadata using Hachoir library",
+        "version": "1.3.3"
+    },
+    "last_serial": 792789,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "080cbc1549a684cbe48eb0e15b72a183",
+                    "sha256": "d7f9e150877ec1f13b2a5abec35be858d6ca0a5ffd513710ecbb02ec700e81b1"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.0-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "080cbc1549a684cbe48eb0e15b72a183",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 80404,
+                "upload_time": "2009-09-24T22:53:37",
+                "upload_time_iso_8601": "2009-09-24T22:53:37.119944Z",
+                "url": "https://files.pythonhosted.org/packages/93/db/5abb6633e95eb45f7e4456576f55504bf1c392aa52e40d0d9e2b9d98e6c6/hachoir_metadata-1.0-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7f1db2f7b379bcf899e169a11690db1b",
+                    "sha256": "1f01337ddda055853a756bbd7a4a5317b5d42719577a74bc75f6ea238c70142c"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.0-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "7f1db2f7b379bcf899e169a11690db1b",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 79024,
+                "upload_time": "2009-09-24T22:53:39",
+                "upload_time_iso_8601": "2009-09-24T22:53:39.031923Z",
+                "url": "https://files.pythonhosted.org/packages/39/13/bdc3cf54c5f782fc6693458c2c147374e1a4362b25f131004934c21a9cda/hachoir_metadata-1.0-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5dbb5da5dc38de52606d5bf4e32bb097",
+                    "sha256": "11e143e731fc636af5052542324ba2cef5dd369561317d07d0e2849260537dcf"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.0-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "5dbb5da5dc38de52606d5bf4e32bb097",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 78952,
+                "upload_time": "2009-09-24T22:53:40",
+                "upload_time_iso_8601": "2009-09-24T22:53:40.897623Z",
+                "url": "https://files.pythonhosted.org/packages/07/4d/09817176658ca0c6b0b0e5f3b17c30e3df23a1b04cb4131fb002289a3645/hachoir_metadata-1.0-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "159e78ff2e273592507b10deb47bafc5",
+                    "sha256": "6257a68c7f6e1a4d7cb0248a9c5ffe9eb299981dae7302b3b5fc5597db2b5f4e"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "159e78ff2e273592507b10deb47bafc5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 28923,
+                "upload_time": "2009-09-24T23:19:23",
+                "upload_time_iso_8601": "2009-09-24T23:19:23.141511Z",
+                "url": "https://files.pythonhosted.org/packages/1c/49/1bc67b26febeab2302223d8f9d886499f97741dc5d790006eb639f35f9f8/hachoir-metadata-1.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8db8b3d3feee6134a05118085fea02f4",
+                    "sha256": "17281bb3cd46d0c7ce61d6e09e779bfe44cc2dc1546e16b45374cba72ecb0216"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.0.1-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "8db8b3d3feee6134a05118085fea02f4",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 80499,
+                "upload_time": "2009-09-24T22:53:44",
+                "upload_time_iso_8601": "2009-09-24T22:53:44.420301Z",
+                "url": "https://files.pythonhosted.org/packages/f4/0b/30c2cb18235fac6e879d946900832f6978f12e280332ea2dcd028763d928/hachoir_metadata-1.0.1-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2e1b7b1bb900f0e05151ba8d6ebe2a7",
+                    "sha256": "0b6f546a885b55dd0442bb0747b01214f2b94d5399feaa829febedcd51441b4d"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.0.1-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "f2e1b7b1bb900f0e05151ba8d6ebe2a7",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 79126,
+                "upload_time": "2009-09-24T22:53:46",
+                "upload_time_iso_8601": "2009-09-24T22:53:46.263388Z",
+                "url": "https://files.pythonhosted.org/packages/30/cf/e9fc8941d297d93eff38912fcac6fc33d04ef76184f5209ba60d9dd46215/hachoir_metadata-1.0.1-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8cb9bcfdb699f5d55511e51e424c8eaa",
+                    "sha256": "3e3078106a1b595dc604c281c99470474448c656894c2fe067279e6f258afde2"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.0.1-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "8cb9bcfdb699f5d55511e51e424c8eaa",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 79052,
+                "upload_time": "2009-09-24T22:53:48",
+                "upload_time_iso_8601": "2009-09-24T22:53:48.064759Z",
+                "url": "https://files.pythonhosted.org/packages/c7/81/0356c29d8af1e0031ae293087ae600b8978863d79cad61136b7046596727/hachoir_metadata-1.0.1-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3131614c45d4c6be6b558c15ef6d5aa1",
+                    "sha256": "42740ca61d9fb00155458188ad9020034b028ad3bbee8b03d038f80e3a173ff5"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3131614c45d4c6be6b558c15ef6d5aa1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29033,
+                "upload_time": "2009-09-24T23:19:28",
+                "upload_time_iso_8601": "2009-09-24T23:19:28.983272Z",
+                "url": "https://files.pythonhosted.org/packages/65/ca/0427971be7225fa8109a8b4048449ad2bc266dca6457fc7f1fab9cf1ab95/hachoir-metadata-1.0.1.tar.gz"
+            }
+        ],
+        "1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f08bee0b4d8dfe612253d36ceecf2eac",
+                    "sha256": "895b415269050ebfed41f0c51c951df5bc99f68f448aafaaec420c3e461010eb"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.1-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "f08bee0b4d8dfe612253d36ceecf2eac",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 89207,
+                "upload_time": "2009-09-24T22:53:51",
+                "upload_time_iso_8601": "2009-09-24T22:53:51.704155Z",
+                "url": "https://files.pythonhosted.org/packages/27/79/a2eddd1e4bc6ee8603d862d16073b285a804337f433dedc0f73f4ad46a1d/hachoir_metadata-1.1-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4f63a0b26e945cc62e18a10fd4a6a934",
+                    "sha256": "9234cf26038f55c47b642a9ff0c7cd092df42a1dcf91e2ca4bc1ab8968dac890"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.1-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "4f63a0b26e945cc62e18a10fd4a6a934",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 87792,
+                "upload_time": "2009-09-24T22:53:53",
+                "upload_time_iso_8601": "2009-09-24T22:53:53.657418Z",
+                "url": "https://files.pythonhosted.org/packages/aa/1e/fa4f9cfab2396766439a5f21c34c90e1a345d56ccbeebf7744365a155042/hachoir_metadata-1.1-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71d865dc2ae0030c606aa2360f09d71e",
+                    "sha256": "f7325f31556946368cafa03efdb19e8217a281a131bb594b3bfdf3b594fefdf5"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.1-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "71d865dc2ae0030c606aa2360f09d71e",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 87698,
+                "upload_time": "2009-09-24T22:53:55",
+                "upload_time_iso_8601": "2009-09-24T22:53:55.569973Z",
+                "url": "https://files.pythonhosted.org/packages/8d/af/46721d046fd7730a7ca9b4106ae096093f07e17367305a6031c4d34cdf7c/hachoir_metadata-1.1-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1fef27c4cf4179cd7c26c57e4ac4cfd8",
+                    "sha256": "95a8834a654732a215ace8dfff44358272af958a6dc7d19fb0b705e856910a9f"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1fef27c4cf4179cd7c26c57e4ac4cfd8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32544,
+                "upload_time": "2009-09-24T23:19:34",
+                "upload_time_iso_8601": "2009-09-24T23:19:34.864436Z",
+                "url": "https://files.pythonhosted.org/packages/c6/65/c0e6404ccb51f8aa75955e43db1edf31d20f9690296df2f265fbedca3ea1/hachoir-metadata-1.1.tar.gz"
+            }
+        ],
+        "1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a2bd914436d3eab73e1a2b637788141",
+                    "sha256": "86ac1994ef637741da6bd443fd3d45ff4800fbfbad88c620536d34045e99febd"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.2-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "7a2bd914436d3eab73e1a2b637788141",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 90365,
+                "upload_time": "2009-09-24T22:53:59",
+                "upload_time_iso_8601": "2009-09-24T22:53:59.207321Z",
+                "url": "https://files.pythonhosted.org/packages/a5/ad/1abc6b7a6a2eb9a793eff372ae404c6e8a410cd56bf1aa376ecf495e4888/hachoir_metadata-1.2-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "24ae0ce067417d44563cbef70c1b8f9d",
+                    "sha256": "1b9b266bf1cd5096753a4d095d98f6efbbbb0215b3c3b021e8cb34ff3ebd7510"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.2-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "24ae0ce067417d44563cbef70c1b8f9d",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 88943,
+                "upload_time": "2009-09-24T22:54:01",
+                "upload_time_iso_8601": "2009-09-24T22:54:01.212612Z",
+                "url": "https://files.pythonhosted.org/packages/65/75/6eefb9563c800929d1a7030bb5353b0a13632c622b152b458c219e56f193/hachoir_metadata-1.2-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "53ecb55f31f644ce2d7c8dcc472114f2",
+                    "sha256": "6c423911aff3aab2f4f090499073312725c2cbd7fbc5d75092db2eb2adc41959"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.2-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "53ecb55f31f644ce2d7c8dcc472114f2",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 88835,
+                "upload_time": "2009-09-24T22:54:03",
+                "upload_time_iso_8601": "2009-09-24T22:54:03.208003Z",
+                "url": "https://files.pythonhosted.org/packages/62/17/9b16f7bd6b4216acd0fd2c2b71ad157eca1e991b3c9377f191ec416ae9ea/hachoir_metadata-1.2-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f7692748b52908ada7a569c961aa3330",
+                    "sha256": "bcda483b55131b4a651a01e8c35e19dc4a9ad947f62cd7953ef5bde76c7451d6"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f7692748b52908ada7a569c961aa3330",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32969,
+                "upload_time": "2009-09-24T23:19:40",
+                "upload_time_iso_8601": "2009-09-24T23:19:40.753840Z",
+                "url": "https://files.pythonhosted.org/packages/01/14/07b7c2b9b6b198588b822dcf159714e8fc261e0b5a294e831a23378a3ad9/hachoir-metadata-1.2.tar.gz"
+            }
+        ],
+        "1.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "64f71d80c1d2f55fdb78950fb57a76ad",
+                    "sha256": "a6b59ac8874c0199facf7ef9ae1107e9412dc51a95573c58f3e4fdbbab0dd11a"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.2.1-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "64f71d80c1d2f55fdb78950fb57a76ad",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 91958,
+                "upload_time": "2009-09-10T18:17:39",
+                "upload_time_iso_8601": "2009-09-10T18:17:39.022606Z",
+                "url": "https://files.pythonhosted.org/packages/9c/27/f585a65d2f821388b103b149339805761642bffcc8efba9c7cef9afa3b41/hachoir_metadata-1.2.1-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "75de3b02c9d7eeb611ffed9db102de8e",
+                    "sha256": "345de5739ed216d36d822c46427162dd51a7fc74b96e0b699172bb24107e8f17"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.2.1-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "75de3b02c9d7eeb611ffed9db102de8e",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 90465,
+                "upload_time": "2008-10-16T20:27:02",
+                "upload_time_iso_8601": "2008-10-16T20:27:02Z",
+                "url": "https://files.pythonhosted.org/packages/6d/0b/ce94a3f702ac60125d342ae188f670447749059254bee978df3bc10ae3de/hachoir_metadata-1.2.1-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4487d7adc07c06a51c691545a47fac8b",
+                    "sha256": "fab50f268c60b71bea6115786add15a04366a08ec3ed5f94bc79bf08a64a4e29"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.2.1-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "4487d7adc07c06a51c691545a47fac8b",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 90369,
+                "upload_time": "2009-09-10T18:19:22",
+                "upload_time_iso_8601": "2009-09-10T18:19:22.801257Z",
+                "url": "https://files.pythonhosted.org/packages/52/2f/8e6f5b9d814c7785ec9b19c4a0392e6872ff7ea2c0e9e6443a04ea3cccce/hachoir_metadata-1.2.1-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42a2bb0fa6f00ec46aa384c6edc2f8e8",
+                    "sha256": "7862c538ae13f5ea71d413f66bfe6570cdd82414588b296321daf62ee1b7acd8"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "42a2bb0fa6f00ec46aa384c6edc2f8e8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 51594,
+                "upload_time": "2008-10-16T20:27:01",
+                "upload_time_iso_8601": "2008-10-16T20:27:01Z",
+                "url": "https://files.pythonhosted.org/packages/5d/bc/ddd19439b6da9eeb936567874963371737b20bfe4b1dbd94359d0c877b50/hachoir-metadata-1.2.1.tar.gz"
+            }
+        ],
+        "1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "20e131555902cd7d9bdcaf33f69c9011",
+                    "sha256": "8f96c5f4b9e21b42adc6e6ea7d73c17fba7cd2b3c45dc553d8055384c82aa022"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "20e131555902cd7d9bdcaf33f69c9011",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 91651,
+                "upload_time": "2010-01-20T02:42:17",
+                "upload_time_iso_8601": "2010-01-20T02:42:17.754719Z",
+                "url": "https://files.pythonhosted.org/packages/f3/dd/75c3466640e8a8dfc8d37ca08b7f7cea0529cd2f074c5048fa9e77cd91ac/hachoir_metadata-1.3-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa1ad9620cf13939d82593b378166fa0",
+                    "sha256": "097b915c0b88ada2bbf4f8c2788ea8200221e7888426d39c5dd6a3842edb4c64"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "aa1ad9620cf13939d82593b378166fa0",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 90161,
+                "upload_time": "2010-01-20T02:41:50",
+                "upload_time_iso_8601": "2010-01-20T02:41:50.267985Z",
+                "url": "https://files.pythonhosted.org/packages/48/12/b49b008862f660582441d314457f1286ae3125ba522db7e419227c6ff14c/hachoir_metadata-1.3-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a467e77ff018ec21d60d9ec162fb9cf",
+                    "sha256": "3e0b81eb2d3f91cf33068667c1b9db48da32b01b306ba01c0ce7e076d9433441"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "8a467e77ff018ec21d60d9ec162fb9cf",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 90067,
+                "upload_time": "2010-01-20T02:42:21",
+                "upload_time_iso_8601": "2010-01-20T02:42:21.970718Z",
+                "url": "https://files.pythonhosted.org/packages/8c/b9/2ab1ea7b38a332a4b8eeca00ffb32c6b40211be818a6f4e526bab11599b4/hachoir_metadata-1.3-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dba582d2acef263c8243ad7f359ae7d7",
+                    "sha256": "1161d58992f07e0f2bb64c269ffc90d34a506477cfe9338accb160e945c304ed"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dba582d2acef263c8243ad7f359ae7d7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32485,
+                "upload_time": "2010-01-20T02:41:48",
+                "upload_time_iso_8601": "2010-01-20T02:41:48.823951Z",
+                "url": "https://files.pythonhosted.org/packages/2d/ca/841e24da03025d718f6c2d220c3d51c813833d83eae75ac657d520cbb980/hachoir-metadata-1.3.tar.gz"
+            }
+        ],
+        "1.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b3ccc173cc525fc903129747a944d8b6",
+                    "sha256": "47fcb680f72ca6bea1dd901f2ef961926588df910db6159a46503ea2e568bc0f"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.1-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "b3ccc173cc525fc903129747a944d8b6",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 93370,
+                "upload_time": "2010-01-28T01:11:50",
+                "upload_time_iso_8601": "2010-01-28T01:11:50.811368Z",
+                "url": "https://files.pythonhosted.org/packages/bc/b6/d626e56523464c37c79afa6ef8ec9716a78a5acfcdd046e2839f50f478ec/hachoir_metadata-1.3.1-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48d36aadd458e1ba6d677f2b00f8f88e",
+                    "sha256": "660355562961472b77b1a19dbb0c2c67f7b3fcc3d0135357792a5de36a324417"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.1-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "48d36aadd458e1ba6d677f2b00f8f88e",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 91911,
+                "upload_time": "2010-01-28T01:10:24",
+                "upload_time_iso_8601": "2010-01-28T01:10:24.891864Z",
+                "url": "https://files.pythonhosted.org/packages/48/69/1b7b69cb8ac6ba73f6e61d5de4307a8d3fbb4573613bfbc2c2f02e64efae/hachoir_metadata-1.3.1-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af21b21fb6a308a6333da4a4db027b10",
+                    "sha256": "f03271d2755d4bac5f424224cdce731251b837b2cc4530a453dd410fe85a53d1"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.1-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "af21b21fb6a308a6333da4a4db027b10",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 91817,
+                "upload_time": "2010-01-28T01:11:54",
+                "upload_time_iso_8601": "2010-01-28T01:11:54.731851Z",
+                "url": "https://files.pythonhosted.org/packages/3f/f3/936efb3d0c48c1d04ab09e36363b764e94cf3fc5948eca52b01e87f34c4b/hachoir_metadata-1.3.1-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f33d0b19390fbd6d63025cc9daa9149",
+                    "sha256": "a3fb61af1cf7d8048d36820ea0a953cbc89491e8b7ff5660dc0fa503ebdfd584"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8f33d0b19390fbd6d63025cc9daa9149",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 50373,
+                "upload_time": "2010-01-28T01:10:23",
+                "upload_time_iso_8601": "2010-01-28T01:10:23.436440Z",
+                "url": "https://files.pythonhosted.org/packages/65/f4/b7ccb4458c5fe6fc86e89a6afeaee4c098c59e25ec527741f0b33d047410/hachoir-metadata-1.3.1.tar.gz"
+            }
+        ],
+        "1.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "050ef3623680832fce9765af66934934",
+                    "sha256": "36c615f5386b0a75d5721c09e50665c5a6622e7107408a0b6c9d8ce577080411"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.2-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "050ef3623680832fce9765af66934934",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 95888,
+                "upload_time": "2010-02-04T12:52:37",
+                "upload_time_iso_8601": "2010-02-04T12:52:37.893707Z",
+                "url": "https://files.pythonhosted.org/packages/23/84/462304d9ffde54cebdb1afd79ca5c7f9dfa2fd11ce530a42cca4687df311/hachoir_metadata-1.3.2-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6449c974265d564e74b4f52f66626d00",
+                    "sha256": "4d8eb087c8ed9405f05b0358400501e6129933b589a394906033e5906bde67a2"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.2-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "6449c974265d564e74b4f52f66626d00",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 94431,
+                "upload_time": "2010-02-04T12:52:34",
+                "upload_time_iso_8601": "2010-02-04T12:52:34.026000Z",
+                "url": "https://files.pythonhosted.org/packages/e9/a8/279655c8d42a3d28c3d805a472eb46ac70c1d2768917cd77a7199f32462c/hachoir_metadata-1.3.2-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e56425cc42a8e6d6b28474f4977adb8",
+                    "sha256": "fb2c6aa8dcb5cdaab28181af105941f728e270171274fcf82025f90e7484693a"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.2-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "4e56425cc42a8e6d6b28474f4977adb8",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 94339,
+                "upload_time": "2010-02-04T12:52:43",
+                "upload_time_iso_8601": "2010-02-04T12:52:43.347586Z",
+                "url": "https://files.pythonhosted.org/packages/b9/01/5f6ee1d30ae307c40d5141649c7c479cfb0ffbdf4f1c11016504f95139f6/hachoir_metadata-1.3.2-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "15ba740838a326c4c9e45d6db8efe886",
+                    "sha256": "f13aa356b78aa0d7497588be604e4fa6b5e9b4dc950fac67d6079bad5e19530a"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "15ba740838a326c4c9e45d6db8efe886",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 51837,
+                "upload_time": "2010-02-04T12:52:32",
+                "upload_time_iso_8601": "2010-02-04T12:52:32.577511Z",
+                "url": "https://files.pythonhosted.org/packages/f3/b1/191fc418c0dff97c975971652a035fa64e3d664fa8abcadaaf2edf653785/hachoir-metadata-1.3.2.tar.gz"
+            }
+        ],
+        "1.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "890f5a3780020af2e48c99c489f0edab",
+                    "sha256": "0cd7fd380d662790484a03790482d17722e3bc4461dae6617cd018b8fddb25a5"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.3-py2.4.egg",
+                "has_sig": false,
+                "md5_digest": "890f5a3780020af2e48c99c489f0edab",
+                "packagetype": "bdist_egg",
+                "python_version": "2.4",
+                "requires_python": null,
+                "size": 96263,
+                "upload_time": "2010-07-26T03:10:15",
+                "upload_time_iso_8601": "2010-07-26T03:10:15.289906Z",
+                "url": "https://files.pythonhosted.org/packages/aa/e1/b43297a1ba80649d741d9b8b20cac8bfd327ca92a8f5a215d0d5e9b97133/hachoir_metadata-1.3.3-py2.4.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8dbce8139ee126c1b4b150a8e7fae9fc",
+                    "sha256": "217e7e728a94ad98c114cf9639cf7cd4b5555a12899085640929eb39c4ac6cfa"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.3-py2.5.egg",
+                "has_sig": false,
+                "md5_digest": "8dbce8139ee126c1b4b150a8e7fae9fc",
+                "packagetype": "bdist_egg",
+                "python_version": "2.5",
+                "requires_python": null,
+                "size": 94800,
+                "upload_time": "2010-07-26T03:10:11",
+                "upload_time_iso_8601": "2010-07-26T03:10:11.768669Z",
+                "url": "https://files.pythonhosted.org/packages/53/8b/f49794503086edd6c5bbcff093dff64d4b6de8f9c6979d91dd610020fd6f/hachoir_metadata-1.3.3-py2.5.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b12c660fba2c3494c22539f223fb1d20",
+                    "sha256": "9494644323c0a0ea9819f724eec19630fbdfd4fd6c19ffaf708512c9d58800e8"
+                },
+                "downloads": -1,
+                "filename": "hachoir_metadata-1.3.3-py2.6.egg",
+                "has_sig": false,
+                "md5_digest": "b12c660fba2c3494c22539f223fb1d20",
+                "packagetype": "bdist_egg",
+                "python_version": "2.6",
+                "requires_python": null,
+                "size": 94687,
+                "upload_time": "2010-07-26T03:10:18",
+                "upload_time_iso_8601": "2010-07-26T03:10:18.871229Z",
+                "url": "https://files.pythonhosted.org/packages/bb/85/e29ae3a517bfdf68d6fb1c3a0f6dcb09f21acb1517dfe1bfa004ba0cfd11/hachoir_metadata-1.3.3-py2.6.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "26e04a2395205d31469fc2d6935055a9",
+                    "sha256": "ec403f13a44e2cf3d26001f8f440cdc4329a316a4c971035944bfadacc90eb3c"
+                },
+                "downloads": -1,
+                "filename": "hachoir-metadata-1.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "26e04a2395205d31469fc2d6935055a9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 52304,
+                "upload_time": "2010-07-26T03:10:10",
+                "upload_time_iso_8601": "2010-07-26T03:10:10.207428Z",
+                "url": "https://files.pythonhosted.org/packages/98/89/f31ba1431ed7627032338cd009eaeb65dfad1311fa1437107c406fcb025e/hachoir-metadata-1.3.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "890f5a3780020af2e48c99c489f0edab",
+                "sha256": "0cd7fd380d662790484a03790482d17722e3bc4461dae6617cd018b8fddb25a5"
+            },
+            "downloads": -1,
+            "filename": "hachoir_metadata-1.3.3-py2.4.egg",
+            "has_sig": false,
+            "md5_digest": "890f5a3780020af2e48c99c489f0edab",
+            "packagetype": "bdist_egg",
+            "python_version": "2.4",
+            "requires_python": null,
+            "size": 96263,
+            "upload_time": "2010-07-26T03:10:15",
+            "upload_time_iso_8601": "2010-07-26T03:10:15.289906Z",
+            "url": "https://files.pythonhosted.org/packages/aa/e1/b43297a1ba80649d741d9b8b20cac8bfd327ca92a8f5a215d0d5e9b97133/hachoir_metadata-1.3.3-py2.4.egg"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8dbce8139ee126c1b4b150a8e7fae9fc",
+                "sha256": "217e7e728a94ad98c114cf9639cf7cd4b5555a12899085640929eb39c4ac6cfa"
+            },
+            "downloads": -1,
+            "filename": "hachoir_metadata-1.3.3-py2.5.egg",
+            "has_sig": false,
+            "md5_digest": "8dbce8139ee126c1b4b150a8e7fae9fc",
+            "packagetype": "bdist_egg",
+            "python_version": "2.5",
+            "requires_python": null,
+            "size": 94800,
+            "upload_time": "2010-07-26T03:10:11",
+            "upload_time_iso_8601": "2010-07-26T03:10:11.768669Z",
+            "url": "https://files.pythonhosted.org/packages/53/8b/f49794503086edd6c5bbcff093dff64d4b6de8f9c6979d91dd610020fd6f/hachoir_metadata-1.3.3-py2.5.egg"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b12c660fba2c3494c22539f223fb1d20",
+                "sha256": "9494644323c0a0ea9819f724eec19630fbdfd4fd6c19ffaf708512c9d58800e8"
+            },
+            "downloads": -1,
+            "filename": "hachoir_metadata-1.3.3-py2.6.egg",
+            "has_sig": false,
+            "md5_digest": "b12c660fba2c3494c22539f223fb1d20",
+            "packagetype": "bdist_egg",
+            "python_version": "2.6",
+            "requires_python": null,
+            "size": 94687,
+            "upload_time": "2010-07-26T03:10:18",
+            "upload_time_iso_8601": "2010-07-26T03:10:18.871229Z",
+            "url": "https://files.pythonhosted.org/packages/bb/85/e29ae3a517bfdf68d6fb1c3a0f6dcb09f21acb1517dfe1bfa004ba0cfd11/hachoir_metadata-1.3.3-py2.6.egg"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "26e04a2395205d31469fc2d6935055a9",
+                "sha256": "ec403f13a44e2cf3d26001f8f440cdc4329a316a4c971035944bfadacc90eb3c"
+            },
+            "downloads": -1,
+            "filename": "hachoir-metadata-1.3.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "26e04a2395205d31469fc2d6935055a9",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 52304,
+            "upload_time": "2010-07-26T03:10:10",
+            "upload_time_iso_8601": "2010-07-26T03:10:10.207428Z",
+            "url": "https://files.pythonhosted.org/packages/98/89/f31ba1431ed7627032338cd009eaeb65dfad1311fa1437107c406fcb025e/hachoir-metadata-1.3.3.tar.gz"
+        }
+    ]
+}

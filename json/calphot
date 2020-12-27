@@ -1,0 +1,257 @@
+{
+    "info": {
+        "author": "James Wild",
+        "author_email": "jwild2@sheffield.ac.uk",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# *CAM flux calibration pipeline\n\nA set of scripts that will calibrate periodic \\*CAM lightcurves from counts to flux above atmosphere.\n\nThe scripts available are fairly basic calibration stuff, but this takes a lot of the legwork out of reducing periodic data. Importantly, it makes calls to SDSS, either for the comparisons in the target frame, or a separate reference star taken on the same night/run. And don't worry, these are all corrected for airmass, light travel time, etc! The useful outputs are a few files:\n\n  - A lightcurve for the star in aperture 1 of each supplied `.log` file\n  - Two figures for each lightcurve, one showing the target's flux over the observation, and another plotting the comparisons against each other\n  - An mcmc chain that optimises the ephemeris data\n\nThe figure containing the compared comparison stars is there to help diagnose a bad comparison. These should all ideally be flat lines at unity, but life is often not that perfect.\n\nThe main advantage of using this script, and in writing this at all, is that it creates a consistent record of how a data set was reduced for future reference. This will reduce 'black box' complaints later or, more relevant to me, dodge the problem of forgetting if I did it 100% right, when it comes to writing up what we find in the lightcurve data.\n\nA fairly verbose log is produces by each script in the file, `Calibration.txt`. Note that if an older one exists where it wants to put a new one, it'll overwrite the old log. Normally you'll want this - so that your logs always correspond to the data you currently have, but please beware!\n\n# Installing the package\n\nThis package is pip installable:\n\n```\npip3 install calphot\n```\n\nbut if you want to do it more manually, and fiddle with the source:\n\n```\ngit clone https://github.com/wildjames343/cal_phot\ncd cal_phot\npip3 install --user .\n```\n\nThis should also create some commands for you to use from the command line;\n  - `cal_phot`\n  - `calc_extinction`\n  - `comparison_mags`\n  - `bin_data`\n\nAll have `-h` doc strings, and `cal_phot` has two [example](example_files/cal_commands_SDSS.yaml) [files](example_files/cal_commands_noSDSS.yaml)\n\n# Scripts you'll want to use\n\n## `cal_phot`\n\nThis is the main calibration script. See below for details, but in short it needs a configuration yaml file.\n\n## `calc_extinction`\n\nThis takes a long observations and, assuming the apertures you use to reduce it are around constant-brightness stars, calculates the extinction in each frame. This requires a few things to be thought about to work properly:\n\n  - You need to use an observation on a **clear, photometric** night. Otherwise, this will be wrong! Clouds would contribute to the extinction and give you a wrong value.\n  - The larger the airmass range, the better. The logs on `deneb` list the airmass range for an observation, so use that to inform what run you use.\n  - Variable targets will result in junk. There's a lazy way and a smart way to deal with this - use many apertures to make sure that at least some are constant sources, or actually check each target's RA and Dec in catalogues for variability.\n\n## `comparison_mags`\n\nWe need to know the apparent magnitudes of the comparison stars so that we can convert ADU counts to a flux in mJy. This is easy when we're in the SDSS field, since the code can just look that up, but if we're elsewhere in the sky we have to jump through some hoops. This script will calculate the average apparent magnitude of all apertures in a logfile, except the first one (assumed to be the target). The result of this can be put into the `cal_phot` config file.\n\nThis should be done carfully - there's no point in flux calibrating the target against something that's not true! Take an observation from a clear, photometric night, and use this to calculate the magnitudes of ALL the comparison stars you use - if some are calculated on a night with even a little cloud, that magnitude will be WRONG!\n\n## `bin_data`\n\nNote to self: **Always be wary about *how* and *why* you're binning some data together!**\n\nThis git contains my binning script, which takes a few phase-folded lightcurves and averages them together.\n\nThis script makes an evenly spaced 1D grid of phase times, and combines the relevant data from given files into those bins. It respects their errors *and* weights data by them, and uses the mean phase of the binned data in each bin to preserve as much information as possible.\n\n# Using my Pipeline\n\nThis was written as a side-project, and hasn't been streamlined very much. However, I do have a recommended workflow. The process is slightly different for stars in or out of the SDSS field.\n\n# Stars in the SDSS\n\n## 1. Reduce your raw data with the HIPERCAM pipeline\n\nThe HiPERCAM pipeline is fairly easy to use. There's great doumentation to be found [here](http://deneb.astro.warwick.ac.uk/phsaap/hipercam/docs/html/commands.html), but I'll summarise the rough steps;\n\n-   Make a flat and bias frame from the relevant runs\n    -   `makeflat`, `makebias`\n-   Make a mean frame, used to define apertures\n    -   `averun`\n-   Set the apertures that you want to extract\n    -   `setaper`\n-   Generate the reduction file\n    -   `genred`\n-   Tweak the reduction file and optimise the settings\n    -   (((black magic)))\n-   Reduce the data!\n    -   `reduce`\n\nThis produces a `.log` file, containing the electron counts per aperture, per frame. However, this still needs to be calibrated, and DOESN'T contain any pointing info! We need to do a lookup for some actual apparent magnitudes.\n\n## 2. Make `.coords` files\n\nCreate a new text file with the same name as your log file, and the extension `.coords`, i.e. I reduce a file and call it `star_data.log` with 2 comparison apertures, then create another file called `star_data.coords`. This file is going to contain the RA and Dec of our *comparison* stars (**there is no entry for the target!!**), and the filter that we have the observations in. This is the general format:\n\n```\n    [CCD1 filter] [CCD2 filter] [CCD3 filter]\n\n    [CCD1 AP1 RA] [CCD1 AP1 DEC]\n    [CCD1 AP2 RA] [CCD1 AP2 DEC]\n\n    [CCD2 AP1 RA] [CCD2 AP1 DEC]\n    [CCD2 AP2 RA] [CCD2 AP2 DEC]\n\n    [CCD3 AP2 RA] [CCD3 AP2 DEC]\n    [CCD3 AP3 RA] [CCD3 AP3 DEC]\n```\n\nNote that the whitespace is important, the apertures of the different CCDs are separated by a blank line. I find it easiest to have an `Aladin` window open on the side, where right-clicking on a star and clicking `Copy recticle position to clipboard` gives you the RA and Dec in the right format. `cal_phot` will use these to get those stars' magnitudes from the SDSS.\n\n**You should now have two files for *each* reduction**, a `.log` and a `.coords`. If a `coords` file is missing, `cal_phot` will let you know about it.\n\n## 3. Calculate the extinction coefficients of the night\n\nThe SDSS standard and the target frame are, by definition, oberved at different locations in the sky. If they weren't, we wouldn't need the standard! So, we need to correct for atmospheric extinction. The script, `calc_extinction`, helps with this. Save the output of this for the input file. This isn't always 100% necessary, as the observatories each have fairly consistent values that they publish.\n\n## 4. Write an input file\n\nThis is the easy part. The config is a YAML file, and I have an example of what it should look like in this git, [here!](cal_commands_SDSS.yaml)\n\n## 5. Run it!\n\n`cal_phot cal_commands.yaml`\n\n# Non-SDSS Systems\n\nThese are slightly trickier, since I can't do an automatic lookup for `*CAM`-like filters. You'll have to help me out with a bit of extra legwork by also reducing a standard star observation on (or near) the night that the target was observed. The script is then going to take that observation, knowing the magnitude of the star, and work out the electron-count-to-flux ratio which can then be applied to the target reductions.\n\n## 1. Reduce the target observations\n\nThis is the same as for an SDSS-field system. Just do as you would normally.\n\n## 2. Reduce the standard star observation\n\nThe observer has likely observed a standard on the night (check the logs). Reduce this system with settings that make sense for it, but REMEMBER THOSE SETTINGS! In order to be consistent between the std. and the comparisons that we care about later, they must be reduced with all the same settings. Also use a large, fixed, aperture size to be sure that you're not getting *any* light leaking out of the edge of the target aperture.\n\nThen, go over to the target obeservation, and use the **exact same settings** to reduce the target frames. *Use the same `.ape` file as you used in step 1*, but make sure you use the same settings that you have in the standard star `.red` file! This will ensure consistency. I tend to call this standard-like reduction of the target frame `<system_name>_standard.log`.\n\n## 3. Compute the comparison star magnitudes\n\nUse the script `comparison_mags.py` to get the apparent magnitudes of all your comparison stars. This script will output the magnitudes in a conviniently copy-pasteable chunk for your configuration file.\n\n## 4. Construct the configuration file\n\nThere are a few extra bits of info needed in the configuration now. I usually just take the [example](cal_commands.yaml), copy it into my working directory, and tweak the stuff.\n\n\n## 5. Run the interpreter\n\nThat's it! The software will walk you through the rest.\n\n# Problems?\n\nEmail me, so I can find out what I've explained badly and improve this walkthrough.\n\n* * *",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/wildjames/cal_phot",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "calphot",
+        "package_url": "https://pypi.org/project/calphot/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/calphot/",
+        "project_urls": {
+            "Homepage": "https://github.com/wildjames/cal_phot"
+        },
+        "release_url": "https://pypi.org/project/calphot/1.10/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "Set of codes for flux-calibrating *CAM data, when doing relative or absolute photometry",
+        "version": "1.10"
+    },
+    "last_serial": 6630288,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "99416157d782b625dc2dcdb6af264095",
+                    "sha256": "72ac46e116ebc6db190b78ca1e5a081c8555491784a08545f767aa4c0288e811"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "99416157d782b625dc2dcdb6af264095",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 71243,
+                "upload_time": "2020-01-31T10:14:35",
+                "upload_time_iso_8601": "2020-01-31T10:14:35.779270Z",
+                "url": "https://files.pythonhosted.org/packages/36/e4/60039f0e2d9b962d04498e2b5a388fe4dfbf50fcd29ec16c313ff4934c46/calphot-1.0.tar.gz"
+            }
+        ],
+        "1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3dcbfde835b71cc7c45921a407bbc648",
+                    "sha256": "39be1354f431d12475b33ddead965c483224206e860f3efd840375789784f14e"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3dcbfde835b71cc7c45921a407bbc648",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 79972,
+                "upload_time": "2020-01-31T12:06:32",
+                "upload_time_iso_8601": "2020-01-31T12:06:32.890208Z",
+                "url": "https://files.pythonhosted.org/packages/41/92/49b500ef91cd4a3726cefe8c5c81b2d27b7ef6250f52271c6fe70544e885/calphot-1.1.tar.gz"
+            }
+        ],
+        "1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "16c6b6fea758dcc25214336d1e4910f7",
+                    "sha256": "55f800bcff7bc545681973a9b3296c57fc3abe15391745412fb3985702ee71e3"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "16c6b6fea758dcc25214336d1e4910f7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 82323,
+                "upload_time": "2020-02-14T11:22:07",
+                "upload_time_iso_8601": "2020-02-14T11:22:07.568393Z",
+                "url": "https://files.pythonhosted.org/packages/22/d1/6ab717de60594980341e18393b479ef8fe0aadd86e15dddc2f092c28696b/calphot-1.10.tar.gz"
+            }
+        ],
+        "1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "868e910cf87039e3cb1c27af6afee692",
+                    "sha256": "d6e48d440dcd72c30791af8c476df0c33d5e0bc342bf93cb5e00b4b81ac536ff"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "868e910cf87039e3cb1c27af6afee692",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 79861,
+                "upload_time": "2020-01-31T17:49:53",
+                "upload_time_iso_8601": "2020-01-31T17:49:53.134979Z",
+                "url": "https://files.pythonhosted.org/packages/bc/59/2ee2b729b67efcd7a84783a2d82ea07d6c114e5913da6f420cba59fec659/calphot-1.3.tar.gz"
+            }
+        ],
+        "1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed386e28fc80321e76d6980303eb24ee",
+                    "sha256": "4317e270a68d64273bcc360676981801b1f4c8bbd56405ea95e15572162acda4"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ed386e28fc80321e76d6980303eb24ee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 81459,
+                "upload_time": "2020-02-03T10:27:36",
+                "upload_time_iso_8601": "2020-02-03T10:27:36.964025Z",
+                "url": "https://files.pythonhosted.org/packages/ea/ae/5bb59debfcd5300eb37bec57d4908688694b079942051c340b9cc0d2b371/calphot-1.4.tar.gz"
+            }
+        ],
+        "1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ba6166ceec0e709f118372e1b94181ec",
+                    "sha256": "5ef82e5a6124ab6d2a6a6a82bf1d06b13c978111f086bd6628dc4babac89def8"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ba6166ceec0e709f118372e1b94181ec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 81447,
+                "upload_time": "2020-02-03T13:48:14",
+                "upload_time_iso_8601": "2020-02-03T13:48:14.242860Z",
+                "url": "https://files.pythonhosted.org/packages/2c/2d/524d26ac42ab37a01449031b4c7c8f8b59121cebb2596d75015bfccfc476/calphot-1.5.tar.gz"
+            }
+        ],
+        "1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "11235927b94cb7cc3345a6e6f4dd648b",
+                    "sha256": "b662976ecdad608058f0f9b752d7b3c42a284432e1e58c35fb6b31933cdbe61f"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "11235927b94cb7cc3345a6e6f4dd648b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 81629,
+                "upload_time": "2020-02-03T15:56:23",
+                "upload_time_iso_8601": "2020-02-03T15:56:23.969493Z",
+                "url": "https://files.pythonhosted.org/packages/a1/e6/963b6391087c6a1363cc51625f98ad024e0089580e1f7355529ddd87d352/calphot-1.6.tar.gz"
+            }
+        ],
+        "1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4fbea8357f1c0b290b5fed2848f3f9e1",
+                    "sha256": "7eb97f190879813639190066f82a3cf6b93bae12717aae5df82fc5ff83032e6b"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4fbea8357f1c0b290b5fed2848f3f9e1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 81815,
+                "upload_time": "2020-02-04T11:36:57",
+                "upload_time_iso_8601": "2020-02-04T11:36:57.536716Z",
+                "url": "https://files.pythonhosted.org/packages/b0/17/771879d5a542db422078c8912230a938e450739bbdc7d39be7a8b7c974ba/calphot-1.7.tar.gz"
+            }
+        ],
+        "1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "88a1cb40b5206f9240b3dd704238175e",
+                    "sha256": "8d622ead83bf5002b9957e676061315b4aed7063f26a04589d82578b9d1ef1dc"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "88a1cb40b5206f9240b3dd704238175e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 82017,
+                "upload_time": "2020-02-04T16:16:42",
+                "upload_time_iso_8601": "2020-02-04T16:16:42.253671Z",
+                "url": "https://files.pythonhosted.org/packages/03/4b/4eb82b04e626c8377c306229b8b294acedce8f7576a4243f1ac15b4c786e/calphot-1.8.tar.gz"
+            }
+        ],
+        "1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0ca14edcc28c3e38fc360c96bda66ec7",
+                    "sha256": "af3909087d2ee421042b3495fc8f6a134cc202d05bee44a39de05428f4a2b36e"
+                },
+                "downloads": -1,
+                "filename": "calphot-1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0ca14edcc28c3e38fc360c96bda66ec7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 82332,
+                "upload_time": "2020-02-05T14:46:11",
+                "upload_time_iso_8601": "2020-02-05T14:46:11.154896Z",
+                "url": "https://files.pythonhosted.org/packages/e5/2e/83b6659ac6321b0d4d6542f22e7a17e71a27f481a7da5568a1c6e1842ddb/calphot-1.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "16c6b6fea758dcc25214336d1e4910f7",
+                "sha256": "55f800bcff7bc545681973a9b3296c57fc3abe15391745412fb3985702ee71e3"
+            },
+            "downloads": -1,
+            "filename": "calphot-1.10.tar.gz",
+            "has_sig": false,
+            "md5_digest": "16c6b6fea758dcc25214336d1e4910f7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 82323,
+            "upload_time": "2020-02-14T11:22:07",
+            "upload_time_iso_8601": "2020-02-14T11:22:07.568393Z",
+            "url": "https://files.pythonhosted.org/packages/22/d1/6ab717de60594980341e18393b479ef8fe0aadd86e15dddc2f092c28696b/calphot-1.10.tar.gz"
+        }
+    ]
+}

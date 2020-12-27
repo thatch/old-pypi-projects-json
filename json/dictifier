@@ -1,0 +1,75 @@
+{
+    "info": {
+        "author": "Yezy Ilomo",
+        "author_email": "yezileliilomo@hotmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "\n# dictifier\n\n**dictifier** is a library to convert Python class instances(Objects) both **flat** and **nested** into a dictionary data structure. It's very useful in converting Python Objects into JSON format especially for nested objects, because they can't be handled well by json library\n\n### Prerequisites\n\n-python version >= 2.7\n\n### Installing\nFor python3\n```python\npip3 install dictifier\n```\n\nFor python2\n```python\npip install dictifier\n```\n\n## Getting Started\n\n**Converting a flat object into a dict**\n\n```python\nimport dictifier\n\nclass Student(object):\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\nstudent = Student(\"Danish\", 24)\n\nquery = [\n    \"name\",\n    \"age\"\n]\n\nstd_info = dictifier.dictify(student, query)\nprint(std_info)\n```\n\n**Converting nested object into a dict**\n\n```python\nimport dictifier\n\nclass Course(object):\n    def __init__(self, code, name):\n        self.code = code\n        self.name = name\n\nclass Student(object):\n    def __init__(self, name, age, course):\n        self.name = name\n        self.age = age\n        self.course = course\n\ncourse = Course(\"CS201\", \"Data Structures\")\nstudent = Student(\"Danish\", 24, course)\n\nquery = [\n    \"name\",\n    \"age\",\n    {\n        \"course\": [\n            \"code\",\n            \"name\",\n        ]\n    }\n]\n\nstd_info = dictifier.dictify(student, query)\nprint(std_info)\n```\n\n**Converting object nested with iterable object into a dict**\n\n```python\nimport dictifier\n\nclass Course(object):\n    def __init__(self, code, name):\n        self.code = code\n        self.name = name\n\nclass Student(object):\n    def __init__(self, name, age, courses):\n        self.name = name\n        self.age = age\n        self.courses = courses\n\ncourse1 = Course(\"CS201\", \"Data Structures\")\ncourse2 = Course('CS205\", \"Computer Networks\")\n\nstudent = Student(\"Danish\", 24, [course1, course2])\n\nquery = [\n    \"name\",\n    \"age\",\n    {\n        \"courses\": [\n            [\n                \"code\",\n                \"name\",\n            ]\n        ]\n    }\n]\n\nstd_info = dictifier.dictify(student, query)\nprint(std_info)\n```\n\n**What about instance methods or callable object fields?**\n\nWell we've got good news for that, **dictifier** can use callables which return values as fields, It's very simple, you just have to pass \"call_callable=True\" as a keyword argument to dictify function and add your callable field to a query. Eg\n\n```python\nimport dictifier\n\nclass Student(object):\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\n    def age_in_days(self):\n        return self.age * 365\n\nstudent = Student(\"Danish\", 24)\n\nquery = [\n    \"name\",\n    \"age_in_days\"\n]\n\nstd_info = dictifier.dictify(student, query, call_callable=True)\nprint(std_info)\n```\n\n**You can also add your custom field by using \"not_found_create=True\" as a keyword argument. Eg**\n\n```python\nimport dictifier\n\nclass Student(object):\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\nstudent = Student(\"Danish\", 24)\n\nquery = [\n    \"name\",\n    \"age\",\n    {\n        \"school\": \"St Patrick\"\n    }\n]\n\nstd_info = dictifier.dictify(student, query, not_found_create=True)\nprint(std_info)\n```\n\n**What if we want to use object field on a custom field to do some computations?.**\n\nWell there is a way to do that too, **dictifier** API provides **useobj** hook which is used to hook/pull the object on a current query node. To use the current object, just define a fuction which accept one argument(which is an object) and do your computations on that function then return the result, call **useobj** and pass that defined fuction to it. \n\nLet's say we want to calculate age of a student in terms of months from a student object with age field in terms of years. Here is how we would do this by using **useobj** hook.\n\n```python\nimport dictifier\n\nclass Student(object):\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\nstudent = Student(\"Danish\", 24)\n\ndef age_in_months(obj):\n    # Do the computation here then return the result\n    return obj.age * 12\n\nquery = [\n    \"name\",\n\n    # This is a custom field which is computed by using age field from a student object\n    # Note how age_in_months function is passed to useobj hook(This is very important for API to work)\n    {\"age_in_months\": dictifier.useobj(age_in_months)}\n]\n\nstd_info = dictifier.dictify(student, query)\nprint(std_info)\n```\n\n## How dictifier works?\n\n**dictifier** works by converting given Object into a corresponding dict **recursively(Hence works on nested objects)** by using a **Query**. So what's important here is to know how to structure right queries to extract right data from the object.\n\n**What's a Query anyway?**\n\nA Query is basically a template which tells dictifier what to extract from an object. It is defined as a list or tuple of Object's fields to be extracted.\n\n**Sample conversions**.\n\nWhen a flat student object is queried using a query below\n```python\nquery = [\n    \"name\",\n    \"age\",\n]\n```\n\n**dictifier** will convert it into \n\n```python\n{\n    \"name\": student.name,\n    \"age\": student.age,\n}   \n```\n\n**For nested queries it goes like**\n\n```python\nquery = [\n    \"name\",\n    \"age\",\n    {\n        \"course\": [ \n            \"code\",\n            \"name\",\n        ]\n    }\n]\n```\n\n**Corresponding dict**\n\n```python\n{\n    \"name\": student.name,\n    \"age\": student.age,\n    \"course\": {\n        \"code\": student.course.code,\n        \"name\": student.course.name,\n    }\n}\n```\n\n**For iterable objects it goes like**\n\n```python\nquery = [\n    \"name\",\n    \"age\",\n    {\n        \"course\": [ \n            [\n                \"code\",\n                \"name\",\n            ]\n        ]\n    }\n]\n```\nPutting a list or tuple inside a list or tuple of object fields is a way to declare that the Object is iterable. In this case\n```python\n[ \n    [\n        \"code\",\n        \"name\",\n    ]\n]\n```\n\n**Corresponding dict**\n\n```python\n{\n    \"name\": student.name,\n    \"age\": student.age,\n    \"courses\": [\n        {\n            \"code\": course.code,\n            \"name\": course.name,\n        }\n        for course in student.courses\n    ]\n}\n```\nNotice the list or tuple on \"courses\" unlike in other fields like \"name\" and \"age\", it makes \"courses\" iterable, This is the reason for having nested list or tuple on \"courses\" query.\n\n**It's pretty simple right?**\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/yezyilomo/dictifier",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "dictifier",
+        "package_url": "https://pypi.org/project/dictifier/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/dictifier/",
+        "project_urls": {
+            "Homepage": "https://github.com/yezyilomo/dictifier"
+        },
+        "release_url": "https://pypi.org/project/dictifier/0.0.0/",
+        "requires_dist": null,
+        "requires_python": ">=2.7",
+        "summary": " Python library to convert Python class instances(Objects) both flat and nested into a dictionary data structure. It's very useful in converting Python Objects into JSON format especially for nested objects, because they can't be handled well by json library",
+        "version": "0.0.0"
+    },
+    "last_serial": 4956234,
+    "releases": {
+        "0.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2bb1e2be1725bd6044dfd686d44be139",
+                    "sha256": "e8c033a1af5c28cb225f243856685fe97aaaa1a94952612cc676f939e975404f"
+                },
+                "downloads": -1,
+                "filename": "dictifier-0.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2bb1e2be1725bd6044dfd686d44be139",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7",
+                "size": 7357,
+                "upload_time": "2019-03-18T23:05:19",
+                "url": "https://files.pythonhosted.org/packages/53/f4/ef67bf8c45676d65147045ce3b4b7aaa0293bf419a4730ee1f89011ec986/dictifier-0.0.0-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2bb1e2be1725bd6044dfd686d44be139",
+                "sha256": "e8c033a1af5c28cb225f243856685fe97aaaa1a94952612cc676f939e975404f"
+            },
+            "downloads": -1,
+            "filename": "dictifier-0.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2bb1e2be1725bd6044dfd686d44be139",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=2.7",
+            "size": 7357,
+            "upload_time": "2019-03-18T23:05:19",
+            "url": "https://files.pythonhosted.org/packages/53/f4/ef67bf8c45676d65147045ce3b4b7aaa0293bf419a4730ee1f89011ec986/dictifier-0.0.0-py3-none-any.whl"
+        }
+    ]
+}

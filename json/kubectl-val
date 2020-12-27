@@ -1,0 +1,236 @@
+{
+    "info": {
+        "author": "CriticalHop Team",
+        "author_email": "info@criticalhop.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# kubectl-val\n\n[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![PyPI version](https://badge.fury.io/py/kubectl-val.svg)](https://badge.fury.io/py/kubectl-val) [![Build Status](https://travis-ci.org/criticalhop/kubectl-val.svg?branch=master)](https://travis-ci.org/criticalhop/kubectl-val)\n\n# Overview\n\n![kubernetes evicts](doc/img/kubernetes-evicts.png)\n\n`kubectl-val` is a formal validator for whole kubernetes clusters' configurations using [AI planning](https://en.wikipedia.org/wiki/Automated_planning_and_scheduling). It is written in pure `Python` and translated to [PDDL](https://en.wikipedia.org/wiki/Planning_Domain_Definition_Language) using [poodle](https://github.com/criticalhop/poodle).\n\n`kubectl-val` implements a simplified kubernetes model using an object-oriented state machine and searches for any scenario that may lead to a 'failure'. Failures are currently defined as `Service` having no associated running pods. Other definitions are also possible and are currently work in progress. \n\n# Quick Start\n\n## Requirements\n\nkubectl-val is written in modern Python and requires **Python 3.7+**, so please be prepared that if your default script installation  uses older Python versions you may have to manually specify the interpreter for the script.\n\n## Installation\n\n    $ pip install kubectl-val\n\n`kubectl-val` comes as a simple [kubectl plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/), so a working `kubectl` is a requirement if you want to access real cluster. If you do not have `kubectl` you can use it just as standalone shell command `kubectl-val` instead of `kubectl val ...`\n\n## Usage\n\n### Checking if creating a resource won't break anything\n\nTo try it against sample \"broken\" kubernetes configurations, use `-d` option to supply a folder with a collection of Kubernetes resources' stored from `kubectl get <...> -o=yaml > <...>.yaml`, and try to create a new resource with `-f`, e.g.:\n\n    $ cd examples/daemonset-eviction\n    $ kubectl val -d cluster-dump/ -f daemonset_create.yaml\n    \n### Checking a Kubernetes configuration for correctness\n\nInvoking `kubectl val` without `-f` will run a check of current configuration and (hopefully) find no issues, as the configuration is already running. \n\n    $ kubectl val -d cluster-dump/\n\n### Checking live cluster\n\nBefore checking the cluster you should first \"dump\" all of current resources into a \"cluster dump\" folder:\n\n```shell\nmkdir my-cluster-dump\ncd my-cluster-dump\nkubectl get nodes --all-namespaces -o=yaml > nodes.yaml\nkubectl get pods --all-namespaces -o=yaml > pods.yaml\nkubectl get services --all-namespaces -o=yaml > services.yaml\nkubectl get priority --all-namespaces -o=yaml > priority.yaml\n...\n```\n\nAfter you have the dump folder, you can continue with a check described above.\n\n# Architecture\n\nTo search for a failure scenario, kubectl-val builds a model representation of the current cluster state that it reads from the files created by `kubectl get -o=yaml`. The constructed model is sent to PDDL planner and the resulting solution is then interpreted as a failure scenario and sent back to console as YAML-encoded scenario steps.\n\nScenario output can later be used by the pipeline operator to aid with decision making - e.g. whether stop the deployment, log the event to the dashboard, etc.\n\n`kubectl-val` also calculates the probability of the scenario by multiplying the probability associated with every step.\n\n![kubectl-val architecture](doc/img/architecture.png)\n\n`kubectl-val` depends on a configured PDDL AI-planning `poodlesolver` running as http service. By default it uses a cloud solver hosted by [CriticalHop](https://www.criticalhop.com/). `poodlesolver` comes with `poodle` python library and installs automatically when `kubectl-val` is installed via `pip install`. To run a local solver, please refer to [poodle documentation](https://github.com/criticalhop/poodle). \n\n# Build from source\n\n```shell\ngit clone https://github.com/criticalhop/kubectl-val\ncd kubectl-val\npoetry install\n```\n\n# Specifying solver location\n\nBy default `kubectl-val` uses a hosted solver. You can learn how to run you local solver by checking [poodle](https://github.com/criticalhop/poodle) repository.\n\n# Vision\n\nThe goal for the project is to create an intent-driven, self-healing Kubernetes configuration system that will abstract the cluster manager from error-prone manual tweaking.\n\n# Project Status\n\n`kubectl-val` is a developer preview and currently supports a subset of resource/limits validation and partial label match validation.\n\nWe invite you to follow [@criticalhop](https://twitter.com/criticalhop) on [Twitter](https://twitter.com/criticalhop) and to chat with the team at [#kubectl-val](https://tinyurl.com/y5s98dw6) on [freenode](https://freenode.net/). If you have any questions or suggestions - feel free to open a [github issue](https://github.com/criticalhop/kubectl-val/issues) or contact andrew@criticalhop.com directly.\n\nFor enterprise enquiries, use the form on CriticalHop website: [criticalhop.com/demo](https://www.criticalhop.com/demo) or write us an email at info@criticalhop.com\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "Apache-2.0",
+        "maintainer": "CriticalHop Team",
+        "maintainer_email": "info@criticalhop.com",
+        "name": "kubectl-val",
+        "package_url": "https://pypi.org/project/kubectl-val/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/kubectl-val/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/kubectl-val/0.1.3/",
+        "requires_dist": [
+            "PyYAML (>=5.1.2,<6.0.0)",
+            "yaspin (>=0.15.0,<0.16.0)",
+            "Click (>=7.0,<8.0)",
+            "logzero (>=1.5.0,<2.0.0)",
+            "pyupdater (>=3.1,<4.0)",
+            "poodle (>=0.1.1)"
+        ],
+        "requires_python": ">=3.7",
+        "summary": "Run formal check of Kubernetes configurations using Poodle AI planner",
+        "version": "0.1.3"
+    },
+    "last_serial": 5864433,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "79a99060226b0d9f066304bae460e9ce",
+                    "sha256": "4d34a1b699a18ba62d0fd5e5f0ea5a40a8845ad4c3d51fd5c2d5fa759cc4563f"
+                },
+                "downloads": -1,
+                "filename": "kubectl_val-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "79a99060226b0d9f066304bae460e9ce",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 22849,
+                "upload_time": "2019-09-10T04:02:45",
+                "upload_time_iso_8601": "2019-09-10T04:02:45.284385Z",
+                "url": "https://files.pythonhosted.org/packages/db/07/794ef1ef291be7be850db9aa4fcd045e61e3bf7e8abb5898ed495422c8a0/kubectl_val-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a3628adc4b5c67c2e2497908d9c54aab",
+                    "sha256": "bc5c0a6406bc30dabfd267d9d4cbaaef9cec4421c3006f576ffba53d3ddfcc40"
+                },
+                "downloads": -1,
+                "filename": "kubectl-val-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a3628adc4b5c67c2e2497908d9c54aab",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 15771,
+                "upload_time": "2019-09-10T04:02:43",
+                "upload_time_iso_8601": "2019-09-10T04:02:43.357142Z",
+                "url": "https://files.pythonhosted.org/packages/3b/9d/0576d2848e6d2b371452b75c7565fdf6b29b617659e8143a7ef53006ca98/kubectl-val-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "90846bafac6f021b84f57dd8241a49f5",
+                    "sha256": "7d8864beea9cd33537df9cb3538b1078ad46f1195eb9fb323ad7eaa3d7affc55"
+                },
+                "downloads": -1,
+                "filename": "kubectl_val-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "90846bafac6f021b84f57dd8241a49f5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 24703,
+                "upload_time": "2019-09-10T04:04:25",
+                "upload_time_iso_8601": "2019-09-10T04:04:25.300049Z",
+                "url": "https://files.pythonhosted.org/packages/9b/3a/2b747fdccc47326d516d589fcc0cf59eecda0571a3b3174dff7e35529c9a/kubectl_val-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "533a20766df31a663d84a5644de17cd7",
+                    "sha256": "2879beebdca39c73dc392b5425bcf9c9ac00f5d47637e028e6aa3e08d73bf6d6"
+                },
+                "downloads": -1,
+                "filename": "kubectl-val-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "533a20766df31a663d84a5644de17cd7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 19740,
+                "upload_time": "2019-09-10T04:04:23",
+                "upload_time_iso_8601": "2019-09-10T04:04:23.804265Z",
+                "url": "https://files.pythonhosted.org/packages/6b/43/0f97b266055751b0cd19c194081dfc59803ef0acf006b6674c3db21650d9/kubectl-val-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "80f65a00bb5d468ec39085f372a0727b",
+                    "sha256": "6c5a4f96899beaefb4b61ec2a1113cb5d86ef2f7fb203b5591a87cf7a5dbccdd"
+                },
+                "downloads": -1,
+                "filename": "kubectl_val-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "80f65a00bb5d468ec39085f372a0727b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 25211,
+                "upload_time": "2019-09-17T02:47:38",
+                "upload_time_iso_8601": "2019-09-17T02:47:38.092867Z",
+                "url": "https://files.pythonhosted.org/packages/32/21/a8244af83a7a8d8ac098aa4cecb5ca51f143d3b4694b2e0ea59e811a856a/kubectl_val-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d78f36d31355452ccdc6b5ac2096bf1c",
+                    "sha256": "7a7b7a49a46a4fa7f85d941ea93e42edf09f622c96d8d4da00ba66cef18be29f"
+                },
+                "downloads": -1,
+                "filename": "kubectl-val-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d78f36d31355452ccdc6b5ac2096bf1c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 20536,
+                "upload_time": "2019-09-17T02:47:36",
+                "upload_time_iso_8601": "2019-09-17T02:47:36.483231Z",
+                "url": "https://files.pythonhosted.org/packages/eb/83/122ea638b0e17a432dcfd734fed75c9b8ee5fcc0318b3b3d681fba2b1f73/kubectl-val-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4b953a4299b1af49c1b4949380595129",
+                    "sha256": "13c39f447c5aa199a62b63859b3149948dc4ef53e6eaffb950d0be21df6d790e"
+                },
+                "downloads": -1,
+                "filename": "kubectl_val-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4b953a4299b1af49c1b4949380595129",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 26651,
+                "upload_time": "2019-09-20T22:25:43",
+                "upload_time_iso_8601": "2019-09-20T22:25:43.878358Z",
+                "url": "https://files.pythonhosted.org/packages/3e/6f/3a6162108231eaf693909cf749249b002efa167ecb610bb5c10fc2766828/kubectl_val-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "424ee709a024dbd51bac7b2ca517bf70",
+                    "sha256": "3f6f485fd81d6ac2b16be773d378f9066b95adb68808181d81f93ae040e0e1cd"
+                },
+                "downloads": -1,
+                "filename": "kubectl-val-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "424ee709a024dbd51bac7b2ca517bf70",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 21639,
+                "upload_time": "2019-09-20T22:25:42",
+                "upload_time_iso_8601": "2019-09-20T22:25:42.153453Z",
+                "url": "https://files.pythonhosted.org/packages/eb/8b/d2e012e1822934fa12ad41f4a200493d6a611ee67560a5ef0633964ca112/kubectl-val-0.1.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4b953a4299b1af49c1b4949380595129",
+                "sha256": "13c39f447c5aa199a62b63859b3149948dc4ef53e6eaffb950d0be21df6d790e"
+            },
+            "downloads": -1,
+            "filename": "kubectl_val-0.1.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "4b953a4299b1af49c1b4949380595129",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7",
+            "size": 26651,
+            "upload_time": "2019-09-20T22:25:43",
+            "upload_time_iso_8601": "2019-09-20T22:25:43.878358Z",
+            "url": "https://files.pythonhosted.org/packages/3e/6f/3a6162108231eaf693909cf749249b002efa167ecb610bb5c10fc2766828/kubectl_val-0.1.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "424ee709a024dbd51bac7b2ca517bf70",
+                "sha256": "3f6f485fd81d6ac2b16be773d378f9066b95adb68808181d81f93ae040e0e1cd"
+            },
+            "downloads": -1,
+            "filename": "kubectl-val-0.1.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "424ee709a024dbd51bac7b2ca517bf70",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7",
+            "size": 21639,
+            "upload_time": "2019-09-20T22:25:42",
+            "upload_time_iso_8601": "2019-09-20T22:25:42.153453Z",
+            "url": "https://files.pythonhosted.org/packages/eb/8b/d2e012e1822934fa12ad41f4a200493d6a611ee67560a5ef0633964ca112/kubectl-val-0.1.3.tar.gz"
+        }
+    ]
+}

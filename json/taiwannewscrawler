@@ -1,0 +1,178 @@
+{
+    "info": {
+        "author": "RitaLiou",
+        "author_email": "imritaliou@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "---\ntitle: 'Project documentation template'\ndisqus: hackmd\n---\n\nTaiwanNewsCrawler\n===\n![python](https://img.shields.io/badge/python-2.7-blue)\n\n\n## Introduction\nThis open-source library is a political news crawler for 34 Taiwanese stream media.\nThe crawlering media is listed below.\n\nMedia Type|Meida Name (CN)|Media Name (EN)|ID|Abbreviation\n:---:|:---:|:---:|:---:|:---:\nPrint Media|\u81ea\u7531\u6642\u5831|Liberty News|0|ltn\n Print Media|\u860b\u679c\u65e5\u5831|Apple Daily|1|appledaily\n|Print Media|\u806f\u5408\u5831|UDN News|2|udn\n|Print Media|\u4e2d\u570b\u6642\u5831|China Times|3|chinatimes\n|Broadcast Media|TVBS|TVBS|4|tvbs\n|Broadcast Media|ETtoday|ETtoday|5|ettoday\n|Broadcast Media|\u53f0\u8996|TTV|6|ttv\n|Broadcast Media|\u4e2d\u8996|CTV|7|ctv\n|Broadcast Media|\u83ef\u8996|CTS|8|cts\n|Broadcast Media|\u6c11\u8996|FTV News|9|ftv\n|Broadcast Media|\u516c\u8996|PTS|10|pts\n|Broadcast Media|\u4e09\u7acb\u65b0\u805e|STEN|11|sten\n|Broadcast Media|\u4e2d\u5929\u65b0\u805e|CTITV|12|ctitv\n|Broadcast Media|\u5e74\u4ee3\u65b0\u805e|ERA News|13|era\n|Broadcast Media|\u975e\u51e1\u65b0\u805e|USTV|14|ustv\n|Electronic Media|\u4e2d\u592e\u901a\u8a0a\u793e|CNA|15|cna\n|Electronic Media|\u95dc\u9375\u8a55\u8ad6\u7db2|The News Lens|16|thenewslens\n|Electronic Media|\u6c11\u5831|People News|17|peoplenews\n|Electronic Media|\u4e0a\u5831|Up Media|18|upmedia\n|Electronic Media|\u5927\u7d00\u5143|Epoch Times|19|epochtimes\n|Electronic Media|\u4fe1\u50b3\u5a92|CM Media|20|cmmedia\n|Electronic Media|\u532f\u6d41\u65b0\u805e\u7db2|CNEWS|21|cnews\n|Electronic Media|\u65b0\u982d\u6bbc|Newtalk|22|newtalk\n|Electronic Media|\u98a8\u50b3\u5a92|Storm Media|23|storm\n|Electronic Media|\u4eca\u65e5\u65b0\u805e|NOW News|24|nownews\n|Electronic Media|\u93e1\u9031\u520a|Mirror Media|25|mirrormedia\n|Electronic Media|\u53f0\u7063\u597d\u65b0\u805e|Taiwan Hot|26|taiwanhot\n|Electronic Media|\u4e2d\u592e\u5ee3\u64ad\u96fb\u53f0|RTI News|27|rti\n|Electronic Media|\u4e16\u754c\u65e5\u5831|World Journal|28|worldjournal\n|Electronic Media|\u98a8\u5411\u65b0\u805e|Kairos News|29|kairos\n|Electronic Media|\u6c11\u773e\u65e5\u5831|Mypeople News|30|mypeople\n|Electronic Media|\u828b\u50b3\u5a92|Taro News|31|taronews\n|News Website|Pchome\u65b0\u805e|Pchome News|32|pchome\n|News Website|Yahoo!\u5947\u6469\u65b0\u805e|YAHOO! News|33|yahoo\n\n## Installation\n#### 1. Install the library package with pip.\n```\npip install TaiwanNewsCrawler\n```\n#### 2. Download the webdriver for Chrome on the [official website](https://chromedriver.chromium.org/downloads).\n\n\n## Usage\n#### 1. Build a crawler with the webdriver path inputted.\n```python\nimport TaiwanNewsCrawler\n\n## Build news crawler\nwebdriver_path = 'WEBDRIVER_PATH'\nmycrawler = NewsCrawler.crawler(webdriver_path)\n```\n\n#### 2. Crawler political news of certain media.\nThe `crawler_news` crawlers latest news with specified media id or name. \nThere are two parameters to input:\n+  **media**: int/str, the media id or name needed to be crawlered\n+  **amount**: int, the amount of crawlering news. Default number is 20.\n```python\n## Crawler new with media id\nnews_id_0 = mycrawler.crawler_news(media=0)\n\n## Crawler new with media name\nnews_ltn = mycrawler.crawler_news(media='ltn', amount=10)\nnews_udn = mycrawler.crawler_news(media=\"\u806f\u5408\u5831\", amount=50)\n```\n\n#### 3. Crawler political news with news url.\nThe `crawler_by_url` identifies the news media with url and gets the its information.\nThe url parameter is a list of string. Url with different media is acceptable. \n```python\nnews = mycrawler.crawler_by_url(url=['NEWS_URL_1', 'NEWS_URL_2'])\n```\n\n#### 4. Print the crawlered news.\nThe output of our crawler shows in json format.\nThere are columns of the output, shown below:\n+  **title**: str, the news title\n+  **url**: str, the news full url\n+  **author**: list, the news author. More than one author is possible. Shown as an empty list if it's not avaiable.\n+  **time**: list, the published time. \n    +  time (str): the complete published time. ex. \"2020/01/10 13:17\"\n    +  time_year (str): the published year. ex. \"2020\"\n    +  time_month (str): the published month. ex. \"01\"\n    +  time_day (str): the published day. ex. \"10\"\n    +  time_hour_min (str): the published timing. ex. \"13:17\"\n+  **context**: str, the news article.\n+  **tag**: list, the tags of the news. Empty list for not avaiable. More than one tag is possible.\n+  **related_news**: list, the related or recommended news the media provides.\n    +  related_title: str, the related news' title.\n    +  related_url: str, the related news' url link.\n+  **source_img**: list, the pictures in the report.\n    +  img_title: str, the related news' title. None for not avaliable.\n    +  img_url: str, the related news' url link.\n+  **sourcce_video**: list, the video in the report.\n    +  video_title: str, thr video title. None for not avaliable.\n    +  video_url: str, the video url link.\n```\nnews_ltn = mycrawler.crawler_news(media='CTS', amount=10)\n# print the first news information\nnews_no_1 = news_ltn[0]\nfor key, value in new_no_1.items():\n    print(key)\n    print(value)\n    print()\n```\n```\ntitle\n'\u83f2\u5f8b\u8cd3\u7981\u53f0\u4ee4 \u7e3d\u7d71:\u82e5\u653f\u6cbb\u8003\u91cf\u8acb\u4e09\u601d'\n\nurl\n'https://news.cts.com.tw/cts/politics/202002/202002141990582.html'\n\n\nauthor\n[u'\u9673\u8a69\u96c5', u'\u674e\u9d3b\u6770']\n\ntime\n[{'time_day': '14', 'time_hour_min': '19:39', 'time_year': '2020', 'time_month': '02', 'time': '2020/02/14 19:39'}]\n\ncontext\n'\u83ef\u8996\u65b0\u805e \u9673\u8a69\u96c5 \u674e\u9d3b\u6770 \u53f0\u5357\u5831\u5c0e \u00a0/\u00a0\u53f0\u5357\u5e02\u9762\u5c0d\u6b66\u6f22\u80ba\u708e\u75ab\u60c5\uff0c\u7e3d\u7d71\u8521\u82f1\u6587\u3001\u884c\u653f\u9662\u9577\u8607\u8c9e\u660c\u548c\u526f\u9662\u9577\u9673\u5176\u9081\uff0c\u4eca(14)\u65e5\u5206\u982d\u524d\u9032\u5de5\u5ee0\u8996\u5bdf\u3002\u7e3d\u7d71\u4e0b\u5348\u5c31\u5357\u4e0b\u8996\u5bdf\u9632\u75ab\u7528\u9152\u7cbe\u751f\u7522\u3002\u9762\u5c0d\u83f2\u5f8b\u8cd3\u767c\u51fa\u7981\u53f0\u4ee4\uff0c\u7e3d\u7d71\u8868\u793a\uff0c\u82e5\u662f\u56e0\u70ba\u653f\u6cbb\u8003\u91cf\uff0c\u8981\u6c42\u83f2\u5f8b\u8cd3\u4e09\u601d\uff0c\u53f0\u7063\u4e0d\u80fd\u5bb9\u5fcd\u9019\u6a23\u7684\u4e8b\u60c5\uff0c\u4e5f\u5fc5\u7136\u6703\u6709\u76f8\u61c9\u7684\u8655\u7406\uff0c\u6700\u65b0\u6d88\u606f\uff0c\u83f2\u5f8b\u8cd3\u5df2\u7d93\u64a4\u56de\u5c0d\u53f0\u7063\u7684\u7981\u4ee4\u300275\u5ea6\u9632\u75ab\u9152\u7cbe\u53f0\u9152\u4e00\u5929\u5c31\u53ef\u4ee5\u752220\u842c\u74f6\uff0c\u9762\u5c0d\u6b66\u6f22\u80ba\u764c\u75ab\u60c5\uff0c\u7e3d\u7d71\u8521\u82f1\u6587\u518d\u5ea6\u524d\u9032\u5de5\u5ee0\u751f\u7522\u7dda\uff0c\u9019\u6b21\u770b\u7684\u662f\u9152\u7cbe\uff0c\u6210\u70ba70\u5e74\u4f86\uff0c\u7b2c\u4e00\u4f4d\u9020\u8a2a\u53f0\u5357\u9686\u7530\u9152\u5ee0\u7684\u73fe\u4efb\u7e3d\u7d71\uff0c\u76ee\u524d\u9152\u7cbe\u7522\u91cf\u7a69\u5b9a\uff0c\u53ef\u4ee5\u652f\u6490\u73fe\u968e\u6bb5\u9700\u6c42\uff0c\u4e0d\u904e\u9632\u75ab\u6230\u706b\u5ef6\u71d2\u5230\u83f2\u5f8b\u8cd3\uff0c\u5c0d\u65bc\u83f2\u5f8b\u8cd3\u572810\u65e5\u7121\u9810\u8b66\u7981\u6b62\u53f0\u7063\u4eba\u5165\u5883\uff0c\u7e3d\u7d71\u8aaa\u5982\u679c\u662f\u653f\u6cbb\u8003\u91cf\u83f2\u5f8b\u8cd3\u8981\u4e09\u601d\u3002\u7e3d\u7d71 \u8521\u82f1\u6587\uff1a\u300c\u5982\u679c\u662f\u57fa\u65bc\u653f\u6cbb\u8003\u91cf\u7684\u8a71\uff0c\u6211\u5011\u5c31\u8981\u8acb\u4ed6\u5011\u4e09\u601d\uff0c\u56e0\u70ba\u6211\u5011\u4e0d\u80fd\u5920\u5bb9\u5fcd\u9019\u6a23\u7684\u4e8b\u60c5\uff0c\u4e5f\u5fc5\u7136\u6703\u6709\u4e00\u4e9b\u76f8\u61c9\u7684\u8655\u7406\uff0c\u300d\u5728\u7e3d\u7d71\u53d7\u8a2a\u4e4b\u5f8c\uff0c\u83f2\u5f8b\u8cd3\u5728\u665a\u9593\u53d6\u6d88\u5c0d\u53f0\u7981\u4ee4\uff0c\u8a18\u8005 vs. \u7e3d\u7d71 \u8521\u82f1\u6587\uff1a\u300c\u53f0\u7063\u6700\u7d05\u7684\u5c0f\u5b69\u5b50\u5c31\u662f\u5c0f\u660e\u3002\u300d\u7e3d\u7d71\u4e00\u807d\u5230\u5c0f\u660e\u5fcd\u4e0d\u4f4f\u7b11\u4e86\uff0c\u4f46\u662f\u53c8\u7acb\u523b\u6536\u8d77\u5fae\u7b11\uff0c\u56e0\u70ba\u88ab\u554f\u5230\u5c0d\u65bc\u7121\u6211\u570b\u570b\u7c4d\u4e2d\u914d\u5b50\u5973\u7981\u6b62\u5165\u5883\uff0c\u99ac\u524d\u7e3d\u7d71PO\u6587\u8aaa\u4e0d\u8981\u8b93\u6b67\u8996\u51cc\u99d5\u4eba\u9053\uff0c\u7e3d\u7d71 \u8521\u82f1\u6587\uff1a\u300c\u9019\u6c92\u6709\u6b67\u8996\u7684\u554f\u984c\uff0c\u53ea\u6709\u75ab\u60c5\u8655\u7406\u8ddf\u75ab\u60c5\u638c\u63a7\uff0c\u8ddf\u4fdd\u8b77\u6211\u5011\u570b\u4eba\u7684\u5065\u5eb7\uff0c\u662f\u6700\u91cd\u8981\u7684\u539f\u5247\uff0c\u6211\u662f\u89ba\u5f97\u65e2\u7136\u5df2\u7d93\u505a\u904e\u7e3d\u7d71\uff0c\u61c9\u8a72\u77e5\u9053\u8aaa\u5728\u505a\u4e00\u500b\u76f8\u95dc\u7684\u6c7a\u7b56\uff0c\u73fe\u5728\u6240\u6700\u91cd\u8981\u7684\u9084\u662f\u4ee5\u75ab\u60c5\u7684\u638c\u63a7\u70ba\u6700\u512a\u5148\u300d\uff0c\u53e6\u5916\u9084\u6709\u570b\u4eba\u6eef\u7559\u6e56\u5317\uff0c\u7e3d\u7d71\u5247\u518d\u6b21\u5f37\u8abf\uff0c\u5f31\u52e2\u512a\u5148\u6aa2\u75ab\u512a\u5148\u5169\u5927\u539f\u5247\uff0c\u6703\u6301\u7e8c\u6e9d\u901a\u3002'\n\ntag\n[u'\u64a4\u56de\u7981\u4ee4', u'\u83f2\u5f8b\u8cd3', u'\u8521\u82f1\u6587', u'\u9152\u7cbe', u'\u6b66\u6f22\u80ba\u708e']\n\nrelated_news\n[{u'\u597d\u6d88\u606f! \u50b3\u83f2\u5c07\u89e3\u9664\u5c0d\u53f0\u7063\u65c5\u884c\u7981\u4ee4': 'https://news.cts.com.tw/cts/politics/202002/202002141990583.html'}, {u'\u83f2\u5f8b\u8cd3\u767c\u5e03\u7981\u53f0\u4ee4 \u5c0d\u79fb\u5de5\u885d\u64ca\u5927': 'https://news.cts.com.tw/cts/international/202002/202002131990465.html'}, {u'\u83f2\u5f8b\u8cd3\u7981\u53f0\u5165\u5883 \u6211\u65b9\u64ec\u796d\u51fa\u53cd\u5236': 'https://news.cts.com.tw/cts/international/202002/202002131990381.html'}, {u'\u83f2\u5167\u95a3\u91cd\u8b70\u7981\u53f0\u63aa\u65bd \u6211\u7814\u64ec\u53cd\u64ca': 'https://news.cts.com.tw/cts/international/202002/202002131990380.html'}, {u'\u51fa\u570b\u6015\u88ab\u8aa4\u8a8d \u300c\u4f86\u81ea\u53f0\u7063\u300d\u5c0f\u7269\u71b1\u8ce3': 'https://news.cts.com.tw/cts/general/202002/202002121990318.html'}, {u'\u83f2\u5f8b\u8cd3\u7a81\u767c\u7981\u53f0\u4ee4 \u53f0\u7063\u6050\u7206\u7f3a\u5de5\u6f6e': 'https://news.cts.com.tw/cts/society/202002/202002121990317.html'}, {u'\u83f2\u7981\u4ee4\u6eef\u7559\u9577\u7058\u5cf6 \u90e8\u843d\u5ba2:\u5982\u6b77\u96aa\u8a18': 'https://news.cts.com.tw/cts/society/202002/202002121990316.html'}, {u'\u83f2\u7981\u53f0\u5718\u5165\u5883 \u7576\u5730\u65c5\u904a\u696d\u640d\u5931\u903e50\u842c': 'https://news.cts.com.tw/cts/society/202002/202002121990257.html'}, {u'\u7981\u53f0\u5165\u5883\u8f49\u6298 \u5916\u4ea4\u90e8:\u83f2\u570b\u5167\u90e8\u4e0d\u540c\u8abf': 'https://news.cts.com.tw/cts/general/202002/202002111990194.html'}, {u'\u83f2\u7981\u53f0\u5ba2\u5165\u5883 \u65c5\u5ba2\u5230\u6a5f\u5834\u7121\u6cd5\u767b\u6a5f': 'https://news.cts.com.tw/cts/international/202002/202002111990193.html'}, {u'\u83f2\u5f8b\u8cd3\u79fb\u5de5\u7121\u6cd5\u5165\u53f0 \u52de\u52d5\u90e8\u796d\u51fa\u56e0\u61c9\u63aa\u65bd': 'https://news.cts.com.tw/cts/life/202002/202002111990179.html'}, {u'\u83f2\u9075\u5faa\u300c\u4e00\u500b\u4e2d\u570b\u300d \u570b\u6c11\u9ee8\uff1a\u653f\u5e9c\u61c9\u5f37\u786c\u5c55\u7acb\u5834\u4e26\u53cd\u5236': 'https://news.cts.com.tw/cts/politics/202002/202002111990154.html'}]\n\nsource_img\n[{None: 'https://news.cts.com.tw/photo/cts/202002/202002141990582_l.jpg'}]\n\nsource_video\n[{None: 'https://www.youtube.com/embed/6cV1YNTOjyI?rel=0&playsinline=1'}]\n\nmedia\n'\u83ef\u8996'\n\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/milkpool/TaiwanNewsCrawler",
+        "keywords": "news crawler Taiwan politics",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "TaiwanNewsCrawler",
+        "package_url": "https://pypi.org/project/TaiwanNewsCrawler/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/TaiwanNewsCrawler/",
+        "project_urls": {
+            "Homepage": "https://github.com/milkpool/TaiwanNewsCrawler"
+        },
+        "release_url": "https://pypi.org/project/TaiwanNewsCrawler/2020.2.15/",
+        "requires_dist": [
+            "requests",
+            "bs4",
+            "selenium"
+        ],
+        "requires_python": "",
+        "summary": "A political news crawler for 34 Taiwanese stream media.",
+        "version": "2020.2.15"
+    },
+    "last_serial": 6635522,
+    "releases": {
+        "2020.2.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "718bae5a7be1657f33dd92e07e490dc6",
+                    "sha256": "a306ffde9ae1c1f576bc7f91db7148473f1a278b07feddeef2a826b175e4dd2a"
+                },
+                "downloads": -1,
+                "filename": "TaiwanNewsCrawler-2020.2.11-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "718bae5a7be1657f33dd92e07e490dc6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 27468,
+                "upload_time": "2020-02-11T04:11:21",
+                "upload_time_iso_8601": "2020-02-11T04:11:21.328749Z",
+                "url": "https://files.pythonhosted.org/packages/01/29/6396701070af2e4790f1d36473419138bd1316421ca5433578d3882ec5d8/TaiwanNewsCrawler-2020.2.11-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f7d851cd9f11ca21ed92bf0c1dab01b2",
+                    "sha256": "f8f585369f295ca34d00ad5aa632eca23101362c28f41ff4add951b9b008f65e"
+                },
+                "downloads": -1,
+                "filename": "TaiwanNewsCrawler-2020.2.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f7d851cd9f11ca21ed92bf0c1dab01b2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 28003,
+                "upload_time": "2020-02-11T04:11:24",
+                "upload_time_iso_8601": "2020-02-11T04:11:24.323326Z",
+                "url": "https://files.pythonhosted.org/packages/2b/02/6e7fb24bcf9c126d36260852a586268763330fc38134e6abecf49ce0d4d2/TaiwanNewsCrawler-2020.2.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b73d104e6601a6697d002b07ce594e2d",
+                    "sha256": "27c2c1ee9ee2ccdc8b0748d5474d6e419f143d4d1167e403350b095c831fa933"
+                },
+                "downloads": -1,
+                "filename": "TaiwanNewsCrawler-2020.2.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b73d104e6601a6697d002b07ce594e2d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27612,
+                "upload_time": "2020-02-11T04:11:25",
+                "upload_time_iso_8601": "2020-02-11T04:11:25.577385Z",
+                "url": "https://files.pythonhosted.org/packages/05/fa/4f22c24c5ac26671710804631273f1691fbf02998a5da8bdc9fd2a91735f/TaiwanNewsCrawler-2020.2.11.tar.gz"
+            }
+        ],
+        "2020.2.15": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3cdf464feb5d1f331ae849a01b2e40a4",
+                    "sha256": "ccb75aa58f249324e6e5426553682634de8e001d179d7049d9e631751900b1a6"
+                },
+                "downloads": -1,
+                "filename": "TaiwanNewsCrawler-2020.2.15-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3cdf464feb5d1f331ae849a01b2e40a4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 49025,
+                "upload_time": "2020-02-15T07:16:57",
+                "upload_time_iso_8601": "2020-02-15T07:16:57.772426Z",
+                "url": "https://files.pythonhosted.org/packages/4f/f0/50a918bd262a9c8897977b413c4b5b4bc2339650f3cd85babd8f11d020c0/TaiwanNewsCrawler-2020.2.15-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b49016a65b7fa2177d933f4c0aa29e50",
+                    "sha256": "cbe4ac0bd52d1cd62c8e924907dfa65f48827154f1e0b9133049080819891443"
+                },
+                "downloads": -1,
+                "filename": "TaiwanNewsCrawler-2020.2.15.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b49016a65b7fa2177d933f4c0aa29e50",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22477,
+                "upload_time": "2020-02-15T07:17:00",
+                "upload_time_iso_8601": "2020-02-15T07:17:00.506860Z",
+                "url": "https://files.pythonhosted.org/packages/29/8d/a12a8b17d6235dce65d74993d0bba1f9e1d5ce36337628749057327e7253/TaiwanNewsCrawler-2020.2.15.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3cdf464feb5d1f331ae849a01b2e40a4",
+                "sha256": "ccb75aa58f249324e6e5426553682634de8e001d179d7049d9e631751900b1a6"
+            },
+            "downloads": -1,
+            "filename": "TaiwanNewsCrawler-2020.2.15-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "3cdf464feb5d1f331ae849a01b2e40a4",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 49025,
+            "upload_time": "2020-02-15T07:16:57",
+            "upload_time_iso_8601": "2020-02-15T07:16:57.772426Z",
+            "url": "https://files.pythonhosted.org/packages/4f/f0/50a918bd262a9c8897977b413c4b5b4bc2339650f3cd85babd8f11d020c0/TaiwanNewsCrawler-2020.2.15-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b49016a65b7fa2177d933f4c0aa29e50",
+                "sha256": "cbe4ac0bd52d1cd62c8e924907dfa65f48827154f1e0b9133049080819891443"
+            },
+            "downloads": -1,
+            "filename": "TaiwanNewsCrawler-2020.2.15.tar.gz",
+            "has_sig": false,
+            "md5_digest": "b49016a65b7fa2177d933f4c0aa29e50",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 22477,
+            "upload_time": "2020-02-15T07:17:00",
+            "upload_time_iso_8601": "2020-02-15T07:17:00.506860Z",
+            "url": "https://files.pythonhosted.org/packages/29/8d/a12a8b17d6235dce65d74993d0bba1f9e1d5ce36337628749057327e7253/TaiwanNewsCrawler-2020.2.15.tar.gz"
+        }
+    ]
+}

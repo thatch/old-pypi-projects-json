@@ -1,0 +1,195 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 6,
+        "author": "Victor Stinner",
+        "author_email": "UNKNOWN",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Topic :: Software Development :: Assemblers",
+            "Topic :: Software Development :: Build Tools",
+            "Topic :: Software Development :: Code Generators",
+            "Topic :: Software Development :: Compilers",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Software Development :: Pre-processors"
+        ],
+        "description": "+++++++++++++\nAST Optimizer\n+++++++++++++\n\nastoptimizer is an optimizer for Python code working on the Abstract Syntax\nTree (AST, high-level representration). It does as much work as possible at\ncompile time.\n\nThe compiler is static, it is not a just-in-time (JIT) compiler, and so don't\nexpect better performances than psyco or PyPy for example. Optimizations\ndepending on the type of functions parameters cannot be done for examples.\nOnly optimizations on immutable types (constants) are done.\n\nWebsite: http://pypi.python.org/pypi/astoptimizer\n\nSource code hosted at: https://bitbucket.org/haypo/astoptimizer\n\n\nOptimizations\n=============\n\n* Call builtin functions if arguments are constants (need \"builtin_funcs\"\n  feature). Examples:\n\n  - ``len(\"abc\")`` => ``3``\n  - ``ord(\"A\")`` => ``65``\n\n* Call methods of builtin types if the object and arguments are constants.\n  Examples:\n\n  - ``u\"h\\\\xe9ho\".encode(\"utf-8\")`` => ``b\"h\\\\xc3\\\\xa9ho\"``\n  - ``\"python2.7\".startswith(\"python\")`` => ``True``\n  - ``(32).bit_length()`` => ``6``\n  - ``float.fromhex(\"0x1.8p+0\")`` => ``1.5``\n\n* Call functions of math and string modules for functions without\n  border effect. Examples:\n\n  - ``math.log(32) / math.log(2)`` => ``5.0``\n  - ``string.atoi(\"5\")`` => ``5``\n\n* Format strings for str%args and print(arg1, arg2, ...) if arguments\n  are constants and the format string is valid.\n  Examples:\n\n  - ``\"x=%s\" % 5`` => ``\"x=5\"``\n  - ``print(1.5)`` => ``print(\"1.5\")``\n\n* Simplify expressions. Examples:\n\n  - ``not(x in y)`` => ``x not in y``\n  - ``4 and 5 and x and 6`` => ``x and 6``\n  - ``if a: if b: print(\"true\")`` => ``if a and b: print(\"true\")``\n\n* Optimize loops (range => xrange needs \"builtin_funcs\" features). Examples:\n\n  - ``while True: pass`` => ``while 1: pass``\n  - ``for x in range(3): print(x)`` => ``x = 0; print(x); x = 1; print(x); x = 2; print(x)``\n  - ``for x in range(1000): print(x)`` => ``for x in xrange(1000): print(x)`` (Python 2)\n\n* Optimize iterators, list, set and dict comprehension, and generators (need\n  \"builtin_funcs\" feature). Examples:\n\n  - ``iter(set())`` => ``iter(())``\n  - ``frozenset(\"\")`` => ``frozenset()``\n  - ``(x for x in \"abc\" if False)`` => ``(None for x in ())``\n  - ``[x*10 for x in range(1, 4)]`` => ``[10, 20, 30]``\n  - ``(x*2 for x in \"abc\" if True)`` => ``(x*2 for x in (\"a\", \"b\", \"c\"))``\n  - ``list(x for x in iterable)`` => ``list(iterable)``\n  - ``tuple(x for x in \"abc\")`` => ``(\"a\", \"b\", \"c\")``\n  - ``list(x for x in range(3))`` => ``[0, 1, 2]``\n  - ``[x for x in \"\"]`` => ``[]``\n  - ``[x for x in iterable]`` => ``list(iterable)``\n  - ``set([x for x in \"abc\"])`` => ``{\"a\", \"b\", \"c\"}`` (Python 2.7+) or ``set((\"a\", \"b\", \"c\"))``\n\n* Replace list with tuple (need \"builtin_funcs\" feature). Examples:\n\n  - ``for x in [a, b, c]: print(x)`` => ``for x in (a, b, c): print(x)``\n  - ``x in [1, 2, 3]`` => ``x in (1, 2, 3)``\n  - ``list([x, y, z])`` => ``[x, y, z]``\n  - ``set([1, 2, 3])`` => ``{1, 2, 3}`` (Python 2.7+)\n\n* Evaluate unary and binary operators, subscript and comparaison if all\n  arguments are constants. Examples:\n\n  - ``1 + 2 * 3`` => ``7``\n  - ``not True`` => ``False``\n  - ``\"abc\" * 3`` => ``\"abcabcabc\"``\n  - ``\"abcdef\"[:3]`` => ``\"abc\"``\n  - ``(2, 7, 3)[1]`` => ``7``\n  - ``frozenset(\"ab\") | frozenset(\"bc\")`` => ``frozenset(\"abc\")``\n  - ``None is None`` => ``True``\n  - ``\"2\" in \"python2.7\"`` => ``True``\n  - ``x in [1, 2, 3]`` => ``x in {1, 2, 3}`` (Python 3) or ``x in (1, 2, 3)`` (Python 2)\n  - ``def f(): return 2 if 4 < 5 else 3`` => ``def f(): return 2``\n\n* Remove empty loop. Example:\n\n  - ``for i in (1, 2, 3): pass`` => ``i = 3``\n\n* Remove dead code. Examples:\n\n  - ``def f(): return 1; return 2`` => ``def f(): return 1``\n  - ``def f(a, b): s = a+b; 3; return s`` => ``def f(a, b): s = a+b; return s``\n  - ``if DEBUG: print(\"debug\")`` => ``pass`` with DEBUG declared as False\n  - ``while 0: print(\"never executed\")`` => ``pass``\n\n\nUse astoptimizer in your project\n================================\n\nTo enable astoptimizer globally on your project, add the following lines at the\nvery begining of your application::\n\n    import astoptimizer\n    config = astoptimizer.Config('builtin_funcs', 'pythonbin')\n    # customize the config here\n    astoptimizer.patch_compile(config)\n\nOn Python 3.3, imports will then use the patched compile() function and so\nall modules will be optimized. With older versions, the compileall module\n(ex: compileall.compile_dir()) can be used to compile an application\nwith optimizations enabled.\n\nSee also the issue `#17515: Add sys.setasthook() to allow to use\na custom AST optimizer <http://bugs.python.org/issue17515>`_.\n\n\nExample\n=======\n\nExample with the high-level function ``optimize_code``::\n\n    from astoptimizer import optimize_code\n    code = \"print(1+1)\"\n    code = optimize_code(code)\n    exec(code)\n\nExample the low-level functions ``optimize_ast``::\n\n    from astoptimizer import Config, parse_ast, optimize_ast, compile_ast\n    config = Config('builtin_funcs', 'pythonbin')\n    code = \"print(1+1)\"\n    tree = parse_ast(code)\n    tree = optimize_ast(tree, config)\n    code = compile_ast(tree)\n    exec(code)\n\nSee also ``demo.py`` script.\n\n\nConfiguration\n=============\n\nUnsafe optimizations are disabled by default. Use the Config() class to enable\nmore optimizations.\n\nFeatures enabled by default:\n\n* ``\"builtin_types\"``: methods of bytes, str, unicode, tuple, frozenset, int\n  and float types\n* ``\"math\"``, ``\"string\"``: constants and functions without border effects of\n  the math / string module\n\nOptional features:\n\n* ``\"builtin_funcs\"``: builtin functions like abs(), str(), len(), etc. Examples:\n\n  - ``len(\"abc\")`` => ``3``\n  - ``ord(\"A\")`` => ``65``\n  - ``str(123)`` => ``\"123\"``\n\n* ``\"pythonbin\"``: Enable this feature if the optimized code will be executed by\n  the same Python binary: so exactly the same Python version with the same\n  build options. Allow to optimize non-BMP unicode strings on Python < 3.3.\n  Enable the ``\"platform\"`` feature. Examples:\n\n  - ``u\"\\\\U0010ffff\"[0]`` => ``u\"\\\\udbff\"`` or ``u\"\\\\U0010ffff\"`` (depending on\n    build options, narrow or wide Unicode)\n  - ``sys.version_info.major`` => ``2``\n  - ``sys.maxunicode`` => ``0x10ffff``\n\n* ``\"pythonenv\"``: Enable this feature if you control the environment\n  variables (like ``PYTHONOPTIMIZE``) and Python command line options (like\n  ``-Qnew``).  On Python 2, allow to optimize int/int. Enable ``\"platform\"``\n  and ``\"pythonbin\"`` features. Examples:\n\n  - ``__debug__`` => ``True``\n  - ``sys.flags.optimize`` => ``0``\n\n* ``\"platform\"``: optimizations specific to a platform. Examples:\n\n  - ``sys.platform`` => ``\"linux2\"``\n  - ``sys.byteorder`` => ``\"little\"``\n  - ``sys.maxint`` => ``2147483647``\n  - ``os.linesep`` => ``\"\\\\n\"``\n\n* ``\"struct\"``: struct module, calcsize(), pack() and unpack() functions.\n\n* ``\"cpython_tests\"``: disable some optimizations to workaround issues with\n  the CPython test suite. Only use it for tests.\n\nUse ``Config(\"builtin_funcs\", \"pythonbin\")`` to enable most optimizations.  You\nmay also enable ``\"pythonenv\"`` to enable more optimizations, but then the\noptimized code will depends on environment variables and Python command line\noptions.\n\nUse config.enable_all_optimizations() to enable all optimizations, which may\ngenerate invalid code.\n\n\nAdvices\n=======\n\nAdvices to help the AST optimizer:\n\n* Declare your constants using config.add_constant()\n* Declare your pure functions (functions with no border effect) using\n  config.add_func()\n* Don't use \"from module import \\*\". If \"import \\*\" is used, builtins\n  functions are not optimized anymore for example.\n\n\nLimitations\n===========\n\n* Operations on mutable values are not optimized, ex: len([1, 2, 3]).\n* Unsafe optimizations are disabled by default. For example, len(\"\\\\U0010ffff\") is not\n  optimized because the result depends on the build options of Python. Enable\n  \"builtin_funcs\" and \"pythonenv\" features to enable more optimizations.\n* len() is not optimized if the result is bigger than 2^31-1.\n  Enable \"pythonbin\" configuration feature to optimize the call for bigger\n  objects.\n* On Python 2, operators taking a bytes string and a unicode string are not\n  optimized if the bytes string has to be decoded from the default encoding or\n  if the unicode string has to be encoded to the default encoding. Exception:\n  pure ASCII strings are optimized. For example, b\"abc\" + u\"def\" is replaced\n  with u\"abcdef\", whereas u\"x=%s\" % b\"\\\\xe9\" is not optimized.\n* On Python 3, comparaison between bytes and Unicode strings are not optimized\n  because the comparaison may emit a warning or raise a BytesWarning\n  exception. Bytes string are not converted to Unicode string. For example,\n  b\"abc\" < \"abc\" and str(b\"abc\") are not optimized. Converting a bytes string\n  to Unicode is never optimized.\n\n\nChangeLog\n=========\n\nVersion 0.6 (2014-03-05)\n------------------------\n\n* Remove empty loop. Example:\n  ``for i in (1, 2, 3): pass`` => ``i = 3``.\n* Log removal of code\n* Fix support of Python 3.4: socket constants are now enum\n\nVersion 0.5 (2013-03-26)\n------------------------\n\n* Unroll loops (no support for break/continue yet) and list comprehension.\n  Example: ``[x*10 for x in range(1, 4)]`` => ``[10, 20, 30]``.\n* Add Config.enable_all_optimizations() method\n* Add a more aggressive option to remove dead code\n  (config.remove_almost_dead_code), disabled by default\n* Remove useless instructions. Example:\n  \"x=1; 'abc'; print(x)\" => \"x=1; print(x)\"\n* Remove empty try/except. Example:\n  \"try: pass except: pass\" => \"pass\"\n\nVersion 0.4 (2012-12-10)\n------------------------\n\nBugfixes:\n\n* Don't replace range() with xrange() if arguments cannot be converted to C\n  long\n* Disable float.fromhex() optimization by default: float may be shadowed.\n  Use \"builtin_funcs\" to enable this optimization.\n\nChanges:\n\n* Add the \"struct\" configuration feature: functions of the struct module\n* Optimize print() on Python 2 with \"from __future__ import print_function\"\n* Optimize iterators, list, set and dict comprehension, and generators\n* Replace list with tuple\n* Optimize ``if a: if b: print(\"true\")``: ``if a and b: print(\"true\")``\n\nVersion 0.3.1 (2012-09-12)\n--------------------------\n\nBugfixes:\n\n* Disable optimizations on functions and constants if a variable with the same\n  name is set. Example: \"len=ord; print(len('A'))\",\n  \"sys.version = 'abc'; print(sys.version)\".\n* Don't optimize print() function, frozenset() nor range() functions if\n  \"builtin_funcs\" feature is disabled\n* Don't remove code if it contains global or nonlocal.\n  Example: \"def f(): if 0: global x; x = 2\".\n\nVersion 0.3 (2012-09-11)\n------------------------\n\nMajor changes:\n\n* Add astoptimizer.patch_compile(config=None) function to simply hook the\n  builtin compile() function.\n* Add \"pythonbin\" configuration feature.\n* Disable optimizations on builtin functions by default. Add \"builtin_funcs\"\n  feature to the configuration to optimize builtin functions.\n* Remove dead code (optionnal optimization)\n* It is now posible to define a callback for warnings of the optimizer\n* Drop support of Python 2.5, it is unable to compile an AST tree to bytecode.\n  AST objects of Python 2.5 don't accept arguments in constructors.\n\nBugfixes:\n\n* Handle \"from math import \\*\" correctly\n* Don't optimize operations if arguments are bytes and unicode strings.\n  Only optimize if string arguments have the same type.\n* Disable optimizations on non-BMP unicode strings by default. Optimizations\n  enabled with \"pythonbin\" feature.\n\nOther changes:\n\n* More functions, methods and constants:\n\n  - bytes, str, unicode: add more methods.\n  - math module: add most remaining functions\n  - string module: add some functions and all constants\n\n* not(a in b) => a not in b, not(a is b) => a is not b\n* a if bool else b\n* for x in range(n) => for x in xrange(n) (only on Python 2)\n* Enable more optimizations if a function is not a generator\n* Add sys.flags.<attr> and sys.version_info.<attr> constants\n\nVersion 0.2 (2012-09-02)\n------------------------\n\nMajor changes:\n\n* Check input arguments before calling an operator or a function, instead of\n  catching errors.\n* New helper functions optimize_code() and optimize_ast() should be used\n  instead of using directly the Optimizer class.\n* Support tuple and frozenset types\n\nChanges:\n\n* FIX: add Config.max_size to check len(obj) result\n* FIX: disable non portable optimizations on non-BMP strings\n* Support Python 2.5-3.3\n* Refactor Optimizer: Optimizer.visit() now always visit children before\n  calling the optimizer for a node, except for assignments\n* Float and complex numbers are no more restricted by the integer range of the\n  configuration\n* More builtin functions. Examples: divmod(int, int), float(str), min(tuple),\n  sum(tuple).\n* More method of builtin types. Examples: str.startswith(), str.find(),\n  tuple.count(), float.is_integer().\n* math module: add math.ceil(), math.floor() and math.trunc().\n* More module constants. Examples: os.O_RDONLY, errno.EINVAL,\n  socket.SOCK_STREAM.\n* More operators: a not in b, a is b, a is not b, +a.\n* Conversion to string: str(), str % args and print(arg1, arg2, ...).\n* Support import aliases. Examples: \"import math as M; print(M.floor(1.5))\"\n  and \"from math import floor as F; print(F(1.5))\".\n* Experimental support of variables (disabled by default).\n\nVersion 0.1 (2012-08-12)\n------------------------\n\n* First public version (to reserve the name on PyPI!)\n\n\nSee also\n========\n\nFaster Python implementations\n-----------------------------\n\n* `PyPy <http://pypy.org/>`_\n\n  - AST optimizer of PyPy:\n    `astcompiler/optimize.py <https://bitbucket.org/pypy/pypy/src/default/pypy/interpreter/astcompiler/optimize.py>`_\n\n* `Hotpy <http://code.google.com/p/hotpy/>`_\n  and `Hotpy 2 <https://bitbucket.org/markshannon/hotpy_2>`_,\n  based on `GVMT <http://code.google.com/p/gvmt/>`_ (Glasgow Virtual\n  Machine Toolkit)\n* `numba\n  <https://github.com/numba/numba>`_\n* `pymothoa <http://code.google.com/p/pymothoa/>`_ uses LLVM\n  (\"don't support classes nor exceptions\")\n* `WPython <http://code.google.com/p/wpython/>`_: 16-bit word-codes instead of byte-codes\n* `Cython <http://www.cython.org/>`_:\n\n  * `Compiler/Optimize.py\n    <https://github.com/cython/cython/blob/master/Cython/Compiler/Optimize.py>`_\n  * `Compiler/ParseTreeTransforms.py\n    <https://github.com/cython/cython/blob/master/Cython/Compiler/ParseTreeTransforms.py>`_\n  * `Compiler/Builtin.py\n    <https://github.com/cython/cython/blob/master/Cython/Compiler/Builtin.py>`_\n  * `Compiler/Pipeline.py\n    <https://github.com/cython/cython/blob/master/Cython/Compiler/Pipeline.py#L123>`_\n\nCPython issues\n--------------\n\n* `Issue #1346238 <http://bugs.python.org/issue1346238>`_:\n  A constant folding optimization pass for the AST\n* `Issue #2181 <http://bugs.python.org/issue2181>`_:\n  optimize out local variables at end of function\n* `Issue #2499 <http://bugs.python.org/issue2499>`_:\n  Fold unary + and not on constants\n* `Issue #4264 <http://bugs.python.org/issue4264>`_:\n  Patch: optimize code to use LIST_APPEND instead of calling list.append\n* `Issue #7682 <http://bugs.python.org/issue7682>`_:\n  Optimisation of if with constant expression\n* `Issue #10399 <http://bugs.python.org/issue10399>`_:\n  AST Optimization: inlining of function calls\n* `Issue #11549 <http://bugs.python.org/issue11549>`_:\n  Build-out an AST optimizer, moving some functionality out of the peephole optimizer\n* `Issue #17068 <http://bugs.python.org/issue17068>`_:\n  peephole optimization for constant strings\n* `Issue #17430 <http://bugs.python.org/issue17430>`_:\n  missed peephole optimization\n\nOld projects\n------------\n\n* `Unladen Swallow <http://code.google.com/p/unladen-swallow/>`_, fork of\n  CPython 2.6, use LLVM. No more maintained\n\n  - `ProjectPlan\n    <http://code.google.com/p/unladen-swallow/wiki/ProjectPlan>`_\n  - `Unladen Swallow Retrospective\n    <http://qinsb.blogspot.com.au/2011/03/unladen-swallow-retrospective.html>`_\n  - `PEP 3146\n    <http://python.org/dev/peps/pep-3146/>`_\n\n* `psyco <http://psyco.sourceforge.net/>`_: JIT. The author of pysco, Armin\n  Rigo, co-created the PyPy project.\n\nAST\n---\n\n* `instrumenting_the_ast.html <http://www.dalkescientific.com/writings/diary/archive/2010/02/22/instrumenting_the_ast.html>`_\n* `the-internals-of-python-generator-functions-in-the-ast\n  <http://tomlee.co/2008/04/the-internals-of-python-generator-functions-in-the-ast/>`_\n* `tlee-ast-optimize branch\n  <http://svn.python.org/view/python/branches/tlee-ast-optimize/Python/optimize.c?view=log>`_\n* `ast-optimization-branch-elimination-in-generator-functions\n  <http://grokbase.com/p/python/python-dev/0853rf4s1a/ast-optimization-branch-elimination-in-generator-functions>`_\n\nBytecode\n--------\n\n* `byteplay <http://code.google.com/p/byteplay/>`_\n* `diving-into-byte-code-optimization-in-python\n  <http://www.slideshare.net/cjgiridhar/diving-into-byte-code-optimization-in-python>`_\n* `BytecodeAssembler <http://pypi.python.org/pypi/BytecodeAssembler>`_\n* `ByteplayDoc <http://wiki.python.org/moin/ByteplayDoc>`_\n* `Hacking Python bytecode <http://geofft.mit.edu/blog/sipb/73>`_\n\nOther\n-----\n\n* `ASP <http://pypi.python.org/pypi/asp>`_:\n  ASP is a SEJITS (specialized embedded just-in-time compiler) toolkit for Python.\n* `PerformanceTips <http://wiki.python.org/moin/PythonSpeed/PerformanceTips/>`_",
+        "docs_url": null,
+        "download_url": "https://bitbucket.org/haypo/astoptimizer",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://bitbucket.org/haypo/astoptimizer",
+        "keywords": null,
+        "license": "BSD (2 clauses)",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "astoptimizer",
+        "package_url": "http://pypi.python.org/pypi/astoptimizer",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/astoptimizer/0.6",
+        "requires_python": null,
+        "summary": "Experimental AST optimizer for Python",
+        "version": "0.6"
+    },
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "downloads": 3008,
+                "filename": "astoptimizer-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3b564d7d23e8a8223ec94e6431f25ea4",
+                "packagetype": "sdist",
+                "path": "75/a3/176275ad6247e9e71fc6af2eca1473c1ef352021d89d58e682d006eb6e00/astoptimizer-0.1.tar.gz",
+                "python_version": "source",
+                "size": 15105,
+                "upload_time": "2012-08-12T18:47:15",
+                "url": "https://pypi.python.org/packages/75/a3/176275ad6247e9e71fc6af2eca1473c1ef352021d89d58e682d006eb6e00/astoptimizer-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "downloads": 3322,
+                "filename": "astoptimizer-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2fae4c5c3bb2ac3f0e38bbd7ce676c99",
+                "packagetype": "sdist",
+                "path": "25/f5/4ffe04ab184394c6442ce0e120904a3332611d262cdce0b985cc00a9a4b1/astoptimizer-0.2.tar.gz",
+                "python_version": "source",
+                "size": 25604,
+                "upload_time": "2012-09-02T13:38:21",
+                "url": "https://pypi.python.org/packages/25/f5/4ffe04ab184394c6442ce0e120904a3332611d262cdce0b985cc00a9a4b1/astoptimizer-0.2.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "downloads": 2890,
+                "filename": "astoptimizer-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6ca07191063003e147914648e3600020",
+                "packagetype": "sdist",
+                "path": "31/70/faba2291c80cb859d2d9b29a9c03de7eb9ad790f01ee9ca2cb5b90ae6d5c/astoptimizer-0.3.tar.gz",
+                "python_version": "source",
+                "size": 34820,
+                "upload_time": "2012-09-10T23:10:30",
+                "url": "https://pypi.python.org/packages/31/70/faba2291c80cb859d2d9b29a9c03de7eb9ad790f01ee9ca2cb5b90ae6d5c/astoptimizer-0.3.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "downloads": 2884,
+                "filename": "astoptimizer-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dae2437f3c733d7f2dd0f3c546d307df",
+                "packagetype": "sdist",
+                "path": "8d/e3/1bf2d6f4578cce2294bdbbc526089b373ce67f536b68ce9c37e80d66236f/astoptimizer-0.3.1.tar.gz",
+                "python_version": "source",
+                "size": 35787,
+                "upload_time": "2012-09-11T21:42:01",
+                "url": "https://pypi.python.org/packages/8d/e3/1bf2d6f4578cce2294bdbbc526089b373ce67f536b68ce9c37e80d66236f/astoptimizer-0.3.1.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "downloads": 2743,
+                "filename": "astoptimizer-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "745b3f35c1f07e928aefbbef564a7988",
+                "packagetype": "sdist",
+                "path": "23/84/71daf137cae9d654ce7bf4415bf1a9f28e909947e61aa7d3e6f7e0809411/astoptimizer-0.4.tar.gz",
+                "python_version": "source",
+                "size": 45399,
+                "upload_time": "2012-12-10T20:47:38",
+                "url": "https://pypi.python.org/packages/23/84/71daf137cae9d654ce7bf4415bf1a9f28e909947e61aa7d3e6f7e0809411/astoptimizer-0.4.tar.gz"
+            }
+        ],
+        "0.5": [
+            {
+                "comment_text": "",
+                "downloads": 2610,
+                "filename": "astoptimizer-0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "237143361b42a4c54e4f789b84b0e1dd",
+                "packagetype": "sdist",
+                "path": "94/ca/6f981cafecc7f6b88ea7a6852371c6a988a57f9994902a71e364e37c4c9d/astoptimizer-0.5.tar.gz",
+                "python_version": "source",
+                "size": 49100,
+                "upload_time": "2013-03-26T00:34:19",
+                "url": "https://pypi.python.org/packages/94/ca/6f981cafecc7f6b88ea7a6852371c6a988a57f9994902a71e364e37c4c9d/astoptimizer-0.5.tar.gz"
+            }
+        ],
+        "0.6": [
+            {
+                "comment_text": "",
+                "downloads": 2129,
+                "filename": "astoptimizer-0.6-py27-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3290636e65ea1480dc9f9a47f7b787ba",
+                "packagetype": "bdist_wheel",
+                "path": "8f/c5/07e1e0e72e982fe38ba09ddb5c1686e166863e268611258220294a53caff/astoptimizer-0.6-py27-none-any.whl",
+                "python_version": "2.7",
+                "size": 56596,
+                "upload_time": "2014-03-05T11:50:12",
+                "url": "https://pypi.python.org/packages/8f/c5/07e1e0e72e982fe38ba09ddb5c1686e166863e268611258220294a53caff/astoptimizer-0.6-py27-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 2798,
+                "filename": "astoptimizer-0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "87849d9030802d6e345f8ec18174d92d",
+                "packagetype": "sdist",
+                "path": "ed/b3/f0b000e3cce3a05b64b15cffc5181e0a93825616e0b0fbfbc581d99716d7/astoptimizer-0.6.tar.gz",
+                "python_version": "source",
+                "size": 56042,
+                "upload_time": "2014-03-05T11:50:09",
+                "url": "https://pypi.python.org/packages/ed/b3/f0b000e3cce3a05b64b15cffc5181e0a93825616e0b0fbfbc581d99716d7/astoptimizer-0.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 2129,
+            "filename": "astoptimizer-0.6-py27-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "3290636e65ea1480dc9f9a47f7b787ba",
+            "packagetype": "bdist_wheel",
+            "path": "8f/c5/07e1e0e72e982fe38ba09ddb5c1686e166863e268611258220294a53caff/astoptimizer-0.6-py27-none-any.whl",
+            "python_version": "2.7",
+            "size": 56596,
+            "upload_time": "2014-03-05T11:50:12",
+            "url": "https://pypi.python.org/packages/8f/c5/07e1e0e72e982fe38ba09ddb5c1686e166863e268611258220294a53caff/astoptimizer-0.6-py27-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "downloads": 2798,
+            "filename": "astoptimizer-0.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "87849d9030802d6e345f8ec18174d92d",
+            "packagetype": "sdist",
+            "path": "ed/b3/f0b000e3cce3a05b64b15cffc5181e0a93825616e0b0fbfbc581d99716d7/astoptimizer-0.6.tar.gz",
+            "python_version": "source",
+            "size": 56042,
+            "upload_time": "2014-03-05T11:50:09",
+            "url": "https://pypi.python.org/packages/ed/b3/f0b000e3cce3a05b64b15cffc5181e0a93825616e0b0fbfbc581d99716d7/astoptimizer-0.6.tar.gz"
+        }
+    ]
+}

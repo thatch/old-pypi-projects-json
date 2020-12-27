@@ -1,0 +1,153 @@
+{
+    "info": {
+        "author": "Brett Elliot",
+        "author_email": "brett@theelliots.net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "====================\nbe-earnings-calendar\n====================\nA tool for getting US equity earnings announcement dates.\n\n============\nInstallation\n============\nTo install simply::\n\n    $ pip install be-earnings-calendar\n\n=====\nUsage\n=====\n\nearnings_announcements_for_date\n===============================\nThis method gets the earnings announcements on a particular date. Create an instance of the ``EarningsCalendar`` class and then call ``earnings_announcements_for_date``.\n\n.. code-block:: python\n\n    import be_earnings_calendar as ecal\n    ec = ecal.EarningsCalendar()\n    results = ec.earnings_announcements_for_date(\"2017-03-30\")\n\n\nThe results are a list of objects that looks like this:\n\n.. code-block:: python\n\n    [\n        {\n            'ticker': 'AEHR',\n            'cap_mm': '54',\n            'when': 'amc'\n        },\n        {\n            'ticker': 'ANGO',\n            'cap_mm': '830',\n            'when': 'bmo'\n        },\n        {\n            'ticker': 'BSET',\n            'cap_mm': '260',\n            'when': '--'\n        },\n        {\n            'ticker': 'FC',\n            'cap_mm': '355',\n            'when': 'amc'\n        },\n        {\n            'ticker': 'LNN',\n            'cap_mm': '977',\n            'when': 'bmo'\n        },\n        {\n            'ticker': 'SAIC',\n            'cap_mm': '3,791',\n            'when': 'bmo'\n        },\n        {\n            'ticker': 'TITN',\n            'cap_mm': '339',\n            'when': 'bmo'\n        }\n    ]\n\nAccess the resulting json like this:\n\n.. code-block:: python\n\n    ticker = results[0]['ticker']\n\nPlease note:\n\n*ticker*\n    is the ticker symbol on NYSE or NASDAQ.\n\n*cap_mm*\n    is the market cap of the company at the time of the API call (not at the time of the announcement).\n\n*when*\n    can be: ``bmo`` which means *before market open*, ``amc`` which means *after market close* or ``--`` which means *no time reported*.\n\nwrite_earnings_announcements_to_csv\n===================================\nThis can be used to gather the earnings announcements for a range of dates and write them out to a csv. This will write out the earnings announcements for Q1 of 2018:\n\n.. code-block:: python\n\n    import be-earnings-calendar as ecal\n    ec = ecal.EarningsCalendar()\n    ec.write_earnings_announcements_to_csv('2018-01-01', '2018-03-31', 'earnings_announcements_Q12018.csv')\n\n``EarningsCalendar`` is smart enough to wait the appropriate amount of time between calls to not get throttled by the source API.\n\n============================\nDevelopment and contribution\n============================\nThis repo uses the `Git Branching Model <https://nvie.com/posts/a-successful-git-branching-model/>`_. The head of master branch should always be production ready. The head of the develop branch should contain the latest delivered development changes for the next release. Features should be created in feature branches that branch from the develop branch.\n\n\nCreate virtualenv (recommended, but not required). Then get the repo::\n\n    $ git clone https://github.com/brettelliot/be-earnings-calendar.git\n    $ pip install -e .\n\nRun the tests::\n\n    $ python setup.py test\n\nCreating a new feature branch from the ``develop`` branch::\n\n    $ git checkout -b myfeature develop\n\nCommitting code to the new ``myfeature`` branch::\n\n    $ git add .\n    $ git commit -am 'Commit message'\n    $ git push --set-upstream origin myfeature\n\nCommitting code to an existing ``myfeature`` branch::\n\n    $ git add .\n    $ git commit -am 'Commit message'\n    $ git push\n\nIncorporating a finished feature onto ``develop``::\n\n    $ git checkout develop\n    $ git merge --no-ff myfeature\n    $ git push origin develop\n    $ git branch -d myfeature\n    $ git push origin --delete myfeature\n\nCreate a release branch from ``develop``, and merge it into ``master``::\n\n    $ git checkout -b release-0.0.2 develop\n    $ git checkout master\n    $ git merge --no-ff release-0.0.2\n    $ git push\n    $ git tag -a 0.0.2 -m \"release 0.0.2\"\n    $ git push origin 0.0.2\n\nMerge the release branch changes back into ``develop`` so it's up to date::\n\n    $ git checkout develop\n    $ git merge --no-ff release-0.0.2\n    $ git branch -d release-0.0.2\n    $ git push origin --delete release-0.0.2\n\nGenerating distribution archives::\n\n    $ python setup.py check --strict --metadata\n    $ rm -rf dist/\n    $ python3 setup.py sdist bdist_wheel\n\nUpload to test.pypi.org::\n\n    $ twine upload --repository-url https://test.pypi.org/legacy/ dist/*\n\nTo test the package from test.pypi.org, create a new virtual env, install the package, then run python and import it::\n\n    $ rm -rf ~/.virtualenvs/ecal_test_pypi\n    $ mkvirtualenv ecal_test_pypi\n    $ python3 -m pip install --no-cache-dir --extra-index-url https://test.pypi.org/simple/ be-earnings-calendar\n    $ python\n    >>> import be_earnings_calendar as ecal\n    >>> ecal.name\n    'be_earnings_calendar'\n\nUpload the package to the real pypi.org website::\n\n    $ twine upload dist/*\n\nTo test the package from pypi.org, create a new virtual env, install the package, then run python and import it::\n\n    $ rm -rf ~/.virtualenvs/ecal_pypi\n    $ mkvirtualenv ecal_pypi\n    $ pip install --no-cache-dir be-earnings-calendar\n    $ python\n    >>> import be_earnings_calendar as ecal\n    >>> ecal.name\n    'be_earnings_calendar'\n\n======\nCredit\n======\nThis package makes use of the great API from `https://earningscalendar.net <https://earningscalendar.net/>`_. However the developers of these two services are not affiliated in any way. I (Brett Elliot) do not run `https://earningscalendar.net <https://earningscalendar.net/>`_. I just made this package to help myself and anyone else who stumbles on it.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/brettelliot/be-earnings-calendar",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "be-earnings-calendar",
+        "package_url": "https://pypi.org/project/be-earnings-calendar/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/be-earnings-calendar/",
+        "project_urls": {
+            "Homepage": "https://github.com/brettelliot/be-earnings-calendar"
+        },
+        "release_url": "https://pypi.org/project/be-earnings-calendar/0.0.6/",
+        "requires_dist": [
+            "urllib3 (>=1.23)",
+            "requests (>=2.19.1)",
+            "pandas (==0.22.0)"
+        ],
+        "requires_python": "",
+        "summary": "A tool for getting US equity earnings announcement dates.",
+        "version": "0.0.6"
+    },
+    "last_serial": 4277870,
+    "releases": {
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d823b77d234b3788ecc71ac222a5544",
+                    "sha256": "28b4e58c63298798996c059f94354fcdd37ffa074f62218e4769ec4660801d3d"
+                },
+                "downloads": -1,
+                "filename": "be_earnings_calendar-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4d823b77d234b3788ecc71ac222a5544",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4178,
+                "upload_time": "2018-09-16T23:40:33",
+                "url": "https://files.pythonhosted.org/packages/e5/ea/03fa201b4c22ba0446906cbc14adab1eb1e62af0be8c6a19cea7943789aa/be_earnings_calendar-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5359e56c29a59449468aa927c9e8a0f",
+                    "sha256": "46e4f82263bd93b0d0649c27d2a04ac9f4353b2329ead7f694c6b9f96015fa08"
+                },
+                "downloads": -1,
+                "filename": "be_earnings_calendar-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a5359e56c29a59449468aa927c9e8a0f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 3985,
+                "upload_time": "2018-09-16T23:40:35",
+                "url": "https://files.pythonhosted.org/packages/24/00/5cc2a442f8e343906f617afb72b74a1e11cc9b31d8dcd285dc9cf8d485a1/be_earnings_calendar-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "626f25789e95ea8d376df7259f2ab51d",
+                    "sha256": "63170d739a6c0dc06758312179fd19302a882e7ff5e6b8bb9469cba495c016f7"
+                },
+                "downloads": -1,
+                "filename": "be_earnings_calendar-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "626f25789e95ea8d376df7259f2ab51d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 5206,
+                "upload_time": "2018-09-17T02:02:38",
+                "url": "https://files.pythonhosted.org/packages/3d/04/7f9545b27825c8f1bae2713cd1b2b5297a04d3ece175ed36b62dfd3b5dc3/be_earnings_calendar-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "36c41544023967628fd6267b80939ac3",
+                    "sha256": "8a8c2940cba452624d19e537530448e4effa07c5969b4b6b3d026336f843fe0b"
+                },
+                "downloads": -1,
+                "filename": "be_earnings_calendar-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "36c41544023967628fd6267b80939ac3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4765,
+                "upload_time": "2018-09-17T02:02:39",
+                "url": "https://files.pythonhosted.org/packages/46/5b/a88777dee2cf7f5931c16a3104ed2805f615b91d952a6bcc8b71538d3c90/be_earnings_calendar-0.0.6.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "626f25789e95ea8d376df7259f2ab51d",
+                "sha256": "63170d739a6c0dc06758312179fd19302a882e7ff5e6b8bb9469cba495c016f7"
+            },
+            "downloads": -1,
+            "filename": "be_earnings_calendar-0.0.6-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "626f25789e95ea8d376df7259f2ab51d",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 5206,
+            "upload_time": "2018-09-17T02:02:38",
+            "url": "https://files.pythonhosted.org/packages/3d/04/7f9545b27825c8f1bae2713cd1b2b5297a04d3ece175ed36b62dfd3b5dc3/be_earnings_calendar-0.0.6-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "36c41544023967628fd6267b80939ac3",
+                "sha256": "8a8c2940cba452624d19e537530448e4effa07c5969b4b6b3d026336f843fe0b"
+            },
+            "downloads": -1,
+            "filename": "be_earnings_calendar-0.0.6.tar.gz",
+            "has_sig": false,
+            "md5_digest": "36c41544023967628fd6267b80939ac3",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 4765,
+            "upload_time": "2018-09-17T02:02:39",
+            "url": "https://files.pythonhosted.org/packages/46/5b/a88777dee2cf7f5931c16a3104ed2805f615b91d952a6bcc8b71538d3c90/be_earnings_calendar-0.0.6.tar.gz"
+        }
+    ]
+}

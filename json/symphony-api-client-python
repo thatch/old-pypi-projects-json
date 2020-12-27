@@ -1,0 +1,623 @@
+{
+    "info": {
+        "author": "Reed Feldman",
+        "author_email": "reed.feldman@symphony.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "# symphony-api-client-python\nThe Python client is built in an event handler architecture. If you are building a bot that listens to conversations, you will only have to implement an interface of a listener with the functions to handle all events that will come through the Data Feed.\n\n### Install using pip --\n### Note this repo is in constant development\n\n\n## Configuration\nCreate a config.json file in your project which includes the following properties\n\n        {\n          \"sessionAuthHost\": \"COMPANYNAME-api.symphony.com\",\n          \"sessionAuthPort\": 8444,\n          \"keyAuthHost\": \"COMPANYNAME-api.symphony.com\",\n          \"keyAuthPort\": 8444,\n          \"podHost\": \"COMPANYNAME.symphony.com\",\n          \"podPort\": 443,\n          \"agentHost\": \"COMAPNYNAME.symphony.com\",\n          \"agentPort\": 443,\n          \"botCertPath\": \"PATH\",\n          \"botCertName\": \"BOT-CERT-NAME\",\n          \"botCertPassword\": \"BOT-PASSWORD\",\n          \"botEmailAddress\": \"BOT-EMAIL-ADDRESS\",\n          \"appCertPath\": \"\",\n          \"appCertName\": \"\",\n          \"appCertPassword\": \"\",\n          \"proxyURL\": \"\",\n          \"proxyUsername\": \"\",\n          \"proxyPassword\": \"\",\n          \"authTokenRefreshPeriod\": \"30\"\n        }\n\n## Example main class\n\n    from configure.configure import Config\n    from auth.auth import Auth\n    from clients.SymBotClient import SymBotClient\n    from listeners.imListenerTestImp import IMListenerTestImp\n    from listeners.roomListenerTestImp import RoomListenerTestImp\n\n    def main():\n            #pass in path to config.json file to Config class\n            configure = Config('./resources/config.json')\n            #parse through config.json and extract decrypt certificates\n            configure.connect()\n            #if you wish to authenticate using RSA replace following line with: auth = rsa_Auth(configure) --> get rid of auth.authenticate\n            auth = Auth(configure)\n            #retrieve session and keymanager tokens:\n            auth.authenticate()\n            #initialize SymBotClient with auth and configure objects\n            botClient = SymBotClient(auth, configure)\n            #initialize datafeed service\n            DataFeedEventService = botClient.getDataFeedEventService()\n            #initialize listener classes and append them to DataFeedEventService class\n            #these listener classes sit in DataFeedEventService class as a way to easily handle events\n            #coming back from the DataFeed\n            imListenerTest = IMListenerTestImp(botClient)\n            DataFeedEventService.addIMListener(imListenerTest)\n            roomListenerTest = RoomListenerTestImp(botClient)\n            DataFeedEventService.addRoomListener(roomListenerTest)\n            #create data feed and read data feed recursively\n            DataFeedEventService.startDataFeed()\n\n    if __name__ == \"__main__\":\n        main()\n\n\n## Example RoomListener implementation\n\n    class RoomListenerTestImp(RoomListener):\n\n        def __init__(self, SymBotClient):\n            self.botClient = SymBotClient\n\n        def onRoomMessage(self, message):\n            print('room message recieved', message)\n            #sample code for developer to implement --> use MessageClient and\n            #data recieved from message event to reply with a #reed\n            streamId = message['payload']['messageSent']['message']['stream']['streamId']\n            messageId = message['payload']['messageSent']['message']['messageId']\n            message = dict(message = '<messageML><hash tag=\"reed\"/></messageML>')\n            self.botClient.messageClient.createMessage(streamId, message)\n\n        def onRoomCreated(self, roomCreated):\n            print('room created', roomCreated)\n\n        def onRoomDeactivated(self, roomDeactivated):\n            print('room Deactivated', roomDeactivated)\n\n        def onRoomMemberDemotedFromOwner(self, roomMemberDemotedFromOwner):\n            print('room member demoted from owner', roomMemberDemotedFromOwner)\n\n        def onRoomMemberPromotedToOwner(self, roomMemberPromotedToOwner):\n            print('room member promoted to owner', roomMemberPromotedToOwner)\n\n        def onRoomReactivated(self, roomReactivated):\n            print('room reactivated', roomReactivated)\n\n        def onRoomUpdated(self, roomUpdated):\n            print('room updated', roomUpdated)\n\n        def onUserJoinedRoom(self, userJoinedRoom):\n            print('USER JOINED ROOM', userJoinedRoom)\n\n        def onUserLeftRoom(self, userLeftRoom):\n            print('USER LEFT ROOM', userLeftRoom)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/SymphonyPlatformSolutions/symphony-api-client-python",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "symphony-api-client-python",
+        "package_url": "https://pypi.org/project/symphony-api-client-python/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/symphony-api-client-python/",
+        "project_urls": {
+            "Homepage": "https://github.com/SymphonyPlatformSolutions/symphony-api-client-python"
+        },
+        "release_url": "https://pypi.org/project/symphony-api-client-python/0.1.7/",
+        "requires_dist": [
+            "pyOpenSSL",
+            "rsa",
+            "requests",
+            "python-jose",
+            "urllib3"
+        ],
+        "requires_python": "",
+        "summary": "Symphony REST API - Python Client",
+        "version": "0.1.7"
+    },
+    "last_serial": 4097711,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c80063f85bb6e1ceef8f724d11ab03c",
+                    "sha256": "e78e7ba4db46fbd89dd13858124aff0fa03624829f72d744e170d74894e1896f"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8c80063f85bb6e1ceef8f724d11ab03c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 19891,
+                "upload_time": "2018-07-23T13:07:23",
+                "url": "https://files.pythonhosted.org/packages/1b/5f/5d307798f4a797c451f19ba465f334dbbd896059f14f796bb127963f3341/symphony_api_client_python-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4b7288ad78a5d020f16b3faa94301f43",
+                    "sha256": "6677d5a3b7a657a36a3e1cfcfca8f5147e7ed191bc6103ee8e5fa7236699c3d8"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4b7288ad78a5d020f16b3faa94301f43",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11073,
+                "upload_time": "2018-07-23T13:07:25",
+                "url": "https://files.pythonhosted.org/packages/bf/da/7537d4aba937cb5e1d05bb625dc744e56b9afaba01196b86e295d597516d/symphony-api-client-python-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "17b94ded3fa449a3c45568108081ae37",
+                    "sha256": "e8b91c6aee23132da5270bfc06895c594645cae7f49c054fce389196d6d203ae"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "17b94ded3fa449a3c45568108081ae37",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22152,
+                "upload_time": "2018-07-23T13:54:09",
+                "url": "https://files.pythonhosted.org/packages/d8/20/ec3694b174fd145a7e63c28cf2f4c1e823e8127f2dd63a56cf54d840a112/symphony_api_client_python-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2f992ee49f6e8904aafc48c3878a0e0c",
+                    "sha256": "124cab2c33e0cd2c8adc35f2b2a29279a40fa23e5d54f3f8acb6b270eecaff3c"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2f992ee49f6e8904aafc48c3878a0e0c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11826,
+                "upload_time": "2018-07-23T13:54:10",
+                "url": "https://files.pythonhosted.org/packages/4e/af/f12824f9c698e1041e0f10ed1cbf5cbc9773c1f04a1b7f407347e733427b/symphony-api-client-python-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6743242064f25706a26eebec9aa277d8",
+                    "sha256": "13922e7760512c3afe7215a736bafdc2103da06a906c439b4e11432ba1e5e4a2"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6743242064f25706a26eebec9aa277d8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22417,
+                "upload_time": "2018-07-23T14:21:25",
+                "url": "https://files.pythonhosted.org/packages/ae/56/76e6aa5c68e833de40ff6e347e11a5879271b3a49b25d1f03cfb3adf4f32/symphony_api_client_python-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9779ecf55e2672b1c5c588260bc52b5c",
+                    "sha256": "27ae4487efae97eee543eb10c0766d89380dd7550b9460509564abc96a8c7210"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9779ecf55e2672b1c5c588260bc52b5c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11703,
+                "upload_time": "2018-07-23T14:21:26",
+                "url": "https://files.pythonhosted.org/packages/9f/c1/dbb76ac6952f2e828e83856d9cd4cc81605e650b39ade58397359d2feb54/symphony-api-client-python-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e60b637e8ecc0c7f0436b252bb14b000",
+                    "sha256": "43e7d68d07e84df89345489cade08731ab2d523d35d8e343d95df23f3cee3a64"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e60b637e8ecc0c7f0436b252bb14b000",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22415,
+                "upload_time": "2018-07-23T14:29:26",
+                "url": "https://files.pythonhosted.org/packages/42/28/c1b6c6b48f158698f93a8eba8ec06a34e7c0a539eb049b3c7f2fafbe51c0/symphony_api_client_python-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9ef1f321927cde6a4705b810e2aeab5e",
+                    "sha256": "63c82353d56ccb2242bbfe8c48c38e9a1d29ba30c674db2c93c1f161f4e61de3"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9ef1f321927cde6a4705b810e2aeab5e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11700,
+                "upload_time": "2018-07-23T14:29:27",
+                "url": "https://files.pythonhosted.org/packages/f7/ee/806c72dd609eeece1da14a31e9426987ae6c553782fd7427b83c49526509/symphony-api-client-python-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4975c7d552e3525e1b83898a5251b084",
+                    "sha256": "274b430dcf6f42f4faa3c80c3e0be8cf9816027a53baaf6197407900abbde673"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4975c7d552e3525e1b83898a5251b084",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22417,
+                "upload_time": "2018-07-23T14:34:14",
+                "url": "https://files.pythonhosted.org/packages/50/24/954457b44a0cc2ab62142dc9cdfe81ce41cc93571d7345a58fb48a88c7f0/symphony_api_client_python-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18e73dd09fedd660eeb46d2d07e86cad",
+                    "sha256": "2f1801cf3664763347d57d032938144ab2e5d9aced00a43f7523f2d11a47452a"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "18e73dd09fedd660eeb46d2d07e86cad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11695,
+                "upload_time": "2018-07-23T14:34:15",
+                "url": "https://files.pythonhosted.org/packages/0c/f0/dc07dfb5e4ecc941c94493b46fd6cfff5aa2c3f89c342844023b1dd307bd/symphony-api-client-python-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3496623865d54d426bf20ba77d4ca1b",
+                    "sha256": "87893a5d673cd7610f8581521c8f89c2e26324a0e134adc82f2ac195a3b604fd"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c3496623865d54d426bf20ba77d4ca1b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22452,
+                "upload_time": "2018-07-23T15:04:15",
+                "url": "https://files.pythonhosted.org/packages/db/c4/c702742154fd925645c4ee9072f96fd584cc52743ba7f20bff9c90a4faa0/symphony_api_client_python-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0dfa635c01b1775ea90ff01654d9eb38",
+                    "sha256": "c257bf337beab0062a1c1540de1054c278661d0a8a27d07af22e1c9fe7c9c103"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0dfa635c01b1775ea90ff01654d9eb38",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11716,
+                "upload_time": "2018-07-23T15:04:18",
+                "url": "https://files.pythonhosted.org/packages/98/6a/4e92a39ca004bde1c8bc742a6ab0681758857ca9ce68f58196326359e971/symphony-api-client-python-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0d4b7ecc09ad77d5524b131b7d95b31a",
+                    "sha256": "f7eb87efeaf67593ceecf610a46f0503211c2182f8906ce4598758dcbe813ec3"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0d4b7ecc09ad77d5524b131b7d95b31a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 24147,
+                "upload_time": "2018-07-23T16:53:51",
+                "url": "https://files.pythonhosted.org/packages/5f/bd/dff5fceeabf2780d0fa33941b18814be457cda270c8662d6099ee3d646ba/symphony_api_client_python-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "997298153f864d7c3642961f12ab6bc7",
+                    "sha256": "e19dc61fe8e3b6c1e5426f124258e8aa66fde76675fc7d9af316b56bd19039c3"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "997298153f864d7c3642961f12ab6bc7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12437,
+                "upload_time": "2018-07-23T16:53:52",
+                "url": "https://files.pythonhosted.org/packages/d4/1a/677805841941e3cf09cfe48e028e12b3948e303c2c4aa8d180541b9d50b8/symphony-api-client-python-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c75218be8d05dbe548c89c3d5587387e",
+                    "sha256": "d9014bcda30d893df7e47f462ddf393431a31bffd50b08b005e63bb22bfd4e80"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c75218be8d05dbe548c89c3d5587387e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22461,
+                "upload_time": "2018-07-23T17:39:57",
+                "url": "https://files.pythonhosted.org/packages/f2/82/8e39f5fa2c2fa6599821f7f6c47fe337f6823289d45d9ac7d7fbb235185b/symphony_api_client_python-0.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1eb1b4c45d9590b979d6615851aaa97b",
+                    "sha256": "a9d46973793a228799bb9911781c0e7e2acc201d0d3932efa8e6c9db2c22fa94"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1eb1b4c45d9590b979d6615851aaa97b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12155,
+                "upload_time": "2018-07-23T17:39:59",
+                "url": "https://files.pythonhosted.org/packages/c8/a4/1a7de592012114d3b69705f5a75f9cc6379b28bb0d3283ec2f90696cf52e/symphony-api-client-python-0.0.8.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "82c9aa61333e7cd6e4c957d416c14fee",
+                    "sha256": "c13365b74802bce6ae5d6deb8b83de735489765f4128c462be9f54cd8272b0d4"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "82c9aa61333e7cd6e4c957d416c14fee",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22459,
+                "upload_time": "2018-07-23T17:48:20",
+                "url": "https://files.pythonhosted.org/packages/e1/ae/75e01fcf50e74171d43d34eaa20dfe646b9583775f55fa3927fc3d487cd0/symphony_api_client_python-0.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a2e15c4bc1e2204a8fb532b2f4587e96",
+                    "sha256": "06fbce7c55908f225864fbe89f7a7fb7b1c9ca20567ed391020caf2d5f17335f"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a2e15c4bc1e2204a8fb532b2f4587e96",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12151,
+                "upload_time": "2018-07-23T17:48:21",
+                "url": "https://files.pythonhosted.org/packages/f6/b7/ed3ca5a45cafeb7d28b6933d6077111d6c40f5c2278576372334de1aa9ad/symphony-api-client-python-0.0.9.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14e32796c49dab7916f16b9e59bc3195",
+                    "sha256": "a81d7e760fd5c2e9675d885acc9241b83e99ae458d016994465f4b5e2b61e34d"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "14e32796c49dab7916f16b9e59bc3195",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22507,
+                "upload_time": "2018-07-23T19:10:40",
+                "url": "https://files.pythonhosted.org/packages/36/78/80bc431b12e5ac3d091e653711631f67bdf814d0836e8006f51f977f1bb1/symphony_api_client_python-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bf4f517b4a8dd37c111ca2e3081a8e7a",
+                    "sha256": "4f170903a992794f36f50587b53544f0448112eeebf4afb43ae38e290de50b59"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bf4f517b4a8dd37c111ca2e3081a8e7a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12242,
+                "upload_time": "2018-07-23T19:10:41",
+                "url": "https://files.pythonhosted.org/packages/89/52/5394dcdb1d04b4d03292d3be2e9e2547309dee32e5363e82639e30d2fded/symphony-api-client-python-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c92683173c820710aa82e9879c285f6",
+                    "sha256": "24eecdc887be76645627733da91bea7b26c73e37fce8b96c70e74baddd956960"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7c92683173c820710aa82e9879c285f6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 22505,
+                "upload_time": "2018-07-23T22:05:53",
+                "url": "https://files.pythonhosted.org/packages/f6/18/b01b88c53c7b84b5673055cc66146dd58ab23867d9dc1da73e758cafedf8/symphony_api_client_python-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6e5e184ed6ae5d4433e54b5697e5b15c",
+                    "sha256": "2225fb82bff076352cc5b1a5f7f140d03d39f9006d72dcb05a3a1883db0d1d0d"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6e5e184ed6ae5d4433e54b5697e5b15c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12250,
+                "upload_time": "2018-07-23T22:05:55",
+                "url": "https://files.pythonhosted.org/packages/42/af/44e91f4b57b6c006b89df8c90208dce85edd4987ed6097528dc8b7ac78b5/symphony-api-client-python-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "18dc8ec44ef005883e015d9eef83fdf6",
+                    "sha256": "fcf4a48ac148c84500dca5a75cb78c9b2ebdabbc6df1afebf5c3bb876e6f12b2"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "18dc8ec44ef005883e015d9eef83fdf6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 27094,
+                "upload_time": "2018-07-23T22:16:55",
+                "url": "https://files.pythonhosted.org/packages/06/b1/eed381683f23a57470a1ce23496893d305da4d00ce6bc05fc62cd048a2aa/symphony_api_client_python-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3b0ec5780bafdc1b8a68910c932b966a",
+                    "sha256": "34c4d20560a80868f567ba8bcddf7d288c8d20e66df8e27a04fff02cf3a52dfc"
+                },
+                "downloads": -1,
+                "filename": "symphony-api-client-python-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3b0ec5780bafdc1b8a68910c932b966a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15565,
+                "upload_time": "2018-07-23T22:16:56",
+                "url": "https://files.pythonhosted.org/packages/f4/e5/73a6a8f530563ad09ffdabdc8e47b404f1b7763fb6332d904d21f3c6b2bd/symphony-api-client-python-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b2c94654cb1ca01cdfb0dc563a14e561",
+                    "sha256": "8551b6e763db33b80ae466b5676ef5712e38598c51aa7232031fe1b05de2a758"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b2c94654cb1ca01cdfb0dc563a14e561",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 49567,
+                "upload_time": "2018-07-24T13:27:56",
+                "url": "https://files.pythonhosted.org/packages/61/a8/2f84acf97ca2544c43bb7c7daa2ae1676a9a8f24482fca2bc6977861ddb2/symphony_api_client_python-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "96b34ac18a11b0876077df2a8c627c0b",
+                    "sha256": "f9220d48e027a2a03aa7332da0d6a7b8a6d5201f8bb5b73e700c5b36d38f8f8a"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "96b34ac18a11b0876077df2a8c627c0b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15298,
+                "upload_time": "2018-07-24T13:27:57",
+                "url": "https://files.pythonhosted.org/packages/bc/94/d5ef1bd03070567541a6dd5bfdccd0bb118a49df64965a1a93c80074a59d/symphony_api_client_python-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e55ef13cd1f0854e44dfc652c4289285",
+                    "sha256": "269bc8621830dcaa428fbff8b406d16c7bd5b7f974da51bb8a3b412dd5716a67"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e55ef13cd1f0854e44dfc652c4289285",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 26800,
+                "upload_time": "2018-07-24T13:40:13",
+                "url": "https://files.pythonhosted.org/packages/80/ce/8e2eafa366c16e0fa1298b18dec94aa1aaf985a407cdd6061e7c99816d04/symphony_api_client_python-0.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "08572a70fa7451a46b65da0fe3913dd4",
+                    "sha256": "57c57a01ff4bd6888b19986d790de67ee081f039dba082c8d530d85c9766eaaf"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "08572a70fa7451a46b65da0fe3913dd4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15297,
+                "upload_time": "2018-07-24T13:40:14",
+                "url": "https://files.pythonhosted.org/packages/d5/3a/63a70eb07a2d63991edb159601d774aadfb957a1b71d877bb53ea72a41a2/symphony_api_client_python-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a4e07fd5ffea0515a7e3ea3bdeed919a",
+                    "sha256": "ff7ab4a7a953fec4507d6c7590c37068483ebf9036fb402dc46b2e8e4e09a611"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a4e07fd5ffea0515a7e3ea3bdeed919a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 27314,
+                "upload_time": "2018-07-24T17:04:36",
+                "url": "https://files.pythonhosted.org/packages/48/0b/9cb15dedde7f2563df206f62d8ef1e218ffe651be4a9874d70855bcf6f9c/symphony_api_client_python-0.1.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b1734b3ef924984acd1dce8abb8fb02f",
+                    "sha256": "a8aeb7042a850d89d024c3662468f34124ee44580618a3424af6bb8a51f71276"
+                },
+                "downloads": -1,
+                "filename": "symphony_api_client_python-0.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b1734b3ef924984acd1dce8abb8fb02f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15820,
+                "upload_time": "2018-07-24T17:04:37",
+                "url": "https://files.pythonhosted.org/packages/ba/6f/18a27f0e755433f602b69b62010915f4bf4cb3e1cb5ec01ed7963e9d1491/symphony_api_client_python-0.1.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a4e07fd5ffea0515a7e3ea3bdeed919a",
+                "sha256": "ff7ab4a7a953fec4507d6c7590c37068483ebf9036fb402dc46b2e8e4e09a611"
+            },
+            "downloads": -1,
+            "filename": "symphony_api_client_python-0.1.7-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a4e07fd5ffea0515a7e3ea3bdeed919a",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 27314,
+            "upload_time": "2018-07-24T17:04:36",
+            "url": "https://files.pythonhosted.org/packages/48/0b/9cb15dedde7f2563df206f62d8ef1e218ffe651be4a9874d70855bcf6f9c/symphony_api_client_python-0.1.7-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b1734b3ef924984acd1dce8abb8fb02f",
+                "sha256": "a8aeb7042a850d89d024c3662468f34124ee44580618a3424af6bb8a51f71276"
+            },
+            "downloads": -1,
+            "filename": "symphony_api_client_python-0.1.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "b1734b3ef924984acd1dce8abb8fb02f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 15820,
+            "upload_time": "2018-07-24T17:04:37",
+            "url": "https://files.pythonhosted.org/packages/ba/6f/18a27f0e755433f602b69b62010915f4bf4cb3e1cb5ec01ed7963e9d1491/symphony_api_client_python-0.1.7.tar.gz"
+        }
+    ]
+}

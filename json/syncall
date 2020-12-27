@@ -1,0 +1,155 @@
+{
+    "info": {
+        "author": "\u00d3liver Garc\u00eda Albertos",
+        "author_email": "3skuero@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Programming Language :: Python :: 3",
+            "Topic :: Software Development :: Build Tools",
+            "Topic :: Software Development :: Version Control :: Git",
+            "Topic :: System :: Software Distribution"
+        ],
+        "description": "# Syncall: Keep your Android apps updated\nDo you like to get the latest features of the apps first than anyone?\nDo you want to manually build everything to confirm the source code matches the binaries distributed by the developer?\n\nYou can use this Python script to automatically sync, build and sign all of your open source apps using gradle. It will download the latest copy of the source code from the git repository provided, proceed to build if changes are detected, to later sign the outputs and finally provide a ready to install .apk file.\n\n## Installation\nClone this git repository and install it using pip:\n```\n$ git clone https://github.com/Eskuero/syncall.git\n$ cd syncall\n# pip install .\n```\n\nThe script depends on the toml python library (will be automatically installed by pip) and requires having keytool (Java OpenJDK), apksigner (Android SDK build tools), zipalign (Android SDK Build Tools) and git on the PATH of your running operative system.\n\n## Usage\nBy default executing the command without arguments/config file will result into it synchronizing all the git repositories in the immediate subfolders.\n```\nsyncall.py\n```\n\n### Configuration file\nAll the command line arguments specified below can be defined as defaults on a toml configuration file on the working directory named as syncall.toml.\nThis requires the installation of the toml parser:\n```\npip install toml\n```\nPer example the following content would disable cache cleaning and retrying by default while enabling building for all the projects, using the key \"mykey\" inside keystore clave.jks and trying to keep local changes.\nFor the Signal-Android project it would always force building of the app using the assemblePlayRelease and assembleWebsiteRelease tasks, in that order.\nIt will also build the Conversations project with the assembleConversationsFreeSystemRelease task and sign it with the key \"otherkey\" inside the store key-1.jks\n```\n[default]\nfetch = true\npreserve = true\nbuild = true\nretry = false\nkeystore = \"clave.jks\"\nkeyalias = \"mykey\"\n\n[Signal-Android]\nforce = true\ntasks = [\"assemblePlayRelease\", \"assembleWebsiteRelease\"]\n\n[Conversations]\nkeystore = \"key-1.jks\"\nkeystore = \"otherkey\"\ntasks = [\"assembleConversationsFreeSystemRelease\"]\n```\n\n### Fetching\nBy default the script will try to fetch changes for all projects, however you can skip that passing --fetch. This is very useful for situations where you just want to rebuild local changes without wanting to go through all the projects, per example:\n```\nsyncall --fetch=n --build=/path/to/key.jks --force=Shelter\n```\nWould force building of the Shelter project without fetching changes on any project.\n\n### Building\nIf you want to not only the sync the source code but also to compile the app when new changes are detected during the current syncing interation you must use it like this:\n```\nsyncall.py --build=/path/to/key.jks,keyalias\n```\nThe --build argument expects to be passed alongside the absolute or relative path to a Java key store containing the key named as keyalias. You will be prompted to enter both passwords. It also accepts a value of n to disable building.\nAll the output files will be automatically aligned and signed with the provided key, and then placed a SYNCALL-RELEASES folder on the working dir.\n\n### Retrying\nThe script will save a list of the failed projects in the previous interation in the .retry-projects of the working folder. It also will report to you a list of which specific task failed at the end of the run. This is so you can retry building after maybe figuring out any issues.\nTo do so:\n```\nsyncall.py --build=/path/to/key.jks --retry=y\n```\nThe --retry command does not need any value, but requires the keystore to be set with the --build command because otherwise the .apk would not be signed.\n\n### Forcing\nSometimes you may want to rebuild certain apps even if no upstream changes are received (offline project, no internet connection, just testing local changes...). You can do so by passing a list of comma joined project names (their folder name) alongside the --force argument:\n```\nsyncall.py --build=/path/to/key.jks --force=Signal-Android,Tusky,SomeOtherProject\n```\nRequires the keystore to be set with the --build command because otherwise the .apk would not be signed.\n\n### Preserving local changes\nIf you wish to preserve local changes tracked but not staged for commit you can use the --preserve flag, that commands the script to generate a diff of the current changes and to attempt on restoring it later. This is very useful to hold onto minor changes like gradle version bumps to fix compilation issues without having to reapply them on every update.\nPer example:\n```\nsyncall --build=/path/to/key.jks --preserve=y\n```\nWould attempt to build all projects with changes preserving local changes made to them\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "syncall",
+        "package_url": "https://pypi.org/project/syncall/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/syncall/",
+        "project_urls": {
+            "Documentation": "https://github.com/Eskuero/syncall/blob/master/README.md",
+            "Source": "https://github.com/Eskuero/syncall"
+        },
+        "release_url": "https://pypi.org/project/syncall/1.1/",
+        "requires_dist": [
+            "toml"
+        ],
+        "requires_python": "",
+        "summary": "Command line script to automatize syncing, building and signing of open source Android apps using gradle",
+        "version": "1.1"
+    },
+    "last_serial": 4599179,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "859043a7e229761ffb78148129bbb3ff",
+                    "sha256": "8c87d10436b182b2bf06ef2125a98bea354d9935d57f63550786b833c25e5f33"
+                },
+                "downloads": -1,
+                "filename": "syncall-1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "859043a7e229761ffb78148129bbb3ff",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 19871,
+                "upload_time": "2018-12-09T19:54:18",
+                "url": "https://files.pythonhosted.org/packages/44/82/236944bf8116eafc3430648f966b63a3b6abd57d239309c7a54f9922e565/syncall-1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "de781804eb7e9341d9c133b2f0661848",
+                    "sha256": "3b415c8c75134724bea205c6de3aa2bef3053547c919af0c83e29c53abeddaf2"
+                },
+                "downloads": -1,
+                "filename": "syncall-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "de781804eb7e9341d9c133b2f0661848",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6951,
+                "upload_time": "2018-12-09T19:54:20",
+                "url": "https://files.pythonhosted.org/packages/ef/23/50153b063c17040cbaa9d922cbcccea526c8b9e1bde7a07a8c80d106fcb5/syncall-1.0.tar.gz"
+            }
+        ],
+        "1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71ca8ee9d0a17c894c103653b471cc14",
+                    "sha256": "566fd80dcf0fa41fbbf69a76531f6555bc0a77385cf736b435df3917f80494e6"
+                },
+                "downloads": -1,
+                "filename": "syncall-1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "71ca8ee9d0a17c894c103653b471cc14",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 20566,
+                "upload_time": "2018-12-14T12:42:16",
+                "url": "https://files.pythonhosted.org/packages/c3/1b/3da96e68cba9fe1807356ec01605d8c99100eaa22bd3399e416f9c40f318/syncall-1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dbc7efdcd3376526dd16748fdaadd2cd",
+                    "sha256": "0295bd98311bfe55d8e91b1bd4f0f83cfbd5c3c54faa33f7da663ebc9264484e"
+                },
+                "downloads": -1,
+                "filename": "syncall-1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dbc7efdcd3376526dd16748fdaadd2cd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7569,
+                "upload_time": "2018-12-14T12:42:17",
+                "url": "https://files.pythonhosted.org/packages/30/b2/96d15ecb2c5dd9f81076441926bc2a3dc4fe8fb761ac8c1a427265141ca9/syncall-1.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "71ca8ee9d0a17c894c103653b471cc14",
+                "sha256": "566fd80dcf0fa41fbbf69a76531f6555bc0a77385cf736b435df3917f80494e6"
+            },
+            "downloads": -1,
+            "filename": "syncall-1.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "71ca8ee9d0a17c894c103653b471cc14",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 20566,
+            "upload_time": "2018-12-14T12:42:16",
+            "url": "https://files.pythonhosted.org/packages/c3/1b/3da96e68cba9fe1807356ec01605d8c99100eaa22bd3399e416f9c40f318/syncall-1.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "dbc7efdcd3376526dd16748fdaadd2cd",
+                "sha256": "0295bd98311bfe55d8e91b1bd4f0f83cfbd5c3c54faa33f7da663ebc9264484e"
+            },
+            "downloads": -1,
+            "filename": "syncall-1.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "dbc7efdcd3376526dd16748fdaadd2cd",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7569,
+            "upload_time": "2018-12-14T12:42:17",
+            "url": "https://files.pythonhosted.org/packages/30/b2/96d15ecb2c5dd9f81076441926bc2a3dc4fe8fb761ac8c1a427265141ca9/syncall-1.1.tar.gz"
+        }
+    ]
+}

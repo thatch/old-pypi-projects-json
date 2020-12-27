@@ -1,0 +1,153 @@
+{
+    "info": {
+        "author": "Kishwar Shafin",
+        "author_email": "kishwar.shafin@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# P.E.P.P.E.R.\n###### Program for Evaluating Patterns in the Pileups of Erroneous Reads\n\n[![Build Status](https://travis-ci.com/kishwarshafin/pepper.svg?branch=master)](https://travis-ci.com/kishwarshafin/pepper)\n\n`P.E.P.P.E.R.` is a deep neural network based polisher designed to work with Oxford Nanopore Sequencing technology. `P.E.P.P.E.R.` uses a Recurrent Neural Network (RNN) based encoder-decoder model to call a consensus sequence from the summary statistics of each genomic position. The local realignment process using [SSW](https://github.com/mengyao/Complete-Striped-Smith-Waterman-Library) library enables the module to be standalone and not require any prior polishing with other tools.\n\n\u00a9 2019 Kishwar Shafin, Trevor Pesout, Miten Jain, Benedict Paten. <br/>\nComputational Genomics Lab (CGL), University of California, Santa Cruz.\n\n## Workflow\n * Sequence a genome and get a basecalled reads file (`reads.fastq`).\n * Use an assembler to get an assembly from the basecalled data (`assembly.fa`).\n * Use [minimap2](https://github.com/lh3/minimap2) to map `reads.fastq` to `assembly.fa` and get a bam file (`reads_2_assembly.bam`).\n * Use `1_pepper_make_images.py` to generate pileup summaries.\n * Use `2_pepper_call_consensus.py` to generate a consensus sequence.\n * Use `3_pepper_stitch.py` to stitch chunks and get the polished sequence.\n <p align=\"center\">\n <img src=\"img/PEPPER_pipeline.svg\" alt=\"pipeline.svg\" height=\"640p\">\n </p>\n\n\n## Installation\nWe recommend using `Linux` environment to run `PEPPER`.\n```bash\nsudo apt-get -y install cmake make gcc g++ autoconf bzip2 lzma-dev zlib1g-dev \\\nlibcurl4-openssl-dev libpthread-stubs0-dev libbz2-dev \\\nliblzma-dev libhdf5-dev\n```\n\nWe also require `CMake>=3.11`. To install `CMake 3.14` on Ubuntu follow this:\n```bash\n# https://cmake.org/install/\nwget https://github.com/Kitware/CMake/releases/download/v3.14.3/cmake-3.14.3.tar.gz\ntar -xvf cmake-3.14.3.tar.gz\ncd cmake-3.14.3\n./bootstrap\nmake\nmake install # You may require sudo for this. Or you can use the cmake executable from this directory\n```\n\nNow download and install `PEPPER`:\n```bash\ngit clone https://github.com/kishwarshafin/pepper.git\ncd pepper\n./build.sh\n```\n`PEPPER` uses `pytorch` and few other python libraries. Please install those using:\n```bash\npython3 -m pip install h5py tqdm torchnet numpy pyyaml\n```\n\n#### Install pytorch\nWe have not included `torch` in the requirement as it needs to be carefully installed to enable `CUDA`. Please refer to the official [Pytorch Website](https://pytorch.org/) to install the correct version with or without `CUDA`. We highly recommend using version `1.3` or later for `pytorch`.\n\n## Usage\n\n#### Step 1: Generate Images\n```bash\npython3 1_pepper_make_images.py \\\n-b </path/to/reads_2_draft_assembly.bam> \\\n-d <path/to/draft_assembly.fasta> \\\n-o <path/to/output_image_dir/> \\\n-t <number_of_threads>\n\nARGUMENT DETAILS:\n1_pepper_make_images.py generates summary statistics from the aligment of reads to the draft assembly.\n  -h, --help            \n                        show this help message and exit\n  -b BAM, --bam BAM     \n                        BAM file containing mapping between reads and the draft assembly.\n  -d DRAFT, --draft DRAFT\n                        FASTA file containing the draft assembly.\n  -r REGION, --region REGION\n                        Region in [chr_name:start-end] format\n  -o OUTPUT_DIR, --output_dir OUTPUT_DIR\n                        Path to output directory, if it does not exist it will  be created.\n  -t THREADS, --threads THREADS\n                        Number of threads to use. Default is 5.\n```\n\n#### Step 2: Inference\n```bash\npython3 2_pepper_call_consensus.py \\\n-i <path/to/output_image_dir/> \\\n-m <path/to/pepper/models/XXX.pkl> \\\n-b <batch_size> \\\n-w <number_of_workers> \\\n-o <path/to/output_polished_sequence/> \\\n-g\n\nARGUMENT DETAILS:\n2_pepper_call_consensus.py performs inference on images using a trained model.\n\n  -h, --help            \n                        show this help message and exit\n  -i IMAGE_DIR, --image_dir IMAGE_DIR\n                        Path to directory containing all HDF5 images.\n  -m MODEL_PATH, --model_path MODEL_PATH\n                        Path to a trained model.\n  -b BATCH_SIZE, --batch_size BATCH_SIZE\n                        Batch size for testing, default is 100. Suggested values: 256/512/1024.\n  -w NUM_WORKERS, --num_workers NUM_WORKERS\n                        Number of workers for loading images. Default is 4.\n  -o OUTPUT_DIR, --output_dir OUTPUT_DIR\n                        Path to the output directory.\n  -g, --gpu_mode        \n                        If set then PyTorch will use GPUs for inference [CUDA REQUIRED]\n```\n\n#### Step 3: Stitch\n```bash\npython3 3_pepper_stitch.py \\\n-i <path/to/output_polished_sequence/pepper_predictions.hdf> \\\n-o <path/to/output_polished_sequence/> \\\n-t <number_of_threads>\n\nARGUMENT DETAILS:\n3_pepper_stitch.py performs the final stitching to generate the polished sequences.\n\n  -i INPUT_HDF, --input_hdf INPUT_HDF\n                        Input hdf prediction file.\n  -o OUTPUT_DIR, --output_dir OUTPUT_DIR\n                        Path to output directory.\n  -t THREADS, --threads THREADS\n                        Number of threads.\n\n```\n\n## Results\n\n#### PEPPER achieves lower error rate than ONT suggested pipeline.\nWe compared `PEPPER` against `Racon-Medaka` pipeline and we demonstrate significantly better results for microbial genomes. We used Staphylococcus Aureus samples to evaluate these two pipelines. The PEPPER microbial model was trained on samples excluding Staphylococcus Aureus. We used `r941_prom_high` model to run `Medaka`.\n<p align=\"center\">\n<img src=\"img/PEPPER_error_rate.png\" alt=\"PEPPER_error_rate.png\" height=\"420\">\n</p>\n\n#### New R10 chemistry shows further improvement in polishing results\nThe new `R10` data is now available for `MinION` and we polished the assembly generated with `R9` data using the `R10` reads. The R10 data provides significant improvement in overall quality of the genome.\n<p align=\"center\">\n<img src=\"img/PEPPER_chemistry.png\" alt=\"PEPPER_chemistry.png\" height=\"420p\">\n</p>\n\n## Acknowledgement\nWe are thankful to the developers of these packages: </br>\n* [Medaka](https://github.com/nanoporetech/medaka)\n* [GNU Parallel](https://www.gnu.org/software/parallel/)\n* [htslib & samtools](http://www.htslib.org/)\n* [ssw library](https://github.com/mengyao/Complete-Striped-Smith-Waterman-Library)\n* [hdf5 python (h5py)](https://www.h5py.org/)\n* [pytorch](https://pytorch.org/)\n\n## Fun Fact\n<img src=\"https://vignette.wikia.nocookie.net/marveldatabase/images/7/72/Anthony_Stark_%28Earth-616%29_from_Iron_Man_Vol_5_2_002.jpg/revision/latest?cb=20130407031815\" alt=\"guppy235\" width=\"240p\"> <br/>\n\nThe name \"P.E.P.P.E.R.\" is also inspired from an A.I. created by Tony Stark in the  Marvel Comics (Earth-616). PEPPER is named after Tony Stark's then friend and the CEO of Resilient, Pepper Potts.\n\n\n\u00a9 2019 Kishwar Shafin, Trevor Pesout, Miten Jain, Benedict Paten.",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/kishwarshafin/pepper",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "p.e.p.p.e.r",
+        "package_url": "https://pypi.org/project/p.e.p.p.e.r/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/p.e.p.p.e.r/",
+        "project_urls": {
+            "Homepage": "https://github.com/kishwarshafin/pepper"
+        },
+        "release_url": "https://pypi.org/project/p.e.p.p.e.r/0.1.3/",
+        "requires_dist": null,
+        "requires_python": ">=3.5.*",
+        "summary": "RNN based standalone assembly polisher.",
+        "version": "0.1.3"
+    },
+    "last_serial": 6614493,
+    "releases": {
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "83a212c90347dc38dd9a7fbe26f07ac3",
+                    "sha256": "a60d41e442bec91303c0bfd21ffa9d88a9165fdbdda1deee0ad00eeeae1d5ccc"
+                },
+                "downloads": -1,
+                "filename": "p.e.p.p.e.r-0.1.1-cp36-cp36m-macosx_10_9_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "83a212c90347dc38dd9a7fbe26f07ac3",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": ">=3.5.*",
+                "size": 469612,
+                "upload_time": "2020-02-12T06:00:58",
+                "upload_time_iso_8601": "2020-02-12T06:00:58.828635Z",
+                "url": "https://files.pythonhosted.org/packages/e4/e6/6056b67cc10ba27e534b1b80714fb22f50a6e585e439c4b0589067761564/p.e.p.p.e.r-0.1.1-cp36-cp36m-macosx_10_9_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6d5c4c0b37c6f7b33bfd21cbf98d9709",
+                    "sha256": "abfabc26bd3fa549433d4f785b9ca2a0b1769ab85dcae6f086c7f455405f750c"
+                },
+                "downloads": -1,
+                "filename": "p.e.p.p.e.r-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6d5c4c0b37c6f7b33bfd21cbf98d9709",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5.*",
+                "size": 40889,
+                "upload_time": "2020-02-12T06:01:01",
+                "upload_time_iso_8601": "2020-02-12T06:01:01.942578Z",
+                "url": "https://files.pythonhosted.org/packages/0a/6f/d30c9006c53110c7464850743180da1076966e0220144f17c004a9257e03/p.e.p.p.e.r-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61774f21a7878affccd4ab852cb35abf",
+                    "sha256": "4920ba5905ed6534cddf7176d9969ef071372044ab10210abd7d13e43c9c3733"
+                },
+                "downloads": -1,
+                "filename": "p.e.p.p.e.r-0.1.2-cp36-cp36m-macosx_10_9_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "61774f21a7878affccd4ab852cb35abf",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": ">=3.5.*",
+                "size": 469612,
+                "upload_time": "2020-02-12T06:27:47",
+                "upload_time_iso_8601": "2020-02-12T06:27:47.222785Z",
+                "url": "https://files.pythonhosted.org/packages/ba/58/5f63b980e4e2c540055e4ab19f66202196ba8c3f433b791c3e2ca2c19deb/p.e.p.p.e.r-0.1.2-cp36-cp36m-macosx_10_9_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e626874bfa5fff232c054e9ec6b7c6d",
+                    "sha256": "cd9ac25a4c3016cac6668e48d8b32dc1844909526839515f8dbee66e105a5652"
+                },
+                "downloads": -1,
+                "filename": "p.e.p.p.e.r-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0e626874bfa5fff232c054e9ec6b7c6d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5.*",
+                "size": 40874,
+                "upload_time": "2020-02-12T06:27:49",
+                "upload_time_iso_8601": "2020-02-12T06:27:49.642700Z",
+                "url": "https://files.pythonhosted.org/packages/6a/3f/cf30055cd058d8293fb96c58d306f8c5d547350913c486727f23350942a6/p.e.p.p.e.r-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a4bac7fe35f49e18df431bb50359f711",
+                    "sha256": "c0282b281b38d908316a4c76aebd1d5f8e428c1268e6331908953ce353ec6b2c"
+                },
+                "downloads": -1,
+                "filename": "p.e.p.p.e.r-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a4bac7fe35f49e18df431bb50359f711",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5.*",
+                "size": 529172,
+                "upload_time": "2020-02-12T06:58:26",
+                "upload_time_iso_8601": "2020-02-12T06:58:26.706211Z",
+                "url": "https://files.pythonhosted.org/packages/de/67/b7de79de6a6e69e2fc995a047e0b75922ecfde84da4816709da866b3b33a/p.e.p.p.e.r-0.1.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a4bac7fe35f49e18df431bb50359f711",
+                "sha256": "c0282b281b38d908316a4c76aebd1d5f8e428c1268e6331908953ce353ec6b2c"
+            },
+            "downloads": -1,
+            "filename": "p.e.p.p.e.r-0.1.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a4bac7fe35f49e18df431bb50359f711",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5.*",
+            "size": 529172,
+            "upload_time": "2020-02-12T06:58:26",
+            "upload_time_iso_8601": "2020-02-12T06:58:26.706211Z",
+            "url": "https://files.pythonhosted.org/packages/de/67/b7de79de6a6e69e2fc995a047e0b75922ecfde84da4816709da866b3b33a/p.e.p.p.e.r-0.1.3.tar.gz"
+        }
+    ]
+}

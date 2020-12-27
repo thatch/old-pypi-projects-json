@@ -1,0 +1,99 @@
+{
+    "info": {
+        "author": "Nicholas de Jong",
+        "author_email": "contact@nicholasdejong.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: BSD License",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Elasticsearch Kibana CLI\n\n[![PyPi](https://img.shields.io/pypi/v/ElasticsearchKibanaCli.svg)](https://pypi.org/project/ElasticsearchKibanaCli/)\n[![Build Status](https://api.travis-ci.org/ndejong/elasticsearch_kibana_cli.svg?branch=master)](https://api.travis-ci.org/ndejong/elasticsearch_kibana_cli)\n\nThe Elasticsearch Kibana CLI provides a configurable shell interface to\nquery the Elasticsearch backend via the Kibana frontend which is useful in\nsituations where the Elasticsearch backend is not otherwise accessible.\nConfiguration options are available that permit HTTP request header overrides\nthat hence enable access to Kibana in more complex situations that may require\nadditional authentication such as when Kibana is behind an OAuth reverse\nproxy.\n\n## Project\n* [github.com/ndejong/elasticsearch_kibana_cli](https://github.com/ndejong/elasticsearch_kibana_cli)\n\n## Install\n#### via PyPi\n```bash\npip3 install ElasticsearchKibanaCli\n```\n\n#### via Source\n```bash\ngit clone https://github.com/ndejong/elasticsearch_kibana_cli\ncd elasticsearch_kibana_cli\npython3 -m venv venv\n./venv/bin/activate\npip3 install -r requirements.txt\n```\n\n## Configuration\nThe provided `eskbcli-sample.yml` demonstrates the configuration options available to create \nsearch_definitions.  Under the hood, query strings are generated using the `Q` function from the\nstandard [elasticsearch-dsl](https://elasticsearch-dsl.readthedocs.io/en/latest/) Python library from \nElastic.  The `search` configuration parameter is loaded into the `Q` function wrapped within a `bool` \nand honours the `must`, `must_not`, `should`, `should_not` and `filter` attributes.\n\nBy example therefore, where a Python elasticsearch-dsl expression is written as such\n```python\ns.query = Q('bool', must=[Q('match', title='python'), Q('match', body='best')])\n```\n\nthen the YML configuration equivalent is therefore\n```yaml\n  search:\n    must:\n      match:\n        - title: \"python\"\n        - body: \"best\"\n```  \n\nThis enables the user to define most forms of Elastic Search query in an Elastic standard way.\n\n## Environment Variables\n\n#### Standard Environment Variables\nThe following environment variables are available\n\n* `ELASTICSEARCHKIBANACLI_CONFIG_FILENAME` alternative method to set or override the configuration \n   file to be loaded.  Has same effect as setting the `-c` argument.\n\n* `ELASTICSEARCHKIBANACLI_LOGLEVEL` adjust the level of logging output to stderr.  Valid settings are\n  `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`\n\n\n#### Configuration Import Environment Variables\nLoading environment variables into the configuration is possible using the env name with an \n`env:` prefix, for example\n```yaml\n    header_overrides:\n      cookie: env:GCP_IAP_COOKIE\n``` \nIn this case the HTTP header override configuration value gets loaded from the `GCP_IAP_COOKIE` env value.\n\n\n## Usage\n```\nusage: eskbcli [-s <search>] [-o <filename>] [-sc <split-count>]\n               [-hc <hit-count>] [-np] [-D] [-k <kbn_version>] [-c <filename>]\n               [-d]\n\nElasticsearch Kibana CLI v0.1.0\n\noptional arguments:\n  -s <search>        The search_definition name from configuration to use and\n                     execute (hint: use -D to list).\n  -o <filename>      Filename to write output to, by default output it written\n                     to stdout.\n  -sc <split-count>  Number of splits to break the search into, overrides the\n                     config value if set (default:1).\n  -hc <hit-count>    Search hit count limit, overrides the config value if set\n                     min=1, max=10000 (default:10000).\n  -np, --noping      Do not ping the Kibana endpoint before using this\n                     connection (default: False).\n  -D, --defn         List the configured search_definitions sections in the\n                     config and immediately exit.\n  -k <kbn_version>   Kibana version override, useful in some debugging\n                     situations.\n  -c <filename>      Override the configuration file to read, else search for\n                     eskbcli.yml in common paths.\n  -d, --debug        Debug level logging output (default: False).\n\nThe Elasticsearch Kibana CLI provides a configurable shell interface to\nquery the Elasticsearch backend via the Kibana frontend which is useful in\nsituations where the Elasticsearch backend is not otherwise accessible.\nConfiguration options are available that permit HTTP request header overrides\nthat hence enable access to Kibana in more complex situations that may require\nadditional authentication such as when Kibana is behind an OAuth reverse\nproxy.\n```\n\n## Example\n\n```bash\n$ eskbcli -d -sc 10 -s example01 -o /tmp/example01.json\n20190922Z024453 - INFO - elasticsearch_kibana_cli\n20190922Z024453 - INFO - version 0.1.0\n20190922Z024453 - INFO - Loaded configuration filename /etc/eskbcli/eskbcli.yml\n20190922Z024453 - DEBUG - Using internal_proxy to connect https://kibana.internal\n20190922Z024454 - DEBUG - kbn_metadata read from cache file /tmp/elasticsearch_kibana_cli-connection-6140f131-metadata.cache\n20190922Z024454 - DEBUG - Connection definition setup http://127.0.0.1:59200\n20190922Z024500 - INFO - Ping okay http://127.0.0.1:59200\n20190922Z024501 - INFO - Search split into 10 requests based on \"range\" keyword\n20190922Z024502 - INFO - 2905 available-hits; 2905 returned-hits; 290 average-hits-per-split; 10 msearch-splits\n```\n\n****\n\n## Authors\n[Nicholas de Jong](https://nicholasdejong.com)\n\n## License\nBSD-2-Clause - see LICENSE file for full details.",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/ndejong/elasticsearch_kibana_cli",
+        "keywords": "kibana elasticsearch elasticsearch-client",
+        "license": "BSD 2-Clause",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ElasticsearchKibanaCli",
+        "package_url": "https://pypi.org/project/ElasticsearchKibanaCli/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ElasticsearchKibanaCli/",
+        "project_urls": {
+            "Homepage": "https://github.com/ndejong/elasticsearch_kibana_cli"
+        },
+        "release_url": "https://pypi.org/project/ElasticsearchKibanaCli/0.1.4/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "CLI interface to query Elasticsearch backend via the Kibana frontend.",
+        "version": "0.1.4"
+    },
+    "last_serial": 5899619,
+    "releases": {
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fbe22e2eaa635786a04ea95d0aeca772",
+                    "sha256": "4351a41df6c89fe2070d80ada4402d706dc2a973b92f04dc15d430ff29ddbd99"
+                },
+                "downloads": -1,
+                "filename": "ElasticsearchKibanaCli-0.1.3-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "fbe22e2eaa635786a04ea95d0aeca772",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 31393,
+                "upload_time": "2019-09-28T12:33:40",
+                "url": "https://files.pythonhosted.org/packages/26/9f/545d820bf0d837135cec7f756e568c00232d10b281ef4e060d3c8718b1e0/ElasticsearchKibanaCli-0.1.3-py3.6.egg"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6a144dbdaca9684218dbfbc84b06803b",
+                    "sha256": "25e6878f77055131cc0c18dce2094a16d3c802e30623a221e5a96e1077f40c75"
+                },
+                "downloads": -1,
+                "filename": "ElasticsearchKibanaCli-0.1.4-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "6a144dbdaca9684218dbfbc84b06803b",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 31389,
+                "upload_time": "2019-09-28T12:44:38",
+                "url": "https://files.pythonhosted.org/packages/73/cf/05ba3e72020c65b56b9907b2f7a246a566a2da740d4b658245b6d22c5c6e/ElasticsearchKibanaCli-0.1.4-py3.6.egg"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6a144dbdaca9684218dbfbc84b06803b",
+                "sha256": "25e6878f77055131cc0c18dce2094a16d3c802e30623a221e5a96e1077f40c75"
+            },
+            "downloads": -1,
+            "filename": "ElasticsearchKibanaCli-0.1.4-py3.6.egg",
+            "has_sig": false,
+            "md5_digest": "6a144dbdaca9684218dbfbc84b06803b",
+            "packagetype": "bdist_egg",
+            "python_version": "3.6",
+            "requires_python": null,
+            "size": 31389,
+            "upload_time": "2019-09-28T12:44:38",
+            "url": "https://files.pythonhosted.org/packages/73/cf/05ba3e72020c65b56b9907b2f7a246a566a2da740d4b658245b6d22c5c6e/ElasticsearchKibanaCli-0.1.4-py3.6.egg"
+        }
+    ]
+}

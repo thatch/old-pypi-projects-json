@@ -1,0 +1,195 @@
+{
+    "info": {
+        "author": "Daniil Minukhin",
+        "author_email": "ddddsa@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Documentation",
+            "Topic :: Utilities"
+        ],
+        "description": "![](https://img.shields.io/pypi/v/foliantcontrib.confluence_upload.svg)\n\n# confluence_upload backend for Foliant\n\nconfluence_upload backend generates a confluence article and uploads it into your confluence server. With it you can create and edit pages in Confluence based on your Foliant project.\n\nIt also has a feature of restoring the user inline comments, added for the article, even after the commented fragment was changed.\n\nThis backend adds the `confluence` target for your Foliant `make` command.\n\n## Installation\n\n```bash\n$ pip install foliantcontrib.confluence_upload\n```\n\n> confluence_upload backend requires [Pandoc](https://pandoc.org/) to be installed in your system. Pandoc is needed to convert Markdown into HTML.\n\n## Usage\n\nTo upload a Foliant project to Confluence server use `make confluence` command:\n\n```bash\n$ foliant make confluence\nParsing config... Done\nMaking confluence... Done\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nResult: https://my_confluence_server.org/pages/viewpage.action?pageId=123\n```\n\n## Config\n\nYou have to set up a config for this backend to work properly.\n\nSpecify all options in `backend_config.confluence_upload` section:\n\n```yaml\nbackend_config:\n  confluence_upload:\n    host: 'https://my_confluence_server.org'\n    login: user\n    password: pass\n    mode: single\n    toc: false\n    id: 124443\n    title: Title of the page\n    space_key: \"~user\"\n    parent_id: 124442\n    pandoc_path: pandoc\n```\n\n`host`\n:   **Required** Host of your confluence server.\n\n`login`\n:   Login of the user who has the rights to create and update pages. If login is not supplied, it will be prompted during build\n\n`password`\n:   Password of the user. If password is not supplied, it will be prompted during build\n\n`mode`\n:   One of: `single`, `multiple`. In single mode backend uploads the whole Foliant project into specified Confluence page. In multiple mode backend uploads several chapters into separate Confluecnce pages defined with metadata. More info in the **Modes** section. Default: `single`.\n\n`toc`\n:   Set to `true` to add table of contents into the beginning of the document. Default: `false`\n\n`id`\n:   ID of the page into which the content will be uploaded (use only with `single` mode). *Only for already existing pages*\n\n`title`\n:   Title of the page to be created or updated (use only with `single` mode).\n\n> Remember that titles of the pages in one space are unique in Confluence.\n\n`space_key`\n:   The key of the space where the page(s) will be created/edited.\n\n`parent_id`\n:   ID of the parent page under which the new one(s) should be created. *Only for not yet existing pages*.\n\n`pandoc_path`\n:   Path to Pandoc executable (Pandoc is used to convert Markdown into HTML).\n\n## Modes\n\nBackend confluence_upload can work in two modes:\n\n`single` \u2014 the whole project is flattened and uploaded into a single Confluence page;\n`multiple` \u2014 you may upload several chapters of your project into separate Confluence pages.\n\n### single mode\n\nTo use single mode first supply an option `mode: single` in foliant.yml, and then specify all the page properties (id or title & space) in the same foliant.yml config file. The project will be built, flattened into a single page and uploaded under the defined properties.\n\n### multiple mode\n\nWith the power of multiple mode you may create or update several Confluence pages with just one `make` command.\n\nTo switch on multiple mode, add an option `mode: multiple` to your foliant.yml file. Next, add properties defining the confluence page (like id or title & space) to the meta section of each chapter that you want to upload.\n\nMeta section is a YAML field-value section in the beginning of the document, which is defined like this:\n\n```yaml\n---\nfield: value\nfield2: value\n---\n\nYour chapter md-content\n```\n\nSo if you want to upload a chapter into confluence, add something like this into the beginning of it:\n\n```yaml\n---\ntitle: My confluence page\nspace_key: \"~user\"\nconfluence: true  # this is required\n---\n\nYou chapter md-content\n```\n\n> Notice that we've also added a `confluence: true` key, which is required for chapter to be uploaded. If the key is `false` or is not defined, confluence_upload backend will ignore this chapter.\n\nAfter you've added properties to every page you want to be uploaded, run the same `make confluence` command:\n\n```\n$ foliant make confluence\nParsing config... Done\nMaking confluence... Done\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nResult:\nhttps://my_confluence_server.org/pages/viewpage.action?pageId=1231\nhttps://my_confluence_server.org/pages/viewpage.action?pageId=1232\nhttps://my_confluence_server.org/pages/viewpage.action?pageId=1233\n```\n\n## Creating pages with confluence_upload\n\nIf you want a new page to be created for content in your Foliant project, just supply the title and the space key in the config. Remember that in Confluence page titles are unique inside one space. If you use a title of already existing page, confluence_upload will attempt to edit it and replace its content with your project.\n\nExample config for this situation is:\n\n```yaml\nbackend_config:\n  confluence_upload:\n    host: 'https://my_confluence_server.org'\n    login: user\n    password: pass\n    title: My unique title\n    space_key: \"~user\"\n```\n\nNow if you change the title in your config, confluence_upload will *create a new page with the new title*, the old one remaining intact.\n\nIf you want to change the title of your page, the answer is in the following section.\n\n## Updating pages with confluence_upload\n\nGenerally to update the page contents you may use the same config you used to create it (see previous section).\n\nAlso, you can just specify the id of your page, this way after build its contents will be updated.\n\n```yaml\nbackend_config:\n  confluence_upload:\n    host: 'https://my_confluence_server.org'\n    login: user\n    password: pass\n    id: 124443\n```\n\nThis is also *the only* way to edit a page title. If `title` param is specified, confluence_upload will attempt to change the page's title to the new one:\n\n```yaml\nbackend_config:\n  confluence_upload:\n    host: 'https://my_confluence_server.org'\n    login: user\n    password: pass\n    id: 124443\n    title: New unique title\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/foliant-docs/foliantcontrib.confluence_upload",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "foliantcontrib.confluence-upload",
+        "package_url": "https://pypi.org/project/foliantcontrib.confluence-upload/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/foliantcontrib.confluence-upload/",
+        "project_urls": {
+            "Homepage": "https://github.com/foliant-docs/foliantcontrib.confluence_upload"
+        },
+        "release_url": "https://pypi.org/project/foliantcontrib.confluence-upload/0.3.0/",
+        "requires_dist": [
+            "foliant (>=1.0.8)",
+            "confluence-rest-library",
+            "foliantcontrib.utils.combined-options (>=1.0.6)",
+            "foliantcontrib.meta (>=1.1.0)"
+        ],
+        "requires_python": "",
+        "summary": "Confluence backend for Foliant documentation generator.",
+        "version": "0.3.0"
+    },
+    "last_serial": 5714726,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d2de1a0ff00a07472b84a62ca3eda8c0",
+                    "sha256": "38b4384ca3cea59048eb25cc47e27d3938aeb5c68aa26e184a3b1c8947ecf92b"
+                },
+                "downloads": -1,
+                "filename": "foliantcontrib.confluence_upload-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d2de1a0ff00a07472b84a62ca3eda8c0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9787,
+                "upload_time": "2019-08-15T13:18:53",
+                "url": "https://files.pythonhosted.org/packages/ba/4e/fb623dea28e594997bc59026bea73cd14d55725c5fb42d6055e39a416ae0/foliantcontrib.confluence_upload-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e0a9ae4725d71acf350717ce0c26854",
+                    "sha256": "54ac8465322d45cbf35d94c53c184e0621debc2660d0ad4e31b586b776978856"
+                },
+                "downloads": -1,
+                "filename": "foliantcontrib.confluence_upload-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8e0a9ae4725d71acf350717ce0c26854",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7824,
+                "upload_time": "2019-08-15T13:18:56",
+                "url": "https://files.pythonhosted.org/packages/f6/17/726227036503e806aa396fdac54ad8907d84b7ed8817fec98efa03bc5590/foliantcontrib.confluence_upload-0.1.0.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa50786f3cdbca870fde7921c5d15be4",
+                    "sha256": "5a2a89e9a9caafc3ad22e958e1451bcd1e1ecbf083d20bbf3c921846006b9081"
+                },
+                "downloads": -1,
+                "filename": "foliantcontrib.confluence_upload-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "aa50786f3cdbca870fde7921c5d15be4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10801,
+                "upload_time": "2019-08-16T12:29:18",
+                "url": "https://files.pythonhosted.org/packages/48/5d/efc8a0e2f780e0f794e232704a0d517aa279b0a3ad1b4de88fa56deb7e5e/foliantcontrib.confluence_upload-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4cfda0c6b099fc2e141784c276c3e931",
+                    "sha256": "5d4f5a884a5ad22936c3a344b84016e9b7be319c3389a0e228da3533223fb5b5"
+                },
+                "downloads": -1,
+                "filename": "foliantcontrib.confluence_upload-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4cfda0c6b099fc2e141784c276c3e931",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10235,
+                "upload_time": "2019-08-16T12:29:19",
+                "url": "https://files.pythonhosted.org/packages/de/96/63fcbb73cb69f0d29277f98382a57b3bea9418fb7566148faa1ad3aeb98f/foliantcontrib.confluence_upload-0.2.0.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2578500d9b0cae62c377d645beb862f2",
+                    "sha256": "8aafec3abaa197a324497067c902706614cba883bcd4d17db86d4838201a0eed"
+                },
+                "downloads": -1,
+                "filename": "foliantcontrib.confluence_upload-0.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2578500d9b0cae62c377d645beb862f2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12941,
+                "upload_time": "2019-08-22T11:42:20",
+                "url": "https://files.pythonhosted.org/packages/7b/56/d3a49d7cd112dcfec86827130c8a8afe91b244ca147064041589c4fc021a/foliantcontrib.confluence_upload-0.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8749e1ea5992faaa4ad453247f55e7e7",
+                    "sha256": "eb6c3f96137e364538abce261d36d70256c4128d32d2ef26062f00c3dc1fa40c"
+                },
+                "downloads": -1,
+                "filename": "foliantcontrib.confluence_upload-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8749e1ea5992faaa4ad453247f55e7e7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12963,
+                "upload_time": "2019-08-22T11:42:21",
+                "url": "https://files.pythonhosted.org/packages/4c/6d/6bba50e4d962a3557f0bb24b278612429aa97874aab87955350599e67417/foliantcontrib.confluence_upload-0.3.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2578500d9b0cae62c377d645beb862f2",
+                "sha256": "8aafec3abaa197a324497067c902706614cba883bcd4d17db86d4838201a0eed"
+            },
+            "downloads": -1,
+            "filename": "foliantcontrib.confluence_upload-0.3.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2578500d9b0cae62c377d645beb862f2",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 12941,
+            "upload_time": "2019-08-22T11:42:20",
+            "url": "https://files.pythonhosted.org/packages/7b/56/d3a49d7cd112dcfec86827130c8a8afe91b244ca147064041589c4fc021a/foliantcontrib.confluence_upload-0.3.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8749e1ea5992faaa4ad453247f55e7e7",
+                "sha256": "eb6c3f96137e364538abce261d36d70256c4128d32d2ef26062f00c3dc1fa40c"
+            },
+            "downloads": -1,
+            "filename": "foliantcontrib.confluence_upload-0.3.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8749e1ea5992faaa4ad453247f55e7e7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12963,
+            "upload_time": "2019-08-22T11:42:21",
+            "url": "https://files.pythonhosted.org/packages/4c/6d/6bba50e4d962a3557f0bb24b278612429aa97874aab87955350599e67417/foliantcontrib.confluence_upload-0.3.0.tar.gz"
+        }
+    ]
+}

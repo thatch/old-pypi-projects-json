@@ -1,0 +1,92 @@
+{
+    "info": {
+        "author": "Christiaan Frans Rademan",
+        "author_email": "christiaan.rademan@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Other Environment",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Software Development",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Libraries :: Application Frameworks",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "Cinda \n=====\n\n.. INTRODUCTION\n\n   * GITHUB: https://github.com/cfrademan/cinda\n   * DOCS: https://cinda.readthedocs.io\n\nCinda is python library purpose built for performance enhancing and rapid development.\n\nOfficial Documentation: https://cinda.readthedocs.io\n\nThe Python Global Interpreter Lock or GIL, in simple words, is a mutex (or a lock) that\nallows only one thread to hold the control of the Python interpreter.\n\nThis means that only one thread can be in a state of execution at any point in time.\nThe impact of the GIL is not visible to developers who execute single-threaded programs,\nbut it can be a performance bottleneck in CPU-bound and multi-threaded code.\n\nPython Garbage collection is insanely fast, but comes at a cost, the GIL. \n\nTo develop applications that require many CPU cycles Python provides the multi-processing\ninterface. In short use Threading for IO bound tasks and Multiprocessing for CPU-bound tasks.\n\nThere is a cost of using multiple processes. generally on Linux when you fork a process its\nmemory shared and then copied when modified. This works great for providing new processes \ndata to process, however for long living process that listen on sockets and communicate with\nexternal systems its problematic. \n\nThe initial functionality provided by Cinda is to provide a high speed IPC mechanism to \nPython processes. Python provides well-known methods for inter-process communication \nfor example queues, arrays and dictionaries under the multiprocessing modules. However\nqueues and dictionaries uses pipes for (IPC) inter-process communication. Pipes are simple \nto implement and less error prone than shared memory but come at a huge cost of performance.\n\nDeveloping applications such as Radius Servers, Diameter with online charging, BGP Servers and\nso forth, it's better to use shared memory instead of pipes. \n\nCinda implements IPC to Python using C++ extension utilizing the Boost Library. At time of\nwriting this Priority Queues and HashMap (dict like object) is supported. Its ridiculously fast\ncompared to PIPES? Please share some of your own benchmarks. \n\nThere is still however much room for improvement. Forks and pull requests are welcome!\n\nHowever no Python interfaces may be modified that is not backwards compatible.\n\nThere are several other projects with due time that I (author) will share enhancing\nfunctionality in Cinda.\n\nThe goal is to build a clean redundant minimalistic set of utilities to enhance and \nspeed up the development of projects.\n\n.. INTRODUCTION_END\n\n\nInstallation\n============\n\n.. INSTALL\n\nCinda currently fully supports `CPython <https://www.python.org/downloads/>`__ 3.6, 3.7.\n\nHowever its required that Boost-Dev and Python-Dev is installed to compile the C++ modules\nfrom the source code.\n\nInstalling requires libboost 1.65 for C++ Extensions and Python Development Lib.\n\nFor ubuntu (dependencies):\n\n.. code:: bash\n  \n   $ sudo apt install libboost-dev\n   $ sudo apt install python3.6-dev\n\n\nCPython\n--------\n\nA Linux wheel is available on PyPI for Cinda. Installing it is as simple as:\n\n.. code:: bash\n\n    $ pip3 install cinda\n\nSource Code\n-----------\n\nCinda infrastructure and code is hosted on `GitHub <https://github.com/cfrademan/cinda>`_.\nMaking the code easy to browse, download, fork, etc. Pull requests are always welcome!\n\n\n\nClone the project like this:\n\n.. code:: bash\n\n    $ git clone https://github.com/cfrademan/cinda.git\n\nOnce you have cloned the repo or downloaded a tarball from GitHub, you\ncan install Cinda like this:\n                                                                                                                                     \n.. code:: bash\n\n    $ cd cinda\n    $ pip3 install .\n\nOr, if you want to edit the code, first fork the main repo, clone the fork\nto your development area, and then run the following to install it using\nsymbolic linking, so that when you change your code, the changes will be\nautomatically available to your app without having to reinstall the package.\n\n.. code:: bash\n\n    $ cd cinda\n    $ python3 setup.py develop\n\nYou can manually test changes to the cinda by switching to the\ndirectory of the cloned repo:\n\n.. code:: bash\n\n    $ python3 setup.py test\n\n.. INSTALL_END\n\n\nPerformance\n===========\n\n.. PERFORMANCE\n\nTested on Intel(R) Xeon(R) CPU E3-1230 V2 @ 3.30GHz, Linux supafly 4.15.0-43-generic.\n\nCode for testing can be founder in the project examples/ipc/benchmark,py. \n\nhttps://github.com/cfrademan/cinda/blob/development/examples/ipc/benchmark.py\n\n.. code:: bash\n\n   chris@supafly ~/cinda/examples/ipc $ python3 benchmark,py \n   Testing Python Multiprocessing ManagerProc Dict\n   Process Write TimeIt 7.448884831741452\n   Process Write TimeIt 7.453067159280181\n   Process Write TimeIt 7.476596485823393\n   Process Write TimeIt 7.489395551383495\n   Process Write TimeIt 7.493558116257191\n   Process Read TimeIt 7.8096244893968105\n   Process Read TimeIt 7.810131469741464\n   Process Read TimeIt 7.819799602031708\n   Process Read TimeIt 7.834312587976456\n   Process Read TimeIt 7.838284537196159\n\n   Testing Cinda IPC Shared Memory BytesHashMap\n   Process Write TimeIt 0.5695092435926199\n   Process Write TimeIt 0.634544812142849\n   Process Write TimeIt 0.644440770149231\n   Process Write TimeIt 0.6628841366618872\n   Process Write TimeIt 0.6642013378441334\n   Process Read TimeIt 0.09430501610040665\n   Process Read TimeIt 0.09872366487979889\n   Process Read TimeIt 0.09860793501138687\n   Process Read TimeIt 0.11371343210339546\n   Process Read TimeIt 0.11568485386669636\n\n   Testing Cinda IPC Shared Memory MarshalHashMap\n   Process Write TimeIt 0.6429912094026804\n   Process Write TimeIt 0.6462895330041647\n   Process Write TimeIt 0.652047535404563\n   Process Write TimeIt 0.6619368493556976\n   Process Write TimeIt 0.6631354801356792\n   Process Read TimeIt 0.10393285565078259\n   Process Read TimeIt 0.10288121178746223\n   Process Read TimeIt 0.10515406355261803\n   Process Read TimeIt 0.14985637925565243\n   Process Read TimeIt 0.15061700902879238\n\n   Testing Cinda IPC Shared Memory PickleHashMap\n   Process Write TimeIt 0.663259195163846\n   Process Write TimeIt 0.6763465963304043\n   Process Write TimeIt 0.6773215960711241\n   Process Write TimeIt 0.6775625180453062\n   Process Write TimeIt 0.6776355169713497\n   Process Read TimeIt 0.10989823006093502\n   Process Read TimeIt 0.11005309596657753\n   Process Read TimeIt 0.11120988056063652\n   Process Read TimeIt 0.14389001578092575\n   Process Read TimeIt 0.14684579707682133\n\n   Testing Python Multiprocessing ManagerProc Queue\n   Process Put TimeIt 8.764550460502505\n   Process Put TimeIt 8.777502439916134\n   Process Put TimeIt 8.780100751668215\n   Process Put TimeIt 8.79771844856441\n   Process Put TimeIt 8.805684883147478\n   Process Get TimeIt 8.13712152466178\n   Process Get TimeIt 8.14576594159007\n   Process Get TimeIt 8.152785202488303\n   Process Get TimeIt 8.165395500138402\n   Process Get TimeIt 8.176919411867857\n\n   Testing Cinda IPC Shared Memory BytesQueue\n   Process Put TimeIt 0.038119181990623474\n   Process Put TimeIt 0.036379482597112656\n   Process Put TimeIt 0.03740217350423336\n   Process Put TimeIt 0.04580538719892502\n   Process Put TimeIt 0.04590645805001259\n   Process Get TimeIt 0.02046872489154339\n   Process Get TimeIt 0.02243867702782154\n   Process Get TimeIt 0.022351514548063278\n   Process Get TimeIt 0.029324069619178772\n   Process Get TimeIt 0.028307735919952393\n\n   Testing Cinda IPC Shared Memory MarshalQueue\n   Process Put TimeIt 0.03750655800104141\n   Process Put TimeIt 0.0375794917345047\n   Process Put TimeIt 0.039278458803892136\n   Process Put TimeIt 0.04575969837605953\n   Process Put TimeIt 0.04546436294913292\n   Process Get TimeIt 0.02373518981039524\n   Process Get TimeIt 0.026909692212939262\n   Process Get TimeIt 0.028528844937682152\n   Process Get TimeIt 0.03202718310058117\n   Process Get TimeIt 0.032308030873537064\n\n   Testing Cinda IPC Shared Memory PickleQueue\n   Process Put TimeIt 0.04417615383863449\n   Process Put TimeIt 0.04408268630504608\n   Process Put TimeIt 0.04412900097668171\n   Process Put TimeIt 0.058660078793764114\n   Process Put TimeIt 0.057429904118180275\n   Process Get TimeIt 0.024475304409861565\n   Process Get TimeIt 0.024885986000299454\n   Process Get TimeIt 0.024551410228013992\n   Process Get TimeIt 0.041852761059999466\n   Process Get TimeIt 0.04202316142618656\n\n.. PERFORMANCE_END\n\n\nUsage Example\n=============\n\n.. EXAMPLES\n\nPlease refer to Documentation there are several important notes to keep in mind relating IPC:\n\n   https://cinda.readthedocs.io\n\n\nHashMap (dict like)\n-------------------\n\n* In the main process you define your Shared Memory Map and once you fork a process you can use it anywhere.\n* You provide a name for the Shared Memory and Size of the memory to map for usage.\n\nThere is also several types of Hashmaps provided in the IPC API Documentation.\n\n.. code:: python\n\n   from cinda.ipc import PickleHashMap\n   from cinda.ipc import free\n\n   free(\"MyDict\")\n   hm = PickleHashMap('MyDict', 65536)\n   hm.set('test', {'key1': 'value1'})\n   print(hm.get('test'))\n\n\nQueue\n-----\n\n* In the main process you define your Queue and once you fork a process you can use it anywhere.\n* You provide a name for the Shared Memory, Queue Length and Max Message size in bytes.\n\n.. code:: python\n\n   from cinda.ipc import PickleQueue\n   from cinda.ipc import free\n\n   free(\"MyQueue\")\n   hm = PickleQueue('MyQueue', 100, 65536)\n   hm.put('Hello World!')\n   print(hm.get())\n\n.. EXAMPLES_END\n\n\nTODO\n====\n\n.. TODO\n\nAny contributions and assistance in advancing the project are welcome. You may contact myself at christiaan.rademan@gmail.com or simply by logging an issue on the github. \n\nAs a minimal requirement all Python code should be PEP-8 compliant.\n\nhttps://github.com/cfrademan/cinda/issues\n\n   * Unit Testing for IPC.\n   * Iterator for HASHMAP.\n   * Cookbook? More examples.\n\n.. TODO_END",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://cinda.readthedocs.io",
+        "keywords": "",
+        "license": "BSD3-Clause",
+        "maintainer": "Christiaan Frans Rademan",
+        "maintainer_email": "christiaan.rademan@gmail.com",
+        "name": "cinda",
+        "package_url": "https://pypi.org/project/cinda/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/cinda/",
+        "project_urls": {
+            "Homepage": "https://cinda.readthedocs.io"
+        },
+        "release_url": "https://pypi.org/project/cinda/1.0.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "Fast Shared Memory IPC Dict & Queue for Python. Cinda Boosting your development...",
+        "version": "1.0.0"
+    },
+    "last_serial": 5357356,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f50ed5fb3c526b44d30eef76df17d1e2",
+                    "sha256": "2d51b31833b3885f7aa399202b296e7cb855cb933120aeffb969b3215bc8ce70"
+                },
+                "downloads": -1,
+                "filename": "cinda-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f50ed5fb3c526b44d30eef76df17d1e2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 30550,
+                "upload_time": "2019-06-04T13:18:25",
+                "upload_time_iso_8601": "2019-06-04T13:18:25.994971Z",
+                "url": "https://files.pythonhosted.org/packages/5f/de/75b305eadad1f9c8700478ca8ba24f06258b96e411c274d99cacf5e5f60f/cinda-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f50ed5fb3c526b44d30eef76df17d1e2",
+                "sha256": "2d51b31833b3885f7aa399202b296e7cb855cb933120aeffb969b3215bc8ce70"
+            },
+            "downloads": -1,
+            "filename": "cinda-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f50ed5fb3c526b44d30eef76df17d1e2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 30550,
+            "upload_time": "2019-06-04T13:18:25",
+            "upload_time_iso_8601": "2019-06-04T13:18:25.994971Z",
+            "url": "https://files.pythonhosted.org/packages/5f/de/75b305eadad1f9c8700478ca8ba24f06258b96e411c274d99cacf5e5f60f/cinda-1.0.0.tar.gz"
+        }
+    ]
+}

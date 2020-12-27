@@ -1,0 +1,84 @@
+{
+    "info": {
+        "author": "Chris Tippett",
+        "author_email": "c.tippett@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "Hangouts Chat Utils\n=============================================================\n\n[![PyPI version](https://img.shields.io/pypi/v/hangouts-chat-util.svg)](https://pypi.python.org/pypi/hangouts-chat-util)\n[![Build status](https://img.shields.io/travis/christippett/hangouts-chat-util.svg)](https://travis-ci.org/christippett/hangouts-chat-util)\n[![Coverage](https://img.shields.io/coveralls/github/christippett/hangouts-chat-util.svg)](https://coveralls.io/github/christippett/hangouts-chat-util?branch=master)\n[![Python versions](https://img.shields.io/pypi/pyversions/hangouts-chat-util.svg)](https://pypi.python.org/pypi/hangouts-chat-util)\n[![Github license](https://img.shields.io/github/license/christippett/hangouts-chat-util.svg)](https://github.com/christippett/hangouts-chat-util)\n\nDescription\n===========\n\nHelper Python classes for handling and responding to Hangouts Chat events.\n\nInstallation\n============\n\nInstall with `pip`:\n\n``` bash\npip install hangouts-chat-util\n```\n\nMessage Components\n=====\n\nThis library contains several component classes to assist with constructing a Hangouts Chat message.\n- `Message`\n- `Section`\n- `Card`\n- `CardAction`\n- `CardHeader`\n- `TextParagraph`\n- `KeyValue`\n- `Image`\n- `ButtonList`\n- `ImageButton`\n- `TextButton`\n\nExample\n-------\n\nUsing the [**Pizza Bot**](https://developers.google.com/hangouts/chat/reference/message-formats/cards#full_example_pizza_bot) example from the official Hangouts Chat API documentation, this is how you'd construct the same message using the components above.\n\n```python\nfrom hangouts_chat.message import (Message, Card, CardHeader, Section,\n    KeyValue, ButtonList, TextButton)\n\nmessage = Message()\nmessage.add_card(\n    Card(\n        CardHeader(\n            title='Pizza Bot Customer Support',\n            subtitle='pizzabot@example.com',\n            image_url='https://goo.gl/aeDtrS'),\n    Section(\n        KeyValue(top_label='Order No.', content='12345'),\n        KeyValue(top_label='Status', content='In Delivery')),\n    Section(\n        'Location',\n        Image(image_url='https://maps.googleapis.com/...')),\n    Section(\n        ButtonList(\n            TextButton(text='OPEN ORDER').add_link(url='https://example.com/orders/...')))))\n```\n\nThe raw message output is available from `message.output()`. After converting to JSON, the message looks like this:\n\n```javascript\n{\n    \"cards\": [\n        {\n            \"header\": {\n                \"imageUrl\": \"https://goo.gl/aeDtrS\",\n                \"subtitle\": \"pizzabot@example.com\",\n                \"title\": \"Pizza Bot Customer Support\"\n            },\n            \"sections\": [\n                {\n                    \"widgets\": [\n                        {\n                            \"keyValue\": {\n                                \"content\": \"12345\",\n                                \"topLabel\": \"Order No.\"\n                            }\n                        },\n                        {\n                            \"keyValue\": {\n                                \"content\": \"In Delivery\",\n                                \"topLabel\": \"Status\"\n                            }\n                        }\n                    ]\n                },\n                {\n                    \"header\": \"Location\",\n                    \"widgets\": [\n                        {\n                            \"image\": {\n                                \"imageUrl\": \"https://maps.googleapis.com/...\"\n                            }\n                        }\n                    ]\n                },\n                {\n                    \"widgets\": [\n                        {\n                            \"buttons\": [\n                                {\n                                    \"textButton\": {\n                                        \"onClick\": {\n                                            \"openLink\": {\n                                                \"url\": \"https://example.com/orders/...\"\n                                            }\n                                        },\n                                        \"text\": \"OPEN ORDER\"\n                                    }\n                                }\n                            ]\n                        }\n                    ]\n                }\n            ]\n        }\n    ]\n}\n```\n\nChat Handler\n============\n\nThe library also includes a class to help with handling incoming chat events. The methods contained in `HangoutsChatHandler` correspond to the different event types you can expect to receive. Each method should return a message response.\n\nExample\n-------\n\n```python\nfrom enum import Enum\n\nfrom hangouts_chat.handler import HangoutsChatHandler, SpaceType\nfrom hangouts_chat.message import Message\n\n\nclass ActionMethod(Enum):\n    BUTTON_CLICKED = auto()\n\n\nclass MyHangoutsChatHandler(HangoutsChatHandler):\n    ActionMethod = ActionMethod\n\n    def handle_added_to_space(self, space_type, event):\n        if space_type == SpaceType.DM:\n            return Message(text=\"Thanks DM'ing me!\")\n        elif space_type == SpaceType.ROOM:\n            return Message(text=\"Thanks adding me to your room!\")\n\n    def handle_message(self, message, event):\n        return Message(text=\"Thanks for your message!\")\n\n    def handle_card_clicked(self, action_method, action_parameters, event):\n        if action_method == ActionMethod.BUTTON_CLICKED:\n            return Message(text=\"I've processed your button click!\")\n\n    def handle_removed_from_space(self, event):\n        pass\n\n```",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/christippett/hangouts-chat-util",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "hangouts-chat-util",
+        "package_url": "https://pypi.org/project/hangouts-chat-util/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/hangouts-chat-util/",
+        "project_urls": {
+            "Homepage": "http://github.com/christippett/hangouts-chat-util"
+        },
+        "release_url": "https://pypi.org/project/hangouts-chat-util/18.8.0a0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Helper Python classes for handling and responding to Hangouts Chat events",
+        "version": "18.8.0a0"
+    },
+    "last_serial": 4148825,
+    "releases": {
+        "18.8.0a0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8779a907dd997a98e04e30d524d663d7",
+                    "sha256": "589866e8ff8b8641147d5c66442f03495ae4511e2d1b41d1019bb2c247bf17ec"
+                },
+                "downloads": -1,
+                "filename": "hangouts-chat-util-18.8.0a0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8779a907dd997a98e04e30d524d663d7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8125,
+                "upload_time": "2018-08-08T12:43:18",
+                "url": "https://files.pythonhosted.org/packages/41/22/47ee9b7f17049e1c848049fe06ff7a4c1a27f5e5027a0a1dc7f387237a24/hangouts-chat-util-18.8.0a0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8779a907dd997a98e04e30d524d663d7",
+                "sha256": "589866e8ff8b8641147d5c66442f03495ae4511e2d1b41d1019bb2c247bf17ec"
+            },
+            "downloads": -1,
+            "filename": "hangouts-chat-util-18.8.0a0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8779a907dd997a98e04e30d524d663d7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 8125,
+            "upload_time": "2018-08-08T12:43:18",
+            "url": "https://files.pythonhosted.org/packages/41/22/47ee9b7f17049e1c848049fe06ff7a4c1a27f5e5027a0a1dc7f387237a24/hangouts-chat-util-18.8.0a0.tar.gz"
+        }
+    ]
+}

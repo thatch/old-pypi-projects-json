@@ -1,0 +1,730 @@
+{
+    "info": {
+        "author": "mbello",
+        "author_email": "mbello@users.noreply.github.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8"
+        ],
+        "description": "# Overview\n\nThis module offers functions to run **DEEP** read and search_read queries on an ODOO instance,\nretrieving data from multiple models at once, in an efficient manner and using parallel execution\nof RPCs (for which it needs the odoorpc package).\n\nThe function to support **deep** queries can also be used as a building\nblock to support GraphQL or GraphQL-like querying.\n\nThis module also supports using a queries.ini file where you can save your query definitions.\n\n## TO-DO:\n\n- Extend the utils package to support GraphQL queries;\n- Write an *odoorpc_fast* class to speed-up RPC queries by using HTTP sessions and gzip encoding, getting\n  rid of odoorpc in the process;\n- Many, many potential functionalities... feel free to help writing and suggesting!\n\n## Example 1:\n\n    from odoorpc_utils import FastDeepQueries\n    import odoorpc\n\n    # Create a credentials.json file like shown below with your odoo details.\n    # {\n    #   \"odoo_server\": {\"host\": \"my.odoo.com\", \"protocol\": \"jsonrpc+ssl\", \"port\": 443, \"timeout\": 180, \"version\": \"13.0\"},\n    #   \"odoo_login\": {\"db\": \"mydb\", \"login\": \"mylogin\", \"password\": \"mypassword\"}\n    # }\n    with open(\"./credentials.json\", 'r') as fp:\n        cred = json.load(fp)\n    odoo = odoorpc.ODOO(**cred[\"odoo_server\"])\n    odoo.login(**cred[\"odoo_login\"])\n    \n    # pass an instance of logged-in odoorpc here\n    fdq = FastDeepQueries(odoo)\n    \n    # Let's get the id of 100 sales orders...\n    ids = fdq.query_fast(model_name='sale.order', limit=100)\n    \n    # The fields you want to retrieve are specified in this easy-to-understand syntax.\n    # 'fields' can also be a string\n    fields = ['number, date_confirmed, order_total',\n              'partner_id[name, address, zip, city, state, tax_number]',\n              'sale_order_line_ids[quantity, unit_price, total_price]',\n              'sale_order_line_ids.product_id[name, reference]']\n    \n    # Now let's make a deep query for 100 sales order and see how fast it is \n    # Nope, it will not be blazing fast, but MUCH faster \n    # than what you usually get from odoorpc...\n    res = fdq.query_deep(mode_name='sale.order', fields=fields, ids=ids, n_threads=8)\n    \n    # Done!\n    \n    # RPC is slow... but running queries in parallel speeds things up significantly\n    # (but it is still RPC)\n    \n    print(res)\n    \n    \n    ## Sample *queries.ini* file\n\n    [DEFAULT]\n    # acceptable values are all parameters of the query_deep function\n    # with the exception of fields_deep that MUST be provided by means of the\n    # fields *model name* and *fields*.\n    n_threads = 8\n    \n    # fields ending in _id can have one item or be empty (None).\n    # You may for them to always be a list (which will either be empty or have a single item in it).\n    force_list_for__id_fields = False\n    \n    [picking list report]\n    model name = sale.order\n    fields = number, date_confirmed, order_total\n    fields = partner_id[name, address, zip, city, state, tax_number]\n    fields = sale_order_line_ids[quantity, unit_price, total_price]\n    fields = sale_order_line_ids.product_id.[name,reference]",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mbello/odoorpc-utils",
+        "keywords": "odoorpc,odoorpc_utils,Odoo Python,Odoo RPC",
+        "license": "CC0-1.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "odoorpc-utils",
+        "package_url": "https://pypi.org/project/odoorpc-utils/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/odoorpc-utils/",
+        "project_urls": {
+            "Homepage": "https://github.com/mbello/odoorpc-utils",
+            "Repository": "https://github.com/mbello/odoorpc-utils"
+        },
+        "release_url": "https://pypi.org/project/odoorpc-utils/3.0.1/",
+        "requires_dist": [
+            "odoorpc (>=0.7.0,<0.8.0)"
+        ],
+        "requires_python": ">=3.6,<4.0",
+        "summary": "Utilities to make better use of OdooRPC",
+        "version": "3.0.1"
+    },
+    "last_serial": 6417599,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1b53d1dbe92585ac1d499c005d170c00",
+                    "sha256": "003a91734e5d19d5c91188a37801908357d1651a2335477f03d19f28c6e74137"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1b53d1dbe92585ac1d499c005d170c00",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 12407,
+                "upload_time": "2019-02-04T16:56:47",
+                "upload_time_iso_8601": "2019-02-04T16:56:47.759839Z",
+                "url": "https://files.pythonhosted.org/packages/03/62/986cc55a34aad652251f076dfee6f536861dbfaee5733e811da675a67447/odoorpc_utils-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f20eadb963c1b2583f31fd142dd1198e",
+                    "sha256": "fb082b0da13add0a9bb9dc1e8400db0cab0b6f06c076c1010b0bf323930c3cd4"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f20eadb963c1b2583f31fd142dd1198e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3974,
+                "upload_time": "2019-02-04T16:56:49",
+                "upload_time_iso_8601": "2019-02-04T16:56:49.845722Z",
+                "url": "https://files.pythonhosted.org/packages/99/be/0f1d3516ad97548f3f78f962dabb1d88f60bc44e9207865a27be2c02e95f/odoorpc_utils-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "387eedc75502c14fe0ac19ab8227032e",
+                    "sha256": "6affbc39cc031b2b38902e9be9147c2e8dac7da4defda0b4ec211e044e39d42d"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "387eedc75502c14fe0ac19ab8227032e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 12381,
+                "upload_time": "2019-02-04T17:01:16",
+                "upload_time_iso_8601": "2019-02-04T17:01:16.081712Z",
+                "url": "https://files.pythonhosted.org/packages/a5/9e/22a9940ebc18b943225919946c1ec4179893a550d22d4cce8bf0517043f0/odoorpc_utils-0.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d51868890b64bd86ca6a4a50c97a95cf",
+                    "sha256": "48360975d7e0e56feb814f4625773295f6fbd17c797477ad6b90db7a0959aef8"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d51868890b64bd86ca6a4a50c97a95cf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3931,
+                "upload_time": "2019-02-04T17:01:17",
+                "upload_time_iso_8601": "2019-02-04T17:01:17.706317Z",
+                "url": "https://files.pythonhosted.org/packages/a4/b5/3cd25d7cfed152d018eeeb2987c22f0808f8eaac2a322aca0979095faa91/odoorpc_utils-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7599eff86187bb37ff4252509f67cbe3",
+                    "sha256": "ee82259244cb6e355f8bc95d6b63a0c2d23e8fbb79347c5812633ae3434e6b20"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7599eff86187bb37ff4252509f67cbe3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 12355,
+                "upload_time": "2019-02-04T17:05:39",
+                "upload_time_iso_8601": "2019-02-04T17:05:39.772833Z",
+                "url": "https://files.pythonhosted.org/packages/2b/e1/4dab2c6b78a7ed90f0af30f34fa5cbbfa2deba1ccad14c9942440722b018/odoorpc_utils-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1b87741c064d7273710cbc72a645b15b",
+                    "sha256": "2dd23ea3a93c21b94d39e8423885c48d57ba47353763e928ea0c789556c0bcfb"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1b87741c064d7273710cbc72a645b15b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 3872,
+                "upload_time": "2019-02-04T17:05:41",
+                "upload_time_iso_8601": "2019-02-04T17:05:41.223287Z",
+                "url": "https://files.pythonhosted.org/packages/8f/fd/a21b0ad204338e055a817efab21022024b5c84c7ea8219ca101bc77d3e84/odoorpc_utils-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5114b3b552e5e936683fb85849d7e0d8",
+                    "sha256": "6c136042924f2fc0712eb1bb9d2b2858852c349fa1dc7a98e13f718efdb31ec4"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.1.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5114b3b552e5e936683fb85849d7e0d8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 13573,
+                "upload_time": "2019-02-05T05:05:36",
+                "upload_time_iso_8601": "2019-02-05T05:05:36.863461Z",
+                "url": "https://files.pythonhosted.org/packages/84/7e/41a5313e9715f9d95d6fb19171497aa9392938d86309039b83b75b813ea5/odoorpc_utils-0.1.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "095b5e75e1cb0a2927eac310ad137abb",
+                    "sha256": "0bcbfba502f4db12beebfe9cbf359a38de6eed1a6c7ddf2863e1c97cc007211c"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "095b5e75e1cb0a2927eac310ad137abb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 5219,
+                "upload_time": "2019-02-05T05:05:38",
+                "upload_time_iso_8601": "2019-02-05T05:05:38.200553Z",
+                "url": "https://files.pythonhosted.org/packages/8d/3e/20089a2dafdfdad5c7e722180176847966961c36792a144c9086737b91da/odoorpc_utils-0.1.3.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "31df76625b71c4710b52824be3d203f1",
+                    "sha256": "7f716cb6a345c44aba039d668e40163834d5e4635ac55f39b183f4947f16a0db"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "31df76625b71c4710b52824be3d203f1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 15434,
+                "upload_time": "2019-02-05T05:55:45",
+                "upload_time_iso_8601": "2019-02-05T05:55:45.670816Z",
+                "url": "https://files.pythonhosted.org/packages/30/6a/9397721d1c51b9cde18ecd1c0b265517f77189c2cd3ed443744869d7767b/odoorpc_utils-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0b7c6f2d2b9e91081e0798a7194f3cea",
+                    "sha256": "d81c76dff632e7d996e8c3bfbe6cda068cfa5bcfad9a5f369a36f270fa620af5"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0b7c6f2d2b9e91081e0798a7194f3cea",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 6212,
+                "upload_time": "2019-02-05T05:55:47",
+                "upload_time_iso_8601": "2019-02-05T05:55:47.490693Z",
+                "url": "https://files.pythonhosted.org/packages/75/d5/22e1cc19afc49a3921b245abf34879f55f1447ede95f7977c09856162f0e/odoorpc_utils-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5574b6b00d609accbc8105db2aa17ece",
+                    "sha256": "1773fab2e959bb19f1d645471b5035fc2fa40e0cb3f55ace05a8c88d4306e180"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5574b6b00d609accbc8105db2aa17ece",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 15433,
+                "upload_time": "2019-02-05T06:04:18",
+                "upload_time_iso_8601": "2019-02-05T06:04:18.591869Z",
+                "url": "https://files.pythonhosted.org/packages/f9/47/bc60ea1a712ef82484209d88387cb9cd3e87dd8add3285790dd88e2c4446/odoorpc_utils-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9699e7b7796434d69d52b3374f60264c",
+                    "sha256": "cf36094c7ec22b776f21a205a1fd1d50a3a1b79a5c075b37a68a84a26f165b4e"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9699e7b7796434d69d52b3374f60264c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 6209,
+                "upload_time": "2019-02-05T06:04:20",
+                "upload_time_iso_8601": "2019-02-05T06:04:20.333530Z",
+                "url": "https://files.pythonhosted.org/packages/1f/eb/6097f0c86f770d741cbb3476573417e58a515394f9ba4d2585b09774771e/odoorpc_utils-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "15ce70774791c2cdc49495730cbc8f72",
+                    "sha256": "fb54eca1d54a78c314d2b0302d3a02784a350d6fb147e4c9bd7dbff1687d2cab"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-0.2.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "15ce70774791c2cdc49495730cbc8f72",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 15475,
+                "upload_time": "2019-02-28T17:23:18",
+                "upload_time_iso_8601": "2019-02-28T17:23:18.862784Z",
+                "url": "https://files.pythonhosted.org/packages/90/90/a563ec83904b7e913809c32b6ae70a36e097e031ddb0955edcce59f16641/odoorpc_utils-0.2.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5ea97cb257a58dcf2b51d37238d6ee08",
+                    "sha256": "f6a14ff579675b636e0949602895ed1a64a97d095daa254bcd1570bd18cb3658"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5ea97cb257a58dcf2b51d37238d6ee08",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 6223,
+                "upload_time": "2019-02-28T17:23:17",
+                "upload_time_iso_8601": "2019-02-28T17:23:17.216562Z",
+                "url": "https://files.pythonhosted.org/packages/1d/c8/5e38050f19b4d97a87a316d6c2126362847b08d621dbf5049a7637ac9158/odoorpc-utils-0.2.2.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9b865d6bbc4e831cf6a2c6831a844244",
+                    "sha256": "b46b252a7919c2187f83099f91c519ed9c670c6ceb975f5aa9d46bc9a4c4ca51"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9b865d6bbc4e831cf6a2c6831a844244",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 15632,
+                "upload_time": "2019-02-28T19:21:31",
+                "upload_time_iso_8601": "2019-02-28T19:21:31.792286Z",
+                "url": "https://files.pythonhosted.org/packages/9d/cf/457f827820510518a6b3bc9aea25e1e0316d0355fbf34cf9c8186cb325bf/odoorpc_utils-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b8675393099def6d540550ee7040d5ac",
+                    "sha256": "3422a16e5da8f1a886293f222357a825a7bf630309025a752d8d367815094724"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b8675393099def6d540550ee7040d5ac",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 6296,
+                "upload_time": "2019-02-28T19:21:29",
+                "upload_time_iso_8601": "2019-02-28T19:21:29.925842Z",
+                "url": "https://files.pythonhosted.org/packages/67/53/623e93ac41a61ba58af0a88940892af64077aa636fbacdf324e682ace085/odoorpc-utils-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d6602cf95e6d49e367a83ab099cb4fd",
+                    "sha256": "6061ec8044d72b3285dbadde1643d2619fa6669c2788e329bf26a8f18f3c8776"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-1.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4d6602cf95e6d49e367a83ab099cb4fd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 15516,
+                "upload_time": "2019-03-01T16:26:49",
+                "upload_time_iso_8601": "2019-03-01T16:26:49.598602Z",
+                "url": "https://files.pythonhosted.org/packages/98/ca/22ee408b7918e40a9341b60fe9a6fa58541479cccf6fba1bd33358bbb218/odoorpc_utils-1.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ada60ac5c3990e0da5c6db6b2c98ce8b",
+                    "sha256": "fbb5acf37c8bd62219447e0cd549cd95ad20c63c87653f8fddba8e9c94152e09"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ada60ac5c3990e0da5c6db6b2c98ce8b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 6438,
+                "upload_time": "2019-03-01T16:26:47",
+                "upload_time_iso_8601": "2019-03-01T16:26:47.650350Z",
+                "url": "https://files.pythonhosted.org/packages/31/b1/520aacda119241b1efe5664ee5cccf8cbd884020346233fcffd8028a814d/odoorpc-utils-1.0.3.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6836b1df88bbe73a5be5cba75aa0ddf1",
+                    "sha256": "aba07cdd8eb8c2a4581f0ebdddb08a948249d20b77cfd6fc1564aaa99919e1ad"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-1.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6836b1df88bbe73a5be5cba75aa0ddf1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 15556,
+                "upload_time": "2019-03-01T16:31:12",
+                "upload_time_iso_8601": "2019-03-01T16:31:12.063406Z",
+                "url": "https://files.pythonhosted.org/packages/e3/53/6a0ca0f8ab4d318f94fe40f9cbd058d598fe552c01f4ac78f049026e3b0f/odoorpc_utils-1.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94c14d1e9e8dad0eb50e00e1c2235d08",
+                    "sha256": "8917820e92ebd37d37fc1e566f27ca88fcc61dd23a03280e1553801a58b75236"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-1.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "94c14d1e9e8dad0eb50e00e1c2235d08",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 6448,
+                "upload_time": "2019-03-01T16:31:10",
+                "upload_time_iso_8601": "2019-03-01T16:31:10.313593Z",
+                "url": "https://files.pythonhosted.org/packages/da/15/31b1d5facd686bc9133ed699d64d076758ab9e362146b2e75f20ed79f0f0/odoorpc-utils-1.0.4.tar.gz"
+            }
+        ],
+        "1.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78c850fe20f01a58485c3f0b01bbfb9a",
+                    "sha256": "5f23d8608ebda5ee982fc18fb52bd212148d2d30612d2ec7728b38b584cdff97"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-1.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "78c850fe20f01a58485c3f0b01bbfb9a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 15721,
+                "upload_time": "2019-03-01T16:41:17",
+                "upload_time_iso_8601": "2019-03-01T16:41:17.149000Z",
+                "url": "https://files.pythonhosted.org/packages/15/04/b46d17db2193e38d85a8ef5c9c3bea6a04708efdcc21a4c55b04b3db5cb3/odoorpc_utils-1.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14a6bcaf2e8c6a2d104341683230f3a0",
+                    "sha256": "70ff6070729d9a78016e4d4841e6da8a9852ebdd0bd0a97536bd84074458df52"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-1.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "14a6bcaf2e8c6a2d104341683230f3a0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 6475,
+                "upload_time": "2019-03-01T16:41:15",
+                "upload_time_iso_8601": "2019-03-01T16:41:15.402338Z",
+                "url": "https://files.pythonhosted.org/packages/cd/0d/606d0233adbc6616d3a138672364dadc3aaff5042b2cbec3017c4d0d96df/odoorpc-utils-1.0.5.tar.gz"
+            }
+        ],
+        "1.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4dffd43654cd1d06ac9bca8b85fdb32b",
+                    "sha256": "406443b743a7dccd85d6f793c301fb96781dfce394eebefb5f39c23ced7a190e"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-1.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4dffd43654cd1d06ac9bca8b85fdb32b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 16493,
+                "upload_time": "2019-03-15T23:56:43",
+                "upload_time_iso_8601": "2019-03-15T23:56:43.397509Z",
+                "url": "https://files.pythonhosted.org/packages/24/5a/2bc006a612322c20ce767a914f2fcc62343a0efc0f6584a40e4bd686e515/odoorpc_utils-1.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dcdd0eb7c6a7f271b6245258e2da66b7",
+                    "sha256": "d4bac74f2eb3a446ba6655b92c947cd00653d946d7ba88209a73383fc572166d"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-1.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dcdd0eb7c6a7f271b6245258e2da66b7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 6612,
+                "upload_time": "2019-03-15T23:56:41",
+                "upload_time_iso_8601": "2019-03-15T23:56:41.902607Z",
+                "url": "https://files.pythonhosted.org/packages/4e/2e/4e597058c33fd251645e07e58492165d876efbf39a7d96d008c23bacb243/odoorpc-utils-1.0.6.tar.gz"
+            }
+        ],
+        "1.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d82532619b3b3c12667a136f24197797",
+                    "sha256": "bb95668265bfc1407f7915f30b2cc34428c663b19144a8bf46928845e07afdb6"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-1.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d82532619b3b3c12667a136f24197797",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 16488,
+                "upload_time": "2019-04-11T12:34:45",
+                "upload_time_iso_8601": "2019-04-11T12:34:45.410320Z",
+                "url": "https://files.pythonhosted.org/packages/b4/14/6663f83eb613ccaca7de686fe0020b91080697c1dadedf08cdb9a55ca8a9/odoorpc_utils-1.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3d3a88c056c85b9580e1a70ab827693a",
+                    "sha256": "90716c2b90af03b31df2f910c7b9452f7b1b93fdf5aab7b5b629b29c2f39a985"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-1.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3d3a88c056c85b9580e1a70ab827693a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 6619,
+                "upload_time": "2019-04-11T12:34:43",
+                "upload_time_iso_8601": "2019-04-11T12:34:43.417719Z",
+                "url": "https://files.pythonhosted.org/packages/76/68/7d4a26ed747cc26c2e983896660aeadab095e71c23a817949ea0ea006c0f/odoorpc-utils-1.0.7.tar.gz"
+            }
+        ],
+        "1.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0a938ad9538d7d5828f3b193b19fc848",
+                    "sha256": "3a5cf65df1aa23a4b26462c5ecb04874bdb60328d9ef62caeffdf1032f1f5393"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-1.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0a938ad9538d7d5828f3b193b19fc848",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 16864,
+                "upload_time": "2019-12-12T14:07:36",
+                "upload_time_iso_8601": "2019-12-12T14:07:36.046123Z",
+                "url": "https://files.pythonhosted.org/packages/31/c6/4f0b171067b8f5068dca82be5bac3ded22e04ae28d7bf19dfae71cbd3ded/odoorpc_utils-1.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bb837328c358c81b434f0c9a6e8f1d41",
+                    "sha256": "d14784b0e8ce281e146043f751fc3057898a240e2e1f4a29a8eca95948250e51"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-1.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bb837328c358c81b434f0c9a6e8f1d41",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 6735,
+                "upload_time": "2019-12-12T14:07:34",
+                "upload_time_iso_8601": "2019-12-12T14:07:34.260748Z",
+                "url": "https://files.pythonhosted.org/packages/82/12/0eb24d2428e200d0555ed0b03ae837cab8bb7bbbd628ae55649e5a483c74/odoorpc-utils-1.0.8.tar.gz"
+            }
+        ],
+        "2.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca3f5b7165deb34f277ad6c088f41e38",
+                    "sha256": "c946a3c8367b792f8ef37f7b65cfddb9bb6f092fc406841a5313502269c3ebd1"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-2.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ca3f5b7165deb34f277ad6c088f41e38",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 7524,
+                "upload_time": "2019-12-18T02:58:59",
+                "upload_time_iso_8601": "2019-12-18T02:58:59.766295Z",
+                "url": "https://files.pythonhosted.org/packages/c8/59/7d2be398f7213dca9bd75feae89407bb526f521662be5b2ff284fb01a022/odoorpc_utils-2.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b1ceab41b408d9678eaa9dcac6be1e4e",
+                    "sha256": "2c220e3c3e7122700560523dc1a982ad95a8d3fea7efebe94ccb9b7692afe702"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-2.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b1ceab41b408d9678eaa9dcac6be1e4e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 7418,
+                "upload_time": "2019-12-18T02:58:57",
+                "upload_time_iso_8601": "2019-12-18T02:58:57.638119Z",
+                "url": "https://files.pythonhosted.org/packages/97/b9/21fe251566b24922c8e3b9d4194419b9226cabd18403a8fac963491d573c/odoorpc-utils-2.0.0.tar.gz"
+            }
+        ],
+        "2.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14e53f2b1c5106b6f463175da3ed935a",
+                    "sha256": "2a14ed402571e5df48f56d98c5613d2683ad761158541de8446c1a59686e2a18"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-2.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "14e53f2b1c5106b6f463175da3ed935a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 7521,
+                "upload_time": "2019-12-18T16:16:01",
+                "upload_time_iso_8601": "2019-12-18T16:16:01.478591Z",
+                "url": "https://files.pythonhosted.org/packages/8c/73/388f0f9a4a1d1a20ece36c7a82024d9bbdcc0445d5714846401abc8afb4d/odoorpc_utils-2.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b73ff1a81e2127c90bbbd1cf1bb20e7e",
+                    "sha256": "d2fa7f08d715e76fafb60a762c8b7d13ba38a0f41231404c2d0869e8c15834d6"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-2.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b73ff1a81e2127c90bbbd1cf1bb20e7e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 7416,
+                "upload_time": "2019-12-18T16:16:00",
+                "upload_time_iso_8601": "2019-12-18T16:16:00.082779Z",
+                "url": "https://files.pythonhosted.org/packages/d3/e9/a0bdb480f0378d6820be1bcf44267231551a675d293e3915ad0af4f407c1/odoorpc-utils-2.0.1.tar.gz"
+            }
+        ],
+        "3.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "00901f95ac3e2fceea84aff62b8a1351",
+                    "sha256": "3a7c568a827993a068268468fb3fad2a51dff429bed129036c4163fd356381c4"
+                },
+                "downloads": -1,
+                "filename": "odoorpc_utils-3.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "00901f95ac3e2fceea84aff62b8a1351",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6,<4.0",
+                "size": 7313,
+                "upload_time": "2020-01-08T21:05:52",
+                "upload_time_iso_8601": "2020-01-08T21:05:52.477039Z",
+                "url": "https://files.pythonhosted.org/packages/54/da/c15c5f446a284432d06a8ec17cbb4eaeb9d422f7a9ce3b9c3907ef556af1/odoorpc_utils-3.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "112a5a52aefa25a37bdac7d5c8941b77",
+                    "sha256": "c9866674a81d8f8488cf1e81c9a93ca994a18d59cbb33afa9184043844112259"
+                },
+                "downloads": -1,
+                "filename": "odoorpc-utils-3.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "112a5a52aefa25a37bdac7d5c8941b77",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6,<4.0",
+                "size": 7153,
+                "upload_time": "2020-01-08T21:05:51",
+                "upload_time_iso_8601": "2020-01-08T21:05:51.050827Z",
+                "url": "https://files.pythonhosted.org/packages/8a/77/ebae86be190ee077359ae07bfb81703283d445eaa05b3607b4070ccbb68a/odoorpc-utils-3.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "00901f95ac3e2fceea84aff62b8a1351",
+                "sha256": "3a7c568a827993a068268468fb3fad2a51dff429bed129036c4163fd356381c4"
+            },
+            "downloads": -1,
+            "filename": "odoorpc_utils-3.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "00901f95ac3e2fceea84aff62b8a1351",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6,<4.0",
+            "size": 7313,
+            "upload_time": "2020-01-08T21:05:52",
+            "upload_time_iso_8601": "2020-01-08T21:05:52.477039Z",
+            "url": "https://files.pythonhosted.org/packages/54/da/c15c5f446a284432d06a8ec17cbb4eaeb9d422f7a9ce3b9c3907ef556af1/odoorpc_utils-3.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "112a5a52aefa25a37bdac7d5c8941b77",
+                "sha256": "c9866674a81d8f8488cf1e81c9a93ca994a18d59cbb33afa9184043844112259"
+            },
+            "downloads": -1,
+            "filename": "odoorpc-utils-3.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "112a5a52aefa25a37bdac7d5c8941b77",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6,<4.0",
+            "size": 7153,
+            "upload_time": "2020-01-08T21:05:51",
+            "upload_time_iso_8601": "2020-01-08T21:05:51.050827Z",
+            "url": "https://files.pythonhosted.org/packages/8a/77/ebae86be190ee077359ae07bfb81703283d445eaa05b3607b4070ccbb68a/odoorpc-utils-3.0.1.tar.gz"
+        }
+    ]
+}

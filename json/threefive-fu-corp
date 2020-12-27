@@ -1,0 +1,155 @@
+{
+    "info": {
+        "author": "fu-corp",
+        "author_email": "spam@futzu.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# threefive\n\n\n## SCTE35 parsing. \n\n\n### The Spec\n* https://www.scte.org/SCTEDocs/Standards/ANSI_SCTE%2035%202019r1.pdf\n\n\n## Dependencies\n* Python 3\n* bitstring\n\n## Install\n```go\npip install bitstring\ngit clone https://github.com/futzu/threefive.git\n```\n## Run\n* base64 encoded messages\n```python3\n>>> import threefive\n>>> mesg='/DBhAAAAAAAA///wBQb+qM1E7QBLAhdDVUVJSAAArX+fCAgAAAAALLLXnTUCAAIXQ1VFSUgAACZ/nwgIAAAAACyy150RAAACF0NVRUlIAAAnf58ICAAAAAAsstezEAAAihiGnw=='\n>>> splice=threefive.Splice(mesg)\n>>> splice.show_command()\n\n[ Splice Command ]\nsplice_type : 6\nname : Time Signal\ntime_specified_flag : True\npts_time : 31466.942367\n\n```\n* hex encoded messages\n```python3\n>>> import threefive\n>>> mesg= '0xfc3061000000000000fffff00506fea8cd44ed004b021743554549480000ad7f9f0808000000002cb2d79d350200021743554549480000267f9f0808000000002cb2d79d110000021743554549480000277f9f0808000000002cb2d7b31000008a18869f'\n>>> h_splice=threefive.Splice(mesg)\n>>> h_splice.show_info_section() \n\n[ Splice Info Section ]\ntable_id : 0xfc\nsection_syntax_indicator : False\nprivate : False\nreserved : 3\nsection_length : 97\nprotocol_version : 0\nencrypted_packet : False\nencryption_algorithm : 0\npts_adjustment : 0\ncw_index : 0xff\ntier : 0xfff\nsplice_command_length : 5\nsplice_command_type : 6\ndescriptor_loop_length : 75\n```\n\n### Usage\n* splice.show_info_section()\n```python3\n>>> import threefive\n>>> mesg='/DBhAAAAAAAA///wBQb+qM1E7QBLAhdDVUVJSAAArX+fCAgAAAAALLLXnTUCAAIXQ1VFSUgAACZ/nwgIAAAAACyy150RAAACF0NVRUlIAAAnf58ICAAAAAAsstezEAAAihiGnw=='\n>>> splice=threefive.Splice(mesg)\n>>> splice.show_info_section()\n\n[ Splice Info Section ]\ntable_id : 0xfc\nsection_syntax_indicator : False\nprivate : False\nreserved : 3\nsection_length : 97\nprotocol_version : 0\nencrypted_packet : False\nencryption_algorithm : 0\npts_adjustment : 0\ncw_index : 0xff\ntier : 0xfff\nsplice_command_length : 5\nsplice_command_type : 6\ndescriptor_loop_length : 75\n\n```\n* splice.show_command()\n```python3\n>>> import threefive\n>>> mesg='/DBhAAAAAAAA///wBQb+qM1E7QBLAhdDVUVJSAAArX+fCAgAAAAALLLXnTUCAAIXQ1VFSUgAACZ/nwgIAAAAACyy150RAAACF0NVRUlIAAAnf58ICAAAAAAsstezEAAAihiGnw=='\n>>> splice=threefive.Splice(mesg)\n>>> splice.show_command()\n\n[ Splice Command ]\nsplice_type : 6\nname : Time Signal\ntime_specified_flag : True\npts_time : 31466.942367\n\n```\n* splice.show_descriptors()\n```python3\n>> import threefive\n>>> mesg='/DBhAAAAAAAA///wBQb+qM1E7QBLAhdDVUVJSAAArX+fCAgAAAAALLLXnTUCAAIXQ1VFSUgAACZ/nwgIAAAAACyy150RAAACF0NVRUlIAAAnf58ICAAAAAAsstezEAAAihiGnw=='\n>>> stuff=threefive.Splice(mesg)\n>>> stuff.show_descriptors()\n\n[ Splice Descriptor  0  ]\nname : Segmentation Descriptor\nsplice_descriptor_tag : 2\ndescriptor_length : 23\nidentifier : CUEI\nsegmentation_event_id : 0x480000ad\nsegmentation_event_cancel_indicator : False\nprogram_segmentation_flag : True\nsegmentation_duration_flag : False\ndelivery_not_restricted_flag : False\nweb_delivery_allowed_flag : True\nno_regional_blackout_flag : True\narchive_allowed_flag : True\ndevice_restrictions : 0x3\nsegmentation_upid_type : 8\nsegmentation_upid_length : 8\nturner_identifier : 0x000000002cb2d79d\nsegmentation_type_id : 53\nsegment_num : 2\nsegments_expected : 0\n\n[ Splice Descriptor  1  ]\nname : Segmentation Descriptor\nsplice_descriptor_tag : 2\ndescriptor_length : 23\nidentifier : CUEI\nsegmentation_event_id : 0x48000026\nsegmentation_event_cancel_indicator : False\nprogram_segmentation_flag : True\nsegmentation_duration_flag : False\ndelivery_not_restricted_flag : False\nweb_delivery_allowed_flag : True\nno_regional_blackout_flag : True\narchive_allowed_flag : True\ndevice_restrictions : 0x3\nsegmentation_upid_type : 8\nsegmentation_upid_length : 8\nturner_identifier : 0x000000002cb2d79d\nsegmentation_type_id : 17\nsegment_num : 0\nsegments_expected : 0\n\n[ Splice Descriptor  2  ]\nname : Segmentation Descriptor\nsplice_descriptor_tag : 2\ndescriptor_length : 23\nidentifier : CUEI\nsegmentation_event_id : 0x48000027\nsegmentation_event_cancel_indicator : False\nprogram_segmentation_flag : True\nsegmentation_duration_flag : False\ndelivery_not_restricted_flag : False\nweb_delivery_allowed_flag : True\nno_regional_blackout_flag : True\narchive_allowed_flag : True\ndevice_restrictions : 0x3\nsegmentation_upid_type : 8\nsegmentation_upid_length : 8\nturner_identifier : 0x000000002cb2d7b3\nsegmentation_type_id : 16\nsegment_num : 0\nsegments_expected : 0\n\n```\n\n### Show all values\n```python3\n\n>>> import threefive                \n>>> mesg='/DBIAAAAAAAA///wBQb+ky44CwAyAhdDVUVJSAAACn+fCAgAAAAALKCh4xgAAAIXQ1VFSUgAAAl/nwgIAAAAACygoYoRAAC0IX6w')\n>>> fu=threefive.Splice(mesg)\n>>> fu.show()\n\n[ Splice Info Section ]\ntable_id : 0xfc\nsection_syntax_indicator : False\nprivate : False\nreserved : 3\nsection_length : 72\nprotocol_version : 0\nencrypted_packet : False\nencryption_algorithm : 0\npts_adjustment : 0\ncw_index : 0xff\ntier : 0xfff\nsplice_command_length : 5\nsplice_command_type : 6\ndescriptor_loop_length : 50\n\n[ Splice Command ]\nsplice_type : 6\nname : Time Signal\ntime_specified_flag : True\npts_time : 27436.441722\n\n[ Splice Descriptor  0  ]\nname : Segmentation Descriptor\nsplice_descriptor_tag : 2\ndescriptor_length : 23\nidentifier : CUEI\nsegmentation_event_id : 0x4800000a\nsegmentation_event_cancel_indicator : False\nprogram_segmentation_flag : True\nsegmentation_duration_flag : False\ndelivery_not_restricted_flag : False\nweb_delivery_allowed_flag : True\nno_regional_blackout_flag : True\narchive_allowed_flag : True\ndevice_restrictions : 0x3\nsegmentation_upid_type : 8\nsegmentation_upid_length : 8\nturner_identifier : 0x000000002ca0a1e3\nsegmentation_type_id : 24\nsegment_num : 0\nsegments_expected : 0\n\n[ Splice Descriptor  1  ]\nname : Segmentation Descriptor\nsplice_descriptor_tag : 2\ndescriptor_length : 23\nidentifier : CUEI\nsegmentation_event_id : 0x48000009\nsegmentation_event_cancel_indicator : False\nprogram_segmentation_flag : True\nsegmentation_duration_flag : False\ndelivery_not_restricted_flag : False\nweb_delivery_allowed_flag : True\nno_regional_blackout_flag : True\narchive_allowed_flag : True\ndevice_restrictions : 0x3\nsegmentation_upid_type : 8\nsegmentation_upid_length : 8\nturner_identifier : 0x000000002ca0a18a\nsegmentation_type_id : 17\nsegment_num : 0\nsegments_expected : 0\n\n```\n### Read individual values\n\n```python3\nimport threefive\nmesg='/DAvAAAAAAAA///wFAVIAACPf+/+c2nALv4AUsz1AAAAAAAKAAhDVUVJAAABNWLbowo='\nscte_data=threefive.Splice(mesg)\n\n>>> scte_data.command.name    \n'Splice Insert'\n>>> scte_data.command.splice_immediate_flag\nFalse\n>>> scte_data.command.pts_time\n'21514.559089'\n>>> scte_data.command.break_duration\n'60.293567'\n\n\n\n\n\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/futzu/threefive",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "threefive-fu-corp",
+        "package_url": "https://pypi.org/project/threefive-fu-corp/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/threefive-fu-corp/",
+        "project_urls": {
+            "Homepage": "https://github.com/futzu/threefive"
+        },
+        "release_url": "https://pypi.org/project/threefive-fu-corp/0.0.3/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "scte 35 parsing tools",
+        "version": "0.0.3"
+    },
+    "last_serial": 6107114,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b1e52696b75c6739165b736f9a2bcd34",
+                    "sha256": "01df59993c4f1be35d39bd04fdefa408e92587d58440e580b5670140c094ade5"
+                },
+                "downloads": -1,
+                "filename": "threefive_fu_corp-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b1e52696b75c6739165b736f9a2bcd34",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 5872,
+                "upload_time": "2019-11-09T13:18:57",
+                "upload_time_iso_8601": "2019-11-09T13:18:57.121873Z",
+                "url": "https://files.pythonhosted.org/packages/58/3a/351643b38f07c8281826fe74db81d03ec49733148219c0794fce39bb6ef8/threefive_fu_corp-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e5ea4255bb8c787380d0e2a404fd092e",
+                    "sha256": "0ea839671b8f445abe233382e7f7df6a0e83064d40864ed5445f0009a00ffcc2"
+                },
+                "downloads": -1,
+                "filename": "threefive-fu-corp-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e5ea4255bb8c787380d0e2a404fd092e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4858,
+                "upload_time": "2019-11-09T13:18:59",
+                "upload_time_iso_8601": "2019-11-09T13:18:59.323581Z",
+                "url": "https://files.pythonhosted.org/packages/b6/43/1eb4968c151b4dba499aac14872d6618efe7d2683ba5b10d18544d5936e0/threefive-fu-corp-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cf495509dc2110de8e212c2bcfadc36b",
+                    "sha256": "61472bce09fda8e9c362e1ba7fba6e69c47012a145f5cee03943022d310d7ac7"
+                },
+                "downloads": -1,
+                "filename": "threefive_fu_corp-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "cf495509dc2110de8e212c2bcfadc36b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 5857,
+                "upload_time": "2019-11-09T13:31:01",
+                "upload_time_iso_8601": "2019-11-09T13:31:01.668815Z",
+                "url": "https://files.pythonhosted.org/packages/27/47/c46718ee6eeaf348878069ba053a346ec3be5501f8f8fa26849b26ab0fe8/threefive_fu_corp-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4592fbbc5a0f0599e071fffd4ce2e607",
+                    "sha256": "05a42474c93eb8a8463d9049fc1f3f31e47aef09173b0110b41e194ad65ce439"
+                },
+                "downloads": -1,
+                "filename": "threefive-fu-corp-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4592fbbc5a0f0599e071fffd4ce2e607",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4843,
+                "upload_time": "2019-11-09T13:31:03",
+                "upload_time_iso_8601": "2019-11-09T13:31:03.927530Z",
+                "url": "https://files.pythonhosted.org/packages/59/a1/d7a0eabf656e7f9f2d74c41dd9713409044d1452a9d089613abbcd0b16fd/threefive-fu-corp-0.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "cf495509dc2110de8e212c2bcfadc36b",
+                "sha256": "61472bce09fda8e9c362e1ba7fba6e69c47012a145f5cee03943022d310d7ac7"
+            },
+            "downloads": -1,
+            "filename": "threefive_fu_corp-0.0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "cf495509dc2110de8e212c2bcfadc36b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 5857,
+            "upload_time": "2019-11-09T13:31:01",
+            "upload_time_iso_8601": "2019-11-09T13:31:01.668815Z",
+            "url": "https://files.pythonhosted.org/packages/27/47/c46718ee6eeaf348878069ba053a346ec3be5501f8f8fa26849b26ab0fe8/threefive_fu_corp-0.0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4592fbbc5a0f0599e071fffd4ce2e607",
+                "sha256": "05a42474c93eb8a8463d9049fc1f3f31e47aef09173b0110b41e194ad65ce439"
+            },
+            "downloads": -1,
+            "filename": "threefive-fu-corp-0.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "4592fbbc5a0f0599e071fffd4ce2e607",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 4843,
+            "upload_time": "2019-11-09T13:31:03",
+            "upload_time_iso_8601": "2019-11-09T13:31:03.927530Z",
+            "url": "https://files.pythonhosted.org/packages/59/a1/d7a0eabf656e7f9f2d74c41dd9713409044d1452a9d089613abbcd0b16fd/threefive-fu-corp-0.0.3.tar.gz"
+        }
+    ]
+}

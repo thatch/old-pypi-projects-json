@@ -1,0 +1,151 @@
+{
+    "info": {
+        "author": "Timo Lesterhuis",
+        "author_email": "timolesterhuis@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "## <img src=\"https://github.com/tim00w/diagnostics/raw/master/docs/images/analysis.png\" alt=\"*Designed by Freepik from www.flaticon.com*\" width=\"50\" height=\"50\" />  Diagnostics - a toolbox built for analyzing diagnostic data!\n\n\n[![Build Status](https://travis-ci.org/tim00w/diagnostics.svg?branch=master)](https://travis-ci.org/tim00w/diagnostics)\n[![Coverage Status](https://coveralls.io/repos/github/tim00w/diagnostics/badge.svg?branch=master)](https://coveralls.io/github/tim00w/diagnostics?branch=master)\n[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)\n[![Documentation Status](https://readthedocs.org/projects/diagnostics/badge/?version=latest)](https://diagnostics.readthedocs.io/en/latest/?badge=latest)\n\n\nInstallation\n------------\n\nThe diagnostics library is tested on python 3.7. However, it should run on python 3.6 and 3.5 as well.\n\nYou can install the library using `pip`:\n\n```bash\npip install git+https://github.com/tim00w/diagnostics.git\n```\n\nAlternatively, you can clone the repository and use `setup.py` to install:\n\n```bash\ngit clone https://github.com/tim00w/diagnostics.git\ncd diagnostics\npython setup.py install\n```\n\nUsage\n-----\n\n#### TimeSeries\n\nDiagnostic events are derived from from real occurances. \nFor instance, your phone will probably generate a message (event) \nif your battery is running low (percentage below threshold value).\nThe diagnostics library has a `TimeSerie` class that can capture these occurances.\n\nFor example, a `TimeSerie` representing your battery life, which drains 0.01% each second:\n\n```python\nimport numpy as np\nimport diagnostics as ds\n\nbattery_life = ds.TimeSerie(np.arange(100, 0, -0.01), fs=1)\n```\n\nthe first argument is consists of a data array (both `list()` and `numpy.array()` are supported),\nand additionally you can provide some keyword parameters.\nHere we've provided the sample frequency (`fs`) which is 1 Hz, \nbecause we said our battery drains 0.01% each second. \nIn this particular case we could've left `fs` out, since the default value of `fs` is also 1.\n\nNow that we've got our data, we can easily visualize this:\n\n```python\nbattery_life.plot(show=True)\n```\n\nThere are other keyword parameters that we can use as well, \nsuch as t0 (start time of `TimeSerie` in posixtime or a `datetime` object),\nand a name (default is an empty string).\n\n```python\nfrom datetime import datetime\n\nbattery_life = ds.TimeSerie(np.arange(100, 0, -0.01), \n                            fs=1,\n                            t0=datetime(2019,1,1,8,5), # 2019-01-01 08:05\n                            name='battery life')\n```\n\nNow we've got our battery life set to a specific day,\nand gave it a name. Both will come in handy later.\n\n#### BooleanTimeSeries\n\nLet's be honest, the battery percentage of your phone does not really matter to you,\nunless it goes below a certain threshold. \nLuckily for us, our `TimeSerie` can easily be converted to a `BooleanTimeSerie`, \nwhich only contains boolean values of when the percentage reaches below 25%:\n\n```python\nbattery_below25 = battery_life <= 25\n\nbattery_below25.plot(show=True)\n```\n\nNow that's easy! We can see that our battery goes below 25% at HH:MM:SS.\n\n#### StateChangeArray\n\nYou could argue that our `BooleanTimeSerie` contains a lot of data points with the same value.\nI'd agree with you, and therefore introduce a class that only keeps track of the changes in \ndata points, the `StateChangeArray`:\n\n```python\nbattery_low_state = battery_below25.to_statechangearray()\n```\n\nAlternatively, we can create a `StateChangeArray` (or `BooleanStateChangeArray`, \nyou can probably guess the difference :smile:) from scratch:\n\n```python\n\ns = ds.StateChangeArray([1, 4, 8, 13], t=[1,2,4,8], name='my state')\nb = ds.BooleanStateChangeArray([True, False, True, False], t=[1,3,6,9], name='b')\n``` \n\nBoth the data array as the values for time (`t`) can be `list()` or `np.array()`.\nThe time is considered as posixtime. For now it is not possible to give a datetimearray\nor list of datetimes as an input, but this wil be implemented in the near future.  \n\n#### Comparing TimeSeries and StateChangeArrays\n\nThere are more classes besides TimeSeries and StateChangearrays, each with their own \nadvantages and disadvantages. The power of this module lies in clear transformations \nfrom one class to another (we've already shown the `TimeSerie.to_statechangearray()` method),\nand the comparison of multiple classes.\n\nTo start with TimeSeries, if two (or more) have the same array_length, `t0` and `fs`, we can \neasily do calculations with them! \n\n```python\n# create two TimeSerie objects that we'll combine\na = ds.TimeSerie(np.sin(np.linspace(0, 2*np.pi, 100)), t0=0, fs=1, name='a')\nb = ds.TimeSerie(np.sin(2* np.linspace(0, 2*np.pi, 100)), t0=0, fs=1, name='b')\n\n# It's this easy!\nc = a + b\n\n# We're interested in the more extreme values, lets create TimeSeries for these:\nd = c <= -1\ne = c >=  1\n\n# we'll name them to keep our bookkeeping up to date\nd.name = 'c <= -1'\ne.name = 'c >= 1'\n\n# and find when one of the above conditions is True!\nf = d | e\n\n# when performing boolean operators ('~', '^', '&', '|'), the library \n# does it's own bookkeeping:\nprint(f.name)\nf.plot(show=True)\n```\n\nComparing StateChangeArrays would normally be a bit tricky, since the data is most likely \nnon-linearly spaced. \nThis means that we can't just perform vectorized boolean operations, but we'll need to combine\nboth data values as well as their respective points in time.\n\nLuckily for us, the `StateChangeArray` has this built in:\n\n```python\na = StateChangeArray([True, False, True, False], t=[2,4,6,8], name='a')\nb = StateChangeArray([True, False, True, False], t=[3,5,7,9], name='b')\n\nc = a | b\nd = a & b\ne = ~a\nf = a ^ a\ng = a ^ e\n```\n\nThat's pretty great right?\n\n#### Reports & Events\n\nWIP\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/tim00w/diagnostics/",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "bonkie-diagnostics",
+        "package_url": "https://pypi.org/project/bonkie-diagnostics/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/bonkie-diagnostics/",
+        "project_urls": {
+            "Homepage": "https://github.com/tim00w/diagnostics/"
+        },
+        "release_url": "https://pypi.org/project/bonkie-diagnostics/0.2.1/",
+        "requires_dist": [
+            "pytz (>=2018)",
+            "numpy (>=1.16.0)",
+            "matplotlib (>=3.0.0)"
+        ],
+        "requires_python": "",
+        "summary": "A toolbox to analyse diagnostic data!",
+        "version": "0.2.1"
+    },
+    "last_serial": 5104072,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9f11c62202da18e2e02435c1909c1e02",
+                    "sha256": "37dab3c4d8920fc9a0e509cd926af995dc561c11c6348db141b8fda923a7766d"
+                },
+                "downloads": -1,
+                "filename": "bonkie_diagnostics-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9f11c62202da18e2e02435c1909c1e02",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10677,
+                "upload_time": "2019-03-27T15:18:45",
+                "url": "https://files.pythonhosted.org/packages/9e/c2/9a2489a81598cbbc3dc2264d725f0f74fcfcfc40dc791a3a487b182baecf/bonkie_diagnostics-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d728beaf2feef068db6945eaea312ecc",
+                    "sha256": "9be603e26642bd3feba1cc50535aa09d3122f8a788f119457bc14f2d551cb8b6"
+                },
+                "downloads": -1,
+                "filename": "bonkie-diagnostics-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d728beaf2feef068db6945eaea312ecc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9275,
+                "upload_time": "2019-03-27T15:18:47",
+                "url": "https://files.pythonhosted.org/packages/e7/2f/0531f46f734da6d08fac3e2ded4027839e20d951124beb158845489900ad/bonkie-diagnostics-0.0.1.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78391421688707b74d057b29b5da0872",
+                    "sha256": "a345768048a4ad3393e6b4ad7342a0ba937357bdf72ed624bc2598718b78fff3"
+                },
+                "downloads": -1,
+                "filename": "bonkie_diagnostics-0.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "78391421688707b74d057b29b5da0872",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10938,
+                "upload_time": "2019-04-05T14:48:12",
+                "url": "https://files.pythonhosted.org/packages/96/dc/f180eaa5b79fff9de52f3133469b29e43e634a5657c528b84780ef4c8b76/bonkie_diagnostics-0.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab7f08879026c5dccd739d9a1f1b6124",
+                    "sha256": "4793a3b47ccf4868c946a87f80a0968168fd7e0ebb075b19d5655e6eabc4efdc"
+                },
+                "downloads": -1,
+                "filename": "bonkie-diagnostics-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ab7f08879026c5dccd739d9a1f1b6124",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9853,
+                "upload_time": "2019-04-05T14:48:14",
+                "url": "https://files.pythonhosted.org/packages/92/70/276646023d9595fa5c2473350c34e318ac072c7de57f71dfdc9878ed7956/bonkie-diagnostics-0.2.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "78391421688707b74d057b29b5da0872",
+                "sha256": "a345768048a4ad3393e6b4ad7342a0ba937357bdf72ed624bc2598718b78fff3"
+            },
+            "downloads": -1,
+            "filename": "bonkie_diagnostics-0.2.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "78391421688707b74d057b29b5da0872",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 10938,
+            "upload_time": "2019-04-05T14:48:12",
+            "url": "https://files.pythonhosted.org/packages/96/dc/f180eaa5b79fff9de52f3133469b29e43e634a5657c528b84780ef4c8b76/bonkie_diagnostics-0.2.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ab7f08879026c5dccd739d9a1f1b6124",
+                "sha256": "4793a3b47ccf4868c946a87f80a0968168fd7e0ebb075b19d5655e6eabc4efdc"
+            },
+            "downloads": -1,
+            "filename": "bonkie-diagnostics-0.2.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "ab7f08879026c5dccd739d9a1f1b6124",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 9853,
+            "upload_time": "2019-04-05T14:48:14",
+            "url": "https://files.pythonhosted.org/packages/92/70/276646023d9595fa5c2473350c34e318ac072c7de57f71dfdc9878ed7956/bonkie-diagnostics-0.2.1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,225 @@
+{
+    "info": {
+        "author": "Nina Wang",
+        "author_email": "nina.tt.wang@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# ConsensusCruncher #\n\nConsensusCruncher is a tool that suppresses errors in next-generation sequencing data by using unique molecular identifers (UMIs) to amalgamate reads derived from the same DNA template into a consensus sequence.\n\nTo learn more about ConsensusCruncher and its applications: https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkz474/5498633\n\n## Quick start ##\n### Dependencies ###\nThis pipeline requires the following dependencies:\n\n| Program | Version | Purpose                                    |\n| ------- | ------- | ------------------------------------------ |\n| [Python](https://www.python.org/) | 3.5.1   | Run ConsensusCruncher                |\n| [BWA](http://bio-bwa.sourceforge.net/) | 0.7.15   | Align reads                |\n| [Samtools](http://samtools.sourceforge.net/)| 1.3.1   | Sorting and indexing bamfiles              |\n\nAll required python libraries can be installed by running ```pip install -r requirements.txt```\n\n### Configuration ###\nSet up config.ini with the appropriate configurations for [fastq2bam] and [consensus] modes. Alternatively, you can provide command-line arguments. \n\nConsensusCruncher.py processes one sample (2 paired-end FASTQ files or 1 BAM file) at a time. A sample script to generate shell scripts for multiple samples is provided under ```[ConsensusCruncher repo]/test/bash_scripts/generate_scripts.sh```. \n\n### Running ConsensusCruncher ###\n## Individual files ##\n1. Run ConsensusCruncher.py [-c CONFIG] **fastq2bam** with required input parameters:\n```\n  --fastq1 FASTQ1       FASTQ containing Read 1 of paired-end reads. [MANDATORY]\n  --fastq2 FASTQ2       FASTQ containing Read 2 of paired-end reads. [MANDATORY]\n  -o OUTPUT, --output OUTPUT\n                        Output directory, where barcode extracted FASTQ and\n                        BAM files will be placed in subdirectories 'fastq_tag'\n                        and 'bamfiles' respectively (dir will be created if\n                        they do not exist). [MANDATORY]\n  -n FILENAME, --name FILENAME\n                        Output filename. If none provided, default will\n                        extract output name by taking everything left of '_R'.\n  -b BWA, --bwa BWA     Path to executable bwa. [MANDATORY]\n  -r REF, --ref REF     Reference (BWA index). [MANDATORY]\n  -s SAMTOOLS, --samtools SAMTOOLS\n                        Path to executable samtools [MANDATORY]\n  -p PATTERN, --bpattern PATTERN\n                        Barcode pattern (N = random barcode bases, A|C|G|T =\n                        fixed spacer bases). [Pattern or list must be provided]\n  -l LIST, --blist LIST\n                        List of barcodes (Text file with unique barcodes on\n                        each line). [Pattern or list must be provided]\n```\nBARCODE DESIGN:\nYou can input either a barcode list or barcode pattern or both. If both are provided, barcodes will first be matched\nwith the list and then the constant spacer bases will be removed before the barcode is added to the header.\nN = random / barcode bases\nA | C | G | T = constant spacer bases\ne.g. ATNNGT means barcode is flanked by two spacers matching 'AT' in front and 'GT' behind.\n\nDESCRIPTION:\nThis script extracts molecular barcode tags and removes spacers from unzipped FASTQ\nfiles found in the input directory (file names must contain \"R1\" or \"R2\"). Barcode\nextracted FASTQ files are written to the 'fastq_tag' directory and are subsequently\naligned with BWA mem. Bamfiles are written to the 'bamfile\" directory under the\nproject folder.\n\n2. Run Run ConsensusCruncher.py [-c CONFIG] **consensus** with the required input parameters:\n```\n  -h, --help            show this help message and exit\n  -i BAM, --input BAM   Input BAM file with barcodes extracted into header. [mandatory]\n  -o OUTPUT, --output OUTPUT\n                        Output directory, where a folder will be created for\n                        the BAM file and consensus sequences. [mandatory]\n  -s SAMTOOLS, --samtools SAMTOOLS\n                        Path to executable samtools. [mandatory]\n  --scorrect {True,False}\n                        Singleton correction, default: True.\n  -b BEDFILE, --bedfile Separator file to split bamfile into chunks for processing.\n                        Default: hg19 cytoband (You can find other cytobands for your \n                        genome of interest on UCSC\n                        http://hgdownload.cse.ucsc.edu/downloads.html).\n                        For small BAM files, you may choose to turn off data splitting \n                        with '-b False' and process everything all at once (Division of \n                        data is only required for large data sets to offload the\n                        memory burden).\n  --cutoff CUTOFF       Consensus cut-off, default: 0.7 (70% of reads must\n                        have the same base to form a consensus).\n  --cleanup {True,False}\n                        Remove intermediate files.\n```\nThis script amalgamates duplicate reads in bamfiles into single-strand consensus\nsequences (SSCS), which are subsequently combined into duplex consensus sequences\n(DCS). Singletons (reads lacking duplicate sequences) are corrected, combined\nwith SSCS to form SSCS + SC, and further collapsed to form DCS + SC. Finally,\nfiles containing all unique molecules (a.k.a. no duplicates) are created for SSCS\nand DCS.\n\n## Multiple files ##\n[script generator](https://github.com/pughlab/ConsensusCruncher/tree/master/test/bash_scripts/generate_scripts.sh) will create sh scripts for each file in a fastq directory. \n1) The following parameters need to be changed in the config file: name, bwa, ref, samtools, bpattern (alternatively if a barcode list is used instead, remove bpattern and add blist as parameter). Please note: fastq1, fastq2, output, bam, and c_output can be ignored as those will be updated using the generate_scripts.sh file.\n2) Update generate_scripts.sh with input, output, and code_dir.\n3) Run generate_scripts.sh to create sh files and then run those scripts.\n\n## Overview ##\n<img src=\"https://user-images.githubusercontent.com/13406244/39268149-03b4c12a-489d-11e8-8011-f85ec8a82f39.png\" width=\"50%\" height=\"50%\">\n\n## Example ##\nIn order to create consensus sequences, we first need to process fastq files into bam files. Sample fastq files can be found under the [test folder](https://github.com/pughlab/ConsensusCruncher/tree/master/test/fastq). Please note these fastqs are only for testing purposes. For the full fastqs used in our paper, please download the data from the NCBI Sequence Read Archive (SRA; https://www.ncbi.nlm.nih.gov/sra/) under access numbers SRP140497 and SRP141184.\n\n### Fastqs to Bams ###\nGiven **fastq** as input files, *fastq2bam* mode removes the spacer region and extracts the barcode tag from each sequencing read into the header with *extract_barcode.py*.\n\n```\nREPO=\"[insert path to ConsensusCruncher repo]\"\nBWAPATH=\"[insert path to BWA]\"\nBWAINDEX=\"[insert path to BWA INDEX]\"\nBWAPATH=\"[insert path to SAMTOOLS]\"\n\npython ConsensusCruncher.py fastq2bam --fastq1 $REPO/test/fastq/LargeMid_56_L005_R1.fastq --FASTQ2 $REPO/test/fastq/LargeMid_56_L005_R2.fastq -o $REPO/test -b $BWAPATH -r $BWAIndex -s $SAMTOOLS -bpattern NNT \n```\n\nIn the sample dataset, we utilized 2-bp (NN) barcodes and 1-bp (T) spacers. While the barcodes for each read can be one of 16 possible combinations (4^2), the spacer is an invariant \"T\" base used to ligate barcodes onto each end of a DNA fragment. Thus, a spacer filter is imposed to remove faulty reads. Barcodes from read 1 and read 2 are extracted and combined together before being added to the header. \n\n```\nREAD FROM SEQUENCER\nRead1:\n@HWI-D00331:196:C900FANXX:5:1101:1332:2193 1:N:0:ACGTCACA   [<-- HEADER]\nATTAAGCCCCAGGCAGTTGCTAATGATGGGAGCTTAGTGCACAAGGGCTGGGCCTCCCTCTTGGAGCTGAACATTGTTTCTTGGGGACGGCTGTGCCCACCTCAGCGGGGAGGCAAGGATTAAATC  [<-- SEQUENCE]\n+\nBCCCCGGGGGGGGGGGGGGGGGGGGGGGGGFGGGGGGGGEGGGGGBGGGGGGGGGGGGGGGGGGGGGGGEGG1:FGFGGGGGGGGG/CB>DG@GGGGGGG<DGGGGAAGGEGGB>DGGGEGGG/@G  [<-- QUALITY SCORE]\n\nRead2:\n@HWI-D00331:196:C900FANXX:5:1101:1332:2193 2:N:0:ACGTCACA\nGGTGGGCTCCAGCCCTGATTTCCTCCCCCAGCCCTGCAGGGCTCAGGTCCAGAGGACACAAGTTTAACTTGCGGGTGGTCACTTGCCTCGTGCGGTGACGCCATGGTGCCCTCTCTGTGCAGCGCA\n+\nBBBBCGGGGEGGGGFGGGGGGGGGGGGGGGGGGGGGGB:FCGGGGGGGGGGEGGGGGGGG=FCGG:@GGGEGBGGGAGFGDE@FGGGGGFGFGEGDGGGFCGGDEBGGGGGGGEG=EGGGEEGGG#\n\n------\n\nAFTER BARCODE EXTRACTION AND SPACER (\"T\") REMOVAL\nRead1:\n@HWI-D00331:196:C900FANXX:5:1101:1332:2193|ATGG/1\nAAGCCCCAGGCAGTTGCTAATGATGGGAGCTTAGTGCACAAGGGCTGGGCCTCCCTCTTGGAGCTGAACATTGTTTCTTGGGGACGGCTGTGCCCACCTCAGCGGGGAGGCAAGGATTAAATC\n+\nCCGGGGGGGGGGGGGGGGGGGGGGGGGFGGGGGGGGEGGGGGBGGGGGGGGGGGGGGGGGGGGGGGEGG1:FGFGGGGGGGGG/CB>DG@GGGGGGG<DGGGGAAGGEGGB>DGGGEGGG/@G\n\nRead2:\n@HWI-D00331:196:C900FANXX:5:1101:1332:2193|ATGG/2\nGGGCTCCAGCCCTGATTTCCTCCCCCAGCCCTGCAGGGCTCAGGTCCAGAGGACACAAGTTTAACTTGCGGGTGGTCACTTGCCTCGTGCGGTGACGCCATGGTGCCCTCTCTGTGCAGCGCA\n+\nBCGGGGEGGGGFGGGGGGGGGGGGGGGGGGGGGGB:FCGGGGGGGGGGEGGGGGGGG=FCGG:@GGGEGBGGGAGFGDE@FGGGGGFGFGEGDGGGFCGGDEBGGGGGGGEG=EGGGEEGGG#\n\n```\n\nFASTQ files with extracted barcodes are placed in the **fastq_tag** directory and are subsequently aligned with BWA to generate BAMs in the **bamfiles** folder.\n\n```\n. \n\u251c\u2500\u2500 bamfiles \n\u251c\u2500\u2500 fastq\n\u251c\u2500\u2500 fastq_tag\n\u2514\u2500\u2500 qsub\n```\n\n### ConsensusCruncher ###\n*consensus* mode creates a **consensus** directory and folders for each bam file.\n\nBAM files undergo consensus construction through the workflow illustrated above. Output BAMs are grouped according to type of error suppression (SSCS vs DCS) and whether Singleton Correction (SC) was implemented. \n```\n. \n\u251c\u2500\u2500 bamfiles \n\u251c\u2500\u2500 consensus \n\u2502\u00a0\u00a0 \u251c\u2500\u2500 LargeMid_56_L005 \n\u2502\u00a0\u00a0 \u2502\u00a0\u00a0 \u251c\u2500\u2500 dcs \n\u2502\u00a0\u00a0 \u2502\u00a0\u00a0 \u251c\u2500\u2500 dcs_SC \n\u2502\u00a0\u00a0 \u2502\u00a0\u00a0 \u251c\u2500\u2500 sscs \n\u2502\u00a0\u00a0 \u2502\u00a0\u00a0 \u2514\u2500\u2500 sscs_SC \n... \n\u2502\u00a0\u00a0 \u251c\u2500\u2500 LargeMid_62_L006\n\u2502\u00a0\u00a0 \u2502\u00a0\u00a0 \u251c\u2500\u2500 dcs\n\u2502\u00a0\u00a0 \u2502\u00a0\u00a0 \u251c\u2500\u2500 dcs_SC\n\u2502\u00a0\u00a0 \u2502\u00a0\u00a0 \u251c\u2500\u2500 sscs\n\u2502\u00a0\u00a0 \u2502\u00a0\u00a0 \u2514\u2500\u2500 sscs_SC\n\u2502\u00a0\u00a0 \u2514\u2500\u2500 qsub\n\u251c\u2500\u2500 fastq\n\u251c\u2500\u2500 fastq_tag\n\u2514\u2500\u2500 qsub\n```\nWithin a sample directory (e.g. LargeMid_56_L005), you will find the following files:\n\nPlease note the example below is for illustrative purposes only, as sample names and index files were removed for simplification. Order of directories and files were also altered to improve comprehension.\n```\n.                                           Filetype\n\u251c\u2500\u2500 sscs\n\u2502\u00a0\u00a0 \u251c\u2500\u2500 badReads.bam                        Reads that are unmapped or have multiple alignments\n\u2502\u00a0\u00a0 \u251c\u2500\u2500 sscs.sorted.bam                     Single-Strand Consensus Sequences (SSCS)\n\u2502\u00a0\u00a0 \u251c\u2500\u2500 singleton.sorted.bam                Single reads (Singleton) that cannot form SSCSs\n\u251c\u2500\u2500 sscs_SC\n|   \u251c\u2500\u2500 singleton.rescue.sorted.bam         Singleton correction (SC) with complementary singletons\n|   \u251c\u2500\u2500 sscs.rescue.sorted.bam              SC with complementary SSCSs\n|   \u251c\u2500\u2500 sscs.sc.sorted.bam                  SSCS combined with corrected singletons (from both rescue strategies)   [*]\n|   \u251c\u2500\u2500 rescue.remaining.sorted.bam         Singletons that could not be corrected\n|   \u251c\u2500\u2500 all.unique.sscs.sorted.bam          SSCS + SC + remaining (uncorrected) singletons\n\u251c\u2500\u2500 dcs\n\u2502\u00a0\u00a0 \u251c\u2500\u2500 dcs.sorted.bam                      Duplex Consensus Sequence (DCS)\n\u2502\u00a0\u00a0 \u251c\u2500\u2500 sscs.singleton.sorted.bam           SSCSs that could not form DCSs as complementary strand was missing  \n\u251c\u2500\u2500 dcs_SC\n\u2502\u00a0\u00a0 \u251c\u2500\u2500 dcs.sc.sorted.bam                   DCS generated from SSCS + SC    [*]\n\u2502\u00a0\u00a0 \u251c\u2500\u2500 sscs.sc.singleton.sorted.bam        SSCS + SC that could not form DCSs \n\u2502\u00a0\u00a0 \u251c\u2500\u2500 all.unique.dcs.sorted.bam           DCS (from SSCS + SC) + SSCS_SC_Singletons + remaining singletons\n\u251c\u2500\u2500 read_families.txt                       Family size and frequency\n\u251c\u2500\u2500 stats.txt                               Consensus sequence formation metrics\n\u251c\u2500\u2500 tag_fam_size.png                        Distribution of reads across family size\n\u2514\u2500\u2500 time_tracker.txt                        Time log\n\n```\nThrough each stage of consensus formation, duplicate reads are collapsed together and single reads are written as separate files. This allows rentention of all unique molecules, while providing users with easy data management for cross-comparisons between error suppression strategies. \n\nTo simplify analyses, it would be good to focus on SSCS+SC (\"sscs.sc.sorted.bam\") and DCS+SC (\"dcs.sc.sorted.bam\") as highlighted above with [*].\n\n## How it works ##\nUnique molecular identifiers (UMIs) composed of molecular barcodes and sequence features are used aggregate reads derived from the same strand of a template molecule. Amalgamation of such reads into single strand consensus sequences (SSCS) removes discordant bases, which effectively eliminates polymerase and sequencer errors. Complementary SSCSs can be subsequently combined to form a duplex consensus sequence (DCS), which eliminates asymmetric strand artefacts such as those that develop from oxidative damage. \n\nConventional UMI-based strategies rely on redundant sequencing from both template strands to form consensus sequences and cannot error suppress single reads (singleton). We enable singleton correction using complementary duplex reads in the absence of redundant sequencing. \n\n**ConsensusCruncher schematic:**\n* An uncollapsed bamfile is first processed through SSCS_maker.py to create an error-suppressed single-strand \nconsensus sequence (SSCS) bamfile and an uncorrected singleton bamfile. \n* The singletons can be corrected through singleton_correction.py, which error suppress singletons with its complementary SSCS or singleton read. \n* SSCS reads can be directly made into duplex consensus sequences (DCS) or merged with corrected singletons to create\nan expanded pool of DCS reads (Figure illustrates singleton correction merged work flow).\n\n### Issues and feature requests ###\nPlease use this repository templates available at [.github/ISSUE_TEMPLATE](https://github.com/pughlab/ConsensusCruncher/tree/master/.github/ISSUE_TEMPLATE)\n\n### Who do I talk to? ###\n* Nina Wang (nina.tt.wang@gmail.com), Trevor Pugh (Trevor.Pugh@uhn.ca), Scott Bratman (Scott.Bratman@rmp.uhn.ca)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/pughlab/ConsensusCruncher",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "ConsensusCruncher",
+        "package_url": "https://pypi.org/project/ConsensusCruncher/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/ConsensusCruncher/",
+        "project_urls": {
+            "Homepage": "https://github.com/pughlab/ConsensusCruncher"
+        },
+        "release_url": "https://pypi.org/project/ConsensusCruncher/0.0.4/",
+        "requires_dist": [
+            "numpy",
+            "pandas",
+            "pysam",
+            "Biopython",
+            "matplotlib"
+        ],
+        "requires_python": "",
+        "summary": "Barcoding-based error suppression algorithm",
+        "version": "0.0.4"
+    },
+    "last_serial": 5717203,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a209de435c67f4c62586896155495f29",
+                    "sha256": "69fbfafa9732c8f3fa3ae1f83a9e69baf1cc226ae1b5836c6575fc8787dd18f7"
+                },
+                "downloads": -1,
+                "filename": "ConsensusCruncher-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a209de435c67f4c62586896155495f29",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 35752,
+                "upload_time": "2019-08-21T19:17:50",
+                "url": "https://files.pythonhosted.org/packages/97/7f/2f20cf2e49ebd3395da3d147b1b365b715bb2512778891ee2a9e08f23c64/ConsensusCruncher-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1bcba9cc500d4122cf5d4129d0c4546",
+                    "sha256": "575a5d57869515a7464560be6e436b14a3ab104ae12e4c863c7d83555bc9718d"
+                },
+                "downloads": -1,
+                "filename": "ConsensusCruncher-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d1bcba9cc500d4122cf5d4129d0c4546",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27518,
+                "upload_time": "2019-08-21T19:17:53",
+                "url": "https://files.pythonhosted.org/packages/81/56/439e3a0d530501ba736923a6820500d876cc4fe5f422cc02acba0e694a8e/ConsensusCruncher-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "367ca15963a37ace8b73a13b3573271d",
+                    "sha256": "03dbe2886a2239db5d9cf2be68b11efa2507d9f9a7f45ea83a613d3dd3b04442"
+                },
+                "downloads": -1,
+                "filename": "ConsensusCruncher-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "367ca15963a37ace8b73a13b3573271d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 38217,
+                "upload_time": "2019-08-22T20:17:28",
+                "url": "https://files.pythonhosted.org/packages/21/9a/7907b01db1fccd5856ddbdcd2d27606717312fef8b84beab141e285b16ee/ConsensusCruncher-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4878bdb0b6f5ddabc7583238ff92b291",
+                    "sha256": "061a8add928b11ff0e6c42d438f7cee6bf47a0e0f40b7f3dcddee97dbb30a4e2"
+                },
+                "downloads": -1,
+                "filename": "ConsensusCruncher-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4878bdb0b6f5ddabc7583238ff92b291",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32739,
+                "upload_time": "2019-08-22T20:17:30",
+                "url": "https://files.pythonhosted.org/packages/49/31/d954eb875d740534b01a083cbbefd454158ff6df2244be731ee711e243a9/ConsensusCruncher-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8dab38078ff236e91e3e8eef727cdd20",
+                    "sha256": "703c052fde2d93890b5ab82dbff376bb4438cbf4f7e325030be148fa36e90628"
+                },
+                "downloads": -1,
+                "filename": "ConsensusCruncher-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8dab38078ff236e91e3e8eef727cdd20",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 38214,
+                "upload_time": "2019-08-22T20:29:47",
+                "url": "https://files.pythonhosted.org/packages/29/0d/33554ce9b69100764abe80e9f2a81c41acf67f603d3fad9bb58df4a448ad/ConsensusCruncher-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b41435fa0fcced30556cf19e80669612",
+                    "sha256": "b041cd401f7c8c9399402c349b6c71893b06ae16ca086798c8f15a9f17fa708a"
+                },
+                "downloads": -1,
+                "filename": "ConsensusCruncher-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b41435fa0fcced30556cf19e80669612",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32733,
+                "upload_time": "2019-08-22T20:29:49",
+                "url": "https://files.pythonhosted.org/packages/38/89/e01815df6304f2375481041c9ae5407c749f43511de6e1148183dee5a756/ConsensusCruncher-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "279fd88b1e8291e0c47678a663e455a0",
+                    "sha256": "c93a48c9dc23e19cb98d5ddb9e1dbde7521936f9f53c16ff71c5c3311de22938"
+                },
+                "downloads": -1,
+                "filename": "ConsensusCruncher-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "279fd88b1e8291e0c47678a663e455a0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 38213,
+                "upload_time": "2019-08-22T20:31:31",
+                "url": "https://files.pythonhosted.org/packages/70/81/8f26b362354012db6daad3a5aa64d4b1bd693e1260ff0d123f6a2cacefb2/ConsensusCruncher-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71cb591f2421d3e1c6809aafdb35641c",
+                    "sha256": "1e164fee611006d4bce455a06f3719a8fcdea0ef30d456d0afa27be3a0de576c"
+                },
+                "downloads": -1,
+                "filename": "ConsensusCruncher-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "71cb591f2421d3e1c6809aafdb35641c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32717,
+                "upload_time": "2019-08-22T20:31:32",
+                "url": "https://files.pythonhosted.org/packages/9d/ff/41342d9f8c1948a6336caa5fe09a78533fde25221ad9cd8f8d72ee047d1f/ConsensusCruncher-0.0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "279fd88b1e8291e0c47678a663e455a0",
+                "sha256": "c93a48c9dc23e19cb98d5ddb9e1dbde7521936f9f53c16ff71c5c3311de22938"
+            },
+            "downloads": -1,
+            "filename": "ConsensusCruncher-0.0.4-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "279fd88b1e8291e0c47678a663e455a0",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 38213,
+            "upload_time": "2019-08-22T20:31:31",
+            "url": "https://files.pythonhosted.org/packages/70/81/8f26b362354012db6daad3a5aa64d4b1bd693e1260ff0d123f6a2cacefb2/ConsensusCruncher-0.0.4-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "71cb591f2421d3e1c6809aafdb35641c",
+                "sha256": "1e164fee611006d4bce455a06f3719a8fcdea0ef30d456d0afa27be3a0de576c"
+            },
+            "downloads": -1,
+            "filename": "ConsensusCruncher-0.0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "71cb591f2421d3e1c6809aafdb35641c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 32717,
+            "upload_time": "2019-08-22T20:31:32",
+            "url": "https://files.pythonhosted.org/packages/9d/ff/41342d9f8c1948a6336caa5fe09a78533fde25221ad9cd8f8d72ee047d1f/ConsensusCruncher-0.0.4.tar.gz"
+        }
+    ]
+}

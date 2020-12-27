@@ -1,0 +1,552 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 32,
+        "author": "Mark B. Schultz, Anders Gon\u00e7alves da Silva, Jason Kwong, Torsten Seemann",
+        "author_email": "dr.mark.schultz@gmail.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Scientific/Engineering :: Bio-Informatics",
+            "Topic :: Scientific/Engineering :: Medical Science Apps."
+        ],
+        "description": "Pando_ruffus\n============\n\nTo get help::\n\n    pando-ruffus -h\n\n![Pando_ruffus](http://bioinformatics.mdu.unimelb.edu.au/~schultzm/pando_ruffus/pipeline.png)\n\nAuthors\n-------\n\nMark B Schultz, Anders Gon\u00e7alves da Silva, Jason Kwong, Torsten Seemann\n\nIntroduction\n------------\n\n**Pando\\_ruffus** is a command-line tool for for exploring and characterising bacterial whole genome DNA sequence data.  It is a computational pipeline written in python and is scalable via implementation using the ruffus pipeline library.  **Ruffus** handles task-scheduling and task-parallelisation during the run.  Pando\\_ruffus is particularly useful for pathogenic species as it performs AMR and MLST profiling but in theory could be used for any bacterial species against any sequence database.  It was originally written to characterise and QC assemblies and reads of bacterial isolates at the Microbiological Diagnostic Unit Public Health Laboratory, Victoria, Australia.  Input is a tab-delimited text file that points the software to the assembly and paired-end read files for each isolate.  Specifically, the file has no header, one line per isolate, and four columns per line in the following column order::  \n\n    +-------------+------------------------------------------------+----------------------------+---------------------------+\n    |isolate_name | full_path_to_assembly (i.e., a 'contigs' file) | full_path_to_paired_reads1 | full_path_to_paired_reads2|\n    +-------------+------------------------------------------------+----------------------------+---------------------------+\n\nAn example **isolates.tab** file looks like this::  \n\n    isolate-1\t/path/to/isolate-1/contigs.fa\t/path/to/isolate-1/reads-1.fq.gz\t/path/to/isolate-1/reads-2.fq.gz\n    isolate-2\t/path/to/isolate-2/contigs.fa\t/path/to/isolate-2/reads-1.fq.gz\t/path/to/isolate-2/reads-2.fq.gz\n    isolate-3\t/path/to/isolate-3/contigs.fa\t/path/to/isolate-3/reads-1.fq.gz\t/path/to/isolate-3/reads-2.fq.gz\n    isolate-4\t/path/to/isolate-4/contigs.fa\t/path/to/isolate-4/reads-1.fq.gz\t/path/to/isolate-4/reads-2.fq.gz\n    isolate-5\t/path/to/isolate-5/contigs.fa\t/path/to/isolate-5/reads-1.fq.gz\t/path/to/isolate-5/reads-2.fq.gz\n\n\nInstalling dependencies\n-----------------------\n\nThe following packages need to be installed before pip3 installing pando_ruffus.  To install dependencies, do::  \n\n    cpan -i Moo\n    cpan -i List::MoreUtils\n    cpan -i Bio::Perl\n    brew tap homebrew/science\n    brew tap tseemann/homebrew-bioinformatics-linux\n    brew update\n    brew install mlst --HEAD\n    brew install abricate --HEAD\n    brew install quicktree\n    brew install seqtk\n    brew install andi\n    brew install mummer\n    brew install bowtie2\n    brew install cd-hit\n    brew install ariba\n    brew install kraken\n\nYou will then need to install a kraken database::  \n    \n    wget https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz\n\nChoose a folder (say $HOME) to put it in, you need ~4 GB free::  \n\n    tar -C $HOME minikraken.tgz\n\nThen add the following to your $HOME/.bashrc::  \n\n    export KRAKEN_DB_PATH=$HOME/minikraken_20141208\n\nInstalling pando_ruffus\n-----------------------\n\nTo perform any of these install steps **for all users, remove '--user'**.  The final symlink step is not required if installing for all users.  Pando-ruffus is written for **python3** and installation requires **pip3** and **setuptools**.  To install the latest 'stable' version of pando-ruffus for the current user only, do::  \n\n    pip3 install --user --no-binary :all: pando_ruffus\n\nTo upgrade::  \n\n    pip3 install --user --upgrade pando_ruffus\n\nTo install the latest, potentially unstable, bleeding-edge version::  \n\n    pip3 install --user https://github.com/schultzm/pando_ruffus/zipball/master\n\n**If installing via the '--user' option**\nCheck where the executable is::  \n\n    which pando-ruffus  # ~/.local/bin/pando-ruffus\n\nCheck where the site-packages are::  \n\n    python3 -m site --user-site  # ~/.local/lib/python3.6/site-packages\n\nNow, symlink the packaged databases in site-packages above to the folder containing the executable shown above::  \n\n    ln -s ~/.local/lib/python3.6/site-packages/pando_ruffus/CARD/ ~/.local/bin\n    ln -s ~/.local/lib/python3.6/site-packages/pando_ruffus/VFDB/ ~/.local/bin\n    ln -s ~/.local/lib/python3.6/site-packages/pando_ruffus/VFDB_core/ ~/.local/bin\n    ln -s ~/.local/lib/python3.6/site-packages/pando_ruffus/plasmidfinder/ ~/.local/bin\n\n\n**To uninstall**, do::  \n\n    pip3 uninstall pando_ruffus\n    # Remove the symlinks\n    rm -r ~/.local/bin/CARD\n    rm -r ~/.local/bin/VFDB*\n    rm -r ~/.local/bin/plasmidfinder\n\nNow, check that the dependencies are in the path using::\n\n    pando-ruffus check\n\nQuickstart tutorial\n-------------------\n\n**For large jobs, run in screen mode**, otherwise skip this step::  \n\n    screen -SL screenname \n\nAll screen-output within the screen started above, will be saved to::  \n\n    screenlog.%n #  Where %n is the number of the screen.\n\nAfter exiting the screen, the screenlog.0 can be viewed as the run progresses using standard command line actions::  \n\n    tail screenlog.0\n    less screenlog.0\n    watch \"tail screenlog.0\"\n\n**To get help for pando-ruffus**, just do::  \n\n    pando-ruffus -h\n\nOutput looks like::  \n\n    usage: pando-ruffus <command> <options>\n    \n    Run summary analyses.\n    \n    optional arguments:\n      -h, --help     show this help message and exit\n      -v, --version  Print version and quit.\n    \n    Available commands::\n\n        check        Check non-pip3-installable dependencies\n        input        Generate input table\n        run          Run the pando-ruffus pipeline\n        merge        Runs the module to read in the metadata table and merge it\n                     with pando_ruffus output.csv files.\n\nNotice, above, three modules: one each for **input**, **run** and **merge**.  Each can be run independently. \n\n**input module**\n\nThis module is used to generate the isolates.tab file.  Final output from this command is sent to **standard out (stdout)**.  To capture the information from stdout, redirect it to a file using '> isolates.tab'::  \n\n    pando-ruffus input -h\n    pando-ruffus input -i isolates.txt > isolates.tab\n\n**run module**\n\nThis module is used to run the analysis pipeline.  In the example below, output will be a folder called **results** and we have selected to use the **tree option with -t** using a **JC** model of evolution (default for the -t option, but user can also choose from **Raw** or **Kimura**)::  \n\n    pando-ruffus run -h\n    pando-ruffus run -i isolates.tab -o results -t\n\nIn the results folder there is a sub-folder for each isolate containing the results for each isolate.  Also within the results folder there are three files::  \n\n    results/isolates_metadataAll.csv\n    results/isolates_metadataAll_simplified.csv\n    results/isolates_andi_JCdist_nj.tre\n\n**merge module**\n\nThis module is used to join existing metadata tables (e.g., LIMS table) with one of the output tables from the run module.  In this example, an excel file (AMR\\_ongoing\\_20170307.xlsx, with a header on line 5 and first column containing isolate names that were expanded with a wildcard search during the **pando-ruffus input** step above) is joined with the results/isolates\\_metadataAll\\_simplified.csv table.  Again, final output is sent to stdout, which in this example is redirected to file using '> results/AMR\\_ongoing\\_20170307\\_join\\_isolates\\_metadataAll\\_simplified.csv'::  \n\n    pando-ruffus merge -h\n    pando-ruffus merge -l AMR_ongoing_20170307.xlsx -r results/isolates_metadataAll_simplified.csv > results/AMR_ongoing_20170307_join_isolates_metadataAll_simplified.csv\n\nWhy use pando_ruffus?\n---------------------\n\nPando\\_ruffus provides a single table of metadata and a tree that the metadata can be plotted next to using **phandango**  \n\nhttps://jameshadfield.github.io/phandango/\n\n![alt tag](http://bioinformatics.mdu.unimelb.edu.au/~schultzm/pando_ruffus/phandango.png)\n\nThe single NJ tree for the whole isolate set is inferred using the program **quicktree** from a distance matrix computed by **andi** using any of the evolutionary models JC, Raw or Kimura.  Andi infers the distance matrix from the assemblies (typically contigs.fa files).  The tree will not include isolates for which the assembly file is missing.\n\nThe summary table (csv) for all isolates combines the results from:\n\n1. inferred species from running kraken on the reads  \n2. inferred species call from running kraken on the contigs (assemblies)  \n3. Inferred consensus species call from a consensus of the best hit from kraken on the reads and kraken on the contigs  \n4. Based on the species call, runs mlst using the appropriate scheme (if available) or autodetects scheme  \n5. Gene content profiles using unlimited number of user databases of resistance genes, plasmid rep genes, virulence genes, etc., using abricate (contigs, BLAST contigs against database, assembly based) and ariba (reads, MiniMapping to database, mapping based)  \n6. QC metrics using seqtk for reads and contigs  \n7. Reports software versions and paths to databases used in the analysis (for repeatability)  \n8. The pipeline is modular in that the user can choose not to perform the tree inference step with andi plus quicktree and/or the can choose not to perform the read mapping step using ariba  \n9. A flowchart is produced for the run (however, if the total path length of the results folders combined exceeds 16384 characters then the flowchart cannot be drawn)  \n10. The user can supply reads and/or contigs for each file.  The final tree will only include taxa for which contigs have been supplied  \n\n\nAssumptions\n-----------\n\nFirst you need to download assemblies or perform the assemblies yourself from readsets (using e.g., unicycler https://github.com/rrwick/Unicycler, which uses SPAdes (http://bioinf.spbau.ru/spades) or MegaHit (https://github.com/voutcn/megahit)).  It doesn't necessarily make sense to supply reads for an isolate but contigs that have been assembled using a readset other than the one supplied.  If you don't have reads, leave the columns blank for that isolate (for example, if you just want to characterise assemblies downloaded from NCBI GenBank). If you don't have contigs and only have reads, leave the column blank for contigs (but without contigs there will be no tree).  \n\nEtymology of the software name\n-------------------------------------------\n\n**Pando** (https://goo.gl/0nKjcm) is the largest, single tree on earth.  **Ruffus** is a python library used to perform task scheduling and parallelisation.  **Pando_ruffus** produces a single tree of all isolates and a single table of all results and uses the ruffus library.  \n\n\nLicence\n-------\n\nPando_ruffus is:\n\n| Copyright (C) 2017 Mark B Schultz  \n| https://github.com/schultzm/  \n| email: dr.mark.schultz@gmail.com  \n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU Affero General Public License as published\nby the Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU Affero General Public License for more details.\nYou should have received a copy of the GNU Affero General Public License\nalong with this program.  If not, see <http://www.gnu.org/licenses/>.\n",
+        "docs_url": null,
+        "download_url": "https://github.com/schultzm/pando_ruffus/zipball/master",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "",
+        "keywords": "pipeline",
+        "license": "AGPL-3.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pando_ruffus",
+        "package_url": "http://pypi.python.org/pypi/pando_ruffus",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/pando_ruffus/0.1.67",
+        "requires_python": "",
+        "summary": "Pando_ruffus is a bioinformatics tool for for exploring and characterising bacterial genome data.  Input is paired-end reads and assemblies.  Output is an NJ tree inferred from the assemblies (using Andi and Quicktree) and a table of results (species ID, mlst, antimicrobial resistance genes, plasmid replicon types, Virulence genes, read and assembly QC metrics).  Github repo and issue tracker: https://github.com/schultzm/pando_ruffus/. Pypi repository: https://pypi.python.org/pypi/pando_ruffus",
+        "version": "0.1.67"
+    },
+    "releases": {
+        "0.1.29": [
+            {
+                "comment_text": "",
+                "downloads": 21,
+                "filename": "pando_ruffus-0.1.29.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2bd3bbad3b2b30cdd8b192d23ebb8628",
+                "packagetype": "sdist",
+                "path": "82/39/eae2371b02801252731c2b08926df0652d0d4abaf8e647fad1ce9f072be7/pando_ruffus-0.1.29.tar.gz",
+                "python_version": "source",
+                "size": 18952069,
+                "upload_time": "2017-03-09T06:09:20",
+                "url": "https://pypi.python.org/packages/82/39/eae2371b02801252731c2b08926df0652d0d4abaf8e647fad1ce9f072be7/pando_ruffus-0.1.29.tar.gz"
+            }
+        ],
+        "0.1.30": [
+            {
+                "comment_text": "",
+                "downloads": 19,
+                "filename": "pando_ruffus-0.1.30.tar.gz",
+                "has_sig": false,
+                "md5_digest": "82f87da055eeb93f96fa0d23fddb0914",
+                "packagetype": "sdist",
+                "path": "59/eb/ad8545b9cac0303a50bb19f9f1f9944b1755e80d768b80e11195afde6673/pando_ruffus-0.1.30.tar.gz",
+                "python_version": "source",
+                "size": 18952167,
+                "upload_time": "2017-03-10T13:02:43",
+                "url": "https://pypi.python.org/packages/59/eb/ad8545b9cac0303a50bb19f9f1f9944b1755e80d768b80e11195afde6673/pando_ruffus-0.1.30.tar.gz"
+            }
+        ],
+        "0.1.31": [
+            {
+                "comment_text": "",
+                "downloads": 21,
+                "filename": "pando_ruffus-0.1.31.tar.gz",
+                "has_sig": false,
+                "md5_digest": "075699c4d34961222a11eadceb4c1feb",
+                "packagetype": "sdist",
+                "path": "17/71/2ef4c37ba049381de23e90767aa92ae0968116a2c19a60ccd1cbb4e2c22d/pando_ruffus-0.1.31.tar.gz",
+                "python_version": "source",
+                "size": 18952150,
+                "upload_time": "2017-03-10T13:15:17",
+                "url": "https://pypi.python.org/packages/17/71/2ef4c37ba049381de23e90767aa92ae0968116a2c19a60ccd1cbb4e2c22d/pando_ruffus-0.1.31.tar.gz"
+            }
+        ],
+        "0.1.32": [
+            {
+                "comment_text": "",
+                "downloads": 17,
+                "filename": "pando_ruffus-0.1.32.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1848ba9d15a3fe489ceb48affc98ab02",
+                "packagetype": "sdist",
+                "path": "81/be/c7d255194976319a3b25998ecf1733e597a3a789d7df25ee1984ccf83ac6/pando_ruffus-0.1.32.tar.gz",
+                "python_version": "source",
+                "size": 18952311,
+                "upload_time": "2017-03-11T03:53:23",
+                "url": "https://pypi.python.org/packages/81/be/c7d255194976319a3b25998ecf1733e597a3a789d7df25ee1984ccf83ac6/pando_ruffus-0.1.32.tar.gz"
+            }
+        ],
+        "0.1.33": [
+            {
+                "comment_text": "",
+                "downloads": 21,
+                "filename": "pando_ruffus-0.1.33.tar.gz",
+                "has_sig": false,
+                "md5_digest": "af006497b261ffa7d8f7d6ad175ce345",
+                "packagetype": "sdist",
+                "path": "08/1c/34c71e48138a6917d4ef36f052a17ba863f9e1b303b41fdf6162c964f66e/pando_ruffus-0.1.33.tar.gz",
+                "python_version": "source",
+                "size": 18952328,
+                "upload_time": "2017-03-11T04:05:41",
+                "url": "https://pypi.python.org/packages/08/1c/34c71e48138a6917d4ef36f052a17ba863f9e1b303b41fdf6162c964f66e/pando_ruffus-0.1.33.tar.gz"
+            }
+        ],
+        "0.1.34": [
+            {
+                "comment_text": "",
+                "downloads": 17,
+                "filename": "pando_ruffus-0.1.34.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9d0ac1b0ddf75adbe33811781abeb3fa",
+                "packagetype": "sdist",
+                "path": "a4/b4/821a21ac5bbeccaf4c17fe624b9a30008e9afa1ff009d9082d7b7e378556/pando_ruffus-0.1.34.tar.gz",
+                "python_version": "source",
+                "size": 18952300,
+                "upload_time": "2017-03-11T04:34:20",
+                "url": "https://pypi.python.org/packages/a4/b4/821a21ac5bbeccaf4c17fe624b9a30008e9afa1ff009d9082d7b7e378556/pando_ruffus-0.1.34.tar.gz"
+            }
+        ],
+        "0.1.35": [
+            {
+                "comment_text": "",
+                "downloads": 21,
+                "filename": "pando_ruffus-0.1.35.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a0146439a443fdedb943ac1a819cf459",
+                "packagetype": "sdist",
+                "path": "de/39/193bf957ad59c83266377fb4323eed5b8cbe5833905f12eca687679f408f/pando_ruffus-0.1.35.tar.gz",
+                "python_version": "source",
+                "size": 18952292,
+                "upload_time": "2017-03-11T05:18:21",
+                "url": "https://pypi.python.org/packages/de/39/193bf957ad59c83266377fb4323eed5b8cbe5833905f12eca687679f408f/pando_ruffus-0.1.35.tar.gz"
+            }
+        ],
+        "0.1.36": [
+            {
+                "comment_text": "",
+                "downloads": 18,
+                "filename": "pando_ruffus-0.1.36.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ff79999cb3aec499035469400c0bd22e",
+                "packagetype": "sdist",
+                "path": "21/34/f5b4c51ee98226da3dc109bc2a5da59327226a1451b814ad250c4e8c3a48/pando_ruffus-0.1.36.tar.gz",
+                "python_version": "source",
+                "size": 18954117,
+                "upload_time": "2017-03-11T05:57:32",
+                "url": "https://pypi.python.org/packages/21/34/f5b4c51ee98226da3dc109bc2a5da59327226a1451b814ad250c4e8c3a48/pando_ruffus-0.1.36.tar.gz"
+            }
+        ],
+        "0.1.37": [
+            {
+                "comment_text": "",
+                "downloads": 20,
+                "filename": "pando_ruffus-0.1.37.tar.gz",
+                "has_sig": false,
+                "md5_digest": "790d9ee84a58d3b91d19cb190a59079f",
+                "packagetype": "sdist",
+                "path": "1a/ef/dc54bc973638253ee44108eaf2fcf734d795d679c14ff62e8c874f556edc/pando_ruffus-0.1.37.tar.gz",
+                "python_version": "source",
+                "size": 18954154,
+                "upload_time": "2017-03-11T06:10:06",
+                "url": "https://pypi.python.org/packages/1a/ef/dc54bc973638253ee44108eaf2fcf734d795d679c14ff62e8c874f556edc/pando_ruffus-0.1.37.tar.gz"
+            }
+        ],
+        "0.1.38": [
+            {
+                "comment_text": "",
+                "downloads": 16,
+                "filename": "pando_ruffus-0.1.38.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e8a81dbf63aea7fa5101dfc9fd1c4619",
+                "packagetype": "sdist",
+                "path": "c9/cc/0727a950a93a4b1d0ffa1f5b636d765ac9bb33edc4a60a252d5d57431c7c/pando_ruffus-0.1.38.tar.gz",
+                "python_version": "source",
+                "size": 18954215,
+                "upload_time": "2017-03-11T06:35:36",
+                "url": "https://pypi.python.org/packages/c9/cc/0727a950a93a4b1d0ffa1f5b636d765ac9bb33edc4a60a252d5d57431c7c/pando_ruffus-0.1.38.tar.gz"
+            }
+        ],
+        "0.1.39": [
+            {
+                "comment_text": "",
+                "downloads": 22,
+                "filename": "pando_ruffus-0.1.39.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c57f1241c12980829761d0acf2638895",
+                "packagetype": "sdist",
+                "path": "f1/91/1a9969e9ed328835997e15a6f4cffabbd7d7b80a352d85012ae80a560cf4/pando_ruffus-0.1.39.tar.gz",
+                "python_version": "source",
+                "size": 18954187,
+                "upload_time": "2017-03-11T06:40:51",
+                "url": "https://pypi.python.org/packages/f1/91/1a9969e9ed328835997e15a6f4cffabbd7d7b80a352d85012ae80a560cf4/pando_ruffus-0.1.39.tar.gz"
+            }
+        ],
+        "0.1.40": [
+            {
+                "comment_text": "",
+                "downloads": 21,
+                "filename": "pando_ruffus-0.1.40.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b16a6e7dd6bea30097ab244b0daa3882",
+                "packagetype": "sdist",
+                "path": "b5/4d/455282e733a5ce62caeb264595f352e16342bc38787d2cdfd515f7975144/pando_ruffus-0.1.40.tar.gz",
+                "python_version": "source",
+                "size": 18954159,
+                "upload_time": "2017-03-11T06:48:06",
+                "url": "https://pypi.python.org/packages/b5/4d/455282e733a5ce62caeb264595f352e16342bc38787d2cdfd515f7975144/pando_ruffus-0.1.40.tar.gz"
+            }
+        ],
+        "0.1.41": [
+            {
+                "comment_text": "",
+                "downloads": 21,
+                "filename": "pando_ruffus-0.1.41.tar.gz",
+                "has_sig": false,
+                "md5_digest": "14be21736ba807839b8f86b50b42cafb",
+                "packagetype": "sdist",
+                "path": "33/3e/b7eb076626db5f64ad65f34e1686ddafa83ac4f398819eab121cb3f04849/pando_ruffus-0.1.41.tar.gz",
+                "python_version": "source",
+                "size": 18954166,
+                "upload_time": "2017-03-11T10:43:30",
+                "url": "https://pypi.python.org/packages/33/3e/b7eb076626db5f64ad65f34e1686ddafa83ac4f398819eab121cb3f04849/pando_ruffus-0.1.41.tar.gz"
+            }
+        ],
+        "0.1.42": [
+            {
+                "comment_text": "",
+                "downloads": 17,
+                "filename": "pando_ruffus-0.1.42.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0d535633888325269bd543e418aaf1d7",
+                "packagetype": "sdist",
+                "path": "07/ce/6d81d850cfd0a455850459bed2cc51662118e5c0df0cb43810c385766a33/pando_ruffus-0.1.42.tar.gz",
+                "python_version": "source",
+                "size": 27209994,
+                "upload_time": "2017-03-11T12:35:34",
+                "url": "https://pypi.python.org/packages/07/ce/6d81d850cfd0a455850459bed2cc51662118e5c0df0cb43810c385766a33/pando_ruffus-0.1.42.tar.gz"
+            }
+        ],
+        "0.1.43": [
+            {
+                "comment_text": "",
+                "downloads": 19,
+                "filename": "pando_ruffus-0.1.43.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c90f29b1035317c4d4733b15e5a41478",
+                "packagetype": "sdist",
+                "path": "cd/ee/89dab5056c2c5cb186ae1fc10e54fa9e838642837e34a4be1f94ea4aac4b/pando_ruffus-0.1.43.tar.gz",
+                "python_version": "source",
+                "size": 7475202,
+                "upload_time": "2017-03-12T02:41:48",
+                "url": "https://pypi.python.org/packages/cd/ee/89dab5056c2c5cb186ae1fc10e54fa9e838642837e34a4be1f94ea4aac4b/pando_ruffus-0.1.43.tar.gz"
+            }
+        ],
+        "0.1.44": [
+            {
+                "comment_text": "",
+                "downloads": 22,
+                "filename": "pando_ruffus-0.1.44.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ed0ef7e81f614035cdffef2130989574",
+                "packagetype": "sdist",
+                "path": "cd/ae/e01efaab0485c607ec43740fb5d6afe243fc0d7e0dbc858842a63390fa3a/pando_ruffus-0.1.44.tar.gz",
+                "python_version": "source",
+                "size": 7475197,
+                "upload_time": "2017-03-12T02:51:20",
+                "url": "https://pypi.python.org/packages/cd/ae/e01efaab0485c607ec43740fb5d6afe243fc0d7e0dbc858842a63390fa3a/pando_ruffus-0.1.44.tar.gz"
+            }
+        ],
+        "0.1.45": [
+            {
+                "comment_text": "",
+                "downloads": 23,
+                "filename": "pando_ruffus-0.1.45.tar.gz",
+                "has_sig": false,
+                "md5_digest": "698c617598e894d9ef559d0632ec7120",
+                "packagetype": "sdist",
+                "path": "04/f1/c07bdd0f05017137eeb37ed5275c9f497c6201d70b733335f85d35c53d49/pando_ruffus-0.1.45.tar.gz",
+                "python_version": "source",
+                "size": 7475207,
+                "upload_time": "2017-03-12T03:09:15",
+                "url": "https://pypi.python.org/packages/04/f1/c07bdd0f05017137eeb37ed5275c9f497c6201d70b733335f85d35c53d49/pando_ruffus-0.1.45.tar.gz"
+            }
+        ],
+        "0.1.48": [
+            {
+                "comment_text": "",
+                "downloads": 28,
+                "filename": "pando_ruffus-0.1.48.tar.gz",
+                "has_sig": false,
+                "md5_digest": "52b1498f2ec90f8748394bedfc2ae96f",
+                "packagetype": "sdist",
+                "path": "2d/68/43db5971fd5205e88f42c49534773f60644de64eafb00712ae02800bd0b5/pando_ruffus-0.1.48.tar.gz",
+                "python_version": "source",
+                "size": 7475190,
+                "upload_time": "2017-03-13T22:58:12",
+                "url": "https://pypi.python.org/packages/2d/68/43db5971fd5205e88f42c49534773f60644de64eafb00712ae02800bd0b5/pando_ruffus-0.1.48.tar.gz"
+            }
+        ],
+        "0.1.50": [
+            {
+                "comment_text": "",
+                "downloads": 24,
+                "filename": "pando_ruffus-0.1.50.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c2d8ad050fb592acc4c798116a107059",
+                "packagetype": "sdist",
+                "path": "33/5f/b5a58936d73e643f07ebba98611039793060b14ee77297059385aa420624/pando_ruffus-0.1.50.tar.gz",
+                "python_version": "source",
+                "size": 7475089,
+                "upload_time": "2017-03-14T05:27:44",
+                "url": "https://pypi.python.org/packages/33/5f/b5a58936d73e643f07ebba98611039793060b14ee77297059385aa420624/pando_ruffus-0.1.50.tar.gz"
+            }
+        ],
+        "0.1.51": [
+            {
+                "comment_text": "",
+                "downloads": 25,
+                "filename": "pando_ruffus-0.1.51.tar.gz",
+                "has_sig": false,
+                "md5_digest": "385627fdc7e38841db19d9d46c67e3a7",
+                "packagetype": "sdist",
+                "path": "c1/de/7006c5409a0bfb9115772ef052e79363be7ad45bb56b2e2abe0bed2ec821/pando_ruffus-0.1.51.tar.gz",
+                "python_version": "source",
+                "size": 7475083,
+                "upload_time": "2017-03-14T05:31:49",
+                "url": "https://pypi.python.org/packages/c1/de/7006c5409a0bfb9115772ef052e79363be7ad45bb56b2e2abe0bed2ec821/pando_ruffus-0.1.51.tar.gz"
+            }
+        ],
+        "0.1.52": [
+            {
+                "comment_text": "",
+                "downloads": 26,
+                "filename": "pando_ruffus-0.1.52.tar.gz",
+                "has_sig": false,
+                "md5_digest": "79709479a096bf7a7ba87d2d88692a8f",
+                "packagetype": "sdist",
+                "path": "bd/76/0959081878c6d46900039d7fc71b1b461357c976dbf190f7b8c8d2f0b252/pando_ruffus-0.1.52.tar.gz",
+                "python_version": "source",
+                "size": 7475082,
+                "upload_time": "2017-03-15T02:12:29",
+                "url": "https://pypi.python.org/packages/bd/76/0959081878c6d46900039d7fc71b1b461357c976dbf190f7b8c8d2f0b252/pando_ruffus-0.1.52.tar.gz"
+            }
+        ],
+        "0.1.53": [
+            {
+                "comment_text": "",
+                "downloads": 26,
+                "filename": "pando_ruffus-0.1.53.tar.gz",
+                "has_sig": false,
+                "md5_digest": "86c515851ce67a7461f1951420898bb1",
+                "packagetype": "sdist",
+                "path": "b9/2c/542a1cc792eb70d650ae94abe62b1384a0f19606f597e241e6d3ee2d2ffd/pando_ruffus-0.1.53.tar.gz",
+                "python_version": "source",
+                "size": 7475071,
+                "upload_time": "2017-03-15T02:21:24",
+                "url": "https://pypi.python.org/packages/b9/2c/542a1cc792eb70d650ae94abe62b1384a0f19606f597e241e6d3ee2d2ffd/pando_ruffus-0.1.53.tar.gz"
+            }
+        ],
+        "0.1.55": [
+            {
+                "comment_text": "",
+                "downloads": 47,
+                "filename": "pando_ruffus-0.1.55.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a161401a735f7630e31bd340eb80ef03",
+                "packagetype": "sdist",
+                "path": "44/7d/910943bb02eb5e38369affa25e50f42924b30131236452f1973429c679bc/pando_ruffus-0.1.55.tar.gz",
+                "python_version": "source",
+                "size": 7476833,
+                "upload_time": "2017-03-16T11:21:47",
+                "url": "https://pypi.python.org/packages/44/7d/910943bb02eb5e38369affa25e50f42924b30131236452f1973429c679bc/pando_ruffus-0.1.55.tar.gz"
+            }
+        ],
+        "0.1.56": [
+            {
+                "comment_text": "",
+                "downloads": 133,
+                "filename": "pando_ruffus-0.1.56.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5d93c25ea3b4fea58451588dc4de445d",
+                "packagetype": "sdist",
+                "path": "71/74/7dfb19f144e657dce9425d5c006bd1a1025d5a607f98368a7a4d058e1676/pando_ruffus-0.1.56.tar.gz",
+                "python_version": "source",
+                "size": 7477261,
+                "upload_time": "2017-03-19T11:36:56",
+                "url": "https://pypi.python.org/packages/71/74/7dfb19f144e657dce9425d5c006bd1a1025d5a607f98368a7a4d058e1676/pando_ruffus-0.1.56.tar.gz"
+            }
+        ],
+        "0.1.58": [
+            {
+                "comment_text": "",
+                "downloads": 12,
+                "filename": "pando_ruffus-0.1.58.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b34de19128d2e0efbecd573d5b871a92",
+                "packagetype": "sdist",
+                "path": "6c/c2/b31989659fa394e31ce58f02c87dcbdf4f890a7db145ee2d416d28fc3a58/pando_ruffus-0.1.58.tar.gz",
+                "python_version": "source",
+                "size": 7477396,
+                "upload_time": "2017-03-20T03:58:58",
+                "url": "https://pypi.python.org/packages/6c/c2/b31989659fa394e31ce58f02c87dcbdf4f890a7db145ee2d416d28fc3a58/pando_ruffus-0.1.58.tar.gz"
+            }
+        ],
+        "0.1.59": [
+            {
+                "comment_text": "",
+                "downloads": 13,
+                "filename": "pando_ruffus-0.1.59.tar.gz",
+                "has_sig": false,
+                "md5_digest": "93847961ba5a9ac3df7515fed6c3aa5d",
+                "packagetype": "sdist",
+                "path": "93/ee/d70fa11b71fb6149a4a07b062a62a6434f8259ed7f990014b2772d03b069/pando_ruffus-0.1.59.tar.gz",
+                "python_version": "source",
+                "size": 7477856,
+                "upload_time": "2017-03-20T11:37:47",
+                "url": "https://pypi.python.org/packages/93/ee/d70fa11b71fb6149a4a07b062a62a6434f8259ed7f990014b2772d03b069/pando_ruffus-0.1.59.tar.gz"
+            }
+        ],
+        "0.1.60": [
+            {
+                "comment_text": "",
+                "downloads": 13,
+                "filename": "pando_ruffus-0.1.60.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4eb31b5ccdeb025e21fc2710a688e1a7",
+                "packagetype": "sdist",
+                "path": "94/b6/8fe534c679a474b81b76aafe8eaa00a7264851cdbc462b18b935edcb01d9/pando_ruffus-0.1.60.tar.gz",
+                "python_version": "source",
+                "size": 7477991,
+                "upload_time": "2017-03-20T11:49:51",
+                "url": "https://pypi.python.org/packages/94/b6/8fe534c679a474b81b76aafe8eaa00a7264851cdbc462b18b935edcb01d9/pando_ruffus-0.1.60.tar.gz"
+            }
+        ],
+        "0.1.61": [
+            {
+                "comment_text": "",
+                "downloads": 13,
+                "filename": "pando_ruffus-0.1.61.tar.gz",
+                "has_sig": false,
+                "md5_digest": "60b55519ea542525fcc7121ca0fb69b9",
+                "packagetype": "sdist",
+                "path": "64/5e/d66b3b64fd8c0f4fe8db4c00f562f53663172f6b22534af2111114dc7b08/pando_ruffus-0.1.61.tar.gz",
+                "python_version": "source",
+                "size": 7477950,
+                "upload_time": "2017-03-24T06:06:00",
+                "url": "https://pypi.python.org/packages/64/5e/d66b3b64fd8c0f4fe8db4c00f562f53663172f6b22534af2111114dc7b08/pando_ruffus-0.1.61.tar.gz"
+            }
+        ],
+        "0.1.62": [
+            {
+                "comment_text": "",
+                "downloads": 14,
+                "filename": "pando_ruffus-0.1.62.tar.gz",
+                "has_sig": false,
+                "md5_digest": "950892bef039c1eb3a36c7cc7c573221",
+                "packagetype": "sdist",
+                "path": "7f/3d/d3d3043932c3878206305c3fcd495c41d5ba1c7824fa71e4f842e23b64d3/pando_ruffus-0.1.62.tar.gz",
+                "python_version": "source",
+                "size": 7477967,
+                "upload_time": "2017-03-24T06:19:18",
+                "url": "https://pypi.python.org/packages/7f/3d/d3d3043932c3878206305c3fcd495c41d5ba1c7824fa71e4f842e23b64d3/pando_ruffus-0.1.62.tar.gz"
+            }
+        ],
+        "0.1.64": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "pando_ruffus-0.1.64.tar.gz",
+                "has_sig": false,
+                "md5_digest": "996df271385db34b305d7487b2e0b858",
+                "packagetype": "sdist",
+                "path": "fd/41/03b8e7bb29b84228568c0dda828ae30397df9e0fba8f3b98c808e48f03ca/pando_ruffus-0.1.64.tar.gz",
+                "python_version": "source",
+                "size": 7478248,
+                "upload_time": "2017-04-19T06:39:03",
+                "url": "https://pypi.python.org/packages/fd/41/03b8e7bb29b84228568c0dda828ae30397df9e0fba8f3b98c808e48f03ca/pando_ruffus-0.1.64.tar.gz"
+            }
+        ],
+        "0.1.65": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "pando_ruffus-0.1.65.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dbb214bdbcf25ada5fb1ab67855c9da1",
+                "packagetype": "sdist",
+                "path": "62/cd/1deee9f232ac209318ce9abd3e458fb10d5b15c3c62b0883df7dbf895c0e/pando_ruffus-0.1.65.tar.gz",
+                "python_version": "source",
+                "size": 7478257,
+                "upload_time": "2017-04-19T06:40:47",
+                "url": "https://pypi.python.org/packages/62/cd/1deee9f232ac209318ce9abd3e458fb10d5b15c3c62b0883df7dbf895c0e/pando_ruffus-0.1.65.tar.gz"
+            }
+        ],
+        "0.1.66": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "pando_ruffus-0.1.66.tar.gz",
+                "has_sig": false,
+                "md5_digest": "97bf5eec0a300ed7acd0f49a62b57826",
+                "packagetype": "sdist",
+                "path": "a7/66/67c9c0ddb1893b4360cd0d425450a2bbbdd7033b661ef41f02f42c6ad8bf/pando_ruffus-0.1.66.tar.gz",
+                "python_version": "source",
+                "size": 7478249,
+                "upload_time": "2017-04-19T06:48:27",
+                "url": "https://pypi.python.org/packages/a7/66/67c9c0ddb1893b4360cd0d425450a2bbbdd7033b661ef41f02f42c6ad8bf/pando_ruffus-0.1.66.tar.gz"
+            }
+        ],
+        "0.1.67": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "pando_ruffus-0.1.67.tar.gz",
+                "has_sig": false,
+                "md5_digest": "274d994e20236aaa13c1b971a4f5bbb2",
+                "packagetype": "sdist",
+                "path": "d0/2f/825fc5c921b23ed6a659195e756a28c1697fd2d56835e669e0d0e8dc72b5/pando_ruffus-0.1.67.tar.gz",
+                "python_version": "source",
+                "size": 7478235,
+                "upload_time": "2017-04-20T06:45:36",
+                "url": "https://pypi.python.org/packages/d0/2f/825fc5c921b23ed6a659195e756a28c1697fd2d56835e669e0d0e8dc72b5/pando_ruffus-0.1.67.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 0,
+            "filename": "pando_ruffus-0.1.67.tar.gz",
+            "has_sig": false,
+            "md5_digest": "274d994e20236aaa13c1b971a4f5bbb2",
+            "packagetype": "sdist",
+            "path": "d0/2f/825fc5c921b23ed6a659195e756a28c1697fd2d56835e669e0d0e8dc72b5/pando_ruffus-0.1.67.tar.gz",
+            "python_version": "source",
+            "size": 7478235,
+            "upload_time": "2017-04-20T06:45:36",
+            "url": "https://pypi.python.org/packages/d0/2f/825fc5c921b23ed6a659195e756a28c1697fd2d56835e669e0d0e8dc72b5/pando_ruffus-0.1.67.tar.gz"
+        }
+    ]
+}

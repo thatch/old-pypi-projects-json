@@ -1,0 +1,160 @@
+{
+    "info": {
+        "author": "Oben Sonne",
+        "author_email": "obensonne@googlemail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python :: 3",
+            "Topic :: Database :: Front-Ends",
+            "Topic :: Software Development :: Libraries"
+        ],
+        "description": "=====\nDeeno\n=====\n\nDeeno is not an ORM. It is a thin database abstraction layer.\n\n**Disclaimer:** Deeno development is in an early stage. It has good test\ncoverage but still lacks experience in production environments.\n\nDeeno provides a slick Python API for typical CRUD operations while motivating\nyou to use plain SQL for more smart things. The rationale here is to not\nenforce object oriented paradigms on relational data. If you ever experienced a\nlot of WTF when reading chained ORM monsters but also are tired of doing plain\nCRUD stuff in raw SQL, then Deeno is for you.\n\nDeeno assumes you define and manage database schemas outside the application\nwhich interacts with the database. This is typically the case for databases\nused by different applications running in different environments and on\ndifferent platforms.  In that case it is redundant to re-define a good deal of\nthe schema (e.g. primary keys, columns and their default values) in models --\nDRY. Deeno collects (and caches) necessary schema information like  primary key\ninformation and relation types using database introspection.\n\nCurrently SQLite and PostgreSQL are supported.\n\n**Reasons for Deeno:**\n\n- You manage the database schema in SQL (i.e. not derived from Python model\n  objects) and you do not want to specify your schema twice.\n- You prefer raw SQL over complex chained model methods where it is not obvious\n  how things map to SQL.\n- You prefer to avoid raw SQL for simple CRUD operations.\n- You do not want your DB layer to be a black box (i.e. it should be easy to\n  guess how Python statements map to SQL statements).\n\n-----------\nQuick Intro\n-----------\n\nLet's set up a test database::\n\n    >>> import os\n    >>> from deeno.db import SQLiteDatabase\n    >>> db = SQLiteDatabase(':memory:')\n    >>> db.execute(\"\"\"\n    ...     CREATE TABLE customer (\n    ...         customer_id INTEGER PRIMARY KEY,\n    ...         name TEXT\n    ...     )\n    ... \"\"\")\n    >>> db.execute(\"\"\"\n    ...     CREATE TABLE user (\n    ...         user_id INTEGER PRIMARY KEY,\n    ...         name TEXT,\n    ...         age INTEGER,\n    ...         active BOOLEAN DEFAULT 1,\n    ...         customer_id INTEGER REFERENCES customer (customer_id)\n    ...     )\n    ... \"\"\")\n    >>> db.execute(\"\"\"\n    ...     INSERT INTO user (name, age, active)\n    ...     VALUES ('Bob', 28, 1), ('Joe', 32, 0)\n    ... \"\"\")\n    2\n\nYou can work with relations without defining a single model::\n\n    >>> user = db.r.user.get(user_id=1)\n    >>> user.name == 'Bob'\n    True\n    >>> user.name = 'B\u00f8b'\n    >>> user.save()\n\nSo the basic concept is that you have a database connection object ``db`` on\nwhich you can perform arbitrary SQL statements and which provides a minimal\ninterface to relations using the scheme\n``db.r.<relation-name>.<relation-action>``.\n\nCreate a new user::\n\n    >>> user = db.r.user.new(name='Brian', age=48)\n    >>> print('%s has ID %s' % (user.name, user.user_id))\n    Brian has ID 3\n\nThe ``get`` and ``new`` functions on relations return active-record-like\nobjects. That's the most ORM-like behavior of Deeno. For all other stuff Deeno\nprovides merely convenience functions for performing SQL queries::\n\n    >>> users = db.r.user.select('name', where={'active': True}, limit=10)\n    >>> for user in users:\n    ...    print(user.name)\n    B\u00f8b\n    Brian\n\n\nFor where clauses with not only equality checks, use parameterized SQL\nfragments::\n\n    >>> users = db.r.user.select('name', where=('active AND age > ?', [40]))\n    >>> for user in users:\n    ...    print(user.name)\n    Brian\n\nThis is equivalent::\n\n    >>> users = db.fetchall(\"SELECT * FROM user WHERE active AND age > ? LIMIT ?\", [40, 10])\n\nThe ``select`` and ``fetchall`` functions do not return active records but\nnamed tuples. IMHO active records do not fit well when working with multiple\nrows from a relation.\n\nJoins are written like that::\n\n    >>> users = db.r.user.left_join('customer', using=('customer_id',)).select()\n\nSome more impressions::\n\n    >>> n = db.r.user.update({'active': True}, where=('age < ?', [40]))\n    >>> print('affected rows: %s' % n)\n    affected rows: 2\n    >>> rows = db.r.user.delete(returning=True)  # postgres only # doctest: +SKIP\n\n|flattr|\n\nDeeno Highlights:\n\n- no model definitions (deeno uses introspection when needed)\n- easy to execute plain SQL\n- CRUD in Python, fancy stuff in SQL\n\n.. contents::\n   :depth: 1\n   :local:\n\n------------\nInstallation\n------------\n\nDeeno requires Python 3.\n\nRun::\n\n    pip install deeno\n\nIf you want to interact with Postgres, you also need to install the *psycopg2*\nmodule::\n\n    pip install psycopg2\n\n\n-----\nUsage\n-----\n\n*TODO*\n\n---------\nResources\n---------\n\n:Releases and documentation: `PyPI`_\n\n:Issues and source code: `BitBucket`_\n\n.. :Source code mirror: ` `GitHub`_\n\n.. _`PyPI`: http://pypi.python.org/pypi/deeno\n.. _`BitBucket`: https://bitbucket.org/obensonne/deeno\n.. _`GitHub`: https://github.com/obensonne/deeno\n\n-------------\nContributions\n-------------\n\nTo contribute to Deeno, fork the project at `BitBucket`_.\n\n.. or `GitHub`_.\n\nEvery fix or new feature should include one or more corresponding test cases.\nPlease also `post an issue`_ describing your fix or enhancement.\n\n.. _`post an issue`: https://bitbucket.org/obensonne/deeno/issues\n\nDeeno uses  `Buildout`_ to easily set up the development environment.\nBuildout automates the process of downloading and installing requirements to\nuse and develop Deeno. Requirements are installed local to the project\nsource directory, i.e. it does not clutter the system Python installation.\n\nIn a fresh source checkout, run::\n\n    $ python3 bootstrap.py\n    $ bin/buildout\n\nWhen done, the following scripts can be found in the ``bin/`` directory:\n\n``tests``\n    Test runner script (a wrapper for `nose`_).\n\n``fab``\n    `Fabric`_ binary to use for the project's *fabfile*.\n\n``python``\n    A Python interpreter with access to the local development version of\n    the *deeno* module.\n\n.. _`Buildout`: http://www.buildout.org/\n.. _`nose`: http://readthedocs.org/docs/nose/\n.. _`Fabric`: http://fabfile.org/\n\n-------\nChanges\n-------\n\nVersion 0.5\n~~~~~~~~~~~\n\n- More robust URI parsing (let DB do the job).\n\nVersion 0.4\n~~~~~~~~~~~\n\n- Databases can now created using an a factory function which accepts an URI.\n\nVersion 0.3\n~~~~~~~~~~~\n\n- Use keyword arguments for database setup (instead of generic config\n  dictionaries, which are a pain to type).\n\nVersion 0.2\n~~~~~~~~~~~\n\n- Minor exception handling improvements (e.g. use distinct exceptions when a\n  relation is not found).\n- Minor README improvements.\n\nVersion 0.1\n~~~~~~~~~~~\n\n- Initial release.\n\n.. ......................................................................... ..\n\n.. |flattr| image:: https://api.flattr.com/button/flattr-badge-large.png\n   :alt: Flattr this\n   :target: https://flattr.com/submit/auto?user_id=obs&url=https%3A%2F%2Fbitbucket.org%2Fobensonne%2Fdeeno",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://pypi.python.org/pypi/deeno",
+        "keywords": "database orm sql postgresql sqlite",
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "deeno",
+        "package_url": "https://pypi.org/project/deeno/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/deeno/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://pypi.python.org/pypi/deeno"
+        },
+        "release_url": "https://pypi.org/project/deeno/0.5/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Deeno is not an ORM.",
+        "version": "0.5"
+    },
+    "last_serial": 1282673,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "37e05ec4409b4507cdeeeb7546f1cb25",
+                    "sha256": "c87db929aa9587ba305f5bd800b98accf0267e835d9596368002a09ad7af31c2"
+                },
+                "downloads": -1,
+                "filename": "deeno-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "37e05ec4409b4507cdeeeb7546f1cb25",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12138,
+                "upload_time": "2014-09-28T21:32:17",
+                "url": "https://files.pythonhosted.org/packages/f5/16/a52f5114c481bc976ef8d190b5e59b88d9c166c58bb4afcf8f903daadd6b/deeno-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1e48176b8a5b22ef6607bfd78ddead07",
+                    "sha256": "b9e41e501976a0f60519af147ed459fd89ae98f9de5de300f9e2c38f2b201ad1"
+                },
+                "downloads": -1,
+                "filename": "deeno-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1e48176b8a5b22ef6607bfd78ddead07",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12683,
+                "upload_time": "2014-10-18T21:13:37",
+                "url": "https://files.pythonhosted.org/packages/0d/22/510e9ce16c2346f90fdb1f7e25d6caacb858c0837cbe2ddddc2d296ca8fc/deeno-0.2.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "85aeb4cb28f57190d1575865efe8c24c",
+                    "sha256": "b68a8b155fce6d11fad7bb0101ae01da8318b29073ec8fdcaaf123eb57ac2250"
+                },
+                "downloads": -1,
+                "filename": "deeno-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "85aeb4cb28f57190d1575865efe8c24c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12804,
+                "upload_time": "2014-10-24T20:55:54",
+                "url": "https://files.pythonhosted.org/packages/59/81/162f7fb6b0674c59c3ecdbf3e83480e5d57fbd8b6320e196353b9a649914/deeno-0.3.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac616b0132438878a1821d1d1cce5580",
+                    "sha256": "17d7630c5db86b46f76f1674e4c013aa6228c340c841016273c72f81c2cae7d3"
+                },
+                "downloads": -1,
+                "filename": "deeno-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ac616b0132438878a1821d1d1cce5580",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13092,
+                "upload_time": "2014-10-25T16:03:56",
+                "url": "https://files.pythonhosted.org/packages/3f/5a/1ef4620bda7cf8b3e6f29da09147abc21b3f6197d4be9c4429a2dedbf30a/deeno-0.4.tar.gz"
+            }
+        ],
+        "0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "36f0522d83209c3408a79f457bd51721",
+                    "sha256": "d20faa5c2b306bd413b39a4421d12aa733ac15cdef31fdb4d1a3e2e36c15fde1"
+                },
+                "downloads": -1,
+                "filename": "deeno-0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "36f0522d83209c3408a79f457bd51721",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13122,
+                "upload_time": "2014-10-25T18:28:56",
+                "url": "https://files.pythonhosted.org/packages/2f/ad/d928d87433d8f2daf5dc4f97dcdbee1a535eca194a20cdd010a88aa8e150/deeno-0.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "36f0522d83209c3408a79f457bd51721",
+                "sha256": "d20faa5c2b306bd413b39a4421d12aa733ac15cdef31fdb4d1a3e2e36c15fde1"
+            },
+            "downloads": -1,
+            "filename": "deeno-0.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "36f0522d83209c3408a79f457bd51721",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 13122,
+            "upload_time": "2014-10-25T18:28:56",
+            "url": "https://files.pythonhosted.org/packages/2f/ad/d928d87433d8f2daf5dc4f97dcdbee1a535eca194a20cdd010a88aa8e150/deeno-0.5.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,85 @@
+{
+    "info": {
+        "author": "Victor Aguilar C.",
+        "author_email": "victor@xiberty.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 1 - Planning",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: Implementation :: CPython"
+        ],
+        "description": "# suarm\n\nTools for deploy a cheap Docker Swarm cluster in https://vultr.com servers over CoreOS\nWith a loadbalancer\n\n## Installation\n\n`[sudo] pip install git+https://github.com/vicobits/suarm.git`\n\n#### development\n  - Install build essential tools with `sudo apt install build-essential`\n  - Prepare environment with `make env`\n  - Configure  `swarm.json` file.\n  - Edit files\n\n## Usage\n\n#### Create Cluster\n  - Add `api-key` to `swarm.json` from value generated in [API Section](https://my.vultr.com/settings/#settingsapi) in\n    your [Vultr](https://vultr.com) account.\n  - Generate a ssh-key for your project with the command `suarm keys --create`.\n  - Register your generated ssh-key into `swarm.json` file with selecting between your registered keys with `suarm keys`\n  - Create a cluster with `suarm cluster --create` or `suarm -f <config_file> cluster --create`\n\n#### Destroy Cluster\n  - Destroy cluster with `suarm cluster --delete` or `suarm -f <config_file> cluster --delete`\n\n### Configuration file\n\nBy defaul `suarm` catch `swarm.json` file as configuration file in the current location\nthis file, contains the next values:\n\n```\n{\n    \"api-key\": \"<MY_VULTR_API_KEY>\",\n    \"ssh-key\": \"<MY_VULTR_GENERATED_SSHKEYID>\",\n    \"label\": \"<NAME_FOR_SWARM>\",\n    \"path\": \"<PATH_FOR_DEPLOYMENTS>\",\n    \"domain\": \"<DOMAIN_FOR_SWARM_MASTER>\",\n    \"email\": \"<YOUR_EMAIL>\",\n    \"manager\": {\n        \"replicas\": 1,\n        \"zone\": \"NEW_JERSEY\",\n        \"plan\": 201,\n        \"os\": \"COREOS\",\n        \"nodes\": []\n    },\n    \"worker\": {\n        \"replicas\": 2,\n        \"zone\": \"NEW_JERSEY\",\n        \"plan\": 201,\n        \"os\": \"COREOS\",\n        \"nodes\": []\n    }\n}\n```\nWhere\n  * **api-key** is obtained from the [api](https://my.vultr.com/settings/#settingsapi)\n  * **ssh-key** is a SSHKEYID of some your registered ssh keys in the server this is obtained from\n  * **ssh-key** is path string for apps deployed with docker compose.\n  * **manager** is config for manager nodes\n  * **worker** is config for worker nodes\n  * **label** Is a name for cluster e.g. swarm > swarm-manager, swarm-worker00, swarm-worker01, ...\n  * **replicas** is the quantity of nodes\n  * **zone** is a availability zone obtained from the [api](https://api.vultr.com/v1/regions/list)\n  supported zones are:\n  ```\n  NEW_JERSEY      CHICAGO           DALLAS          SILICON_VALLEY\n  SEATTLE         LOS_ANGELES       ATLANTA         SYDNEY\n  AMSTERDAM       LONDON            FRANKFURT       SINGAPORE\n  PARIS           TOKYO             MIAMI\n  ```\n  * **plan** representa resources for server (Mem/CPU/Price), obtained from the [api](https://api.vultr.com/v1/plans/list)\n  List for common plans are:\n  ```\n  PLAN     MEMORY RAM        STORAGE        BANDWIDTH       CPU         PRICE\n  -------------------------------------------------------------------------------\n  201      1024 MB RAM      25 GB SSD       1.00 TB BW      1CPU        5 USD\n  202      2048 MB RAM      40 GB SSD       2.00 TB BW      1CPU        10 USD\n  203      4096 MB RAM      60 GB SSD       3.00 TB BW      2CPUs       20 USD\n  204      8192 MB RAM      100 GB SSD      4.00 TB BW      4CPUs       40 USD\n  205      16384 MB RAM     200 GB SSD      5.00 TB BW      6CPUs       80 USD\n  206      32768 MB RAM     300 GB SSD      6.00 TB BW      8CPUs       160 USD\n  207      65536 MB RAM     400 GB SSD      10.00 TB BW     16CPUs      320 USD\n  208      98304 MB RAM     800 GB SSD      15.00 TB BW     24 CPUs     640 USD\n  ```\n  * **os** is OS id in Vultr obtained from the [API](https://api.vultr.com/v1/os/list)\n  List for supported OS are:\n  ```\n  CENTOS_6        DEBIAN_7      UBUNTU_14_04      COREOS      DEBIAN_8,\n  UBUNTU_16_04    FEDORA_25     UBUNTU_17_04      DEBIAN_9    FEDORA_26\n  ```\n# Configure cluster\n\n#### Setup swarm\nUse the command `suarm cluster --setup` to configure manager and worker nodes.\n\n#### Setup dashboard\nUse the command `suarm cluster --setup-dashboard` to install [portainer](https://portainer.io/) and [vizualizer](https://github.com/dockersamples/docker-swarm-visualizer).\n\n#### Setup proxy\nUse the command `suarm cluster --setup-proxy` to install proxy flow base on [DockerFlow](http://dockerflow.com).\n\n## Setup cluster manually\nFor setup cluster manually check [Manually docs](COMMANDS.md)\n\n##Execute commands in production\n\n`docker exec -ti [container]  python manage.py createsuperuser`\n\n## Performance improvement\nTo improve performance between nodes in the cluster there should be in the same private network.\nYou can configure a private network.\n - First enable the private network feature in all nodes\n - Create a file `/etc/systemd/network/static.network` with the next configuration:\n```\n[Match]\nName=eth1\n\n[Link]\nMTUBytes=1450\n\n[Network]\nAddress=10.99.0.10\nNetmask=255.255.0.0\n```\n- Restart networking config\n`sudo systemctl restart systemd-networkd`\n\n## TODOS\n  * **manage domains** add domain to the cluster and manage app domains with Cloudflare\n  * **deploy app** app deployment with docker-compose\n\n## Extra Config\nFor proxy config options check [dockerflow-proxy](http://proxy.dockerflow.com)\nFor letsencrypt config options check [dockerflow-le](https://github.com/n1b0r/docker-flow-proxy-letsencrypt)\n\nLicense\n-------\nThis code is licensed under the `MIT License`_.\n\n.. _`MIT License`: https://github.com/vicobits/suarm/blob/master/LICENSE",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://suarm.readthedocs.org",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "suarm",
+        "package_url": "https://pypi.org/project/suarm/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/suarm/",
+        "project_urls": {
+            "Homepage": "https://suarm.readthedocs.org"
+        },
+        "release_url": "https://pypi.org/project/suarm/0.0.7/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "CLI tools dor docker swarm deployment",
+        "version": "0.0.7"
+    },
+    "last_serial": 3228642,
+    "releases": {
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fafb6b8ccc162cce7536896c742c3d59",
+                    "sha256": "11fe68fcc47e1ef2087dbcf28afa5ef9561b79364378cce208245096c41d78d7"
+                },
+                "downloads": -1,
+                "filename": "suarm-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fafb6b8ccc162cce7536896c742c3d59",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29693,
+                "upload_time": "2017-10-05T18:35:41",
+                "url": "https://files.pythonhosted.org/packages/e2/54/e81c3a218bbf53532c9bc6ba73ef1458e2e55ad7312784ca6e91c20717ec/suarm-0.0.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "fafb6b8ccc162cce7536896c742c3d59",
+                "sha256": "11fe68fcc47e1ef2087dbcf28afa5ef9561b79364378cce208245096c41d78d7"
+            },
+            "downloads": -1,
+            "filename": "suarm-0.0.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "fafb6b8ccc162cce7536896c742c3d59",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 29693,
+            "upload_time": "2017-10-05T18:35:41",
+            "url": "https://files.pythonhosted.org/packages/e2/54/e81c3a218bbf53532c9bc6ba73ef1458e2e55ad7312784ca6e91c20717ec/suarm-0.0.7.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,103 @@
+{
+    "info": {
+        "author": "Tiago de Freitas Pereira",
+        "author_email": "tiagofrepereira@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Topic :: Scientific/Engineering :: Artificial Intelligence"
+        ],
+        "description": "=======================================================================================\nIdiap's implementation for the paper: A face Antispoofing Database with Diverse Attacks\n=======================================================================================\n\n\nThis package implements the DoG based countermeasure to spoofing attacks to face recognition systems as described at the paper: A face Antispoofing Database with Diverse Attacks. This was the baseline algorithm for the database.\n\n\nIf you use this package and/or its results, please cite the following publications:\n\n1. The original paper with the counter-measure explained in details::\n\n    @inproceedings{zhang2012face,\n      title={A face antispoofing database with diverse attacks},\n      author={Zhang, Z. and Yan, J. and Liu, S. and Lei, Z. and Yi, D. and Li, S.Z.},\n      booktitle={Biometrics (ICB), 2012 5th IAPR International Conference on},\n      pages={26--31},\n      year={2012},\n      organization={IEEE}\n    }\n\n2. Bob as the core framework used to run the experiments::\n\n    @inproceedings{Anjos_ACMMM_2012,\n      author = {A. Anjos AND L. El Shafey AND R. Wallace AND M. G\\\"unther AND C. McCool AND S. Marcel},\n      title = {Bob: a free signal processing and machine learning toolbox for researchers},\n      year = {2012},\n      month = oct,\n      booktitle = {20th ACM Conference on Multimedia Systems (ACMMM), Nara, Japan},\n      publisher = {ACM Press},\n    }\n\n\nNotes\n-----\n\nThis package try to reproduce the countermeasure published, but the normalized face size is missing on the paper. For that reason, is impossible to generate the same parameters.\n\n\nInstallation\n------------\n\n\n.. note::\n\n  If you are reading this page through our GitHub portal and not through PyPI,\n  note **the development tip of the package may not be stable** or become\n  unstable in a matter of moments.\n\n  Go to `http://pypi.python.org/pypi/antispoofing.dog\n  <http://pypi.python.org/pypi/antispoofing.dog>`_ to download the latest\n  stable version of this package.\n\nThere are 2 options you can follow to get this package installed and\noperational on your computer: you can use automatic installers like `pip\n<http://pypi.python.org/pypi/pip/>`_ (or `easy_install\n<http://pypi.python.org/pypi/setuptools>`_) or manually download, unpack and\nuse `zc.buildout <http://pypi.python.org/pypi/zc.buildout>`_ to create a\nvirtual work environment just for this package.\n\nUsing an automatic installer\n============================\n\nUsing ``pip`` is the easiest (shell commands are marked with a ``$`` signal)::\n\n  $ pip install antispoofing.dog\n\nYou can also do the same with ``easy_install``::\n\n  $ easy_install antispoofing.dog\n\nThis will download and install this package plus any other required\ndependencies. It will also verify if the version of Bob you have installed\nis compatible.\n\nThis scheme works well with virtual environments by `virtualenv\n<http://pypi.python.org/pypi/virtualenv>`_ or if you have root access to your\nmachine. Otherwise, we recommend you use the next option.\n\nUsing ``zc.buildout``\n=====================\n\nDownload the latest version of this package from `PyPI\n<http://pypi.python.org/pypi/antispoofing.dog>`_ and unpack it in your\nworking area. The installation of the toolkit itself uses `buildout\n<http://www.buildout.org/>`_. You don't need to understand its inner workings\nto use this package. Here is a recipe to get you started::\n\n  $ python bootstrap.py\n  $ ./bin/buildout\n\nThese 2 commands should download and install all non-installed dependencies and\nget you a fully operational test and development environment.\n\n.. note::\n\n  The python shell used in the first line of the previous command set\n  determines the python interpreter that will be used for all scripts developed\n  inside this package. Because this package makes use of `Bob\n  <http://idiap.github.com/bob>`_, you must make sure that the ``bootstrap.py``\n  script is called with the **same** interpreter used to build Bob, or\n  unexpected problems might occur.\n\n  If Bob is installed by the administrator of your system, it is safe to\n  consider it uses the default python interpreter. In this case, the above\n  command lines should work as expected. If you have Bob installed somewhere else on a private directory,\n  edit the file  ``buildout.cfg`` **before** running ``./bin/buildout``. Find the section named\n  ``buildout`` and edit or add the line ``prefixes`` to point to the directory where Bob is installed or built. For example::\n\n    [buildout]\n    ...\n    prefixes=/Users/crazyfox/work/bob/build/\n\n\nUser Guide\n----------\n\nIt is assumed you have followed the installation instructions for the package\nand got this package installed and the REPLAY-ATTACK or the CASIA-FASD database downloaded and\nuncompressed in a directory. You should have all required utilities sitting\ninside a binary directory depending on your installation strategy (utilities\nwill be inside the ``bin`` if you used the buildout option). We expect that the\nvideo files downloaded for the REPLAY-ATTACK or the CASIA-FASD database are installed in a\nsub-directory called ``database`` at the root of the package.  You can use a\nlink to the location of the database files, if you don't want to have the\ndatabase installed on the root of this package::\n\n  $ ln -s /path/where/you/installed/the/replay-attack-database database\n\nIf you don't want to create a link, use the ``--input-dir`` flag to specify\nthe root directory containing the database files. That would be the directory\nthat *contains* the sub-directories ``train``, ``test``, ``devel`` and\n``face-locations``.\n\n\nCalculate the DoG features\n==========================\n\nThe first step of the process is calculating the feature vectors, which are essentially images filtered using a DoG filters.\n\nThe script to be used is script/dog_parameters.py.\n\nThe resulting filtered images will be stored in .hdf5 files in the default output directory ./dog_features.\n\n\nIt is possible to provide a set of filters::\n\n  $ ./bin/dog_parameters.py --input-dir ./database_path/ --output-dir ./dog_features/ --sigma-1 0.5 1 --sigma-2 1 2 replay\n\nTo see all the options for this script, just type --help at the command line::\n\n  $ ./bin/dog_parameters.py --help\n\n\nClassification with Linear Discriminant Analysis (LDA)\n======================================================\n\nThe classification with LDA is performed using the script ``script/dog_ldatrain.py``. It makes use of the scripts ``ml/lda.py``, ``ml/pca.py`` (if PCA reduction is performed on the data) and ``ml/norm.py`` (if the data need to be normalized). The default input and output directories are ``./dog_features`` and ``./res``. To execute the script with the default parameters, call::\n\n  $ ./bin/dog_ldatrain.py\n\nTo see all the options for this script, just type ``--help`` at the command line::\n\n  $ ./bin/dog_ldatrain.py --help\n\nBe careful, with a big set of DoG filters (three or four) the computation time goes crazy and you will need to wait a lot.\n\n\nClassification with Support Vector Machine (SVM)\n================================================\n\nThe classification with SVM is performed using the script ``script/dog_svmtrain.py``. It makes use of the scripts ``ml/pca.py`` (if PCA reduction is performed on the data) and ``ml/norm.py`` (if the data need to be normalized). The default input and output directories are ``./lbp_features`` and ``./res``. To execute the script with the default parameters, call::\n\n  $ ./bin/dog_svmtrain.py\n\n\nTo see all the options for this script, just type ``--help`` at the command line::\n\n  $ ./bin/dog_svmtrain.py --help\n\nBe careful, with a big set of DoG filters (three or four) the computation time goes crazy and you will need to wait a lot.\n\n\nGenerating results\n==================\n\nFor generating the final results it is necessary to generate the scores first. For that, the script ``./bin/dog_make_scores.py`` must be executed. The code bellow is an example of how to compute the scripts for a LDA based countermeasure::\n\n  $ ./bin/dog_make_scores.py --features-dir ./dog_features --machine-file ./lda/lda_machine_0.99.txt --machine-type Linear --pca-machine ./lda/pca_machine_0.99.txt --output-dir ./lda/scores replay\n\nAfter that, just run the script to compute the result analysis::\n\n  $ ./bin/dog_result_analysis.py --scores-dir ./lda/scores replay\n\nAs always, type ``--help`` for help::\n\n  $ ./bin/dog_result_analysis.py --help",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://pypi.python.org/pypi/antispoofing.dog",
+        "keywords": null,
+        "license": "GPLv3",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "antispoofing.dog",
+        "package_url": "https://pypi.org/project/antispoofing.dog/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/antispoofing.dog/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://pypi.python.org/pypi/antispoofing.dog"
+        },
+        "release_url": "https://pypi.org/project/antispoofing.dog/1.0.2/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Idiap's implementation for the paper: A face Antispoofing Database with Diverse Attacks",
+        "version": "1.0.2"
+    },
+    "last_serial": 819136,
+    "releases": {
+        "1.0.0": [],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "811c3aff64677d962a5888b01c1d5d61",
+                    "sha256": "275fc0028a58339925deee54b97e729acd67b4c6bd2adf1232ad3c52acd90c65"
+                },
+                "downloads": -1,
+                "filename": "antispoofing.dog-1.0.1.zip",
+                "has_sig": false,
+                "md5_digest": "811c3aff64677d962a5888b01c1d5d61",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29077,
+                "upload_time": "2013-07-19T13:03:56",
+                "url": "https://files.pythonhosted.org/packages/21/c5/0d48d82278ae50a6d8242fcd31c49fc3b6783288a9d93468913e20a5693f/antispoofing.dog-1.0.1.zip"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95715cf969542b547624d46c276680f4",
+                    "sha256": "ec4167dfd73800ef9473c3291b8c8a608f20e16eb7dcb21b9efbf31af7ba67c1"
+                },
+                "downloads": -1,
+                "filename": "antispoofing.dog-1.0.2.zip",
+                "has_sig": false,
+                "md5_digest": "95715cf969542b547624d46c276680f4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29059,
+                "upload_time": "2013-07-19T13:37:01",
+                "url": "https://files.pythonhosted.org/packages/d9/60/9805798132cb8255c925bc2ef6e9eea9846b2c56ad9d5c7791e960d6f937/antispoofing.dog-1.0.2.zip"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "95715cf969542b547624d46c276680f4",
+                "sha256": "ec4167dfd73800ef9473c3291b8c8a608f20e16eb7dcb21b9efbf31af7ba67c1"
+            },
+            "downloads": -1,
+            "filename": "antispoofing.dog-1.0.2.zip",
+            "has_sig": false,
+            "md5_digest": "95715cf969542b547624d46c276680f4",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 29059,
+            "upload_time": "2013-07-19T13:37:01",
+            "url": "https://files.pythonhosted.org/packages/d9/60/9805798132cb8255c925bc2ef6e9eea9846b2c56ad9d5c7791e960d6f937/antispoofing.dog-1.0.2.zip"
+        }
+    ]
+}

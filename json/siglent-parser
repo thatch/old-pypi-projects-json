@@ -1,0 +1,238 @@
+{
+    "info": {
+        "author": "Matt Trzcinski",
+        "author_email": "excalamus@tutanota.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Multimedia :: Sound/Audio :: Conversion",
+            "Topic :: Scientific/Engineering :: Visualization"
+        ],
+        "description": "siglent_parser\n==============\n\n![Image showing plotted analog data](./docs/analog.PNG \"Example:\nPlotting analog data\")\n\nAnalyze data obtained from your Siglent scope using the Python tools\nyou know and love!\n\n**siglent_parser** is a Python library for converting Siglent\n1000/2000X [binary data](#Binary) to a Numpy array.\n\nThe library is currently configured for analog data and 2000X models.\nHowever, parameters and logic are in place for expanding the library's\nfunctionality to handle digital data and 1000X models.  Steps on how\nto do this are provided in the [Todo](#Todo).  The interested party is\nencouraged to submit a pull request!\n\nThe **siglent_parser** library was tested using a Siglent SDS2304X and\nwas written using Python 3.6 on Windows 10.  Attempts have been made\nto make the library platform independent, although YMMV. The library\nwas created using the specifications provided by Siglent Technologies\nin the document [How to Extract Data from the Binary File of SDS2000X,\nSDS1000X, and\nSDS1000X-E](https://web.archive.org/web/20190715210130/https://www.siglentamerica.com/operating-tip/extract-data-binary-file-sds2000x-sds1000x/\n\"Technical specifications\").\n\nHow to get it\n=============\n\nThere are three ways to get the library.\n\n## Clone\n\nPlease consider contributing to the project!  Your help *is* valuable!\n\nTo clone, the **siglent_parser** library, do\n\n```sh\nhg clone https://excalamus@bitbucket.org/excalamus/siglent_parser\n```\n\n## Download\n\nDownload a zip of the library from the main [downloads\npage](https://bitbucket.org/excalamus/siglent_parser/downloads/\n\"Downloads page\").\n\n## PyPi\n\nThe **siglent_parser** libary is available on\n[PyPi](https://pypi.org/project/siglent-parser/ \"python package\").\n\nTo install it in your Python envionment, do\n\n```sh\npip install siglent-parser\n```\n\nSetup\n=======\n\nIf the library was cloned or downloaded, you will need to install the\nlibrary and its dependencies:\n\n```sh\n\n# Make sure you're in the directory above siglent_parser\n# This will install the library as an editable package\npip install -e siglent_parser\n\n# Make sure you're in the same directory as requirements.txt\npip install -r requirements.txt\n```\n\nAt the time of this writing, the only dependency is Numpy.\n\nUsing the **siglent_parser** library\n====================================\n\nAt this time, the **siglent_parser** library only parses strictly\nanalog files ([See Todo](#Todo)).  The output is a Numpy array which\ncan then be plotted, etc.\n\n```python\nfrom pathlib import Path\nfrom siglent_paser import SiglentParser\n\nmy_analog        = Path(r\"tests\\resources\\analog_sample2\\SDS00001.BIN\")\nmy_digital       = Path(r\"tests\\resources\\digital_sample1\\SDS00002.BIN\")\nmy_digtal_analog = Path(r\"tests\\resources\\digital_analog_sample1\\SDS00003.BIN\")\n\nmy_data = my_analog\nparsy = SiglentParser()\n\nmy_df = parsy.parse_binary(my_data)\n\n# Plot the data\nimport matplotlib.pyplot as plt\n\nplt.plot(my_df['time'], my_df['volts'])\nplt.grid(True)\nplt.title(str(my_data) + '\\n')\nplt.xlabel('time')\nplt.ylabel('volts')\nplt.show()\n```\n\nTodo\n====\n\nAre you an aspiring coder?  Perhaps you're an engineer, looking to\nlearn Python and don't know [where to\nstart](https://docs.python.org/3.6/tutorial/index.html \"Learn\nPython\")?  Are you pining for a project to cut your teeth on, a \"real\nlife\" opportunity to improve your skills and decorate your resume?\nHave a Siglent oscilloscope laying around gathering dust? Look no\nfurther!\n\nThe following items would be helpful in fleshing out this library.\nOther contributions are also welcome!\n\n* Expand the functionality to work with 1000X models:\n    - Update `TABLE2` and `TABLE3` according to the [specification](https://web.archive.org/web/20190715210130/https://www.siglentamerica.com/operating-tip/extract-data-binary-file-sds2000x-sds1000x/)\n    - Include an option for the user to select 1000X or 2000X model\n    - Update the constant values used in the \"calc\" methods to be\n      1000X compatable\n\n* Implement digital parsing:\n    - Values are already parsed from the binary file\n    - Whether data is digital or analog seems to be determined by the\n    `wave_length` variable.\n    - Understand how the `wave_length` segment of the binary data\n      differs between analog, digital, and analog-digital data\n    - Use this understanding to update `get_data_type` to discern\n      digital types\n    - Update the `parse_file` method to handle digital data\n    - Digital data is available in the `tests/` directory\n\n* Create explicit methods for \"Calculate the Time Delay\", \"Calculate\n  the Sample Rate\", and \"Calculate the Sample Rate\"\n    - These methods correspond to the calculations given at the end of\n      the [specification](https://web.archive.org/web/20190715210130/https://www.siglentamerica.com/operating-tip/extract-data-binary-file-sds2000x-sds1000x/)\n    - The `calc_vertical_offset` and `calc_data_to_volt` methods have\n      already been implemented\n    - Implement the remaining calculations using the others as a guide\n\nBinary\n======\n\nIt does not appear that Siglent 1000X/2000X models can stream binary\ndata.  Binary data must be saved to USB:\n\n![Image showing how to save binary\ndata](./docs/how-to-save-binary-data.png \"How to save binary data\")\n\n\nLicense\n=======\n\nCopyright 2019 Matt Trzcinski\n\nThis file is part of siglent_parser.\n\nsiglent_parser is free software: you can redistribute it and/or\nmodify- it under the terms of the GNU General Public License as\npublished by the Free Software Foundation, either version 3 of the\nLicense, or (at your option) any later version.\n\nsiglent_parser is distributed in the hope that it will be useful, but\nWITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU\nGeneral Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with siglent_parser.  If not, see\n<https://www.gnu.org/licenses/>.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "https://bitbucket.org/excalamus/siglent_parser/archive/v0.0.4.zip",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/excalamus/siglent_parser",
+        "keywords": "parser siglent convert digital analog binary",
+        "license": "GPLv3",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "siglent-parser",
+        "package_url": "https://pypi.org/project/siglent-parser/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/siglent-parser/",
+        "project_urls": {
+            "Download": "https://bitbucket.org/excalamus/siglent_parser/archive/v0.0.4.zip",
+            "Homepage": "https://bitbucket.org/excalamus/siglent_parser"
+        },
+        "release_url": "https://pypi.org/project/siglent-parser/0.0.4/",
+        "requires_dist": [
+            "numpy (>=1.16.4)"
+        ],
+        "requires_python": "",
+        "summary": "Parser for Siglent 1000/2000X binary output files",
+        "version": "0.0.4"
+    },
+    "last_serial": 5645724,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4442ac02d9257d7fd3037d025a0d7c1f",
+                    "sha256": "0bf4fe71c6667c14ddb20dcd60d4d140938cc015ba931660751b30b504a78a6b"
+                },
+                "downloads": -1,
+                "filename": "siglent_parser-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4442ac02d9257d7fd3037d025a0d7c1f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 29929,
+                "upload_time": "2019-08-02T16:00:56",
+                "upload_time_iso_8601": "2019-08-02T16:00:56.833745Z",
+                "url": "https://files.pythonhosted.org/packages/83/8b/6956e127753c2abd0f64cf5ac6030fc2b7824e9691e006118487f69d8382/siglent_parser-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f88310bb4d0f63858f2b7fb9a32cd7b5",
+                    "sha256": "944a41b6150370391801f4dce260d9ad53f90acd63f7eae9c38b05e13b012fb5"
+                },
+                "downloads": -1,
+                "filename": "siglent_parser-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f88310bb4d0f63858f2b7fb9a32cd7b5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 739095,
+                "upload_time": "2019-08-02T16:00:59",
+                "upload_time_iso_8601": "2019-08-02T16:00:59.481769Z",
+                "url": "https://files.pythonhosted.org/packages/f8/c2/7f9ae42b400d3e23f52fe833f2383f8c42ac5bea6ca88f157d6747a00142/siglent_parser-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1ae9828a03f97b48ecc4de9762e1f73b",
+                    "sha256": "e5151dc9d40a38772799f8d0e36128458fab767ebadcd87b9f2fe8afbf9faacb"
+                },
+                "downloads": -1,
+                "filename": "siglent_parser-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1ae9828a03f97b48ecc4de9762e1f73b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 30675,
+                "upload_time": "2019-08-07T15:56:59",
+                "upload_time_iso_8601": "2019-08-07T15:56:59.770779Z",
+                "url": "https://files.pythonhosted.org/packages/ca/a2/ca555ab8f4b7b1ea67502d2c91a487ce6f3dc9fa372ebe6ac33bae11eb7c/siglent_parser-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "155bd6aa1e3f0f516af96b57d76d3797",
+                    "sha256": "cc9d96a14ef3a68e5955ba97540e9f3dac334591f1e71f6d80c0b06e560e74fc"
+                },
+                "downloads": -1,
+                "filename": "siglent_parser-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "155bd6aa1e3f0f516af96b57d76d3797",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 822471,
+                "upload_time": "2019-08-07T15:57:05",
+                "upload_time_iso_8601": "2019-08-07T15:57:05.192609Z",
+                "url": "https://files.pythonhosted.org/packages/eb/5e/b47c129dae97fcbb000d3f60d801d9072a2d62bf355b69e3a9bc78e3055d/siglent_parser-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4fcd1d068cfcb0a8feb625b92a73601f",
+                    "sha256": "78303739b5a65f007df814c07bdb9001d6153d2837eb05f5793b4705b74d2c32"
+                },
+                "downloads": -1,
+                "filename": "siglent_parser-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4fcd1d068cfcb0a8feb625b92a73601f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 30673,
+                "upload_time": "2019-08-07T15:57:01",
+                "upload_time_iso_8601": "2019-08-07T15:57:01.271204Z",
+                "url": "https://files.pythonhosted.org/packages/6a/88/fe04362825b0ff37d5a76e09334b217a54caba3652fd28e6a27a2e986933/siglent_parser-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "76b909111247957010d693a7653ccf96",
+                    "sha256": "a552ca84bbca6375d05e156d00b3635e57905193fe1aa8663a73f3637e81f6d1"
+                },
+                "downloads": -1,
+                "filename": "siglent_parser-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "76b909111247957010d693a7653ccf96",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 822476,
+                "upload_time": "2019-08-07T15:57:08",
+                "upload_time_iso_8601": "2019-08-07T15:57:08.201927Z",
+                "url": "https://files.pythonhosted.org/packages/c9/3d/7c2b0b461c9c54a1aff2426bb116c7df3c03217dcfb9c47d7b5891036e2c/siglent_parser-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "746588efc92eaa4401e4749350c4a9a6",
+                    "sha256": "28c05178f944d63300390c5d3834bba769688a65d3f8c111698b78043f498969"
+                },
+                "downloads": -1,
+                "filename": "siglent_parser-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "746588efc92eaa4401e4749350c4a9a6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 30677,
+                "upload_time": "2019-08-07T15:57:02",
+                "upload_time_iso_8601": "2019-08-07T15:57:02.946173Z",
+                "url": "https://files.pythonhosted.org/packages/ac/5a/bf770de961cda210d90ec93b1e31279d631d969d9bd4f900d5964aebed47/siglent_parser-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "60628357826dd4963e345b9d872ce05e",
+                    "sha256": "62c47e1fd8a74461132c19358c5be76fca26c4f9ad7461dfb5d3c872ac568cf9"
+                },
+                "downloads": -1,
+                "filename": "siglent_parser-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "60628357826dd4963e345b9d872ce05e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 822453,
+                "upload_time": "2019-08-07T15:57:10",
+                "upload_time_iso_8601": "2019-08-07T15:57:10.899567Z",
+                "url": "https://files.pythonhosted.org/packages/0b/7b/bc82b78eb7a683b1cb6899b684e559df70c105ab3e9af30d8b459fe03421/siglent_parser-0.0.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "746588efc92eaa4401e4749350c4a9a6",
+                "sha256": "28c05178f944d63300390c5d3834bba769688a65d3f8c111698b78043f498969"
+            },
+            "downloads": -1,
+            "filename": "siglent_parser-0.0.4-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "746588efc92eaa4401e4749350c4a9a6",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 30677,
+            "upload_time": "2019-08-07T15:57:02",
+            "upload_time_iso_8601": "2019-08-07T15:57:02.946173Z",
+            "url": "https://files.pythonhosted.org/packages/ac/5a/bf770de961cda210d90ec93b1e31279d631d969d9bd4f900d5964aebed47/siglent_parser-0.0.4-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "60628357826dd4963e345b9d872ce05e",
+                "sha256": "62c47e1fd8a74461132c19358c5be76fca26c4f9ad7461dfb5d3c872ac568cf9"
+            },
+            "downloads": -1,
+            "filename": "siglent_parser-0.0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "60628357826dd4963e345b9d872ce05e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 822453,
+            "upload_time": "2019-08-07T15:57:10",
+            "upload_time_iso_8601": "2019-08-07T15:57:10.899567Z",
+            "url": "https://files.pythonhosted.org/packages/0b/7b/bc82b78eb7a683b1cb6899b684e559df70c105ab3e9af30d8b459fe03421/siglent_parser-0.0.4.tar.gz"
+        }
+    ]
+}

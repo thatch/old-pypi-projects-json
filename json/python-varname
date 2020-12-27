@@ -1,0 +1,197 @@
+{
+    "info": {
+        "author": "pwwang",
+        "author_email": "pwwang@pwwang.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8"
+        ],
+        "description": "# python-varname\n\n[![Pypi][3]][4] [![Github][5]][6] [![PythonVers][8]][4] [![Travis building][10]][11] [![Codacy][12]][13] [![Codacy coverage][14]][13]\n\nRetrieving variable names of function or class calls\n\n## Installation\n```shell\npip install python-varname\n```\n\n## Usage\n\n### Retrieving the variable name inside a function\n\n```python\nfrom varname import varname\ndef function():\n    return varname()\n\nfunc = function()\n# func == 'func'\n\n# available calls to retrieve\nfunc = function(\n    # ...\n)\n\nfunc = \\\n    function()\n\nfunc = function \\\n    ()\n# calls lead to failure of retrieving\nfunc = [function()]\n```\n\n### Function with long argument list\n\n```python\ndef function(*args):\n    return varname()\n\nfunc = function(\n    1, # I\n    2, # have\n    3, # a\n    4, # long\n    5, # argument\n    6, # list\n)\n\n# func == 'var_0'\n\ndef function(*args):\n    return varname(context = 20)\n\nfunc = function(\n    1, # I\n    2, # have\n    3, # a\n    4, # long\n    5, # argument\n    6, # list\n)\n\n# func == 'func'\n```\n\n### `varname` calls being buried deeply\n```python\ndef function():\n    # I know that at which stack this will be called\n    return varname(caller = 3)\n\ndef function1():\n    return function()\n\ndef function2():\n    return function1()\n\nfunc = function2()\n# func == 'func'\n```\n\n### Retrieving instance name of a class object\n```python\nclass Klass:\n    def __init__(self):\n        self.id = varname()\n    def copy(self):\n        return varname()\n\nk = Klass()\n# k.id == 'k'\n\nk2 = k.copy()\n# k2 == 'k2'\n```\n\n### `varname` calls being buried deeply for classes\n```python\nclass Klass:\n    def __init__(self):\n        self.id = self.some_internal()\n\n    def some_internal(self):\n        return varname(caller = 2)\n\n    def copy(self):\n        return self.copy_id()\n\n    def copy_id(self):\n        return self.copy_id_internal()\n\n    def copy_id_internal(self):\n        return varname(caller = 3)\n\nk = Klass()\n# k.id == 'k'\n\nk2 = k.copy()\n# k2 == 'k2'\n```\n\n### In case of failure to retrieve the name\n\n`varname` has a static index starts from `0` to mark the variable name with failure.\n```python\nfunc = [function()]\n# func == ['var_0']\nfunc = function \\\n    ()\n# func == 'var_1'\n```\n\n## Limitations\n- Calls have to be written in desired format\n- Context have to be estimated in advance, especially for functions with long argument list\n- You have to know at which stack the function/class will be called\n- For performance, since inspection is involved, better cache the name\n- Aliases are not supported\n  ```python\n  def function():\n    return varname()\n  func = function\n\n  x = func() # unable to detect\n  ```\n- False positives\n  ```python\n  def func(**kwargs):\n      return varname()\n  x = func(\n      y = func()\n  )\n  # x == 'y'\n\n  # to avoid this, you have to write the kwargs\n  # in the same line where the is called\n  x = func(y=func())\n  # x == 'x'\n  ```\n\n[1]: https://github.com/pwwang/python-varname\n[3]: https://img.shields.io/pypi/v/python-varname?style=flat-square\n[4]: https://pypi.org/project/python-varname/\n[5]: https://img.shields.io/github/tag/pwwang/python-varname?style=flat-square\n[6]: https://github.com/pwwang/python-varname\n[8]: https://img.shields.io/pypi/pyversions/python-varname?style=flat-square\n[10]: https://img.shields.io/travis/pwwang/python-varname?style=flat-square\n[11]: https://travis-ci.org/pwwang/python-varname\n[12]: https://img.shields.io/codacy/grade/ed851ff47b194e3e9389b2a44d6f21da?style=flat-square\n[13]: https://app.codacy.com/manual/pwwang/python-varname/dashboard\n[14]: https://img.shields.io/codacy/coverage/ed851ff47b194e3e9389b2a44d6f21da?style=flat-square\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/pwwang/python-varname",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "python-varname",
+        "package_url": "https://pypi.org/project/python-varname/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/python-varname/",
+        "project_urls": {
+            "Homepage": "https://github.com/pwwang/python-varname",
+            "Repository": "https://github.com/pwwang/python-varname"
+        },
+        "release_url": "https://pypi.org/project/python-varname/0.0.3/",
+        "requires_dist": null,
+        "requires_python": ">=3.5,<4.0",
+        "summary": "Retrieving variable names of function or class calls.",
+        "version": "0.0.3"
+    },
+    "last_serial": 6351557,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b32b70b1fbff361611cbcac8a7aabd6c",
+                    "sha256": "4aef2b9765db61f23ad6c1f9d52444328455839455e140f361e6b9b5a15963dc"
+                },
+                "downloads": -1,
+                "filename": "python_varname-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b32b70b1fbff361611cbcac8a7aabd6c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 2729,
+                "upload_time": "2019-12-16T18:49:50",
+                "upload_time_iso_8601": "2019-12-16T18:49:50.658412Z",
+                "url": "https://files.pythonhosted.org/packages/aa/6a/f949a7c7cffbe5c6b2a7f4ecc6c22ae5828d59dbac3d9db72954e8bc8eab/python_varname-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cad984d6fb44fce221eb2000a2dc2995",
+                    "sha256": "483c1a67f2cbb40899b30d22e71133cf0ec53c0875e200ef80dc9e55e3aef47a"
+                },
+                "downloads": -1,
+                "filename": "python-varname-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cad984d6fb44fce221eb2000a2dc2995",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 3020,
+                "upload_time": "2019-12-16T18:49:48",
+                "upload_time_iso_8601": "2019-12-16T18:49:48.240142Z",
+                "url": "https://files.pythonhosted.org/packages/94/ba/21ff228da90cf87a42ad1955762b8acde3c6e45981d86bdef2cba88c5d97/python-varname-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c822e7b0cdc5cd18b36e339712a2da4",
+                    "sha256": "35a44f1e195ffd18831f8cf1bc4744fe60cee4e1f81ebb8e88c9faee419e73ce"
+                },
+                "downloads": -1,
+                "filename": "python_varname-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5c822e7b0cdc5cd18b36e339712a2da4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 3006,
+                "upload_time": "2019-12-16T19:18:47",
+                "upload_time_iso_8601": "2019-12-16T19:18:47.388807Z",
+                "url": "https://files.pythonhosted.org/packages/93/11/915cc3ea1c45dc5050c2c291a037c0fa949f1c2178215e15115ab2e77e98/python_varname-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12bf0d8077409fd273dc0cf8f8e11dad",
+                    "sha256": "ed39853b2cfc6ff14b39b8a1d7f7080f1ffe00ef1df9c282bf0d7592a486b6bd"
+                },
+                "downloads": -1,
+                "filename": "python-varname-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "12bf0d8077409fd273dc0cf8f8e11dad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 3315,
+                "upload_time": "2019-12-16T19:18:45",
+                "upload_time_iso_8601": "2019-12-16T19:18:45.745817Z",
+                "url": "https://files.pythonhosted.org/packages/0c/af/f953afa57f3a58a370d3671db911ffb8bfbd32ff5abb748c1c97eef8cef5/python-varname-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9af0fd3769e74ac795267bfb3328d6fa",
+                    "sha256": "7a7aa6aa320dcf19f22efb1a8418f464c153c2e036a72c4a3b6ed3f3a5c5026a"
+                },
+                "downloads": -1,
+                "filename": "python_varname-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9af0fd3769e74ac795267bfb3328d6fa",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5,<4.0",
+                "size": 3257,
+                "upload_time": "2019-12-23T17:00:17",
+                "upload_time_iso_8601": "2019-12-23T17:00:17.475651Z",
+                "url": "https://files.pythonhosted.org/packages/be/7a/6af050ba10079066da7b11252aa7d7229b41bf324f1088e710eeb8dc7cf0/python_varname-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3055cd937c077dcfdf802188baae513",
+                    "sha256": "10ef5287a6e5909a5e382e0bb5985c3a3094703a611fe192c7c0b495d3f89c10"
+                },
+                "downloads": -1,
+                "filename": "python-varname-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c3055cd937c077dcfdf802188baae513",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5,<4.0",
+                "size": 3622,
+                "upload_time": "2019-12-23T17:00:15",
+                "upload_time_iso_8601": "2019-12-23T17:00:15.912500Z",
+                "url": "https://files.pythonhosted.org/packages/6c/b7/c3dedd6b183bc67d298c90aebc748d1362519d173730ab202a9dd942d94e/python-varname-0.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9af0fd3769e74ac795267bfb3328d6fa",
+                "sha256": "7a7aa6aa320dcf19f22efb1a8418f464c153c2e036a72c4a3b6ed3f3a5c5026a"
+            },
+            "downloads": -1,
+            "filename": "python_varname-0.0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "9af0fd3769e74ac795267bfb3328d6fa",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.5,<4.0",
+            "size": 3257,
+            "upload_time": "2019-12-23T17:00:17",
+            "upload_time_iso_8601": "2019-12-23T17:00:17.475651Z",
+            "url": "https://files.pythonhosted.org/packages/be/7a/6af050ba10079066da7b11252aa7d7229b41bf324f1088e710eeb8dc7cf0/python_varname-0.0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c3055cd937c077dcfdf802188baae513",
+                "sha256": "10ef5287a6e5909a5e382e0bb5985c3a3094703a611fe192c7c0b495d3f89c10"
+            },
+            "downloads": -1,
+            "filename": "python-varname-0.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c3055cd937c077dcfdf802188baae513",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5,<4.0",
+            "size": 3622,
+            "upload_time": "2019-12-23T17:00:15",
+            "upload_time_iso_8601": "2019-12-23T17:00:15.912500Z",
+            "url": "https://files.pythonhosted.org/packages/6c/b7/c3dedd6b183bc67d298c90aebc748d1362519d173730ab202a9dd942d94e/python-varname-0.0.3.tar.gz"
+        }
+    ]
+}

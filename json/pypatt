@@ -1,0 +1,133 @@
+{
+    "info": {
+        "author": "Grant Jenks",
+        "author_email": "contact@grantjenks.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "PyPatt: Python Pattern Matching\n===============================\n\nPython, I love you. But I'd like you to change. It's not you, it's me. Really.\nSee, you don't have pattern matching. But, that's not the root of it. Macros are\nthe root of it. You don't have macros but that's OK. Right now, I want pattern\nmatching. I know you offer me ``if``/``elif``/``else`` statements but I need\nmore. I'm going to abuse your ``with`` statements. Guido, et al, I hope you can\nforgive me. This will only hurt a little.\n\nPresenting: PyPatt - pattern matching in Python.\n\nA lot of people have tried to make this work before. Somehow it didn't take. I\nshould probably call this yet-another-python-pattern-matching-module but\n\"yappmm\" doesn't roll off the tongue. Other people have tried overloading\noperators and changing codecs. This module started as a codec hack but those are\nhard because they need an ecosystem of emacs-modes, vim-modes and the like to\nreally be convenient.\n\nPyPatt takes a different approach. No import hooks, no codecs, no operator\noverloads. Instead, I present a function decorator. Apply ``@pypatt.transform``\nand you're off to the races. Let's take a look:\n\n::\n\n    import pypatt\n\n    @pypatt.transform\n    def test_demo():\n        values = [[1, 2, 3], ('a', 'b', 'c'), 'hello world',\n            False, [4, 5, 6], (1, ['a', True, (0,)], 3)]\n\n        for value in values:\n            with match(value):\n                with 'hello world':\n                    print 'Match strings!'\n                with False:\n                    print 'Match booleans!'\n                with [1, 2, 3]:\n                    print 'Match lists!'\n                with ('a', 'b', 'c'):\n                    print 'Match tuples!'\n                with [4, 5, quote(temp)]:\n                    print 'Bind variables! temp =', temp\n                with (1, ['a', True, quote(result)], 3):\n                    print 'Nest expressions! result =', result\n\n        print 'Wow, pretty great!'\n\nFinally, pythonic pattern matching! If you've experienced the feature before in\n\"functional\" languages like Erlang, Haskell, Clojure, F#, OCaml, etc. then you\ncan guess at the semantics. The syntax is an abuse of ``with`` statements. If it\nwere described in the standard docs, it would look like:\n\n::\n\n    match_stmt  ::= \"with\" \"match\" \"(\" expresssion \")\" [\"as\" name] \":\" match_suite\n    match_suite ::= NEWLINE INDENT like_stmt+ DEDENT\n    like_stmt   ::= \"with\" expression \":\" NEWLINE INDENT suite DEDENT\n\nHopefully, you noticed the ``match`` and ``quote`` function calls. Those aren't\nreally function calls and you can change them as needed. ``match`` works by\nidentifying the ``with`` statement as a match-statement. It would be nice if\nPython had a way to define your own types of statements but that's beyond the\nscope of this project.\n\nIt might have read better if I'd used an ``if`` statement rather than\n``with``. In that case you would read:\n\n::\n\n    if match(expression):\n        with True:\n            print 'The expression is True.'\n        with _:\n            print 'The expression is not True.'\n\nThis has the benefit of sounding better: \"if match expression with True ...\".\nBut ``if`` statements don't support the ``as`` syntax. So if you put something\ncomplex inside the ``match`` parens, you can't bind it to a name. You might\ninstead bind it to a name on the nested ``with`` statements but I'm doing all\nthis to save keystrokes so that works against the goal.\n\nNow, regarding the ``quote`` function call (that is not really a function call\nat all). You can only put the name of a variable within that call and if you do\nso it won't be evaluated at runtime. Instead, it will be bound to its matching\nvalue. Imagine it like you're quoting the variable name, but you don't want to\nmatch a string. So to bind a variable you replace ``\"my_variable\"`` with\n``quote(my_variable)``. The former would otherwise match the string\n``my_variable``.\n\nIt would have been nice if Python supported custom string types for this\npurpose. So far I'm aware of normal strings: ``\"blah\"``, raw strings:\n``r\"blah\"``, unicode strings: ``u\"blah\"``, and byte strings: ``b\"blah\"``. When\ndeveloping this module, I wished I could create a new kind of ``quoted`` string\nwhich might look like: ``q\"blah\"``. It's rare that I see a `C++ feature`_ and\nlook on with envy. This topic more commonly arises when people want a syntax for\nstating an ``OrderedDict`` in an expression. Maybe ``OrderedDict{'foo': 20,\n'bar': 45}`` is the future. Looks funny today.\n\n.. _`C++ feature`: http://en.wikipedia.org/wiki/C%2B%2B11#User-defined_literals\n\nCaveats\n-------\n\n- ``@pypatt.transform`` must be the inner-most decorator.\n- Does not support lambda functions.\n- Does not work on nested functions.\n- Requires inspect.getsource to work.\n\nDocumentation\n-------------\n\n- Todo: describe api\n- Type-pattern:\n\n::\n\n    import pypatt, math\n\n    @pypatt.transform\n    def area(shape):\n        with match(type(shape)):\n            with Triangle:\n                return shape.base * shape.height * 0.5\n            with Square:\n                return shape.side ** 2\n            with Rectangle:\n                return shape.length * shape.width\n            with Circle:\n                return math.pi * shape.radius ** 2\n            with _:\n                raise Exception('unknown shape')\n\nAlternatives\n------------\n\n- https://github.com/lihaoyi/macropy\n  - module import, but similar design\n- https://github.com/Suor/patterns\n  - decorator with funky syntax\n  - Shared at Python Brazil 2013\n- https://github.com/mariusae/match\n  - http://monkey.org/~marius/pattern-matching-in-python.html\n  - operator overloading\n- http://blog.chadselph.com/adding-functional-style-pattern-matching-to-python.html\n  - multi-methods\n- http://svn.colorstudy.com/home/ianb/recipes/patmatch.py\n  - multi-methods\n- http://www.artima.com/weblogs/viewpost.jsp?thread=101605\n  - the original multi-methods\n- http://speak.codebunk.com/post/77084204957/pattern-matching-in-python\n  - multi-methods supporting callables\n- http://www.aclevername.com/projects/splarnektity/\n  - not sure how it works but the syntax leaves a lot to be desired\n- https://github.com/martinblech/pyfpm\n  - multi-dispatch with string parsing\n- https://github.com/jldupont/pyfnc\n  - multi-dispatch\n- http://www.pyret.org/\n  - It's own language\n- https://pypi.python.org/pypi/PEAK-Rules\n  - generic multi-dispatch style for business rules\n- http://home.in.tum.de/~bayerj/patternmatch.py\n  - Pattern-object idea (no binding)\n- https://github.com/admk/patmat\n  - multi-dispatch style\n\nOther Languages\n---------------\n\n- https://msdn.microsoft.com/en-us/library/dd547125.aspx F#\n- https://doc.rust-lang.org/book/patterns.html Rust\n- https://www.haskell.org/tutorial/patterns.html Haskell\n- http://erlang.org/doc/reference_manual/expressions.html#pattern Erlang\n- https://ocaml.org/learn/tutorials/data_types_and_matching.html Ocaml\n\nDevelopment\n-----------\n\n- Requires Python 2.7\n- Run ``tox``\n- Todo: show translated source code\n\n::\n\n    import pypatt\n\n    @pypatt.transform\n    def factorial(num):\n        with match(num):\n            with 1:\n                return 1\n            with _:\n                return num * factorial(num - 1)\n\nTODO\n----\n\n- Should this module just be a function like:\n\n::\n\n    def bind(object, expression):\n        \"\"\"Attempt to bind object to expression.\n        Expression may contain `bind.name`-style attributes which will bind the\n        `name` in the callers context.\n        \"\"\"\n        pass # todo\n\n  What if just returned a mapping with the bindings and something\n  like bind.result was available to capture the latest expression.\n  For nested calls, bind.results could be a stack. Then the `like` function\n  call could just return a Like object which `bind` recognized specially.\n  Alternately `bind.results` could work using `with` statement to create\n  the nested scope.\n\n::\n\n    if bind(r'<a href=\"(.*)\">', text):\n        match = bind.result\n        print match.groups(1)\n    elif bind([bind.name, 0], [5, 0]):\n        pass\n\n  Change signature to `bind(object, pattern)` and make a Pattern object. If\n  the second argument is not a pattern object, then it is made into one\n  (if necessary). Pattern objects should support `__contains__`.\n\n  `bind` could also be a decorator in the style of oh-so-many multi-dispatch\n  style pattern matchers.\n\n  To bind anything, use bind.any or bind.__ as a place-filler that does not\n  actually bind to values.\n\n- Add like(...) function-call-like thing and support the following:\n  like(type(obj)) check isinstance\n  like('string') checks regex\n  like(... callable ...) applies callable, binds truthy\n- Also make `like` composable with `and` and `or`\n- Add `when` support somehow and somewhere\n- Add __ (two dunders) for place-holder\n- Add match(..., fall_through=False) to prevent fall_through\n- Use bind.name rather than quote(name)\n- Improve debug-ability: write source to temporary file and modify code object\n  accordingly. Change co_filename and co_firstlineno to temporary file?\n- Support/test Python 2.6, Python 3 and PyPy 2 / 3\n- Good paper worth referencing on patterns in Thorn:\n  http://hirzels.com/martin/papers/dls12-thorn-patterns.pdf\n- Support ellipsis-like syntax to match anything in the rest of the list or\n  tuple. Consider using ``quote(*args)`` to mean zero or more elements. Elements\n  are bound to args:\n\n::\n\n    match [1, 2, 3, 4]:\n        like [1, 2, quote(*args)]:\n            print 'args == [3, 4]'\n\n- Match ``set`` expression. Only allow one ``quote`` variable. If present the\n  quoted variable must come last.\n\n::\n\n    with match({3, 1, 4, 2}):\n        with {1, 2, 4, quote(value)}:\n            print 'value == 3'\n        with {3, 4, quote(*args)}:\n            print 'args = {1, 2}'\n\n- Add \"when\" clause like:\n\n::\n\n    with match(list_item):\n        with like([first, second], first < second):\n            print 'ascending'\n        with like([first, second], first > second):\n            print 'descending'\n\n- Add ``or``/``and`` pattern-matching like:\n\n::\n\n    with match(value):\n        with [alpha] or [alpha, beta]:\n            pass\n        with [1, _, _] and [_, _, 2]:\n            pass\n\n- Match ``dict`` expression?\n- Match regexp?\n\nFuture?\n-------\n\n- Provide more generic macro-expansion facilities. Consider if this module\n  could instead be written as the following:\n\n::\n\n    def assign(var, value, _globals, _locals):\n        exec '{var} = value'.format(var) in _globals, _locals\n\n    @pypatt.macro\n    def match(expr, statements):\n        \"\"\"with match(expr): ... expansion\n        with match(value / 5):\n            ... statements ...\n        ->\n        pypatt.store['temp0'] = value / 5\n        try:\n            ... statements ...\n        except pypatt.PyPattBreak:\n            pass\n        \"\"\"\n        symbol[temp] = expand[expr]\n        try:\n            expand[statements]\n        except pypatt.PyPattBreak:\n            pass\n\n    @pypatt.macro\n    def like(expr, statements):\n        \"\"\"with like(expr): ... expansion\n        with like(3 + value):\n            ... statements ...\n        ->\n        pypatt.store['temp1'] = pypatt.bind(expr, pypatt.store['temp0'], globals(), locals())\n        if pypatt.store['temp1']:\n            for var in pypatt.store['temp1'][1]:\n                assign(var, pypatt.store['temp1'][1][var], globals(), locals())\n            ... statements ...\n            raise pypatt.PyPattBreak\n        \"\"\"\n        symbol[result] = pypatt.bind(expr, symbol[match.temp], globals(), locals())\n        if symbol[result]:\n            for var in symbol[result][1]:\n                assign(var, symbol[result][1][var], globals(), locals())\n            expand[statements]\n            raise pypatt.PyPattBreak\n\n    @pypatt.expand(match, like)\n    def test():\n        with match('hello' + ' world'):\n            with like(1):\n                print 'fail'\n            with like(False):\n                print 'fail'\n            with like('hello world'):\n                print 'succeed'\n            with like(_):\n                print 'fail'\n\nI'm not convinced this is better. But it's interesting. I think you could do\nnearly this in ``macropy`` if you were willing to organize your code for the\nimport hook to work.\n\nProject Links\n-------------\n\n- `PyPatt: Python Pattern Matching @ GrantJenks.com`_\n- `PyPatt @ PyPI`_\n- `PyPatt @ Github`_\n- `Issue Tracker`_\n\n.. _`PyPatt: Python Pattern Matching @ GrantJenks.com`: http://www.grantjenks.com/docs/pypatt/\n.. _`PyPatt @ PyPI`: https://pypi.python.org/pypi/pypatt\n.. _`PyPatt @ Github`: https://github.com/grantjenks/pypatt_python_pattern_matching\n.. _`Issue Tracker`: https://github.com/grantjenks/pypatt_python_pattern_matching/issues\n\nPyPatt License\n--------------\n\nCopyright 2015 Grant Jenks\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://www.grantjenks.com/docs/pypatt/",
+        "keywords": null,
+        "license": "Copyright 2015 Grant Jenks\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "pypatt",
+        "package_url": "https://pypi.org/project/pypatt/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/pypatt/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://www.grantjenks.com/docs/pypatt/"
+        },
+        "release_url": "https://pypi.org/project/pypatt/0.3.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "PyPatt: Python Pattern Matching",
+        "version": "0.3.1"
+    },
+    "last_serial": 1563756,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "652e21ddc913104904b97ea691e72b67",
+                    "sha256": "6e597563caa1d255fdc84e39c41d2febb014575fdeb4312096a5e1b8a3e0e419"
+                },
+                "downloads": -1,
+                "filename": "pypatt-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "652e21ddc913104904b97ea691e72b67",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9452,
+                "upload_time": "2015-03-30T18:42:34",
+                "url": "https://files.pythonhosted.org/packages/06/af/ce0c0b751990a791c8f56649c86af52bc0764f3359a65d363d8d1653afda/pypatt-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "23ecea27b4c9a7c5360a528c05a718da",
+                    "sha256": "530c8e7da007669aa6473f31139f7b0d7f8f7fc61679379c735e09de8a18d329"
+                },
+                "downloads": -1,
+                "filename": "pypatt-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "23ecea27b4c9a7c5360a528c05a718da",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9544,
+                "upload_time": "2015-04-07T19:36:10",
+                "url": "https://files.pythonhosted.org/packages/d4/d7/da2c6b5be8b9408ad2e329a140a46b22ba0a4b18d7218364cecb600edc9a/pypatt-0.1.1.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d11b74d93f17e29497265a0b98476d9f",
+                    "sha256": "646884cd075c8410f4214480fba2e8df3c64f8784b1a6eba29f1793cbee23afe"
+                },
+                "downloads": -1,
+                "filename": "pypatt-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d11b74d93f17e29497265a0b98476d9f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17867,
+                "upload_time": "2015-05-11T20:49:02",
+                "url": "https://files.pythonhosted.org/packages/1d/95/12dc72abf556448d757e3aa96c3c6cb1c1eacb31ecbe1b555dded398f336/pypatt-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a8b2ae87d6be54e3df87d960cbadf1b2",
+                    "sha256": "0bc9ff5f4132bd965512e9caff3ec552369952fb43331ab15ba83db2db2dee29"
+                },
+                "downloads": -1,
+                "filename": "pypatt-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a8b2ae87d6be54e3df87d960cbadf1b2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17875,
+                "upload_time": "2015-05-26T21:42:03",
+                "url": "https://files.pythonhosted.org/packages/d9/c3/2f112faabb786d349b496693a705daf58808cb8f41c4f80f6c071757cafb/pypatt-0.3.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a8b2ae87d6be54e3df87d960cbadf1b2",
+                "sha256": "0bc9ff5f4132bd965512e9caff3ec552369952fb43331ab15ba83db2db2dee29"
+            },
+            "downloads": -1,
+            "filename": "pypatt-0.3.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a8b2ae87d6be54e3df87d960cbadf1b2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 17875,
+            "upload_time": "2015-05-26T21:42:03",
+            "url": "https://files.pythonhosted.org/packages/d9/c3/2f112faabb786d349b496693a705daf58808cb8f41c4f80f6c071757cafb/pypatt-0.3.1.tar.gz"
+        }
+    ]
+}

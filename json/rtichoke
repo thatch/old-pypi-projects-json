@@ -1,0 +1,531 @@
+{
+    "info": {
+        "author": "Randy Lai",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# rtichoke: A 21 century R console\n\n[![CircleCI](https://circleci.com/gh/randy3k/rtichoke/tree/master.svg?style=shield)](https://circleci.com/gh/randy3k/rtichoke/tree/master)\n[![Build status](https://ci.appveyor.com/api/projects/status/2ftxvwy66kxx8u9o/branch/master?svg=true)](https://ci.appveyor.com/project/randy3k/rtichoke/branch/master)\n[![](https://img.shields.io/pypi/v/rtichoke.svg)](https://pypi.org/project/rtichoke/)\n<a href=\"https://www.paypal.me/randy3k/5usd\" title=\"Donate to this project using Paypal\"><img src=\"https://img.shields.io/badge/paypal-donate-blue.svg\" /></a>\n<a href=\"https://liberapay.com/randy3k/donate\"><img src=\"http://img.shields.io/liberapay/receives/randy3k.svg?logo=liberapay\"></a>\n\n<img src=\"rtichoke.png\"></img>\n\n_rtichoke_ is an improved console for the R program with multiline editing and rich syntax highlight and more ...\n\n\nUnder the hood, _rtichoke_ is built on top of the python library `prompt-toolkit`. One would consider _rtichoke_ as a [ipython](https://github.com/ipython/ipython) clone for R, though its layout and keybinds are actually more similar to those of [julia](https://julialang.org).\n\n_rtichoke_ is still under active developement, users should use it at their own risks.\n\n<img width=\"600px\" src=\"https://user-images.githubusercontent.com/1690993/30728530-b5e9eb5c-9f26-11e7-8453-73a2e880c9de.png\"></img>\n\n\n## Features\n\n- shell mode: hit `;` to enter and `<backspace>` to leave\n- reticulate python repl mode: hit `~` to enter\n- lightweight, no compilation is required\n- cross platform, runs on Windows, macOS and Linux\n- improved R prompt and reticulate python prompt\n    - multiline editing\n    - syntax highlight\n    - auto completion (reticulate autocompletion depends on `jedi`)\n- unicode support\n- auto matching parens/quotes.\n- brackated paste mode\n- emacs/vi editing mode\n- automiatically adjust to terminal width\n- read more than 4096 bytes per line\n\n\n## Installation\n\nRequirements:\n\n- An installation of R (version 3.4.0 or above) is required to use _rtichoke_, an R installation binary for your system can be downloaded from https://cran.r-project.org.\n- `python` is also required to install _rtichoke_. If your system doesn't come with a python distribution, it can be downloaded from https://conda.io/miniconda.html. Both version 2 and version 3 should work, though python 3 is recommended.\n- `pip` is optional but it makes the installation a bit easier.\n\n```sh\n# install released version\npip install -U rtichoke\n# to run rtichoke\nrtichoke\n```\n\n```sh\n# or the development version\npip install -U git+https://github.com/randy3k/rapi\npip install -U git+https://github.com/randy3k/lineedit\npip install -U git+https://github.com/randy3k/rtichoke\n```\n\n## Alias on unix system\n\nYou could alias `r` to _rtichoke_ by putting\n\n```bash\nalias r=\"rtichoke\"\n```\nin `~/.bash_profile` such that `r` would open _rtichoke_ and `R` would still open the tranditional R console.\n(`R` is still useful, e.g, running `R CMD BUILD`.)\n\n\n## Settings\n\n_rtichoke_ can be customized via `options` in `.Rprofile` file. This file is usually located in your user home directory.\n\n```r\noptions(\n    # see https://help.farbox.com/pygments.html\n    # for a list of supported color schemes, default scheme is \"native\"\n    rtichoke.color_scheme = \"native\",\n\n    # either  `\"emacs\"` (default) or `\"vi\"`.\n    rtichoke.editing_mode = \"emacs\",\n\n    # indent continuation lines\n    # turn this off if you want to copy code without the extra indentation;\n    # but it leads to less elegent layout\n    rtichoke.indent_lines = TRUE,\n\n    # auto match brackets and quotes\n    rtichoke.auto_match = FALSE,\n\n    # auto indentation for new line and curly braces\n    rtichoke.auto_indentation = TRUE,\n    rtichoke.tab_size = 4,\n\n    # pop up completion while typing\n    rtichoke.complete_while_typing = TRUE,\n    # timeout in seconds to cancel completion if it takes too long\n    # set it to 0 to disable it\n    rtichoke.completion_timeout = 0.05,\n\n    # automatically adjust R buffer size based on terminal width\n    rtichoke.auto_width = TRUE,\n\n    # insert new line between prompts\n    rtichoke.insert_new_line = TRUE,\n\n    # when using history search (ctrl-r/ctrl-s in emacs mode), do not show duplicate results\n    rtichoke.history_search_no_duplicates = FALSE,\n\n    # custom prompt for different modes\n    rtichoke.prompt = \"\\033[0;34mr$>\\033[0m \",\n    rtichoke.shell_prompt = \"\\033[0;31m#!>\\033[0m \",\n    rtichoke.browse_prompt = \"\\033[0;33mBrowse[{}]>\\033[0m \",\n\n    # supress the loading message for reticulate\n    rtichoke.suppress_reticulate_message = FALSE,\n    # enable reticulate prompt and trigger `~`\n    rtichoke.enable_reticulate_prompt = TRUE\n)\n```\n\n## FAQ\n\n#### How to specify R_HOME location\n\nIf _rtichoke_ cannot locate the installation of R automatically. The best option is to expose the R binary to the system `PATH` variable. \n\nOn Linux/macOS, you could also export the environment variable `R_HOME`. For example,\n```sh\n$ export R_HOME=/usr/local/lib/R\n$ rtichoke\n```\nNote that it should be the path to `R_HOME`, not the path to the R binary. The\nfolder should contain a file called `COPYING`. In some cases, you may need to\nfuther specify `LD_LIBRARY_PATH`,\n```sh\n$ export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:`R RHOME`/lib\"\n$ rtichoke\n```\n\nIf the shared library cannot be found, please make sure your R was installed with the shared library `libR.so` or `libR.dylib` or `libR.dll`. On Linux, the flag `--enable-R-shlib` may be needed when R is complied from the source.\n\n\n\n#### `reticulate` prompt does not autocomplete\n\nMake sure that `jedi` is installed\n\n```\npip install jedi\n```\n\n#### Fail to load library\n\nSome packages may not be loaded properly with `rtichoke` but they work well with the bare R. The issue could be caused by several reasons, check\n[#38](https://github.com/randy3k/rtichoke/issues/38) and [#46](https://github.com/randy3k/rtichoke/issues/46). Open an issue if it still doesn't work.\n\n#### how to use local history file\n\n_rtichoke_ maintains its own history file `.rtichoke_history` and doesn't use the `.Rhistory` file. A local `.rtichoke_history` is used if it is found in the launching directory. Otherwise, the global history file `~/.rtichoke_history` would be used. To override the default behavior, you could launch _rtichoke_ with the options: `rtichoke --local-history`, `rtichoke --global-history` or `rtichoke --no-history`.\n\n\n#### Does it slow down my R program?\n\n_rtichoke_ only provides a frontend to the R program, the actual running eventloop is the same as that of the traditional R console. There is no performance sacrifice (or gain) while using this modern command line interface. \n\n#### Nvim-R support\n\nPut\n```vim\nlet R_app = \"rtichoke\"\nlet R_cmd = \"R\"\nlet R_hl_term = 0\nlet R_args = []  \" if you had set any\nlet R_bracketed_paste = 1\n```\nin your vim config. \n\n\n#### `reticulate` intialization error\n\n```\nSystemError: initialization of _heapq did not return an extension module\n```\n\nYou would need to install [this](https://github.com/rstudio/reticulate/pull/279) particular version of reticulate for now.\n\n```r\ndevtools::install_github(\"rstudio/reticulate#279\")\n```\n\n\n#### Readline Error\n\n```\nlibreadline.so.6: undefined symbol: PC\n```\n\nIf you are using conda and encounter this error, it is likely because the `readline` from conda is bugged. Install it again via `conda-forge`.\n```python\nconda install -c conda-forge readline=6.2\n# or\nconda upgrade -c conda-forge readline\n```\n\n#### `setTimeLimit` not working\n\n_rtichoke_ utilizes the function `setTimeLimit` to set timeout for long completion. Users may notice that `setTimeLimit` is not working under the\nglobal environment. A workaround is to put the code inside a block or a function,\n\n```r\n{\n    setTimeLimit(1)\n    while(1) {}\n    setTimeLimit()\n}\n```\n\n#### Prompt not shown inside a docker container\n\nIt maybe caused by the invalid terminal size, try running `stty size` in your terminal\nto see if it returns a correct size. You could change the values of it from the environmental variables\n`$COLUMNS` and `$LINES` when you log-in the docker container.\n\n```\ndocker exec -it <container> bash -c \"stty cols $COLUMNS rows $LINES && bash\"\n```\n\n\n## Credits\n\n_rtichoke_ wouldn't be possible witout the creative work [prompt_toolkit](https://github.com/jonathanslenders/python-prompt-toolkit/) by Jonathan Slenders.\n\nThe name _rtichoke_ was suggested by [thefringthing](https://www.reddit.com/r/rstats/comments/7zibhj/any_suggestions_of_a_new_name_of_rice/).\n\n<div>Icons made by <a href=\"http://www.freepik.com\" title=\"Freepik\">Freepik</a> from <a href=\"https://www.flaticon.com/\" title=\"Flaticon\">www.flaticon.com</a> is licensed by <a href=\"http://creativecommons.org/licenses/by/3.0/\" title=\"Creative Commons BY 3.0\" target=\"_blank\">CC 3.0 BY</a></div>",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/randy3k/rtichoke",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "rtichoke",
+        "package_url": "https://pypi.org/project/rtichoke/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/rtichoke/",
+        "project_urls": {
+            "Homepage": "https://github.com/randy3k/rtichoke"
+        },
+        "release_url": "https://pypi.org/project/rtichoke/0.2.14/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "An R console built on top of prompt_toolkit",
+        "version": "0.2.14"
+    },
+    "last_serial": 4604280,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b39f33cb928509783c5ce5daf85d0f44",
+                    "sha256": "e76a2bc0b1e3ccbefe67018a02a29a915a32004e18f6419201d9af7d14969a5b"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b39f33cb928509783c5ce5daf85d0f44",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 517800,
+                "upload_time": "2018-02-23T02:23:13",
+                "url": "https://files.pythonhosted.org/packages/a0/4b/334accaf82145ed34ad3a5f4ec2370448c83469797e3de1c551b1148469c/rtichoke-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a312098f246a109e41cb43f6a6175df0",
+                    "sha256": "9ffde3be4cdd8ef6c8a4c52a3b10a2e555d69413042d6f1a3491a4eb48ef39d0"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a312098f246a109e41cb43f6a6175df0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 262649,
+                "upload_time": "2018-02-23T14:51:48",
+                "url": "https://files.pythonhosted.org/packages/d9/21/7540013ed5ca8cdb60ecee0ebec3475d7ab4ecd3c219c59ef6ad02ab755e/rtichoke-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "508d6e683297e00841c0d1d614ac2005",
+                    "sha256": "c16154b594eb0c40b2272349533bd129b57cc016369ec92e6d33d3b5e2132cbb"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "508d6e683297e00841c0d1d614ac2005",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 262893,
+                "upload_time": "2018-02-26T14:05:28",
+                "url": "https://files.pythonhosted.org/packages/13/92/35114466099e47284af3c315463e41b2bf26fa2007824ebc2faa28de6af2/rtichoke-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e0f7e7c9c703bb982b9d0c20c6147dde",
+                    "sha256": "da8ec9ce96dd1897b297a282c7268ef002f478da2dbfc354cd6459256a4beaaf"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e0f7e7c9c703bb982b9d0c20c6147dde",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 264228,
+                "upload_time": "2018-04-01T04:47:16",
+                "url": "https://files.pythonhosted.org/packages/8c/85/9f4adf8ffecccc4e640c671e8904e18cf5fd4e752efb67b1ff0f1effd7f0/rtichoke-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "482f7f3913937d42923920d29a656251",
+                    "sha256": "af1f885d1deb5312e680be815e3fed544675dd3e0d11c9882cccef340f8ec609"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "482f7f3913937d42923920d29a656251",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 266398,
+                "upload_time": "2018-04-10T05:12:06",
+                "url": "https://files.pythonhosted.org/packages/7c/c3/f3c919b6a3e1cfd3086b97b2604049f8670457e834257149b25607cff9f9/rtichoke-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "75ba42bd26f3ab1506294ee725d7612d",
+                    "sha256": "14146f39a59c560d0edddea6723f07f53d93260245d760dbb630fdefad8cb8be"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "75ba42bd26f3ab1506294ee725d7612d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 266395,
+                "upload_time": "2018-04-10T05:49:36",
+                "url": "https://files.pythonhosted.org/packages/58/9e/943c49bd258a2863546d60cc0b14a19f377880968e1581955d1a2ba77c8f/rtichoke-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0cede8f344eb6a02b34de43f016f8c1",
+                    "sha256": "5b3a44ff91d18b6220cdd366cce17315099b865b0e150a83089e566dda0dceed"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c0cede8f344eb6a02b34de43f016f8c1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 266468,
+                "upload_time": "2018-04-11T20:26:51",
+                "url": "https://files.pythonhosted.org/packages/eb/6e/1a8c0585b99313d7c95a4ec5c0e6d21284d02d61be485a23f7d1589c5740/rtichoke-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6653e800e3684681a001a65d10e63102",
+                    "sha256": "fc825e269b4e291726aed0340a665705cd5741cc38807ce176df4552f075452b"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6653e800e3684681a001a65d10e63102",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 266784,
+                "upload_time": "2018-04-27T01:47:01",
+                "url": "https://files.pythonhosted.org/packages/b4/ff/192c2aa4059445d91bcc6af5fc681ae201dd740ac11458a82fb07f2c4711/rtichoke-0.1.7.tar.gz"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "22a1111bb009572d0b763e04f4da9769",
+                    "sha256": "3ea2e9c60e076d7801c1b1c4d2c0bad13c1831e739144ff8b2d5c2fced56f35b"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "22a1111bb009572d0b763e04f4da9769",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 267706,
+                "upload_time": "2018-04-29T03:48:35",
+                "url": "https://files.pythonhosted.org/packages/46/38/9fe116f171afddbea9abd683fc8d534c4a0208cf76e67bf2f754e4768e97/rtichoke-0.1.8.tar.gz"
+            }
+        ],
+        "0.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d41d1628750e36c9cdfd2a981a37d79a",
+                    "sha256": "9161b170e6f6a74b6385a3cc2aa4940d4ff8c66f8a05328201439e117aba1a2f"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d41d1628750e36c9cdfd2a981a37d79a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 268023,
+                "upload_time": "2018-05-02T02:25:01",
+                "url": "https://files.pythonhosted.org/packages/93/5d/6fe3fd6473d8506ce32de9a1be11bc5701f7bdd147431ef3ce96afa2ad36/rtichoke-0.1.9.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fcfaf288de2a2f73afc3e8542080a5ca",
+                    "sha256": "b8555af59825cc86c386de3732d5d64937969684299ec1098bce877b27bc4a21"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fcfaf288de2a2f73afc3e8542080a5ca",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17042,
+                "upload_time": "2018-06-17T22:05:11",
+                "url": "https://files.pythonhosted.org/packages/7a/a8/2c00c3704094f3d3f8e4ce4872f843ed1eb07a629c5df1dc2ebdbf4cd0d0/rtichoke-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c2317516718441d5ac776a926138379c",
+                    "sha256": "e8b4d1dbe701540a5c5fecc3b91ed11d6bbc8a842d4486aa4d52de820716b9c4"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c2317516718441d5ac776a926138379c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17021,
+                "upload_time": "2018-06-28T04:43:53",
+                "url": "https://files.pythonhosted.org/packages/80/77/a9862b31958641c2412033d42bd3be75b75f10c8ea30ebb528f73c0bccd7/rtichoke-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b6ca351064e2af430389bd85eb33c343",
+                    "sha256": "0c4a47c15e72cb06cea388e161dc8a4aa909163d0827b7e24b529f667d7bcddd"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b6ca351064e2af430389bd85eb33c343",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21261,
+                "upload_time": "2018-08-29T19:36:53",
+                "url": "https://files.pythonhosted.org/packages/a0/81/38a85aa53067f28e4d96c1f24bdc48eb4f57aa44323d9694ec24e72d271f/rtichoke-0.2.10.tar.gz"
+            }
+        ],
+        "0.2.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "086d579a0c9894f9e11fd6d42fab4192",
+                    "sha256": "f241ae7549f67d8166b6b14a9fe2ada6999930f8f8d1e5a73ef0af20524ba90c"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "086d579a0c9894f9e11fd6d42fab4192",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21285,
+                "upload_time": "2018-08-29T20:36:31",
+                "url": "https://files.pythonhosted.org/packages/97/75/c3ea44d7bc68740ed4e04c36cbabc908d41e6eb944fe0a3b367ea41044dd/rtichoke-0.2.11.tar.gz"
+            }
+        ],
+        "0.2.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b86c9123a32083657cd692fdf51b02d4",
+                    "sha256": "fe227414708414f65d62a633a3dc00d0fe2f16bc8b9e42b84a5a8376d68a7fa7"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b86c9123a32083657cd692fdf51b02d4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21304,
+                "upload_time": "2018-08-30T06:14:47",
+                "url": "https://files.pythonhosted.org/packages/a9/ed/f8c7d6fd634494ed6d47327eb9ff3657db158e4b450e72ae2c14c5616953/rtichoke-0.2.12.tar.gz"
+            }
+        ],
+        "0.2.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e6c012a77947900cb7e173b525437144",
+                    "sha256": "b7c64ab52bc843cbdf56e5fd8a8dc2d121e2c4d8c26767b3ca5a2fa43bdf4acd"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e6c012a77947900cb7e173b525437144",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21258,
+                "upload_time": "2018-12-16T05:47:11",
+                "url": "https://files.pythonhosted.org/packages/3c/2e/e566de9434c54a9ff7bc6d31782fdb35da881b613a1a3cbb066af1001ede/rtichoke-0.2.13.tar.gz"
+            }
+        ],
+        "0.2.14": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec0f50eda83debfec6feaf6ed4dbb2b2",
+                    "sha256": "94e56e4b8ee90e0eb9bb81dcfd7afd1acc08cc885d0df3fd645dda33ebe6f3cd"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.14.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ec0f50eda83debfec6feaf6ed4dbb2b2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21324,
+                "upload_time": "2018-12-16T06:57:55",
+                "url": "https://files.pythonhosted.org/packages/20/99/1503f8d8de9c1651e57abb2801a565a07f004f3b59e9902dcb73da0ccfb6/rtichoke-0.2.14.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "07c63ecb74fb507ec6dba9cf548237c5",
+                    "sha256": "310a7c24ce28100b56288547c0233c46fceda3f7725fc1dc1142074c6a52e2c4"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "07c63ecb74fb507ec6dba9cf548237c5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17138,
+                "upload_time": "2018-08-10T14:52:04",
+                "url": "https://files.pythonhosted.org/packages/8a/bd/126a283a3c50eca15831833827470bd680a8f1ec46e1eaa413200fa60283/rtichoke-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "74b55d4aa4c671c29f46bfd6eacb7ff8",
+                    "sha256": "6fff38b87af149161388682526d1dbb93d168cffbedf90abbf39b856752a62b7"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "74b55d4aa4c671c29f46bfd6eacb7ff8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17168,
+                "upload_time": "2018-08-12T02:05:23",
+                "url": "https://files.pythonhosted.org/packages/5f/af/9eb0f6147f07bdbe4e6e6b30af051a0727d6af4d1408210339ed72dfdec8/rtichoke-0.2.3.tar.gz"
+            }
+        ],
+        "0.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e6c5dcd4a8cf5617f9508de361e75186",
+                    "sha256": "6d765439c4246f42742416c102d2387d5b1ac33d616af39a161643ad27ab7aa0"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e6c5dcd4a8cf5617f9508de361e75186",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17266,
+                "upload_time": "2018-08-13T07:01:32",
+                "url": "https://files.pythonhosted.org/packages/32/96/170e544dd9d85e145cc4a2d6b4dd1dd7584ed527cfb10ce98d3d94efa9d2/rtichoke-0.2.4.tar.gz"
+            }
+        ],
+        "0.2.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1c569e5afd3c94d14676b3a115d03f29",
+                    "sha256": "18877df44f44faf2800108c7a2ca145fe7b9b8c9910a728a8b8343d26d1f0d06"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1c569e5afd3c94d14676b3a115d03f29",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21160,
+                "upload_time": "2018-08-18T22:04:54",
+                "url": "https://files.pythonhosted.org/packages/e3/ab/681b2723e8e6a612aafbb52a77635dd95d89534005c0c074ce5ccd46bc5e/rtichoke-0.2.5.tar.gz"
+            }
+        ],
+        "0.2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8be14b89f8800604e98720f9b8654fb1",
+                    "sha256": "1c8a9a94698d8449ba52bf22d1a3b13f4f77daa12cb30692cf40775322122ca5"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8be14b89f8800604e98720f9b8654fb1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21170,
+                "upload_time": "2018-08-21T16:15:18",
+                "url": "https://files.pythonhosted.org/packages/24/ac/479ad2588ece01713292c3b977fe0e709d5b2beecb7faf8b918c68bb70d2/rtichoke-0.2.6.tar.gz"
+            }
+        ],
+        "0.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dd1dbfdd8c9c28a97ac39aeef037242f",
+                    "sha256": "16fa518b718b322b93fa81145e332d50579ea737d69965df3ae3a1c346048f44"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dd1dbfdd8c9c28a97ac39aeef037242f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21196,
+                "upload_time": "2018-08-22T13:25:53",
+                "url": "https://files.pythonhosted.org/packages/8a/45/f1fb3fb7c601aad6d3186e3042c1aafd01ede2fed8e94b08c113b46f7b9e/rtichoke-0.2.7.tar.gz"
+            }
+        ],
+        "0.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "26ab6cd7017245e05abd679f6f32cc68",
+                    "sha256": "fe4770365210e9dbbcb42cb4f9f03694f7efe7a52ae2000336e63901639667d7"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "26ab6cd7017245e05abd679f6f32cc68",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21233,
+                "upload_time": "2018-08-27T17:43:49",
+                "url": "https://files.pythonhosted.org/packages/da/89/a982eab4d96965a5f3deaeb58460e910ec0e06ff176aa33da4c04a0a28b2/rtichoke-0.2.8.tar.gz"
+            }
+        ],
+        "0.2.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "02b295a63f50d9ed305eb9dc1f1e4068",
+                    "sha256": "762fad187d33ec7deb510d0125b9eeaf1486676e5d390e1ed2c8404af1974a0c"
+                },
+                "downloads": -1,
+                "filename": "rtichoke-0.2.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "02b295a63f50d9ed305eb9dc1f1e4068",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 21236,
+                "upload_time": "2018-08-29T12:02:29",
+                "url": "https://files.pythonhosted.org/packages/9c/ce/a5234f3004c2c7b151cf6e004ee5e05b00c0f3afe8e29ae1292641b745a1/rtichoke-0.2.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ec0f50eda83debfec6feaf6ed4dbb2b2",
+                "sha256": "94e56e4b8ee90e0eb9bb81dcfd7afd1acc08cc885d0df3fd645dda33ebe6f3cd"
+            },
+            "downloads": -1,
+            "filename": "rtichoke-0.2.14.tar.gz",
+            "has_sig": false,
+            "md5_digest": "ec0f50eda83debfec6feaf6ed4dbb2b2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 21324,
+            "upload_time": "2018-12-16T06:57:55",
+            "url": "https://files.pythonhosted.org/packages/20/99/1503f8d8de9c1651e57abb2801a565a07f004f3b59e9902dcb73da0ccfb6/rtichoke-0.2.14.tar.gz"
+        }
+    ]
+}

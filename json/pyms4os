@@ -1,0 +1,119 @@
+{
+    "info": {
+        "author": "Junzi Sun",
+        "author_email": "j.sun-1@tudelft.nl",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Programming Language :: Python :: 3",
+            "Topic :: Software Development :: Build Tools"
+        ],
+        "description": "The pyModeS interface for OpenSky Impala database\n==========================================================\n\nIntroduction\n---------------------\n\nThis Python library connects the `pyModeS <https://github.com/junzis/pyModeS>`_ decoder and OpenSky-network raw Mode-S data. It aims at making the Enhance Mode-S information form OpenSky network more accessible for researchers.\n\nThe library can automatically retrieve and download data in ``rollcall_replies_data4`` table from the `OpenSky Imapala database <https://opensky-network.org/data/impala>`_, and then decodes several common Mode-S Comm-B message types. Currently, follows Mode-S downlink reports are supported:\n\n**Enhanced Mode-S:**\n\n- BDS40: Selected vertical intention report\n- BDS50: Track and turn report\n- BDS60: Heading and speed report\n\n**Mode-S meteorological information:**\n\n- BDS44: Meteorological routine air report\n- BDS45: Meteorological hazard report\n\nIn addition, the library can also be used to query decoded ADS-B information from ``state_vectors_data4`` table from the OpenSky Impala database.\n\nTo further explore the Mode-S decoding and aircraft trajectory processing using open-source Python libraries, you may have a look at:\n\n- **junzis/pyModeS**: https://github.com/junzis/pyModeS\n- **xoolive/traffic**: https://github.com/xoolive/traffic\n\nInstall\n-----------------------\n\nIn order to successfully use this library, you need:\n\n1. Get the ``pyModeS`` library:\n\nInstall the up-to-date pyModeS version from PyPI:\n\n.. code-block:: sh\n\n  $ pip install pyModeS --upgrade\n\nInstall this library:\n\n.. code-block:: sh\n\n  $ pip install git+https://github.com/junzis/pyms4os\n\n\n\n2. Obtain access to OpenSky Impala database\n\nApply access at: https://opensky-network.org/data/impala. The user name and password will be used for the following configuration.\n\n3. Configure OpenSky Impala login\n\nThe first time you use this library, the following configuration file will be created:\n\n.. code-block::\n\n  ~/.config/pyms4os/secret.conf\n\nwith the following content:\n\n.. code-block::\n\n  [default]\n  server = data.opensky-network.org\n  port = 2230\n  username =\n  password =\n\nFill in the empty ``username`` and ``password`` field with your OpenSky login.\n\n\nUse the library\n-----------------\n\nEHSHelper\n**********\n\nThe ``EHSHelper`` class allows the users to download and decode Enhanced Mode-S messages automatically.\n\nTo get the messages, the query requires an ICAO address (or a list of ICAO addresses), the start time, and the end time for the messages. By default, all BDS40, BDS50, and BDS60 messages are decoded. The results is represented in a pandas ``DataFrame``.\n\nAn example is shown as follows:\n\n.. code-block:: python\n\n  from pyms4os import EHSHelper\n\n  ehs = EHSHelper()\n\n  df = ehs.get(\n      icao24=\"49d304\",\n      start=\"2018-07-19 15:00:00\",\n      end=\"2018-07-19 15:10:00\"\n  )\n\nIt is also possible to decode a subset of EHS message types, by specify the BDS codes using ``require_bds()`` function. For example:\n\n.. code-block:: python\n\n  ehs.require_bds([BDS50, BDS60])\n\n  df = ehs.get(\n      icao24=\"49d304\",\n      start=\"2018-07-19 15:00:00\",\n      end=\"2018-07-19 15:10:00\"\n  )\n\n\nMeteoHelper\n************\n\nThe ``MeteoHelper`` class allows the users to download and decoded meteorological messages automatically. By default it provides information from BDS44 messages. Information from BDS45 messages can also be enable with ``include45=Ture`` switch.\n\nThe interface is similar to ``EHSHelper``, for example:\n\n.. code-block:: python\n\n  from pyms4os import MeteoHelper\n\n  meteo = MeteoHelper()\n  df = meteo.get(\n      icao24=[\"49d304\", \"4007f9\"],\n      start=\"2018-07-19 15:00:00\",\n      end=\"2018-07-19 15:10:00\",\n      include45=True,\n  )\n\n\nOpenskyImpalaWrapper\n**********************\n\nAll previous queries are based on the ``OpenskyImpalaWrapper`` class from the library. The wrapper class can also be used independently to query OpenSky Imapala database. It can be used for raw messages, as wells as decoded ADS-B data by OpenSky.\n\n**Be aware!** The number of records can be massive without the ICAO filter. Thus the query can take a long time. To increase the query efficiency, please consider using a ICAO filter when possible.\n\nBy defined the query type as ``type=\"raw\"``, the raw Mode-S message can be obtained. For example:\n\n.. code-block:: python\n\n  from pyms4os import OpenskyImpalaWrapper\n\n  opensky = OpenskyImpalaWrapper()\n\n  # Perform a simple and massive query (~20k records for 1 second here!)\n  df = opensky.query(\n      type=\"raw\", start=\"2018-07-01 13:00:00\", end=\"2018-07-01 13:00:01\"\n  )\n\n  # Perform a query with ICAO filter\n  df = opensky.query(\n      type=\"raw\",\n      start=\"2018-07-01 13:00:00\",\n      end=\"2018-07-01 13:00:10\",\n      icao24=[\"424588\", \"3c66a9\"],\n  )\n\nBy switching the query type from ``type=\"raw\"`` to ``type=\"adsb\"``, you can obtained the history ADS-B information in a similar way. For example:\n\n.. code-block:: python\n\n  from pyms4os import OpenskyImpalaWrapper\n\n  opensky = OpenskyImpalaWrapper()\n\n  # Perform a simple and massive query (~25k records for 5 second here!)\n  df = opensky.query(\n      type=\"adsb\", start=\"2018-08-01 13:00:00\", end=\"2018-08-01 13:00:10\"\n  )\n\n  # Perform a query with ICAO address filter\n  df = opensky.query(\n      type=\"adsb\",\n      start=\"2018-07-01 13:00:00\",\n      end=\"2018-07-01 13:00:10\",\n      icao24=[\"424588\", \"3c66a9\"],\n  )\n\n\nMore examples\n--------------\n\nMore complete examples can be found in the ``test`` directory of this library.\n\n\nOther information\n-------------------\nIf you find this project useful for your research, please consider citing the following works:\n\n.. code-block:: bibtex\n\n  @article{sun2019pymodes,\n      title={pyModeS: Decoding Mode-S Surveillance Data for Open Air Transportation Research},\n      author={J. {Sun} and H. {V\\^u} and J. {Ellerbroek} and J. M. {Hoekstra}},\n      journal={IEEE Transactions on Intelligent Transportation Systems},\n      year={2019},\n      doi={10.1109/TITS.2019.2914770},\n      ISSN={1524-9050},\n  }\n\n  @inproceedings{schafer2014opensky,\n    title={Bringing up OpenSky: A large-scale ADS-B sensor network for research},\n    author={Sch{\\\"a}fer, Matthias and Strohmeier, Martin and Lenders, Vincent and Martinovic, Ivan and Wilhelm, Matthias},\n    booktitle={Proceedings of the 13th international symposium on Information processing in sensor networks},\n    pages={83--94},\n    year={2014},\n    organization={IEEE Press}\n  }\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/junzis/pymodes-opensky",
+        "keywords": "Mode-S pyModeS OpenSky",
+        "license": "GNU GPL v3",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pyms4os",
+        "package_url": "https://pypi.org/project/pyms4os/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pyms4os/",
+        "project_urls": {
+            "Homepage": "https://github.com/junzis/pymodes-opensky"
+        },
+        "release_url": "https://pypi.org/project/pyms4os/1.0/",
+        "requires_dist": [
+            "pandas",
+            "paramiko",
+            "pyModeS (>=2.0)"
+        ],
+        "requires_python": "",
+        "summary": "The pyModeS interface for OpenSky-network Impala database",
+        "version": "1.0"
+    },
+    "last_serial": 5636177,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a932893e7c44919913699757baac44d2",
+                    "sha256": "302645dbc87907a68eb6486397c660f957f0231f86f186de93c58c02443b729e"
+                },
+                "downloads": -1,
+                "filename": "pyms4os-1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a932893e7c44919913699757baac44d2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 29937,
+                "upload_time": "2019-08-05T20:13:14",
+                "url": "https://files.pythonhosted.org/packages/08/50/9f32965a8a75e15b6be5b5943750952d7c83b899f172dc756e96384a053c/pyms4os-1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "128466111a77327b56130d0a143416ef",
+                    "sha256": "a111f41ede9b237a410d06dd31b2e0ddf1adba165ee880c82b9027d335798f86"
+                },
+                "downloads": -1,
+                "filename": "pyms4os-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "128466111a77327b56130d0a143416ef",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12295,
+                "upload_time": "2019-08-05T20:13:16",
+                "url": "https://files.pythonhosted.org/packages/b0/e3/f0db097f70cfd38ae117155b467064521ad8bf507bac29051698b4d19b1d/pyms4os-1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a932893e7c44919913699757baac44d2",
+                "sha256": "302645dbc87907a68eb6486397c660f957f0231f86f186de93c58c02443b729e"
+            },
+            "downloads": -1,
+            "filename": "pyms4os-1.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a932893e7c44919913699757baac44d2",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 29937,
+            "upload_time": "2019-08-05T20:13:14",
+            "url": "https://files.pythonhosted.org/packages/08/50/9f32965a8a75e15b6be5b5943750952d7c83b899f172dc756e96384a053c/pyms4os-1.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "128466111a77327b56130d0a143416ef",
+                "sha256": "a111f41ede9b237a410d06dd31b2e0ddf1adba165ee880c82b9027d335798f86"
+            },
+            "downloads": -1,
+            "filename": "pyms4os-1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "128466111a77327b56130d0a143416ef",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12295,
+            "upload_time": "2019-08-05T20:13:16",
+            "url": "https://files.pythonhosted.org/packages/b0/e3/f0db097f70cfd38ae117155b467064521ad8bf507bac29051698b4d19b1d/pyms4os-1.0.tar.gz"
+        }
+    ]
+}

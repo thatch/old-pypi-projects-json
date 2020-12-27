@@ -1,0 +1,152 @@
+{
+    "info": {
+        "author": "Raul Morales Delgado",
+        "author_email": "rmoralesdelgado@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: MacOS :: MacOS X",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "\n# espressomaker\n\n[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)\n\n`espressomaker` is a Python module that provides a context manager (and other functionalities) to modify the power management settings on a MacOS X system so that running processes (e.g. a machine learning training algorithm) can run uninterruptedly.\n\nMore specifically, `espressomaker` is a wrapper of `caffeinate`, a shell command in MacOS X distributions that allows users to create assertions that alter the system's sleep behavior. In this sense. `espressomaker` runs `caffeinate` subprocesses from the Python 3 or iPython kernel from which `espressomaker` is being executed and allows to control them through a simple and intuitive set of Python commands.\n\n<h2>Table of Contents<span class=\"tocSkip\"></span></h2>\n<div class=\"toc\"><ul class=\"toc-item\"><li><span><a href=\"#1-Quick-Start\" data-toc-modified-id=\"1.-Quick-Start-1\">1. Quick Start</a></span></li><li><span><a href=\"#2-Purpose\" data-toc-modified-id=\"2.-Purpose-2\">2. Purpose</a></span></li><li><span><a href=\"#3-Installation\" data-toc-modified-id=\"3.-Installation-3\">3. Installation</a></span></li><li><span><a href=\"#4-User-guide\" data-toc-modified-id=\"4.-User-guide-4\">4. User-guide</a></span><ul class=\"toc-item\"><li><span><a href=\"#41-Working-principle\" data-toc-modified-id=\"4.1-Working-principle-4.1\">4.1 Working principle</a></span></li><li><span><a href=\"#42-Importing-the-module\" data-toc-modified-id=\"4.2-Importing-the-module-4.2\">4.2 Importing the module</a></span></li><li><span><a href=\"#43-Using-as-a-context-manager-(Espresso.shot())\" data-toc-modified-id=\"4.3-Using-as-a-context-manager-(Espresso.shot())-4.3\">4.3 Using as a context manager (<code>Espresso.shot()</code>)</a></span></li><li><span><a href=\"#44-Manually-opening-and-closing-tabs\" data-toc-modified-id=\"4.4-Manually-opening-and-closing-tabs-4.4\">4.4 Manually opening and closing tabs</a></span></li><li><span><a href=\"#45-Viewing-open-tabs\" data-toc-modified-id=\"4.5-Viewing-open-tabs-4.5\">4.5 Viewing open tabs</a></span></li><li><span><a href=\"#46-Killing-all-caffeinate-processes\" data-toc-modified-id=\"4.6-Killing-all-caffeinate-processes-4.6\">4.6 Killing all <code>caffeinate</code> processes</a></span></li></ul></li></ul></div>\n\n## 1. Quick Start\n\nTo install `espressomaker`, run the following on your Terminal:\n```bash\n$ pip install espressomaker\n```\n\nTo execute `espressomaker` as a context manager for a block of code, run on a Python 3 or an iPython kernel:\n```python\nfrom espressomaker import Espresso\n\nwith Espresso.shot():\n    function_1()\n    function_2()\n    ...\n```\n\nThe indented code will be run using the context manager of `espressomaker`, `Espresso.shot()`. While this code is running, your Mac won't go to sleep.\n\n## 2. Purpose\n\n`espressomaker` is a Python 3 module that does not let your Mac sleep when you are running a block of code.\n\nMany applications that run on Python may take hours to finish, like machine learning training algorithms. If a block of code is actively running on a Python 3 kernel and the system goes to sleep, the running processes of the kernel will be interrupted and all the progress related to that block of code will be lost. \n\nTo avoid that, `espressomaker` provides a handful of functionalities, including a useful context manager to run blocks of code. The context manager will allow you to use `Espresso`, a module of `espressomaker`, to temporarily change the power management settings of your Mac while the indented block of code runs. Once the code is done running, the settings will return to its default state.\n\n`espressomaker` is a package that intends to facilitate dealing with lengthy Python jobs such that the user can, in a single line of code, forget about dealing interrupted processes.\n\n## 3. Installation\n\nTo install `espressomaker`, run on your terminal:\n```bash\n$ pip install espressomaker\n```\n\n**Important note**\n\nInstallation using `pip` should be uneventful. However, if when importing a `ModuleNotFoundError` occurs, it could be possible that your current kernel is **not** including the directory where `espressomaker` is installed at. Usually, the `pip` installation process will place the packages contents at:\n* `/Users/<your_username>/.local/lib/pythonX.Y/site-packages/`; or,\n* `/Users/<your_username>/anaconda3/lib/pythonX.Y/site-packages/`, if using Anaconda;\n\nwhere X.Y is your current Python version (root environment). You can check if these directories are considered by Python's system's path by running:\n```python\nimport sys\nsys.path\n```\n\nIf it is not included, or if you chose to install it in a specific directory, add its path by running:\n```python\nsys.path.append('<path>')\n```\n\n## 4. User-guide\n\n### 4.1 Working principle\n\n`espressomaker` is a Python 3 package whose `Espresso` module allows to run `caffeinate` subprocesses from the running Python 3 kernel (e.g. a Jupyter Notebook, a `.py` script). The main go as subprocess as a context manager for a block of code or as a manual method call (i.e. the user defines when to start running the assertion and when to finish it). When a function of `Espresso` is called, an assertion that prevents a MacOS X system from sleeping is \n\n### 4.2 Importing the module\n\nTo import the functionalities of `espressomaker` to Python, run:\n```python\nfrom espressomaker import Espresso\n```\n\n### 4.3 Using as a context manager (`Espresso.shot()`)\n\nOne of the main advantages of `espressomaker` is that its `Espresso` module allows to run a given piece of code using a context manager. The context manager enables the `caffeinate` functionality for the code inside it and then closes the process \u2014\u00a0kills the `caffeinate` subprocess.\n\nTo use this functionality, run:\n```python\nwith Espresso.shot(display_on = True):\n    function_1()\n    function_2()\n    ...\n```\n\n### 4.4 Manually opening and closing tabs (`Espresso.opentab()` and `Espresso.closetab()`)\n\nPending.\n\n### 4.5 Viewing open tabs \u2014 `caffeinate` running processes (`Espresso.check()`)\n\nPending.\n\n### 4.6 Killing all `caffeinate` processes (`Espresso.killall()`)\n\nPending.\n\nstart-formatting\nend-formatting\nFormatting passed and completed.\n\n<h2>Release History</h2>\n\n### v0.1a1\n\nBasic skeleton of the package ready for shipping to TestPyPI.\n\n### v0.1a2\n\n* Automated file exporting from .ipynb to .py and standardized the formatting.\n* Automated file exporting from .ipynb to .md and standardized the formatting.\n* Improved variable handling on instance methods.\n* Added a message for the user to recognize the current kernel when using opentabs().\n* Added debugging tracers for all private methods.\n* Finished class- and static- methods docstrings.\n* Updated setup.py.\n\n### v0.1b1\n\n* Improved HISTORY.md title formatting.\n* Updated \"classifiers\" of setup.py.\n* Changed opentabs() classmethod to check() in espresso.py.\n* Successfully ran manual tests in all APIs.\n\n### TODO\n\n* Finished user-guide in README.md\n* Finish unittest.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/rmoralesdelgado/espressomaker",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "espressomaker-rmoralesdelgado",
+        "package_url": "https://pypi.org/project/espressomaker-rmoralesdelgado/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/espressomaker-rmoralesdelgado/",
+        "project_urls": {
+            "Homepage": "https://github.com/rmoralesdelgado/espressomaker"
+        },
+        "release_url": "https://pypi.org/project/espressomaker-rmoralesdelgado/0.1a2/",
+        "requires_dist": null,
+        "requires_python": ">=3.5",
+        "summary": "Allows to temporarily modify the power management settings on a MacOS to run processes uninterruptedly.",
+        "version": "0.1a2"
+    },
+    "last_serial": 5872556,
+    "releases": {
+        "0.1a1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "76664bc17ba26bcf8aa932d7714254c1",
+                    "sha256": "887f1164df6b74a24e08907f306ac427e28b35d0af646f68b5f3e826c9761d5c"
+                },
+                "downloads": -1,
+                "filename": "espressomaker_rmoralesdelgado-0.1a1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "76664bc17ba26bcf8aa932d7714254c1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5",
+                "size": 5343,
+                "upload_time": "2019-09-23T09:41:41",
+                "url": "https://files.pythonhosted.org/packages/56/43/3c5276e866380f22c65ed93e41829108106a07ac449c63827ef8604a063f/espressomaker_rmoralesdelgado-0.1a1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c82cba078cebbd8cbc77803ed6aa1df",
+                    "sha256": "f608b4a8696a5eee30a2b7ea31b13cb9c831edc90d14ac22379ce777e0f173e5"
+                },
+                "downloads": -1,
+                "filename": "espressomaker-rmoralesdelgado-0.1a1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5c82cba078cebbd8cbc77803ed6aa1df",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5",
+                "size": 3820,
+                "upload_time": "2019-09-23T09:41:49",
+                "url": "https://files.pythonhosted.org/packages/ef/ea/192f97e0005a521b11394907be17ec281a0f00ee28a9323aa77de146e225/espressomaker-rmoralesdelgado-0.1a1.tar.gz"
+            }
+        ],
+        "0.1a2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa7135ec240c6546cbdeac8dacd49361",
+                    "sha256": "87bd55cd7ce6808149bff73615b9c2fd7125d223ff5e77e0bebe419d172e3fa0"
+                },
+                "downloads": -1,
+                "filename": "espressomaker_rmoralesdelgado-0.1a2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "aa7135ec240c6546cbdeac8dacd49361",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.5",
+                "size": 8251,
+                "upload_time": "2019-09-23T09:41:45",
+                "url": "https://files.pythonhosted.org/packages/23/f8/9c66defdc6e309db6eaa3c2ef7de39bd7154f73321e049091199c2a80f43/espressomaker_rmoralesdelgado-0.1a2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7455cd775709627d42f7a2895fd6b74e",
+                    "sha256": "0d881d6c531663d6508b8d437cd88513d0e9f3df896e491b26141e9d25c16740"
+                },
+                "downloads": -1,
+                "filename": "espressomaker-rmoralesdelgado-0.1a2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7455cd775709627d42f7a2895fd6b74e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5",
+                "size": 6920,
+                "upload_time": "2019-09-23T09:41:50",
+                "url": "https://files.pythonhosted.org/packages/93/2c/a6c6953b526a53e05dfa608c2a688c97287c318254a2b264544fb16be2ad/espressomaker-rmoralesdelgado-0.1a2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "aa7135ec240c6546cbdeac8dacd49361",
+                "sha256": "87bd55cd7ce6808149bff73615b9c2fd7125d223ff5e77e0bebe419d172e3fa0"
+            },
+            "downloads": -1,
+            "filename": "espressomaker_rmoralesdelgado-0.1a2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "aa7135ec240c6546cbdeac8dacd49361",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.5",
+            "size": 8251,
+            "upload_time": "2019-09-23T09:41:45",
+            "url": "https://files.pythonhosted.org/packages/23/f8/9c66defdc6e309db6eaa3c2ef7de39bd7154f73321e049091199c2a80f43/espressomaker_rmoralesdelgado-0.1a2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7455cd775709627d42f7a2895fd6b74e",
+                "sha256": "0d881d6c531663d6508b8d437cd88513d0e9f3df896e491b26141e9d25c16740"
+            },
+            "downloads": -1,
+            "filename": "espressomaker-rmoralesdelgado-0.1a2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7455cd775709627d42f7a2895fd6b74e",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5",
+            "size": 6920,
+            "upload_time": "2019-09-23T09:41:50",
+            "url": "https://files.pythonhosted.org/packages/93/2c/a6c6953b526a53e05dfa608c2a688c97287c318254a2b264544fb16be2ad/espressomaker-rmoralesdelgado-0.1a2.tar.gz"
+        }
+    ]
+}

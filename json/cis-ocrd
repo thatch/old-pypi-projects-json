@@ -1,0 +1,122 @@
+{
+    "info": {
+        "author": "Florian Fink, Tobias Englmeier, Christoph Weber",
+        "author_email": "finkf@cis.lmu.de, englmeier@cis.lmu.de, web_chris@msn.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# ocrd_cis\n\n![build status](https://travis-ci.org/cisocrgroup/cis-ocrd-py.svg?branch=dev)\n# cis-ocrd-py\n\n[CIS](http://www.cis.lmu.de) [OCR-D](http://ocr-d.de) command line tools\n\n## General usage\n\n### Essential system packages\n\n```sh\nsudo apt-get install \\\n  git \\\n  build-essential \\\n  python3 python3-pip \\\n  libxml2-dev \\\n  default-jdk\n```\n\n\n\n### Virtualenv\n\nUse `virtualenv` to install dependencies:\n* `virtualenv -p python3.6 env`\n* `source env/bin/activate`\n* `pip install -e path/to/dir/containing/setup.py`\n\nUse `deactivate` to deactivate the virtualenv again.\n\n### OCR-D workspace\n\n* Create a new (empty) workspace: `ocrd workspace init workspace-dir`\n* cd into `workspace-dir`\n* Add new file to workspace: `ocrd workspace add file -G group -i id\n  -m mimetype`\n\n### Tests\n\nIssue `make test` to run the automated test suite. The tests depend on\nthe following tools:\n\n* [wget](https://www.gnu.org/software/wget/)\n* [envsubst](https://linux.die.net/man/1/envsubst)\n\nYou can run individual testcases using the `run_*_test.bash` scripts in\nthe tests directory. Use the `--persistent` or `-p` flag to keep\ntemporary directories.\n\nYou can override the temporary directory by setting the `TMP_DIR` environment\nvariable.\n\n## Tools\n\n### ocrd-cis-align\n\nThe alignment tool line-aligns multiple file groups. It can be used to\nalign the results of multiple OCRs with their respective ground-truth.\n\nThe tool expects a comma-separated list of input file groups, the\naccording output file group and the url of the configuration file:\n\n```sh\nocrd-cis-align \\\n  --input-file-grp 'ocr1,ocr2,gt' \\\n  --output-file-grp 'ocr1+ocr2+gt' \\\n  --mets mets.xml \\\n  --parameter file:///path/to/config.json\n```\n\n\n### ocrd-cis-ocropy-train\nThe ocropy-train tool can be used to train LSTM models.\nIt takes ground truth from the workspace and saves (image+text) snippets from the corresponding pages.\nThen a model is trained on all snippets for 1 million (or the given number of) randomized iterations from the parameter file.\n```sh\nocrd-cis-ocropy-train \\\n  --input-file-grp OCR-D-GT-SEG-LINE \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n### ocrd-cis-ocropy-clip\nThe ocropy-clip tool can be used to remove intrusions of neighbouring segments in regions / lines of a workspace.\nIt runs a (ad-hoc binarization and) connected component analysis on every text region / line of every PAGE in the input file group, as well as its overlapping neighbours, and for each binary object of conflict, determines whether it belongs to the neighbour, and can therefore be clipped to white. It references the resulting segment image files in the output PAGE (as AlternativeImage).\n```sh\nocrd-cis-ocropy-clip \\\n  --input-file-grp OCR-D-SEG-LINE \\\n  --output-file-grp OCR-D-SEG-LINE-CLIP \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n### ocrd-cis-ocropy-resegment\nThe ocropy-resegment tool can be used to remove overlap between lines of a workspace.\nIt runs a (ad-hoc binarization and) line segmentation on every text region of every PAGE in the input file group, and for each line already annotated, determines the label of largest extent within the original coordinates (polygon outline) in that line, and annotates the resulting coordinates in the output PAGE.\n```sh\nocrd-cis-ocropy-resegment \\\n  --input-file-grp OCR-D-SEG-LINE \\\n  --output-file-grp OCR-D-SEG-LINE-RES \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n### ocrd-cis-ocropy-segment\nThe ocropy-segment tool can be used to segment regions into lines.\nIt runs a (ad-hoc binarization and) line segmentation on every text region of every PAGE in the input file group, and adds a TextLine element with the resulting polygon outline to the annotation of the output PAGE.\n```sh\nocrd-cis-ocropy-segment \\\n  --input-file-grp OCR-D-SEG-BLOCK \\\n  --output-file-grp OCR-D-SEG-LINE \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n### ocrd-cis-ocropy-deskew\nThe ocropy-deskew tool can be used to deskew pages / regions of a workspace.\nIt runs the Ocropy thresholding and deskewing estimation on every segment of every PAGE in the input file group and annotates the orientation angle in the output PAGE.\n```sh\nocrd-cis-ocropy-deskew \\\n  --input-file-grp OCR-D-SEG-LINE \\\n  --output-file-grp OCR-D-SEG-LINE-DES \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n### ocrd-cis-ocropy-denoise\nThe ocropy-denoise tool can be used to despeckle pages / regions / lines of a workspace.\nIt runs the Ocropy \"nlbin\" denoising on every segment of every PAGE in the input file group and references the resulting segment image files in the output PAGE (as AlternativeImage). \n```sh\nocrd-cis-ocropy-denoise \\\n  --input-file-grp OCR-D-SEG-LINE-DES \\\n  --output-file-grp OCR-D-SEG-LINE-DEN \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n### ocrd-cis-ocropy-binarize\nThe ocropy-binarize tool can be used to binarize, denoise and deskew pages / regions / lines of a workspace.\nIt runs the Ocropy \"nlbin\" adaptive thresholding, deskewing estimation and denoising on every segment of every PAGE in the input file group and references the resulting segment image files in the output PAGE (as AlternativeImage). (If a deskewing angle has already been annotated in a region, the tool respects that and rotates accordingly.) Images can also be produced grayscale-normalized.\n```sh\nocrd-cis-ocropy-binarize \\\n  --input-file-grp OCR-D-SEG-LINE-DES \\\n  --output-file-grp OCR-D-SEG-LINE-BIN \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n### ocrd-cis-ocropy-dewarp\nThe ocropy-dewarp tool can be used to dewarp text lines of a workspace.\nIt runs the Ocropy baseline estimation and dewarping on every line in every text region of every PAGE in the input file group and references the resulting line image files in the output PAGE (as AlternativeImage).\n```sh\nocrd-cis-ocropy-dewarp \\\n  --input-file-grp OCR-D-SEG-LINE-BIN \\\n  --output-file-grp OCR-D-SEG-LINE-DEW \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n### ocrd-cis-ocropy-recognize\nThe ocropy-recognize tool can be used to recognize lines / words / glyphs from pages of a workspace.\nIt runs the Ocropy optical character recognition on every line in every text region of every PAGE in the input file group and adds the resulting text annotation in the output PAGE.\n```sh\nocrd-cis-ocropy-recognize \\\n  --input-file-grp OCR-D-SEG-LINE-DEW \\\n  --output-file-grp OCR-D-OCR-OCRO \\\n  --mets mets.xml\n  --parameter file:///path/to/config.json\n```\n\n## All in One Tool\nFor the all in One Tool install all above tools and Tesserocr as explained below.\nThen use it like:\n```sh\nocrd-cis-aio --parameter file:///path/to/config.json\n```\n\n\n### Tesserocr\nInstall essential system packages for Tesserocr\n```sh\nsudo apt-get install python3-tk \\\n  tesseract-ocr libtesseract-dev libleptonica-dev \\\n  libimage-exiftool-perl libxml2-utils\n```\n\nThen install Tesserocr from: https://github.com/OCR-D/ocrd_tesserocr\n```sh\npip install -r requirements.txt\npip install .\n```\n\nDownload and move tesseract models from:\nhttps://github.com/tesseract-ocr/tesseract/wiki/Data-Files\nor use your own models\nplace them into: /usr/share/tesseract-ocr/4.00/tessdata\n\nTesserocr v2.4.0 seems broken for tesseract 4.0.0-beta. Install\nVersion v2.3.1 instead: `pip install tesseract==2.3.1`.\n\n## Workflow configuration\n\nA decent pipeline might look like this:\n\n1. page-level cropping\n2. page-level binarization\n3. page-level deskewing\n4. page-level dewarping\n5. region segmentation\n6. region-level clipping\n7. region-level deskewing\n8. line segmentation\n9. line-level clipping or resegmentation\n10. line-level dewarping\n11. line-level recognition\n12. line-level alignment\n\nIf GT is used, steps 1, 5 and 8 can be omitted. Else if a segmentation is used in 5 and 8 which does not produce overlapping sections, steps 6 and 9 can be omitted.\n\n## OCR-D links\n\n- [OCR-D](https://ocr-d.github.io)\n- [Github](https://github.com/OCR-D)\n- [Project-page](http://www.ocr-d.de/)\n- [Ground-truth](http://www.ocr-d.de/sites/all/GTDaten/IndexGT.html)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/cisocrgroup/cis-ocrd-py",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "cis-ocrd",
+        "package_url": "https://pypi.org/project/cis-ocrd/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/cis-ocrd/",
+        "project_urls": {
+            "Homepage": "https://github.com/cisocrgroup/cis-ocrd-py"
+        },
+        "release_url": "https://pypi.org/project/cis-ocrd/0.0.5/",
+        "requires_dist": [
+            "ocrd (>=2.0.0a1)",
+            "click",
+            "scipy",
+            "numpy (>=1.17.0)",
+            "pillow (>=6.2.0)",
+            "matplotlib (>3.0.0)",
+            "python-Levenshtein",
+            "calamari-ocr"
+        ],
+        "requires_python": "",
+        "summary": "CIS OCR-D command line tools",
+        "version": "0.0.5"
+    },
+    "last_serial": 6034741,
+    "releases": {
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0cb7c271e269610696de659dd5e6366a",
+                    "sha256": "f99c92453445e4896a856cb0f146d0aadf0ceeb48addd75ff6b9f4ffda49ac33"
+                },
+                "downloads": -1,
+                "filename": "cis_ocrd-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0cb7c271e269610696de659dd5e6366a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 116744,
+                "upload_time": "2019-10-26T19:26:55",
+                "upload_time_iso_8601": "2019-10-26T19:26:55.970846Z",
+                "url": "https://files.pythonhosted.org/packages/9e/bf/b1818c9f698b1b99475bcd85ae8649a09ee8e802644dedc759bc728f4114/cis_ocrd-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "049c5b627214c7afcce8f51a5a0eee11",
+                    "sha256": "059e22fa0ab0ffd92f2bbfdb26279dbe507a25050bfe38eaa977546da6f60523"
+                },
+                "downloads": -1,
+                "filename": "cis-ocrd-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "049c5b627214c7afcce8f51a5a0eee11",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 88597,
+                "upload_time": "2019-10-26T19:26:59",
+                "upload_time_iso_8601": "2019-10-26T19:26:59.427545Z",
+                "url": "https://files.pythonhosted.org/packages/c9/64/f6d8e1cb2ac04a6ef81387ad279faf5660f682fada0bb324f4280cb0dd17/cis-ocrd-0.0.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0cb7c271e269610696de659dd5e6366a",
+                "sha256": "f99c92453445e4896a856cb0f146d0aadf0ceeb48addd75ff6b9f4ffda49ac33"
+            },
+            "downloads": -1,
+            "filename": "cis_ocrd-0.0.5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "0cb7c271e269610696de659dd5e6366a",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 116744,
+            "upload_time": "2019-10-26T19:26:55",
+            "upload_time_iso_8601": "2019-10-26T19:26:55.970846Z",
+            "url": "https://files.pythonhosted.org/packages/9e/bf/b1818c9f698b1b99475bcd85ae8649a09ee8e802644dedc759bc728f4114/cis_ocrd-0.0.5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "049c5b627214c7afcce8f51a5a0eee11",
+                "sha256": "059e22fa0ab0ffd92f2bbfdb26279dbe507a25050bfe38eaa977546da6f60523"
+            },
+            "downloads": -1,
+            "filename": "cis-ocrd-0.0.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "049c5b627214c7afcce8f51a5a0eee11",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 88597,
+            "upload_time": "2019-10-26T19:26:59",
+            "upload_time_iso_8601": "2019-10-26T19:26:59.427545Z",
+            "url": "https://files.pythonhosted.org/packages/c9/64/f6d8e1cb2ac04a6ef81387ad279faf5660f682fada0bb324f4280cb0dd17/cis-ocrd-0.0.5.tar.gz"
+        }
+    ]
+}

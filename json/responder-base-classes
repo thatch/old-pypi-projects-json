@@ -1,0 +1,200 @@
+{
+    "info": {
+        "author": "Ian Cleary",
+        "author_email": "iancleary@pm.me",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy"
+        ],
+        "description": "\n# Responder-base-classes: Base Classes for [Responder (kennethreitz)](https://github.com/kennethreitz/responder#installing-responder)\n\n[![Build Status](https://img.shields.io/travis/com/iancleary/responder-base-classes/master.svg)](https://img.shields.io/travis/com/iancleary/responder-base-classes)\n[![image](https://img.shields.io/pypi/v/responder-base-classes.svg)](https://pypi.org/project/responder-base-classes/)\n[![Updates](https://pyup.io/repos/github/iancleary/responder-base-classes/shield.svg)](https://pyup.io/repos/github/iancleary/responder-base-classes/)\n[![image](https://img.shields.io/pypi/l/responder-base-classes.svg)](https://pypi.org/project/responder-base-classes/)\n[![image](https://img.shields.io/pypi/pyversions/responder-base-classes.svg)](https://pypi.org/project/responder-base-classes/)\n[![image](https://img.shields.io/github/contributors/iancleary/responder-base-classes.svg)](https://github.com/iancleary/responder-base-classes/graphs/contributors)\n\n\n# The Basic Idea\n\nThe primary concept is to provide base classes for REST APIs with JSON and [Responder's class based views](https://python-responder.org/en/latest/tour.html#class-based-views)\n\n- Extend Responder with extensions similar to [Flask's extensions]( http://flask.pocoo.org/extensions)\n- Responder executes the `on_request` method followed by `on_{method}`, where method is an HTTP verb.\n    - extending that syntax to `execute_on_request` and `execute_on_{method}`\n    - the expectation is that you implement or overload `execute_on_request` and `execute_on_{method}` as appropriate\n- Two Base Classes are provided: `OpenBaseView` and `AuthBaseView`\n- `OpenBaseView` requires no authorization but checks content-type and implemented routes\n- `AuthBaseView` extends `OpenBaseView` with Basic Auth and Custom Auth, and has placeholder functions for your implementation of:\n    - a `get_user` function for how you check general authorization for you backend\n    - a `valid_credentials_for_route` function for specific authorization per route\n\n# Example Usage\n~~~~\nimport responder\n\nfrom responder_base_classes.open_base_service import OpenBaseView\nfrom responder_base_classes.auth_base_service import AuthBaseView\n\napi = responder.API()\n\n@api.route(\"/OpenBaseView\")\nclass ObjectView(OpenBaseView):\n    \"\"\"An endpoint for Objects\"\"\"\n\n    @staticmethod\n    async def execute_on_get(req, resp):\n        resp.media = {\n            \"status\": \"success\",\n            \"reason\": \"executed on_get completely\",\n            \"object\": 42,\n        }\n        resp.status_code = 200  # OK\n\n    @staticmethod\n    async def execute_on_head(req, resp):\n        resp.status_code = 200  # OK\n\n    @staticmethod\n    async def execute_on_post(req, resp):\n        resp.media = {\n            \"status\": \"success\",\n            \"reason\": \"executed on_post completely\",\n            \"object\": 42,\n        }\n        resp.status_code = 200  # OK\n\n    @staticmethod\n        async def execute_on_request(req, resp):\n            resp.headers[\"X-Pizza\"] = \"42\"\n\n@api.route(\"/AuthBaseView\")\nclass AuthObjectView(AuthBaseView):\n    \"\"\"An endpoint for Objects\n    \"\"\"\n\n    @classmethod\n    def valid_credentials_for_route(cls, req, user):\n        \"\"\"\n        Validate credentials for route\n        This should be overridden for each method\n        :param req: Mutable request object\n        :param user: User object\n        :return:\n        \"\"\"\n        # check password\n        if user is not None:\n            # something along the lines of checking if session includes 'username'\n            # then checking if the username has the privileges for the request dict\n            return True  # this defaults to allowed if user exists\n        return False\n\n    def get_user(cls, req):\n        \"\"\"\n        Get User Class Object, facilitates checking credentials\n        :param req: Mutable request object\n        :return:\n        \"\"\"\n        # you should implement for your application, below is just for testing\n        class User(object):\n            def __init__(self, username, password):\n                self.username = username\n                self.password = password\n        user = User(username=\"test_user\", password=\"test_password\")\n        return user\n\n    @staticmethod\n    async def execute_on_post(req, resp):\n        resp.media = {\n            \"status\": \"success\",\n            \"reason\": \"executed on_post completely\",\n            \"object\": 42,\n        }\n        resp.status_code = 200  # OK\n\nheaders = {\"Content-Type\": \"application/json\"}\nr = api.requests.get(\"/OpenBaseView\", headers=headers)\nprint(r.json())\n{'status': 'success', 'reason': 'executed on_get completely', 'object': 42}\n\nprint(r.headers[X-Pizza'])\n42\n\n# Demo of AuthBaseView\nimport base64@staticmethod\n        async def execute_on_request(req, resp):\n            resp.headers[\"X-Pizza\"] = \"42\"\n\n# credentials that match placeholder in AuthObjectView.get_user\nencoded_credentials = base64.b64encode(b\"test_user:test_password\")\nencoded_header = \"Basic {}\".format(encoded_credentials.decode(\"utf-8\"))\n\nheaders = {\"Content-Type\": \"application/json\", \"authorization\": encoded_header}\nr = api.requests.patch(\"/AuthBaseView\", headers=headers)\n\nprint(r.json())\n{'status': 'failure', 'reason': 'execute_on_patch not implemented for this URL path'}\n# note, we didn't implement execute_on_patch, we implemented execute_on_post\n\nr = api.requests.post(\"/AuthBaseView\", headers=headers)\n\nprint(r.json())\n{'status': 'success', 'reason': 'executed on_post completely', 'object': 42}\n\n# credentials that do not match placeholder in AuthObjectView.get_user\nencoded_credentials = base64.b64encode(b\"non_existent_user:bad_password\")\nencoded_header = \"Basic {}\".format(encoded_credentials.decode(\"utf-8\"))\n\nheaders = {\"Content-Type\": \"application/json\", \"authorization\": encoded_header}\n\nr = api.requests.get(\"/AuthBaseView\", headers=headers)\nprint(r.json())\n{'status': 'failure', 'reason': 'In on_get function: exiting before running execute_on_get_request; Invalid credentials for this request, password is wrong'}\n\n# please note that this example's get_user defines a user,\n# so it is indicating that the password doesn't match the defined user\n# generally, this would indicate the 'non_existent_user' doesn't exist\n# in thase case, print(r.json()) would return the following:\n# {'status': 'failure', 'reason': 'In on_get function: exiting before running execute_on_get_request; Invalid credentials for this request, user doesn't exist\"'}\n\n~~~~\n\n# Installing Responder-base-classes\n\nInstall the latest release:\n\n\n    $ pip install responder-base-classes\n\n\nOnly **Python 3.6+** is supported ([as required by the Responder package](https://github.com/kennethreitz/responder#installing-responder))\n\n\n# TODO\nSee [TODO](TODO.md) about possible next features/changes!\n\n----------\n\n# Contributing Guide\n\nSee the [Contributing Guide](CONTRIBUTING.md) and welcome!\n\nThank you and I hope you find my/our work useful!  Have a nice day :)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/iancleary/responder-base-classes",
+        "keywords": "",
+        "license": "Apache 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "responder-base-classes",
+        "package_url": "https://pypi.org/project/responder-base-classes/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/responder-base-classes/",
+        "project_urls": {
+            "Homepage": "https://github.com/iancleary/responder-base-classes"
+        },
+        "release_url": "https://pypi.org/project/responder-base-classes/0.1.0/",
+        "requires_dist": [
+            "responder (>=1.3.0)",
+            "wrapt (>=1.11.1)"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Base Classes for the Responder Web Framework.",
+        "version": "0.1.0"
+    },
+    "last_serial": 5226412,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ffd375a5f0bb024257d9529c57fecc36",
+                    "sha256": "39008ca07b72c04aa18adc67698331da404ccdb065e9f337a02f8b42d7d65080"
+                },
+                "downloads": -1,
+                "filename": "responder_base_classes-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ffd375a5f0bb024257d9529c57fecc36",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 8579,
+                "upload_time": "2019-03-03T19:57:04",
+                "upload_time_iso_8601": "2019-03-03T19:57:04.729556Z",
+                "url": "https://files.pythonhosted.org/packages/4b/58/6817c866dd52d4188e0beae38f23781614ab0fedf542b6969e2eac6bac17/responder_base_classes-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8efa3491da6da7c6da24c05c53489c66",
+                    "sha256": "a274bb5215d805763ecc30ebb2a50f15d737344228af0f1b52fca4817c76ac13"
+                },
+                "downloads": -1,
+                "filename": "responder_base_classes-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8efa3491da6da7c6da24c05c53489c66",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 7571,
+                "upload_time": "2019-03-03T19:57:06",
+                "upload_time_iso_8601": "2019-03-03T19:57:06.757578Z",
+                "url": "https://files.pythonhosted.org/packages/40/b6/94485631ed7b155a9d3996290dbc60201d0b2dd880edcab4e539fd1c543b/responder_base_classes-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "840c92ce843634e05864d42914487de6",
+                    "sha256": "ea0f55b4f71305a8f27dbbaecc5f0b3d3f0fd579e86999da5cfa8436a12d29fa"
+                },
+                "downloads": -1,
+                "filename": "responder_base_classes-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "840c92ce843634e05864d42914487de6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 9820,
+                "upload_time": "2019-03-08T04:21:30",
+                "upload_time_iso_8601": "2019-03-08T04:21:30.838135Z",
+                "url": "https://files.pythonhosted.org/packages/3c/b0/e71064b843435da6d86a78899e5c79812667e0b029aaab30f931d8c033f2/responder_base_classes-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d8efbc9a3a2e6fc79a3a4de558a03117",
+                    "sha256": "b4059aa7ad1e309d7e03658e17adc1a65ff07f68ab618029b1a364aaf9f14054"
+                },
+                "downloads": -1,
+                "filename": "responder_base_classes-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d8efbc9a3a2e6fc79a3a4de558a03117",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 10264,
+                "upload_time": "2019-03-08T04:21:32",
+                "upload_time_iso_8601": "2019-03-08T04:21:32.384279Z",
+                "url": "https://files.pythonhosted.org/packages/5f/a2/4601f2c8624805a4cd6b99a77bb56df30c5f9d24a659412dda3f3f37e71a/responder_base_classes-0.0.2.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c261ca2fa9480b08a8d07e7fea51ac34",
+                    "sha256": "30419ac86fda9e8eb1e9300371e8b295737f7b30914c0048158d743b844dc5ef"
+                },
+                "downloads": -1,
+                "filename": "responder_base_classes-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c261ca2fa9480b08a8d07e7fea51ac34",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 9512,
+                "upload_time": "2019-05-04T19:11:13",
+                "upload_time_iso_8601": "2019-05-04T19:11:13.011155Z",
+                "url": "https://files.pythonhosted.org/packages/08/c5/6a791f011c0f071345054135b23957271a5b73a76813296cf9cc824a91aa/responder_base_classes-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e6ee75bfb534f3d5e44c3cd7210f9fc9",
+                    "sha256": "c46a7ce269488eaac0f9b4749648480b7692d298fabc7154696e4b6e50a6d444"
+                },
+                "downloads": -1,
+                "filename": "responder_base_classes-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e6ee75bfb534f3d5e44c3cd7210f9fc9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 8256,
+                "upload_time": "2019-05-04T19:11:14",
+                "upload_time_iso_8601": "2019-05-04T19:11:14.805427Z",
+                "url": "https://files.pythonhosted.org/packages/74/b3/87113ababba16a1d557903656c2bb50d4e3878deae5f2db09075baecd4c4/responder_base_classes-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c261ca2fa9480b08a8d07e7fea51ac34",
+                "sha256": "30419ac86fda9e8eb1e9300371e8b295737f7b30914c0048158d743b844dc5ef"
+            },
+            "downloads": -1,
+            "filename": "responder_base_classes-0.1.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c261ca2fa9480b08a8d07e7fea51ac34",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 9512,
+            "upload_time": "2019-05-04T19:11:13",
+            "upload_time_iso_8601": "2019-05-04T19:11:13.011155Z",
+            "url": "https://files.pythonhosted.org/packages/08/c5/6a791f011c0f071345054135b23957271a5b73a76813296cf9cc824a91aa/responder_base_classes-0.1.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e6ee75bfb534f3d5e44c3cd7210f9fc9",
+                "sha256": "c46a7ce269488eaac0f9b4749648480b7692d298fabc7154696e4b6e50a6d444"
+            },
+            "downloads": -1,
+            "filename": "responder_base_classes-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "e6ee75bfb534f3d5e44c3cd7210f9fc9",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 8256,
+            "upload_time": "2019-05-04T19:11:14",
+            "upload_time_iso_8601": "2019-05-04T19:11:14.805427Z",
+            "url": "https://files.pythonhosted.org/packages/74/b3/87113ababba16a1d557903656c2bb50d4e3878deae5f2db09075baecd4c4/responder_base_classes-0.1.0.tar.gz"
+        }
+    ]
+}

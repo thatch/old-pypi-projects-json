@@ -1,0 +1,91 @@
+{
+    "info": {
+        "author": "Pau Ruiz Safont",
+        "author_email": "psafont@ebi.ac.uk",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Software Development :: Testing"
+        ],
+        "description": "python-testdata\n===============\n\nA simple package that generates data for tests.\n\ntestdata provides the basic Factory and DictFactory classes that\ngenerate content. it also provides many more specialized factories that\nprovide extended functionality. every Factory instance knows how many\nelements its going to generate, this enables us to generate statistical\nresults.\n\nThe DictFactory is especially useful if you want to generate data that\nyou will later input to your NoSQL, Document based database\n\nIn addition, using the DictFactory and the DependentField factories\nallows us to create factorys that depend on the results of other\nfactories. (see Examples for more information).\n\ntestdata isn't bound to a specifc database, but does include database\nspecfic modules inside, like - extra.mongodb.py) but it will always be\nclean of database related dependencies.\n\nInstallation\n------------\n\n::\n\n    pip install python-testdata\n\nExamples\n--------\n\nWe integrate the awsome fake-factory package to generate data using\nFakeDataFactory, this allows us to generate all sorts of content like:\n\\* Names (First, last, full names) \\* companies \\* addresses \\* emails\n\\* urls \\* and much much more\n\nlets create a very simple factory that generates Users:\n\n.. code:: python\n\n    import testdata\n\n    class Users(testdata.DictFactory):\n        id = testdata.CountingFactory(10)\n        firstname = testdata.FakeDataFactory('firstName')\n        lastname = testdata.FakeDataFactory('lastName')\n        address = testdata.FakeDataFactory('address')\n        age = testdata.RandomInteger(10, 30)\n        gender = testdata.RandomSelection(['female', 'male'])\n\n    for user in Users().generate(10): # let say we only want 10 users\n        print user\n        # {'firstname': 'Toni', 'lastname': 'Schaden', 'gender': 'female', 'age': 18, 'address': '0641 Homenick Hills\\nSouth Branson, RI 70388', 'id': 10}\n        # {'firstname': 'Gene', 'lastname': 'Greenfelder', 'gender': 'male', 'age': 17, 'address': '292 Loy Lights Suite 328\\nFritzfort, IN 73914', 'id': 11}\n        # or more likely you'd want to insert them into your favorite database (MongoDB, ElasticSearch, ..)\n\nWhen creating our own subclasses for DictFactory, we can make some\nfields dependent on other fields. for example:\n\n.. code:: python\n\n    class ExampleFactory(DictFactory):\n        a = CountingFactory(10)\n        b = ClonedField(\"a\") # b will have the same value as field 'a'\n\n    for e in ExampleFactory().generate(100):\n        print e\n\n    # {'a': 10, 'b': 10}\n    # {'a': 11, 'b': 11}\n    # ...\n\nLets say we want to generate something like events data, we want events\nto have a start time, and an end time that will be 20 minutes in the\nfuture. In addition, we want the event's start\\_time will be 12 minutes\napart.\n\n.. code:: python\n\n    import testdata\n\n    EVENT_TYPES = [\"USER_DISCONNECT\", \"USER_CONNECTED\", \"USER_LOGIN\", \"USER_LOGOUT\"]\n    class EventsFactory(testdata.DictFactory):\n        start_time = testdata.DateIntervalFactory(datetime.datetime.now(), datetime.timedelta(minutes=12))\n        end_time = testdata.RelativeToDatetimeField(\"start_time\", datetime.timedelta(minutes=20))\n        event_code = testdata.RandomSelection(EVENT_TYPES)\n\n    for event in EventFactory().generate(100):\n        print event\n        # {'start_time': datetime.datetime(2013, 12, 23, 13, 37, 1, 591878), 'end_time': datetime.datetime(2013, 12, 23, 13, 57, 1, 591878), 'event_code': 'USER_CONNECTED'}\n        # {'start_time': datetime.datetime(2013, 12, 23, 13, 49, 1, 591878), 'end_time': datetime.datetime(2013, 12, 23, 14, 9, 1, 591878), 'event_code': 'USER_LOGIN'}\n        # {'start_time': datetime.datetime(2013, 12, 23, 14, 1, 1, 591878), 'end_time': datetime.datetime(2013, 12, 23, 14, 21, 1, 591878), 'event_code': 'USER_DISCONNECT'}\n\nWe also have factories that allow us to generate different data\ndistributed by different percentage, for example, lets say we want to\ncreate a 'Job', that will have an assigned user field, a state field and\na description field. We want the state to be 'pending' in 90% of\ndictionaries and 'error' in the rest of them. In addition, we want that\nif the 'state' field is 'error' the assigned user will be 'support', or\nelse it should be 'admin'.\n\n.. code:: python\n\n    class Job(testdata.DictFactory):\n        state = testdata.StatisticalValuesFactory([('pending', 90), ('error', 10)])\n        assigned_user = testdata.ConditionalValueField('state', {'error': 'support'}, 'admin')\n        description = testdata.RandomLengthStringFactory()\n\n    for i in Job().generate(10):\n        print i\n        # {'state': 'error', 'assigned_user': 'support', 'description': 'jUlyFByPxPdFlBPBfPaGaTPPuajFSHXKkyewzrQ'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'tOzkgmBBnxQZhSYEjVduyXGdLrtqeTZqRxmHNXbaJBfpdNxuLKWyTDxkCZgiZTLHeiKEswvIyDzAnuuOLtXmVWhjvazaOYuu'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'TIDVuvZRUBLLTtG'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'RgcSaFzmMrhwCAZjLofikmXJhtqkVOTsWHnqTXjgrxgzTKH'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'tLkSEkCbYDvlcDBDWUBGMmidEdOxeiLDBADDKnqGqWLnxUBqzOXFXnBxkiGTymuGNbUnmxyawzLGsiummCiwxNSw'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'tUyYLofuZpceaWYKkiRvksQLqFHGOiwACuPIvRxMIuftJPsObSqCBcrQnOkOhqAukfMwrY'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'JbFrUxrERMObfwhEtCQGcxEbimvoTFwJriSfRFLFkBpyemqEfqUCGKmVlgSlVoZrrnetEnLCgbfobFbTMQOZ'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'lqatAwdcQuMMOPiYdVMRyyQgEIzOlcoozijjdCfXsVoZnnTtQjPSGBFZQGSkPblJrTIYLAotiZoyYRFrlncevwuNcqfOmeXeCPD'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'VYxnhydWtIUFiOEPszVQHuxYBIUGDyAefZiPIgkWHCMmophiueXbixXtdwKQkuvWImuErMOOOcwevQHGApXkolhjAq'}\n        # {'state': 'pending', 'assigned_user': 'admin', 'description': 'RcawgTkQggchdHppSyQxnbDdNxqkGqbQWnQMSlorqnAQLdAqyWnKtGpXaZuVdxcGQBImzVPQsYAbIFUIpqvDzwTDdRpleBrc'}\n\nIn version 1.0.5 we extended the DictFactory to support passing\nadditional factories, or overriding existing factories, for a specific\ninstance. Lets take for example our 'User' example from the begining.\n\n.. code:: python\n\n    import testdata\n    class Users(testdata.DictFactory):\n        id = testdata.CountingFactory(10)\n        firstname = testdata.FakeDataFactory('firstName')\n        lastname = testdata.FakeDataFactory('lastName')\n        address = testdata.FakeDataFactory('address')\n        age = testdata.RandomInteger(10, 30)\n        gender = testdata.RandomSelection(['female', 'male'])\n\nBut lets override it so the 'firstname' always returns John, and make\nthe age be a random integer between 40 and 60 and add an 'email' field.\n\n.. code:: python\n\n    for user in Users(firstname=testdata.Constant('John'), age=testdata.RandomInteger(40, 60), email=testdata.FakeDataFactory('email')).generate(10): # let say we only want 10 users\n        print user\n        #{'firstname': 'John', 'gender': 'male', 'age': 54, 'email': 'hazle.wehner@brekke.com', 'lastname': 'Willms', 'address': '245 Pfeffer Light Apt. 309\\nEast Audieside, IN 11931', 'id': 10}\n        #{'firstname': 'John', 'gender': 'male', 'age': 47, 'email': 'mariam25@gmail.com', 'lastname': 'Ratke', 'address': '98710 Freddy Gateway\\nDelilahborough, GU 50849', 'id': 11}\n        #{'firstname': 'John', 'gender': 'male', 'age': 55, 'email': 'tyler22@yahoo.com', 'lastname': 'Cormier', 'address': '432 Block Locks Apt. 547\\nNew Estel, NJ 54026', 'id': 12}\n        # or more likely you'd want to insert them into your favorite database (MongoDB, ElasticSearch, ..)\n\nFactories\n---------\n\nSee the Factorie's Docstrings for more examples and doctests.\n\nBases\n^^^^^\n\n+-----------+---------------+\n| Factory   | Description   |\n| Class     |               |\n+===========+===============+\n| Factory   | The base      |\n|           | class of all  |\n|           | the           |\n|           | factories.    |\n+-----------+---------------+\n| DictFacto | A very        |\n| ry        | powerful base |\n|           | class. allows |\n|           | sub classing  |\n|           | to create     |\n|           | factories     |\n|           | that generate |\n|           | dicts with a  |\n|           | specific      |\n|           | schema (see   |\n|           | [Examples][#E |\n|           | xamples]).    |\n+-----------+---------------+\n| ListFacto | A factory     |\n| ry        | that returns  |\n|           | on each       |\n|           | iteration a   |\n|           | list of       |\n|           | ``elements_pe |\n|           | r_list``      |\n|           | items         |\n|           | returned from |\n|           | calls to the  |\n|           | given         |\n|           | factory.      |\n+-----------+---------------+\n| Callable  | Gets a        |\n|           | callable      |\n|           | object as an  |\n|           | argument and  |\n|           | returns the   |\n|           | result of     |\n|           | calling the   |\n|           | object on     |\n|           | every         |\n|           | iteration     |\n+-----------+---------------+\n| Dependent | Gets a        |\n| Callable  | callable      |\n|           | object as an  |\n|           | argument and  |\n|           | returns the   |\n|           | result of     |\n|           | calling the   |\n|           | object        |\n|           | passing the   |\n|           | defined       |\n|           | fields as     |\n|           | arguments on  |\n|           | every         |\n|           | iteration     |\n+-----------+---------------+\n| ClonedFie | A factory     |\n| ld        | that copies   |\n|           | the value of  |\n|           | another       |\n|           | factory.      |\n+-----------+---------------+\n\nDates\n^^^^^\n\n+-----------+---------------+\n| Factory   | Description   |\n| Class     |               |\n+===========+===============+\n| RandomDat | Generates     |\n| eFactory  | random dates  |\n|           | (python's     |\n|           | datetime)     |\n|           | between 2     |\n|           | dates         |\n+-----------+---------------+\n| DateInter | Generates     |\n| valFactor | datetime      |\n| y         | objects       |\n|           | starting from |\n|           | ``base``      |\n|           | while adding  |\n|           | ``delta`` to  |\n|           | it each       |\n|           | iteration.    |\n+-----------+---------------+\n| RelativeT | Generates     |\n| oDatetime | datetime      |\n| Field     | object        |\n|           | relative to   |\n|           | another       |\n|           | datetime      |\n|           | field, like   |\n|           | if you have   |\n|           | ``start_time` |\n|           | `             |\n|           | which is a    |\n|           | RandomDateFac |\n|           | tory          |\n|           | field, and    |\n|           | want an       |\n|           | ``end_time``  |\n|           | field that is |\n|           | always 15     |\n|           | minutes       |\n|           | later.        |\n+-----------+---------------+\n\nAnd MUCH MUCH more..\n\nTodos\n-----\n\n-  Add usage documentation for each factory (using doctest maybe?)\n-  Add more tests\n-  Add GeoLocationFactories to generates Location and distance related\n   data (for example, random points near a central point).\n-  Add MORE Statistical Factories\n-  more ideas welcome!\n\n\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/psafont/python-testdata",
+        "keywords": "factory testing test unittest mongo data testdata database json elasticsearch",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "python-testdata-tsi",
+        "package_url": "https://pypi.org/project/python-testdata-tsi/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/python-testdata-tsi/",
+        "project_urls": {
+            "Homepage": "http://github.com/psafont/python-testdata"
+        },
+        "release_url": "https://pypi.org/project/python-testdata-tsi/0.2.0.1/",
+        "requires_dist": [
+            "fake-factory (==0.3.2)",
+            "pymongo; extra == 'mongo'",
+            "pymongo; extra == 'test'",
+            "pytest; extra == 'test'"
+        ],
+        "requires_python": "",
+        "summary": "A small package that helps generate content to fill databases for tests.",
+        "version": "0.2.0.1"
+    },
+    "last_serial": 3111387,
+    "releases": {
+        "0.2.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6352171ba68ec40b070d0af48aae47ed",
+                    "sha256": "d037e25c29ef2673882f1975265c23bdb2a7f0dbd3cd42451a1f095321bb1b10"
+                },
+                "downloads": -1,
+                "filename": "python_testdata_tsi-0.2.0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6352171ba68ec40b070d0af48aae47ed",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 23991,
+                "upload_time": "2017-08-21T10:07:52",
+                "url": "https://files.pythonhosted.org/packages/8a/32/3e7e4df65f6daa6f637f85a6e6d223b851e5234981797851443a7dea5659/python_testdata_tsi-0.2.0.1-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6352171ba68ec40b070d0af48aae47ed",
+                "sha256": "d037e25c29ef2673882f1975265c23bdb2a7f0dbd3cd42451a1f095321bb1b10"
+            },
+            "downloads": -1,
+            "filename": "python_testdata_tsi-0.2.0.1-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "6352171ba68ec40b070d0af48aae47ed",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 23991,
+            "upload_time": "2017-08-21T10:07:52",
+            "url": "https://files.pythonhosted.org/packages/8a/32/3e7e4df65f6daa6f637f85a6e6d223b851e5234981797851443a7dea5659/python_testdata_tsi-0.2.0.1-py2.py3-none-any.whl"
+        }
+    ]
+}

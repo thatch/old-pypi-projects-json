@@ -1,0 +1,106 @@
+{
+    "info": {
+        "author": "Joshua Comish",
+        "author_email": "jcomish@sourceiron.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "'Fitv' is an automation framework that acts as a layer over other automation technologies.\nIt packs in many features that would normally have to be implemented from scratch, making\nautomation acceptance tests significantly faster and less expensive.\n\n\nInstallation\n------------\n\n    TBD\n\n\nFeatures\n--------\n\n* Abstraction layer above Selenium and Appium, eliminating the need to worry about the intracacies of each using FitActions\n* Completely removes the need to manage your driver objects\n* FitActions are built to be robust, and will try hard to perform the action that it needs to do.\n* Still makes the raw Selenium and Appium drivers available, in case you need some one-off custom functions performed.\n* Multithreading is built in! By default, 'Fitv' will run on a single FitBrowser. If you would like to run tests in\nparallel, increase your maximum amount of Browsers. Note that you are responsible for specifying which tests are able\nto run in parallel.\n* (Pending) Detailed logging will ensure that you know exactly what failed and why.\n* (Pending testing) Extensible for custom interface components.\n\n\nThe above features are explained in more detail in Fitv's documentation.\n\n`Fitv` is compatible with Python 3.6 and newer.\n\n\nExample usage\n-------------\n'Fitv' is currently designed to work with Behave for Behavior-Driven Development. It can however, be integrated\ninto any automation tools you would like, but you must implement the correct functionality in appropriate test setups\nand teardowns.\n\nTo use with Behave, paste the following into a file called \"environment.py\" in the directory where your features and\nsteps folders exist.\n\n    from Fitv.BrowserPool import BrowserPool\n    from Fitv import Fitv_Core\n    from FitvCoreTests import Globals\n\n    import threading\n\n    def before_step(context, step):\n        Fitv_Core.browser_pool.ContextSemaphore.acquire()\n        Fitv_Core.browser_pool.CurrentContext = context\n\n    def before_feature(context, feature):\n        Fitv_Core.browser_pool.claim_browser_from_pool(feature.name)\n\n\n    def after_feature(context, feature):\n        Fitv_Core.browser_pool.release_browser_from_pool(feature.name)\n\n    def before_all(context):\n        Fitv_Core.browser_pool = BrowserPool(context._runner.features, Globals.MaxThreads)\n\n\n    def after_all(context):\n        Fitv_Core.browser_pool.kill_browser_pool()\n        exit(0)\n\nIn case you would like to use Fitv outside of Behave, I will walk through each method, what it needs, and why.\n* before_step - Some sort of context must be exposed to the BrowserPool, in Behave, the context is passed around to\nwhatever needs it. The context is required in order for the BrowserPool to claim and keep a FitBrowser for a specific\ntest. In order to override this to fit with other technologies, you will still need to acquire the\nsemaphore for thread safety, and you simply need to set the CurrentContext variable to your context. This context\nwill need to have some sort of identifier for the framework to use.\n\n* before_feature - Whenever a new feature has started execution, it needs to claim a FitBrowser to run. You need to call\nthe claim_browser_from_pool method with some sort of unique identifier.\n\n* after_feature - When a feature is finished running, it needs to release the browser it claimed to run the tests. You\nneed to call the release_browser_from_pool method with the unique identifier that you have set in order for this to\nwork.\n\n* before_all - Before you run any tests, you must instantiate your BrowserPool with the appropriate amount of\nFitBrowsers.\n\n* after_all - When you are finished running tests, cleanup your browser pool, and exit appropriately.\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jcomish/Fitv",
+        "keywords": "automation qa selenium",
+        "license": "Apache 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "Fitv",
+        "package_url": "https://pypi.org/project/Fitv/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/Fitv/",
+        "release_url": "https://pypi.org/project/Fitv/0.1.0/",
+        "requires_dist": [
+            "requests (>=1.0.2)",
+            "selenium (>=3.12.0)",
+            "behave (>=1.2.6)"
+        ],
+        "requires_python": ">=3.1",
+        "summary": "Optimizing UI Test Automation",
+        "version": "0.1.0"
+    },
+    "last_serial": 3959803,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4f4129a2162ba548da328c8ca5ab444b",
+                    "sha256": "0d7166c47136edf74fdd7f59168d3e59de6d09035d502338d9658544c99ad161"
+                },
+                "downloads": -1,
+                "filename": "Fitv-0.1.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4f4129a2162ba548da328c8ca5ab444b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "size": 12032,
+                "upload_time": "2018-06-14T03:13:07",
+                "url": "https://files.pythonhosted.org/packages/00/c6/031b1c329f88d588abc73b9f3db90ff1b7198e7c9ea7b8a0873cb6dd9861/Fitv-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "79be65011f229c4cc9134dd1429fe77a",
+                    "sha256": "046c89b648afc1246c6420ecfb3d3abb500d313169b2dd107d84115db2eaad7f"
+                },
+                "downloads": -1,
+                "filename": "Fitv-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "79be65011f229c4cc9134dd1429fe77a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 6943,
+                "upload_time": "2018-06-14T03:13:08",
+                "url": "https://files.pythonhosted.org/packages/7a/29/c7a683dc36a68ad5a55efdb39374458f7ac15f306631dc286f238bb02dfa/Fitv-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4f4129a2162ba548da328c8ca5ab444b",
+                "sha256": "0d7166c47136edf74fdd7f59168d3e59de6d09035d502338d9658544c99ad161"
+            },
+            "downloads": -1,
+            "filename": "Fitv-0.1.0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "4f4129a2162ba548da328c8ca5ab444b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "size": 12032,
+            "upload_time": "2018-06-14T03:13:07",
+            "url": "https://files.pythonhosted.org/packages/00/c6/031b1c329f88d588abc73b9f3db90ff1b7198e7c9ea7b8a0873cb6dd9861/Fitv-0.1.0-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "79be65011f229c4cc9134dd1429fe77a",
+                "sha256": "046c89b648afc1246c6420ecfb3d3abb500d313169b2dd107d84115db2eaad7f"
+            },
+            "downloads": -1,
+            "filename": "Fitv-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "79be65011f229c4cc9134dd1429fe77a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 6943,
+            "upload_time": "2018-06-14T03:13:08",
+            "url": "https://files.pythonhosted.org/packages/7a/29/c7a683dc36a68ad5a55efdb39374458f7ac15f306631dc286f238bb02dfa/Fitv-0.1.0.tar.gz"
+        }
+    ]
+}

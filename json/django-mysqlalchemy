@@ -1,0 +1,122 @@
+{
+    "info": {
+        "author": "Patrick Zhao",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: Implementation :: CPython"
+        ],
+        "description": "Gevent-Friendly Database Connection Pooling in Django\n=====================================================\n\nThe code has been tested under Python 2.7, Django 1.11, Gevent 1.2, and SQLAlchemy 1.2.\n\n`DjangoQueuePool` is a new queue pool extending the SQLAlchemy's `QueuePool`:\n\n- reuse the database connections overflowed by burst traffic;\n- retire the unused database connections gradually over time.\n\nGetting Started\n---------------\n\n- Install the database connection pool\n\n.. code-block::\n\n    pip install django-mysqlalchemy\n\n- Add the pool to the Django database backend\n\n.. code-block:: python\n\n    DATABASES = {\n        'default': {\n            'ENGINE': 'django_mysqlalchemy',\n            'CONN_MAX_AGE': 0,\n            'POOL': db_conn_pool,\n            ...\n        }\n    }\n\n- Select and tune the connection pool parameters\n\n.. code-block:: python\n\n    from sqlalchemy.pool import QueuePool\n    from django_mysqlalchemy.pool import DjangoQueuePool\n\n\n    db_conn_pool = slow_and_safe = {\n\n        'django_pool_class': QueuePool,         # sqlalchemy's builtin queue pool class\n        'django_pre_ping': True,                # pre ping by django if dialect is None\n        'django_reset_on_return': False,        # use sqlalchemy's reset on conn return\n\n        'pool_size': 5,                         # daily traffic: reuse long connections\n        'max_overflow': 0,                      # burst traffic: do not overload the db\n        'timeout': 30,                          # burst traffic: > external api timeout\n        'recycle': 120,                         # should be smaller than mysql timeout\n        'dialect': None,                        # sqlalchemy's mysql dialect instance\n        'pre_ping': False,                      # sqlalchemy pre ping requires dialect\n        'use_threadlocal': True,                # every thread always get its same conn\n        'reset_on_return': 'rollback',          # reset on every conn return by rollback\n    }\n\n    db_conn_pool = fast_and_sane = {\n\n        'django_pool_class': QueuePool,         # sqlalchemy's builtin queue pool class\n        'django_pre_ping': False,               # no pre ping due to long mysql timeout\n        'django_reset_on_return': True,         # reset by rollback only when necessary\n\n        'pool_size': 5,                         # daily traffic: reuse long connections\n        'max_overflow': 10,                     # burst traffic: do not overload the db\n        'timeout': 30,                          # burst traffic: > external api timeout\n        'recycle': 3600,                        # to be much smaller than mysql timeout\n        'dialect': None,                        # sqlalchemy's mysql dialect instance\n        'pre_ping': False,                      # sqlalchemy pre ping requires dialect\n        'use_threadlocal': False,               # diff threads share the db connections\n        'reset_on_return': None,                # do not use sqlalchemy reset on return\n    }\n\n    db_conn_pool = fast_and_wild = {\n\n        'django_pool_class': DjangoQueuePool,   # customized from sqlalchemy queue pool\n        'django_pre_ping': False,               # no pre ping due to long mysql timeout\n        'django_reset_on_return': True,         # reset by rollback only when necessary\n        'django_core_pool_size': 5,             # retire no conn if achieving core size\n        'django_unload_timeout': 2,             # wait some random time before overload\n        'django_retire_interval': 5,            # retire few non-core conn per interval\n        'django_retire_quantity': 1,            # retire few non-core conn per interval\n\n        'pool_size': 30,                        # daily traffic: recycle or retire conn\n        'max_overflow': 0,                      # burst traffic: put overflow into pool\n        'timeout': 30,                          # burst traffic: > external api timeout\n        'recycle': 3600,                        # to be much smaller than mysql timeout\n        'dialect': None,                        # sqlalchemy's mysql dialect instance\n        'pre_ping': False,                      # sqlalchemy pre ping requires dialect\n        'use_threadlocal': False,               # diff threads share the db connections\n        'reset_on_return': None,                # do not use sqlalchemy reset on return\n    }\n\n\n.. :changelog:\n\nRelease History\n---------------\n\n1.0.0 (2019-05-04)\n++++++++++++++++++\n\n- Birthday\n\n\n",
+        "description_content_type": "text/x-rst",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/shzhao17/django-mysqlalchemy",
+        "keywords": "",
+        "license": "Apache 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django-mysqlalchemy",
+        "package_url": "https://pypi.org/project/django-mysqlalchemy/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-mysqlalchemy/",
+        "project_urls": {
+            "Homepage": "https://github.com/shzhao17/django-mysqlalchemy"
+        },
+        "release_url": "https://pypi.org/project/django-mysqlalchemy/1.0.0/",
+        "requires_dist": [
+            "six",
+            "typing",
+            "django",
+            "sqlalchemy"
+        ],
+        "requires_python": ">=2.7,<3",
+        "summary": "Gevent-Friendly Database Connection Pooling through SQLAlchemy",
+        "version": "1.0.0"
+    },
+    "last_serial": 5221418,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "69c5e171340de75fe7677512db9f5d26",
+                    "sha256": "01c81e5586f42ca16d8302eeff2c16851e517d6ff2a01f412ebfe93b8e1e995c"
+                },
+                "downloads": -1,
+                "filename": "django_mysqlalchemy-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "69c5e171340de75fe7677512db9f5d26",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=2.7,<3",
+                "size": 10962,
+                "upload_time": "2019-05-03T11:23:49",
+                "url": "https://files.pythonhosted.org/packages/a8/13/24c427a186f0d5d7af20c044a531bc4ab537ae2043e31d1764f60b6b09f1/django_mysqlalchemy-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1aab855ae59cf623267ce29e0bd82962",
+                    "sha256": "372422e2380c55a1a4e98f62d5cc20c0206a48ccc6037dd147814b1ca08c0402"
+                },
+                "downloads": -1,
+                "filename": "django-mysqlalchemy-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1aab855ae59cf623267ce29e0bd82962",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7,<3",
+                "size": 9705,
+                "upload_time": "2019-05-03T11:23:52",
+                "url": "https://files.pythonhosted.org/packages/a3/64/5172dd16cae86e039a7dfe87260b4b2f9f9c3f918d3e4ab83094fa56aaed/django-mysqlalchemy-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "69c5e171340de75fe7677512db9f5d26",
+                "sha256": "01c81e5586f42ca16d8302eeff2c16851e517d6ff2a01f412ebfe93b8e1e995c"
+            },
+            "downloads": -1,
+            "filename": "django_mysqlalchemy-1.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "69c5e171340de75fe7677512db9f5d26",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=2.7,<3",
+            "size": 10962,
+            "upload_time": "2019-05-03T11:23:49",
+            "url": "https://files.pythonhosted.org/packages/a8/13/24c427a186f0d5d7af20c044a531bc4ab537ae2043e31d1764f60b6b09f1/django_mysqlalchemy-1.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1aab855ae59cf623267ce29e0bd82962",
+                "sha256": "372422e2380c55a1a4e98f62d5cc20c0206a48ccc6037dd147814b1ca08c0402"
+            },
+            "downloads": -1,
+            "filename": "django-mysqlalchemy-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1aab855ae59cf623267ce29e0bd82962",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=2.7,<3",
+            "size": 9705,
+            "upload_time": "2019-05-03T11:23:52",
+            "url": "https://files.pythonhosted.org/packages/a3/64/5172dd16cae86e039a7dfe87260b4b2f9f9c3f918d3e4ab83094fa56aaed/django-mysqlalchemy-1.0.0.tar.gz"
+        }
+    ]
+}

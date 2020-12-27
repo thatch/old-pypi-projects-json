@@ -1,0 +1,164 @@
+{
+    "info": {
+        "author": "Veinar",
+        "author_email": "author@example.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: Unix",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: System :: Systems Administration"
+        ],
+        "description": "# pySSHAdmin :rocket:\n\nBased on [paramiko](https://github.com/paramiko/paramiko) package for python :purple_heart:\n\n\n## What is pySSHAdmin ?\n\nMain goal is too achieve/develop lightweight (CLI based) alternative to Red Hat Satellite or Spacewalk projects. Both of them store packages in \"mother\" server and from there packages are being distributed - sent and installed on covered servers.\n\nThis project focuses on checking whether updates are available to install via default (for distribution) package manager - yum or apt/apt-get. Check is being done on remote server side, and from there updates are being fired up. Also creating easy to user group/user/service management via console not using any other tools.\n\nThis software should not be treated as monitoring service, it's more like assistance within scripts. But it could be used as scheduled update check/performer (script with code snippets could be run as python script in cron).\n\n### How I am using this\n\nI use this as centralized server update/management tool, from where I can run almost all commands (those not involving writing in vi/vim/nano). But most of the time I keep VMs up to date, and this is some kind of automization of my work.\n\n## Installation\n\n*Future feature (target) installing via pip install.*\n\n**Not available for now** only option is to clone this git repo.\n\n## Usage\n\nPackage can be used in more secure way (using ssh-keys) or less secure way (without ssh-keys). Both methods are present in [examples section](/examples). Basic diffrence between those approaches is way of authorizing in remote server.\n\nEvery method has suppress (boolean type) argument, which disables method output printing. By default it is set to False, so method will \"confess\" into stdout what's going on.\n\n### More secure approach\n\n#### Preconditions\n0. Change username and password in config.cfg file (not necessary)\n1. Create user with password on remote server and grant sudo commands without password\n```shell\nroot@remote:~# useradd <username form config.cfg>\nroot@remote:~# passwd <password from config.cfg>\nroot@remote:~# visudo\n...\n## Allows people in group wheel to run all commands\n%wheel  ALL=(ALL)       ALL\n\n## Same thing without a password\n# %wheel        ALL=(ALL)       NOPASSWD: ALL\n%<username from config>       ALL=(ALL)       NOPASSWD: ALL   #Add this line, but change username first ;)\n...\n```\nAbove steps could be repaced by executing commands:\n```python\n#Set username in config file (not necessary)\nutilities.set_username_in_config(username=\"<input one>\")\n#Create user with sudo powers (username from config file) on remote host \n#[UID could be specified in command as well]\nusers.create_user_from_config(host=\"...\", user=\"sudo user\", passw=\" password\", sudo_no_pass=True)\n```\n\n2. ~~Block authorization with password, this will make sure only one having key can use previously created account.~~ **(Not available to login with key (without password) due to paramiko bug)**\n\n:information_source: *Could be worked-around by generating RSA key encrypted with password and placing it within /utils directory (and using as default) or pass path to it as a parameter of method* :key:\n\n\nIn favored (**still under development**) way it should look like:\n```\n0. Generate SSH-RSA 2048 key via build-in method\n1. Check connection to server\n    - It will also add remote to known hosts only if connection was succesful\n2. Exchange SSH keys with remote\n3. Use methods with key as parameter\n\n#TODO methods using ssh keys should in future disallow connect to unknown hosts\n```\n\n### Less secure approach\n\nThis package is designed to be used to manage local servers where highest level of security is not critically nesscesary. To run commands without SSH key use commands with user and password as arguments. Please keep in mind that approach is less secure (not as it should be), and treat it like last option.  \n\nIn **not favored** approach:\n```\n0. Run method passing user, password and hostname/IP\n    - It will also add remote to known hosts on succesful connection\n```\n\nIn any case:\n - **By default all commands will try to execute on port 22** (TODO future feature if needed)\n\n## Manipulating config file inside repo/package\n\nTo reduce human errors and incompatibility when using and editing config file, please use methods in utilities module to change content when needed\n\n```python\nutilities.set_username_in_config(username=\"...\")\nutilities.set_password_in_config(password=\"...\")\n```\nEvery method used to set value has \"get\" equivalent.\n\n## Tests\n\n*To be done in nearest future*. Currently being tested on locally hosted VMs.\n\n\nFor now there are \"quick tests\" available for use, but three remotes (could be locally hosted VM's). Tests are written to be executed in pytest.\nYou will probably have to change ip adresses in file. To run them execute: (was divided into smaller parts due to server Too Many Requests problem)\n```\npytest -v -m connection\npytest -v -m users\npytest -v -m update\npytest -v -m miscellaneous\npytest -v -m groups\npytest -v -m service\npytest -v -m config\n```\n\n## Project structure\n\nStructure with basic description\n\n```\n- pySSHAdmin\n    - docs (documentation)\n    - examples (usage example snippets)\n    - pySSHAdmin (source code)\n        - groups.py (manage groups functions)\n        - miscellaneous.py (various others)\n        - services.py (manage services)\n        - update.py (manage updates functions)\n        - users.py (manage users functions)\n        - utilities.py (utilities functions)\n        - eventually more coming soon...\n    - tests (testing lair)\n    - utils (dir for utility files)\n    - .gitignore\n    - config.cfg (configuration file)\n    - LICENSE\n    - README.md\n    - requirements.txt (stub for future pip release)\n```\n\n## Documentation \n\nAlmost done, but still under construction :construction:  \nSee [docs section](/docs)\n\n## Contribution\n\nAny help is kindly welcome. If you have something in mind please create pull-request or please contact me via PM in Github.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "ssh admin VM OS management",
+        "license": "LGPL-3",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pySSHAdmin",
+        "package_url": "https://pypi.org/project/pySSHAdmin/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pySSHAdmin/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/pySSHAdmin/0.0.3/",
+        "requires_dist": [
+            "paramiko (>=2.7.1)",
+            "cryptography (>=2.8)",
+            "pathlib (>=1.0.1)",
+            "configparser (>=4.0.2)"
+        ],
+        "requires_python": ">=3.7",
+        "summary": "An admin ssh library",
+        "version": "0.0.3"
+    },
+    "last_serial": 6473179,
+    "releases": {
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e13fe523a9989a3861cc9f2c762da34",
+                    "sha256": "a67d908a412bf7a60d156a7ba8bf1b552bb88d58b11e75ec20f2a48c36786d33"
+                },
+                "downloads": -1,
+                "filename": "pySSHAdmin-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2e13fe523a9989a3861cc9f2c762da34",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 20461,
+                "upload_time": "2019-12-31T10:20:20",
+                "upload_time_iso_8601": "2019-12-31T10:20:20.514531Z",
+                "url": "https://files.pythonhosted.org/packages/d8/c9/d54841897dcb126ad9d94870f10f843d70d518dc4be7d92fc03e0e796520/pySSHAdmin-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0357ad5efc91a8bd83240537d7abc721",
+                    "sha256": "5e4fdac31ad20772526da5a194b6148e8dec9078320d80dd508dfb1d4b09b122"
+                },
+                "downloads": -1,
+                "filename": "pySSHAdmin-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0357ad5efc91a8bd83240537d7abc721",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 16856,
+                "upload_time": "2019-12-31T10:20:22",
+                "upload_time_iso_8601": "2019-12-31T10:20:22.402948Z",
+                "url": "https://files.pythonhosted.org/packages/39/39/35f5d9b1fd8310ac37601f5667c4164fb841f4dc80d8655f00a6a02f3de2/pySSHAdmin-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f294a1d1780019af28245d1c58c1e676",
+                    "sha256": "ec95120780774c95900e011cd7c87274bc65417b2db8245d217a4eebf2e25c2b"
+                },
+                "downloads": -1,
+                "filename": "pySSHAdmin-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f294a1d1780019af28245d1c58c1e676",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 18156,
+                "upload_time": "2020-01-17T13:48:19",
+                "upload_time_iso_8601": "2020-01-17T13:48:19.261632Z",
+                "url": "https://files.pythonhosted.org/packages/de/14/65faf1648d05232457d245cf853760ceace43258c15e58686d39e1a0dd09/pySSHAdmin-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1e22f816f7796e9dacc53d55448b4d25",
+                    "sha256": "938b49f9f13fd406a890205cf36e23390432d2a706ef928e81b920529bd98d45"
+                },
+                "downloads": -1,
+                "filename": "pySSHAdmin-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1e22f816f7796e9dacc53d55448b4d25",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 15172,
+                "upload_time": "2020-01-17T13:48:20",
+                "upload_time_iso_8601": "2020-01-17T13:48:20.933619Z",
+                "url": "https://files.pythonhosted.org/packages/10/e3/7356cbaea6ce23f581fa4de8c65ec0171c72e49dd92e73193de62dce1b4b/pySSHAdmin-0.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f294a1d1780019af28245d1c58c1e676",
+                "sha256": "ec95120780774c95900e011cd7c87274bc65417b2db8245d217a4eebf2e25c2b"
+            },
+            "downloads": -1,
+            "filename": "pySSHAdmin-0.0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "f294a1d1780019af28245d1c58c1e676",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7",
+            "size": 18156,
+            "upload_time": "2020-01-17T13:48:19",
+            "upload_time_iso_8601": "2020-01-17T13:48:19.261632Z",
+            "url": "https://files.pythonhosted.org/packages/de/14/65faf1648d05232457d245cf853760ceace43258c15e58686d39e1a0dd09/pySSHAdmin-0.0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1e22f816f7796e9dacc53d55448b4d25",
+                "sha256": "938b49f9f13fd406a890205cf36e23390432d2a706ef928e81b920529bd98d45"
+            },
+            "downloads": -1,
+            "filename": "pySSHAdmin-0.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1e22f816f7796e9dacc53d55448b4d25",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7",
+            "size": 15172,
+            "upload_time": "2020-01-17T13:48:20",
+            "upload_time_iso_8601": "2020-01-17T13:48:20.933619Z",
+            "url": "https://files.pythonhosted.org/packages/10/e3/7356cbaea6ce23f581fa4de8c65ec0171c72e49dd92e73193de62dce1b4b/pySSHAdmin-0.0.3.tar.gz"
+        }
+    ]
+}

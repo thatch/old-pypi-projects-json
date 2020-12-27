@@ -1,0 +1,117 @@
+{
+    "info": {
+        "author": "Nicolas Cuadros",
+        "author_email": "cuadros.nicolas@orange.fr",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Python Command Function\n\n## Description\n\nThis project aims to build an easy to use package allowing to use a python function directly as a command line script using the argparse module.\n\nWhen building a software, deep learning algorithm or even simple script; most of the time you will end up with one function that do all the job. But when you want to try or use it quickly you will have to use the python in command line or just edit your script each time you want to change your parameters. The best actual way for now is to use the argparse module to wrap your function with a command line interface but you will have to update it each type you change your function.\n\nThe point is that function is already what you want to call, and has already all the informations that you put in the argparse, so why not automate it ?\n\nAnd this what this project is about using the function signature directly to produce an argparser.\n\n## Installation\n\nFor now the project is not available on PyPi and you have to clone this repository and add this 'auto-func-cli' package directly in your project.\n```bash\ngit clone https://github.com/CuadrosNicolas/Python-Command-Function\ncd pythonFunctionCommand\n```\nIf you want to try the example and the tests just run this commands :\n\n```bash\nchmod +x ./setup.sh && setup.sh\n```\n\nOnce you have done that you are ready to build your command function.\n\nYou first need to import the class from the package\n\n```python\nfrom auto-func-cli import auto-func-cli\n```\nThen you just have to use it to wrap your function and build a command function.\n\n## How to use\n\n### Basic usage\n```python\n#examples/basic.py\nfrom auto-func-cli import auto-func-cli\n#define a simple plus function\ndef plus(a,b):\n\treturn a+b\n#Use it as a main\n#.main test if __name__ == '__main__'\n# if it's the case, parse the command line input\nout = auto-func-cli(plus).main(__name__)\nif(out != None):\n\tprint(out)\n```\nThen you can try by running the script\n```bash\npython3 basic.py -h\n```\nWhich will output :\n```console\nusage: basic.py [-h] a b\n\npositional arguments:\n  a           : <str>\n  b           : <str>\n\noptional arguments:\n  -h, --help  show this help message and exit\n\n[RETURN]\n```\nIf you try it by running the script with the right arguments like if you want to add 1 and 2\n```bash\npython3 basic.py 1 2\n```\nYou will end up with :\n```console\n12\n```\nBut wait that's not 1+2 ! And it's normal, you have to specify that the arguments are integer to use them as integer. So let's modify the signature and add type annotation\n\n```python\ndef  plus(a:int,b:int)->int:\n\treturn a+b\n```\nIf you run it again :\n```console\n3\n```\nNow it's the right output !\nauto-func-cli uses the type annotation for parsing the raw input allowing a great flexibility in time if you change your signature.\n\nAccepted type are the following :\n```python\n#Accepted types for function argument\nacceptedTypes = [\n\tbool,\n\tint,\n\tfloat,\n\tstr,\n\tList,\n\tTuple\n]\n#Accepted types for generic type argument\nacceptedTypeArgs = [\n\tbool,\n\tint,\n\tfloat,\n\tstr\n]\n```\nList,Tuple, Bool and Enum are special cases that you will know more about in the next section.\n\n### Default Values\nWhen using default value for arguments, they becomes optional argument for your command.\n```python\n#examples/default.py\nfrom auto-func-cli import auto-func-cli\n\ndef  f(must:int,optional:int=0):\n\treturn must+optional\n\nout = auto-func-cli(f).main(__name__)\nif(out != None):\n\tprint(out)\n```\n### List arguments and choices\nTo use List and Tuple you have to import the typing package\n```python\nfrom typing import List,Tuple\n```\n#### List\nIf you want to use list as arguments like using the nargs='+' in command argparse you have to specify your function argument as a List[T] type like in this example :\n```python\n#examples/list.py\nfrom auto-func-cli import auto-func-cli\nfrom typing import List\nfrom functools import reduce\n\ndef  sum(l:List[int])->int:\n\treturn reduce(lambda  prev,act:prev+act,l)\n\nout = auto-func-cli(sum).main(__name__)\nif(out != None):\n\tprint(out)\n```\nWill create a command like this :\n```console\nusage: list.py [-h] l [l ...]\n\npositional arguments:\n  l           : <List[int]>\n\noptional arguments:\n  -h, --help  show this help message and exit\n\n[RETURN] : <int>\n```\nThe list type argument must be in the acceptedTypeArgs array.\n\n#### Tuple\nTuple can be seen as a special case of array with a finite number of element.\nIn our cases if we want to have a function taking an array of 3 numbers for example to build a color, we need to proceed like this :\n```python\n#examples/tuple.py\nfrom auto-func-cli import auto-func-cli\nfrom typing import Tuple\n\ndef color(c:Tuple[int,int,int])->str:\n\treturn \"RGB({},{},{})\".format(c[0],c[1],c[2])\n\nout = auto-func-cli(color).main(__name__)\nif(out != None):\n\tprint(out)\n```\nWill create a command like this :\n```console\nusage: tuple.py [-h] c c c\n\npositional arguments:\n  c           : <int,int,int>\n\noptional arguments:\n  -h, --help  show this help message and exit\n\n[RETURN] : <str>\n```\nThis command needs to have a exactly 3 integers as parameters.\nNotice that you can also have different type in the Tuple type arguments.\nThe Tuple type arguments must be in the acceptedTypeArgs array.\n\n#### Boolean\n\nBoolean type can be use to produce the equivalent of the \"action='store_true'\" or \"action='store_false'\" arguments when adding argument to an arg parser.\nWhen using a boolean type, it will automatically be an optional argument with the default False value and using the action store_true, if you specify True as a default value, the parser use the store_false action.\nFor example the following function :\n```python\n#examples/bool.py\nfrom auto-func-cli import auto-func-cli\n\ndef  isItTrue(b:bool):\n\tif(b): return  'yes'\n\telse: return  'no'\n\nout = auto-func-cli(isItTrue).main(__name__)\nif(out != None):\n\tprint(out)\n```\nProduce this result :\n```console\nusage: bool.py [-h] [-b]\n\noptional arguments:\n  -h, --help  show this help message and exit\n  -b, --b     : <bool>(False)\n\n[RETURN] : <str>\n```\n#### Choices\nChoices imply that the user can only use a set of value as argument.\nIn our case you have to first create a class deriving from the Enum type.\nAnd use it as a type for your argument.\nThe only restriction is to have the same type for each values of the Enum.\nAnd the type be in the acceptedTypeArgs array.\n```python\n#you have to import the Enum class first\n#examples/choices.py\nfrom auto-func-cli import auto-func-cli\n\n#you have to import the Enum class first\nfrom enum import Enum\nclass LEFT_OR_RIGHT(Enum):\n\tLEFT  =  'LEFT'\n\tRIGHT  =  'RIGHT'\ndef  whereAreYouGoing(d:LEFT_OR_RIGHT)->str:\n\tif(d==LEFT_OR_RIGHT.LEFT):\n\t\treturn  'GOING LEFT !'\n\telif(d==LEFT_OR_RIGHT.RIGHT):\n\t\treturn  'GOING RIGHT'\n\nout = auto-func-cli(whereAreYouGoing).main(__name__)\nif(out != None):\n\tprint(out)\n```\nProduce the following command :\n```console\nusage: choices.py [-h] {LEFT,RIGHT}\n\npositional arguments:\n  {LEFT,RIGHT}\n\noptional arguments:\n  -h, --help    show this help message and exit\n\n[RETURN] : <str>\n```\n### Merging multiple function to build command line utility\n\nIf you to build a command line utility that works like git for example. You need to use the cmdfusion class that allows to wrap multiple function and call them as one auto-func-cli.\n\nFor example:\n```python\n#examples/multifunction.py\nfrom auto-func-cli import cmdfusion\n\ncmd = cmdfusion(\"Test with multiple function.\")\n@cmd.add\ndef plus(a:int,b:int)->int:\n\t\"\"\"\n\tplus operation\n\t:param a: first number\n\t:param b: second number\n\t:return: a+b\n\t\"\"\"\n\treturn a+b\n@cmd.add\ndef minus(a:int,b:int)->int:\n\t\"\"\"\n\tminus operation\n\t:param a: first number\n\t:param b: second number\n\t:return: a-b\n\t\"\"\"\n\treturn a-b\n\nout = cmd.main(__name__)\nif(out != None):\n\tprint(out)\n```\nOutput this help :\n```console\nusage: multifunction.py [-h] {plus,minus}\n\nTest with multiple function.\n\npositional arguments:\n  {plus,minus}\n\noptional arguments:\n  -h, --help    show this help message and exit\n\ndescription:\n        plus            plus operation\n        minus           minus operation\n```\nIn this way, the first argument allow to choose one specific command, for each one of them you can use the '-h' to print the chosen one's help.\n\n### Document your command function\nIf you want to add information about your command or arguments you can use doc string that way :\n\n```python\n#examples/doc.py\nfrom auto-func-cli import auto-func-cli\nfrom typing import List\nfrom functools import reduce\n\ndef  sum(l:List[int],n:bool)->int:\n\t\"\"\"\n\tSum a list of integer.\n\t:param l: List of integer.\n\t:param n: if present, multiply the result by -1\n\t:return: The sum of the list\n\t\"\"\"\n\to =  reduce(lambda  prev,act:prev+act,l)\n\tif(n):o*=-1\n\treturn o\n\nout = auto-func-cli(sum).main(__name__)\nif(out != None):\n\tprint(out)\n```\nProduce the following command :\n\n```console\nusage: doc.py [-h] [-n] l [l ...]\n\nSum a list of integer.\n\npositional arguments:\n  l           List of integer. : <List[int]>\n\noptional arguments:\n  -h, --help  show this help message and exit\n  -n, --n     if present, multiply the result by -1 : <bool>(False)\n\n[RETURN] The sum of the list: <int>\n```\n\n## ToDos\n\n- [ ] Post on PyPi\n\n## Author\n\nCuadros Nicolas\n\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/CuadrosNicolas/Python-Command-Function",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "auto-func-cli",
+        "package_url": "https://pypi.org/project/auto-func-cli/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/auto-func-cli/",
+        "project_urls": {
+            "Homepage": "https://github.com/CuadrosNicolas/Python-Command-Function"
+        },
+        "release_url": "https://pypi.org/project/auto-func-cli/1.0.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "Transform your function into a command line utility.",
+        "version": "1.0.0"
+    },
+    "last_serial": 6093814,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "02aca800eb28689cc68fbf1bed7b4b79",
+                    "sha256": "f91f3458c718636250d78badcf69c19fc5325d886c8f416558095b4a5e80998a"
+                },
+                "downloads": -1,
+                "filename": "auto_func_cli-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "02aca800eb28689cc68fbf1bed7b4b79",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 4911,
+                "upload_time": "2019-11-07T14:35:54",
+                "upload_time_iso_8601": "2019-11-07T14:35:54.200665Z",
+                "url": "https://files.pythonhosted.org/packages/46/b9/8f0755cba91a1e4d60efd20657b3b1768442ffff98f72b0c6910f83b7e48/auto_func_cli-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dd7efc7dcfa154f4b47d4c96ba6c987d",
+                    "sha256": "63005fed5242f7bc64b1e5c74b4be63383665c6e7a1792a2f315b3d6f8dea86a"
+                },
+                "downloads": -1,
+                "filename": "auto-func-cli-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dd7efc7dcfa154f4b47d4c96ba6c987d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4934,
+                "upload_time": "2019-11-07T14:35:56",
+                "upload_time_iso_8601": "2019-11-07T14:35:56.520950Z",
+                "url": "https://files.pythonhosted.org/packages/8e/81/7caf470d1471cde679f45288771f8d594c799fa5e3abf782cabb6465ca5b/auto-func-cli-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "02aca800eb28689cc68fbf1bed7b4b79",
+                "sha256": "f91f3458c718636250d78badcf69c19fc5325d886c8f416558095b4a5e80998a"
+            },
+            "downloads": -1,
+            "filename": "auto_func_cli-1.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "02aca800eb28689cc68fbf1bed7b4b79",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 4911,
+            "upload_time": "2019-11-07T14:35:54",
+            "upload_time_iso_8601": "2019-11-07T14:35:54.200665Z",
+            "url": "https://files.pythonhosted.org/packages/46/b9/8f0755cba91a1e4d60efd20657b3b1768442ffff98f72b0c6910f83b7e48/auto_func_cli-1.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "dd7efc7dcfa154f4b47d4c96ba6c987d",
+                "sha256": "63005fed5242f7bc64b1e5c74b4be63383665c6e7a1792a2f315b3d6f8dea86a"
+            },
+            "downloads": -1,
+            "filename": "auto-func-cli-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "dd7efc7dcfa154f4b47d4c96ba6c987d",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 4934,
+            "upload_time": "2019-11-07T14:35:56",
+            "upload_time_iso_8601": "2019-11-07T14:35:56.520950Z",
+            "url": "https://files.pythonhosted.org/packages/8e/81/7caf470d1471cde679f45288771f8d594c799fa5e3abf782cabb6465ca5b/auto-func-cli-1.0.0.tar.gz"
+        }
+    ]
+}

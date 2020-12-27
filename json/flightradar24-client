@@ -1,0 +1,335 @@
+{
+    "info": {
+        "author": "Malte Franken",
+        "author_email": "coding@subspace.de",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# python-flightradar24-client\n\n[![Build Status](https://travis-ci.org/exxamalte/python-flightradar24-client.svg)](https://travis-ci.org/exxamalte/python-flightradar24-client)\n[![Coverage Status](https://coveralls.io/repos/github/exxamalte/python-flightradar24-client/badge.svg?branch=master)](https://coveralls.io/github/exxamalte/python-flightradar24-client?branch=master)\n\nThis library provides convenient access to a local [Flightradar24](https://www.flightradar24.com/) feed.\n\n\n## Installation\n`pip install flightradar24-client`\n\n## Usage\n\nThis library currently support two different flavour of flight data, \nprovided by the `fr24feed` and `dump1090-mutability` services that are\nautomatically installed when building your own \n[Pi24 ADS-B receiver](https://www.flightradar24.com/build-your-own).\n\nFor each flavour the library provides two modes of access. The `*Feed` class\nfetches data once when calling `update` and transforms it into `FeedEntry` \nobjects. The `*FeedAggregator` class keeps a bit of history and with each \nsubsequent `update` call it tries to fill in any gaps (coordinates and callsign \nat the moment) missing in the latest data set fetched.\n\n### Flightradar24 Feed\n\nThe Flightradar24 Feed mode uses the JSON data made available by the `fr24feed`\nservice (normally under `http://localhost:8754/flights.json`).\n\n`Flightradar24FlightsFeed` and `Flightradar24FlightsFeedAggregator` support\nthe same parameters:\n\n| Name               | Type                                                                                                 | Description                                                                                   |\n|--------------------|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|\n| `home_coordinates` | required, tuple of latitude and longitude                                                            | Used to calculate the distance to each aircraft.                                              |\n| `filter_radius`    | optional, float value in kilometres, default: don't filter by distance                               | Only aircrafts within this radius around the home coordinates are included in the result set. |\n| `url`              | optional, full url to access the Pi24 ADS-B receiver JSON, default: construct with hostname and port | Define if you have customised access to Pi24 ADS-B receiver or use HTTPS for example.         |\n| `hostname`         | optional, hostname of the Pi24 ADS-B receiver, default: `localhost`                                  | Define if you are not running this library on your Pi24 ADS-B receiver.                       |\n| `port`             | optional, port of the Pi24 ADS-B receiver's flights service, default: `8754`                         | Define if you have configured a different port on your Pi24 ADS-B receiver.                   |\n\n#### Feed\n\n```python\nimport asyncio\nfrom flightradar24_client.fr24_flights import Flightradar24FlightsFeed\n# Home Coordinates: Latitude: -33.5, Longitude: 151.5\nfeed = Flightradar24FlightsFeed((-33.5, 151.5))\nLOOP = asyncio.get_event_loop()\nstatus, entries = LOOP.run_until_complete(feed.update())\n```\n\n#### Feed Aggregator\n\n```python\nimport asyncio\nfrom flightradar24_client.fr24_flights import Flightradar24FlightsFeedAggregator\n# Home Coordinates: Latitude: -33.5, Longitude: 151.5\nfeed_aggregator = Flightradar24FlightsFeedAggregator((-33.5, 151.5))\nLOOP = asyncio.get_event_loop()\nstatus, entries = LOOP.run_until_complete(feed_aggregator.update())\n```\n\n### Dump1090 Feed\n\nThe Dump1090 Feed mode uses the JSON data made available by the `dump1090-mutability` \nservice (normally under `http://localhost:8888/data/aircraft.json`).\n\n`Dump1090AircraftsFeed` and `Dump1090AircraftsFeedAggregator` support\nthe same parameters:\n\n| Name               | Type                                                                                                 | Description                                                                                   |\n|--------------------|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|\n| `home_coordinates` | required, tuple of latitude and longitude                                                            | Used to calculate the distance to each aircraft.                                              |\n| `filter_radius`    | optional, float value in kilometres, default: don't filter by distance                               | Only aircrafts within this radius around the home coordinates are included in the result set. |\n| `url`              | optional, full url to access the Pi24 ADS-B receiver JSON, default: construct with hostname and port | Define if you have customised access to Pi24 ADS-B receiver or use HTTPS for example.         |\n| `hostname`         | optional, hostname of the Pi24 ADS-B receiver, default: `localhost`                                  | Define if you are not running this library on your Pi24 ADS-B receiver.                       |\n| `port`             | optional, port of the Pi24 ADS-B receiver's dump1090 service, default: `8888`                        | Define if you have configured a different port on your Pi24 ADS-B receiver.                   |\n\n#### Feed\n\n```python\nimport asyncio\nfrom flightradar24_client.dump1090_aircrafts import Dump1090AircraftsFeed\n# Home Coordinates: Latitude: -33.5, Longitude: 151.5\nfeed = Dump1090AircraftsFeed((-33.5, 151.5))\nLOOP = asyncio.get_event_loop()\nstatus, entries = LOOP.run_until_complete(feed.update())\n```\n\n#### Feed Aggregator\n\n```python\nimport asyncio\nfrom flightradar24_client.dump1090_aircrafts import Dump1090AircraftsFeedAggregator\n# Home Coordinates: Latitude: -33.5, Longitude: 151.5\nfeed_aggregator = Dump1090AircraftsFeedAggregator((-33.5, 151.5))\nLOOP = asyncio.get_event_loop()\nstatus, entries = LOOP.run_until_complete(feed_aggregator.update())\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/exxamalte/python-flightradar24-client",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "flightradar24-client",
+        "package_url": "https://pypi.org/project/flightradar24-client/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/flightradar24-client/",
+        "project_urls": {
+            "Homepage": "https://github.com/exxamalte/python-flightradar24-client"
+        },
+        "release_url": "https://pypi.org/project/flightradar24-client/0.3/",
+        "requires_dist": [
+            "haversine (>=1.0.1)",
+            "aiohttp",
+            "async-timeout"
+        ],
+        "requires_python": "",
+        "summary": "Flightradar24 client library.",
+        "version": "0.3"
+    },
+    "last_serial": 4546043,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2001a84d0b8eca893f5359b43d97a67e",
+                    "sha256": "80fb06b11507d2ca7d9c4823c8a65771e60b2f8769317523a84afb72eedd2fd1"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2001a84d0b8eca893f5359b43d97a67e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 16079,
+                "upload_time": "2018-11-08T06:23:15",
+                "url": "https://files.pythonhosted.org/packages/27/6d/a053d785cd6eecbc03e97abcf2748697124f03be50695fd216674b6f8e89/flightradar24_client-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e7207d9fddb2af122f4ee52034411f3",
+                    "sha256": "25cb9de88276c6e4b9278ebb8b0fcc38ffc298bf5b1cd3080fed1b7175593e7c"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8e7207d9fddb2af122f4ee52034411f3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7895,
+                "upload_time": "2018-11-08T06:23:19",
+                "url": "https://files.pythonhosted.org/packages/21/12/edc20e8c9f2258c4b9633cb9f38d088347fec1863b656f9c2ed1945fa57d/flightradar24_client-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "537a921d8305414e8bed66467a1490a8",
+                    "sha256": "16f647b6abcd130c2195d121c6558a86f34002f50b5d6325c9cbc325cdc965eb"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "537a921d8305414e8bed66467a1490a8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 16361,
+                "upload_time": "2018-11-12T22:41:12",
+                "url": "https://files.pythonhosted.org/packages/1c/28/6749125b8d07f747272352a5e658312cfdb63daa6402f525789ee47c72aa/flightradar24_client-0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "985b976607a2840684af3c071c00153f",
+                    "sha256": "85f12d994976dbe675e260ca0d5c9130082aa9806f717b528e10ff287d5571f0"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "985b976607a2840684af3c071c00153f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8669,
+                "upload_time": "2018-11-12T22:41:18",
+                "url": "https://files.pythonhosted.org/packages/6f/88/e3ba17f83251a3f3661eeb0e6923287582944b2305559566f51af882b4a1/flightradar24_client-0.2.tar.gz"
+            }
+        ],
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d2927820fdbbb67b86115d45525df460",
+                    "sha256": "04f18a488359cb60eaff380ebf50384fa0903de7eeab7350c359cd9bec1f0131"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d2927820fdbbb67b86115d45525df460",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18421,
+                "upload_time": "2018-11-13T00:43:39",
+                "url": "https://files.pythonhosted.org/packages/d1/ce/06d41cba00607037bc536dc81de8e504493fb6a3079fc73408b849578301/flightradar24_client-0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc209fbdda9b51d52bdea4cead2cf874",
+                    "sha256": "fc9b212238275808fcd2adcd075cd23a53f38e2293137ae259254099c10194f0"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dc209fbdda9b51d52bdea4cead2cf874",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10362,
+                "upload_time": "2018-11-13T00:43:45",
+                "url": "https://files.pythonhosted.org/packages/92/c9/259b26ef2fa18a9b21cb1bdb039732c59f14c5313bc2c1f918720b712de2/flightradar24_client-0.3.tar.gz"
+            }
+        ],
+        "0.4a1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a9fdf741d3d2a8af90cc70194324542a",
+                    "sha256": "04ab9424ed256c4d43de5170dafdd7a4b63077b03145f5b911d6f0b210d17736"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.4a1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a9fdf741d3d2a8af90cc70194324542a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18538,
+                "upload_time": "2018-11-28T22:01:02",
+                "url": "https://files.pythonhosted.org/packages/2d/fb/105be772af136c2b33568c1bab2675dff10fda807f0c93f1ed27986566ba/flightradar24_client-0.4a1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3b418ea90b9b91142411ba9db62615e7",
+                    "sha256": "09b20d8736ed5ac380180d5cdd3da9abcc4c38f2c28116f5f831e53a6e2af1c3"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.4a1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3b418ea90b9b91142411ba9db62615e7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10491,
+                "upload_time": "2018-11-28T22:01:05",
+                "url": "https://files.pythonhosted.org/packages/2a/be/c4bbd8debbf539e91497ab0aad8b1bcc70486da78f51742d5ee63238b99d/flightradar24_client-0.4a1.tar.gz"
+            }
+        ],
+        "0.4a3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "93c44e7c1e4d1298820387b41de4d2d5",
+                    "sha256": "b11067a3881291717db45f5863199a37058dace240583706544e68213f536d9c"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.4a3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "93c44e7c1e4d1298820387b41de4d2d5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18560,
+                "upload_time": "2018-11-28T22:20:58",
+                "url": "https://files.pythonhosted.org/packages/d0/4d/2606f62325bcc0216a99ff229aa4c9c194233bc642a707c18c763440df39/flightradar24_client-0.4a3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d0fe926db6ddb70bae3fdb254c6f52f2",
+                    "sha256": "3d633bb201faf992a65f20f13196beda1b7b32581b4848f1a1310d98a6b52174"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.4a3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d0fe926db6ddb70bae3fdb254c6f52f2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10501,
+                "upload_time": "2018-11-28T22:21:01",
+                "url": "https://files.pythonhosted.org/packages/06/ac/7f8f09301f3e42894114665b64c21a05471e2b62134e0506f8eb257cf51a/flightradar24_client-0.4a3.tar.gz"
+            }
+        ],
+        "0.4a4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "69034b46ca7f20fa543016d09651680d",
+                    "sha256": "d28db29504f8e6100fd4f0864dfd3579719e360b06a95686802c2c2c4f3d2d39"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.4a4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "69034b46ca7f20fa543016d09651680d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18564,
+                "upload_time": "2018-11-29T06:24:56",
+                "url": "https://files.pythonhosted.org/packages/f1/9c/766f37e326b9e83395cd4eac40dfb8c74cdb1779d145f326eb5a0806d1c0/flightradar24_client-0.4a4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "11531a13ae7e86eb405847c61bd89020",
+                    "sha256": "05faff55fae7b19c4b7cdc9b2314a4c7f0834abc7d4c97e33a3a57615f926a61"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.4a4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "11531a13ae7e86eb405847c61bd89020",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10514,
+                "upload_time": "2018-11-29T06:24:58",
+                "url": "https://files.pythonhosted.org/packages/b5/1e/d79aa64993483771c9c0b356bfce1e93aac16d52eeb1814c7e23e9541284/flightradar24_client-0.4a4.tar.gz"
+            }
+        ],
+        "0.4a5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f6dd5824b50733944acb5b5ea26cfe0a",
+                    "sha256": "d56a78936ee0ef935dace3813da267d4fa93e20a7f4a35ff996f9612d8980adb"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.4a5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f6dd5824b50733944acb5b5ea26cfe0a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18462,
+                "upload_time": "2018-11-30T07:31:39",
+                "url": "https://files.pythonhosted.org/packages/3f/e2/8b0bcbaa32ed4e4c0bbf1fccd7b5dc4bfbd0b30395b62c8e60085f6fd4c5/flightradar24_client-0.4a5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e421b50377c5b7439b2013ef0dcb728b",
+                    "sha256": "690f4ee6455ebe16c652591009940894fefba136b9a60054b0f32da261432359"
+                },
+                "downloads": -1,
+                "filename": "flightradar24_client-0.4a5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e421b50377c5b7439b2013ef0dcb728b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10415,
+                "upload_time": "2018-11-30T07:31:41",
+                "url": "https://files.pythonhosted.org/packages/90/df/457549f3758eac96f0679f22e42a6861f491a3209b62ac0bd30a728326c5/flightradar24_client-0.4a5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d2927820fdbbb67b86115d45525df460",
+                "sha256": "04f18a488359cb60eaff380ebf50384fa0903de7eeab7350c359cd9bec1f0131"
+            },
+            "downloads": -1,
+            "filename": "flightradar24_client-0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d2927820fdbbb67b86115d45525df460",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 18421,
+            "upload_time": "2018-11-13T00:43:39",
+            "url": "https://files.pythonhosted.org/packages/d1/ce/06d41cba00607037bc536dc81de8e504493fb6a3079fc73408b849578301/flightradar24_client-0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "dc209fbdda9b51d52bdea4cead2cf874",
+                "sha256": "fc9b212238275808fcd2adcd075cd23a53f38e2293137ae259254099c10194f0"
+            },
+            "downloads": -1,
+            "filename": "flightradar24_client-0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "dc209fbdda9b51d52bdea4cead2cf874",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 10362,
+            "upload_time": "2018-11-13T00:43:45",
+            "url": "https://files.pythonhosted.org/packages/92/c9/259b26ef2fa18a9b21cb1bdb039732c59f14c5313bc2c1f918720b712de2/flightradar24_client-0.3.tar.gz"
+        }
+    ]
+}

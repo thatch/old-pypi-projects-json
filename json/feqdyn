@@ -1,0 +1,167 @@
+{
+    "info": {
+        "author": "Janne Solanp\u00e4\u00e4",
+        "author_email": "janne+feqdyn@solanpaa.fi",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: Boost Software License 1.0 (BSL-1.0)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Scientific/Engineering :: Physics"
+        ],
+        "description": "Overview\n========\n\nFEQDYN is a software package for simulating time-dependent single-particle quantum\nmechanics in cylindrically symmetric systems. This includes systems such as atoms and linear\nmolecules in linearly polarized laser field, metal nanotapers, and\nnanoclusters.\n\nFEQDYN employs the `FEniCS`_ FEM-suite for meshing and assembling the system\nmatrices, and `PETSc`_ and `SLEPc`_ for high-performance linear algebra.\n\n.. _FEniCS: https://www.fenicsproject.org\n.. _PETSc: https://bitbucket.org/petsc/petsc\n.. _SLEPc: https://bitbucket.org/slepc/slepc\n\n\nSolving the Schr\u00f6dinger equation\n--------------------------------\n\nThe time dependent Schr\u00f6dinger equation (TDSE) (in `Hartree\natomic units`_) is\n\n.. math::\n    i \\partial_t \\ket{\\psi(t)} &= \\hat{H}(t) \\ket{\\psi(t)}\n\n    \\ket{\\psi(0)} &= \\ket{\\psi_0},\n\nwhere :math:`\\ket{\\psi(t)}` is the time-evolving state, :math:`\\ket{\\psi_0}`\nthe initial state, and :math:`\\hat{H}(t) = \\hat{H}_0 + \\hat{W}(t)`\nthe time-dependent Hamiltonian operator whose stationary part is\n:math:`\\hat{H}_0=\\frac{\\hat{\\mathbf p}^2}{2}+\\hat{V}` with the time-independent\npotential :math:`\\hat{V}`.\n\nThe stationary states of the time-independent Hamiltonian can be solved\nfrom the time-independent Schr\u00f6dinger equation (TISE)\n\n.. math::\n    \\hat{H}_0 \\ket{\\psi_i} = E_i \\ket{\\psi_i},\n\nwhere :math:`E_i` and :math:`\\ket{\\psi_i}` are the ith eigenenergy\nand eigenstate.\n\nIn a typical setup, we first solve TISE to obtain an initial state\n(one of the eigenstates of :math:`\\hat{H}_0`) for the time dependent\nsimulation.\n\n.. _Hartree atomic units: https://en.wikipedia.org/wiki/Atomic_units\n\n\nCylindrically symmetric Schr\u00f6dinger equation\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nDomain\n++++++\n\nIf the system, i.e., the Hamiltonian :math:`\\hat{H}(t)`, is cylindrically\nsymmetric, we can reduce the three-dimensional (3D) problem to a two-dimensional (2D)\none. The domain of the problem is then the half-plane\n\n.. math::\n    \\Omega_\\text{full}\\left\\{ (\\rho, z): \\rho \\geq 0, z\\in\\mathbb{R} \\right\\}.\n\n\nMesh\n^^^^\n\nFor simulations using finite-support basis functions such as in FEM, we\nhave to truncate the half-plane to a finite simulation domain for meshing.\nBy default ``feqdyn`` truncates the domain to a finite area\n\n.. math::\n    \\Omega = \\left\\{(\\rho,z): \\rho^2+z^2 \\leq R^2.\\right\\}\n\nThis half-circular simulation domain is meshed with triangular cells in\nan unstructured manner resulting in a mesh like in the figure below\n\n.. image:: figures/mesh.*\n\nBy default, the domain is meshed so that the radius of the smallest possible circle \naround a mesh element is always less than\n\n.. math::\n    c(r) = c_{\\text{max}} \\left\\{1 - (1 - r_{\\text{core}} / c_{\\text{max}}) \\cdot r_{\\text{core}} / r \\cdot \n                         \\tanh(r / r_{\\text{core}}) \\cdot \n                         \\exp[ -(r / r_{\\text{refinement}})^2 ] \\right\\},\n\nwhere :math:`c_{\\text{max}}` is the largest mesh element,\n:math:`r_{\\text{core}}` the radius of the core, and\n:math:`r_{\\text{refinement}}` the radius up to which the mesh is refined.\nThis adaptive refinement was introduced by F. Gygi in `Phys. Rev. B 48, 11692 (1993)`_.\n\n.. _Phys. Rev. B 48, 11692 (1993): https://doi.org/10.1103/PhysRevB.48.11692\n\nNaturally also other domain shapes and types of meshes are supported,\nplease see, e.g., the source files in ``demos/nanotip/``.\n\nWeak formulation of TISE\n++++++++++++++++++++++++\n\nTISE in position basis reads\n\n.. math::\n    \\left[ \\frac{1}{2} \\bigtriangleup + V(\\rho, z) \\right] \\psi_i(\\rho,z) \n            = E_i\\, \\psi_i(\\rho, z)\n\nwhich in cylindrical coordinates (assuming cylindrical symmetry with :math:`m=0`) can be written as\n\n.. math::\n    \\underbrace{\\left[ \\frac{1}{2} \\frac{1}{\\rho} \\partial_{\\rho} \\left(\\rho \\partial_\\rho\n    \\cdot \\right) + \\frac{1}{2}\\partial_z^2 + V(\\rho,z) \\right]}_{\\doteq \\mathcal{L}} \\psi_i(\\rho,z)\n    = E_i\\,\\psi_i(\\rho,z).\n\nIf weak formulation we seek a trial function :math:`\\psi(\\rho,z)` which for any test\nfunction :math:`v(\\rho,z)` solves the eigenproblem\n\n.. math::\n    \\mel*{v}{\\mathcal{L}}{\\psi} = E \\bra {v}\\ket{\\psi},\n\nwhere the natural inner product is\n\n.. math::\n    \\bra{v}\\ket{\\psi} = \\int\\limits_\\Omega v^*(\\rho, z) \\psi(\\rho, z)\\rho\n                        \\,\\mathrm{d}\\rho\\mathrm{d}z.\n\nThe weak formulation of the eigenproblem then reads\n\n.. math::\n    \\frac{1}{2} \\int\\limits_\\Omega v \\partial_\\rho(\\rho \\partial_\\rho \\psi)  \\,\\mathrm{d}\\rho\\, \\mathrm{d}z \n    + \\frac{1}{2} \\int\\limits_\\Omega v \\partial_z^2 \\psi \\rho\n      \\,\\mathrm{d}\\rho\\,\\mathrm{d}z + \\int\\limits_\\Omega v V \\psi \\rho\n      \\,\\mathrm{d}\\rho\\, \\mathrm{d}z\n    = E_i \\int\\limits_\\Omega v \\psi \\rho \\,\\mathrm{d}\\rho\\, \\mathrm{d}z\n\nWe integrate the first and second term by parts and impose \n\n1. continuity boundary conditions for the trial function :math:`\\lim\\limits_{\\rho\\to 0+} \\rho\n   \\partial_\\rho \\psi = 0`, and\n2. dirichlet boundary condition for the test functions at :math:`\\rho^2+z^2 = R^2`\n\nto get\n\n.. math::\n    \\frac{1}{2} \\int\\limits_\\Omega \\partial_\\rho v \\partial_\\rho \\psi\n                    \\rho \\,\\mathrm{d}\\rho\\, \\mathrm{d}z\n    +\\frac{1}{2} \\int\\limits_\\Omega \\partial_z v \\partial_z \\psi\n                    \\rho \\,\\mathrm{d}\\rho\\, \\mathrm{d}z\n    + \\int\\limits_\\Omega v V \\psi \\rho \\,\\mathrm{d}\\rho\\, \\mathrm{d}z\n      = E \\int\\limits_\\Omega v \\psi \\rho \\,\\mathrm{d}\\rho\\, \\mathrm{d}z.\n\nThis simplifies even further to\n\n.. math::\n    \\frac{1}{2} \\bra{\\nabla_{\\rho,z}v }\\ket{\\nabla_{\\rho,z}\\psi}\n    + \\mel*{v}{V}{\\psi} = E \\bra{v}\\ket{\\psi}\n\nwhich is what the TISE solver of ``feqdyn`` solves together with the correct\nboundary conditions.\n\nAgain, we can impose Dirichlet boundary conditions on some other parts of the\nsimulation domain, see, e.g., the example at ``demos/nanotip``.\n\n.. _tise_weak:\n\nWeak formulation of TDSE\n+++++++++++++++++++++++\n\nSimilarly to TISE, weak formulation of TDSE can be easily carried out.\nWe expand our solution in our choise of basis functions as \n:math:`\\psi(\\rho,z) = \\sum_k c_k \\phi_k`, where :math:`c_k` are the complex\nexpansion coefficients. The resulting matrix equation for the time-evolution of\nthe coefficients is\n\n.. math::\n    i \\mathbf{S} \\dot{\\mathbf c} = \\mathbf{H}(t) \\mathbf c,\n\nwhere \n\n- :math:`[\\mathbf S]_{ij} = \\bra{\\phi_i}\\ket{\\phi_j}` is \n  the overlap matrix of the (real-valued) basis functions,\n- :math:`\\dot{\\mathbf c}` the time-derivative of the expansion coefficient\n  vector :math:`\\mathbf c`, and\n- :math:`[\\mathbf{H}]_{ij}(t) = \\frac{1}{2} \\bra{\\nabla_{\\rho,z}\\phi_i}\\ket{\\nabla_{\\rho,z}\\phi_j}  + \\mel*{\\phi_i}{V}{\\phi_j} + \\mel*{\\phi_i}{W(t)}{\\phi_j}` \n  is the time-dependent Hamiltonian operator with the time-dependent \n  interaction :math:`W(t)`.\n\nThe basis functions (and consequently the above matrices) are chosen \nso that they obey the boundary conditions described in Sec. :ref:`tise_weak`\n\nInteractions\n^^^^^^^^^^^^\n\nBy default we implement two types of laser-matter :math:`W(t)`,\nbut with trivial modifications to the code we can introduce arbitrary\ninteractions. We have implemented the velocity and length gauge interactions\nfor linearly polarized laser pulses, i.e.,\n\n.. math::\n    W(t) = -i\\partial_z A_z(t)\n\nand\n\n.. math::\n    W(t) = z E_z(t)\n\nExample of nonhomogeneous vector potential can be found in ``demos/nanotip``.\n\nTime-evolution operator\n^^^^^^^^^^^^^^^^^^^^^^^\n\nWe've implemented two approximations for the time-evolution\noperator\n\n.. math::\n    U(t+\\Delta t, t) = \\mathcal{T}\\left\\{ \\exp[-i \\int\\limits_{t}^{t+\\Delta t}\n    H(\\tau)\\,\\mathrm{d}\\tau ] \\right\\}.\n\nFirst, the `Crank-Nicolson propagator`_\n\n.. math::\n    U_{\\text{CN}}(t+\\Delta t, t) = \\left[ \\mathbf S \n            + i \\frac{\\Delta t}{2} \n              \\mathbf H\\left(t+\\frac{\\Delta t}{2}\\right)\\right]^{-1}\n              \\left[ \\mathbf S - i \\frac{\\Delta t}{2}\n                 \\mathbf H\\left(t+\\frac{\\Delta t}{2}\\right)\\right],\n\n.. _Crank-Nicolson propagator: https://doi.org/10.1007/BF02127704\n\nUsing feqdyn\n==========\n\nA single time-dependent simulation consists of 5 steps:\n\n1. **Solving the time-independent system for the initial state**\n2. **Preparing the system matrices for time propagation**\n3. **Time-propagation**\n4. **Post-processing/analysis**\n\nThese steps are described in detail in the following for atomic systems. For\nother cases, please see the examples in ``demos/nanotip``.\n\nSolving the time independent system\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nTime-independent system should always be solved first. Make sure that you have\nloaded a FEniCS installation with hdf5, petsc, and slepc enabled. In the\nprovided docker-image use the command ``ml petsc/real``.\n\nTISE can be solved with the script ``solve_tise``. By default it solves an atomic\nsystem within the single acrive electron approximation,\nand the atomic potential can be set with the command line option ``--atom_type Li``.\n\nOther useful options include,\n\n- ``--radius`` for setting the radius of the simulated domain\n- ``--core_radius`` for setting finest mesh refinement inside the supplied radius\n- ``--refinement_radius`` for setting the radius where mesh refinement stops\n  (smooth transition)\n- ``--cellradius`` maximum radius of a single mesh element\n- ``--core_cellradius`` maximum radius of a single mesh element within\n  ``core_radius``\n- ``--num_states`` how many stationary states to solve\n- ``--eigensolver_type`` type of the eigensolver ('lapack', 'arpack',\n  'krylov', ...)\n- ``--eigensolver_tol`` convergence tolerance of the eigensolver\n- ``--eigensolver_max_iterations`` maximum number of iterations allowed for\n  the eigensolver\n\nNew static potentials can be implemented in\n``feqdyn.utils.predefined_potentials``, please see the module source for further\ndetails.\n\n``solve_tise`` script saves the following files:\n\n- ``data/tise_mesh.xdmf`` and ``data/tise_mesh.h5`` which include the mesh used for\n  solving TISE.\n- ``data/tise_eigenvalues`` which is a list of eigenenergies of the\n  stationary states solved\n- ``data/tise_state_N.h5`` which is the solution of the Nth stationary\n  state\n- ``data/config`` which includes the simulation parameters used for solving\n  the TISE\n\nPreparing matrices for time dependent simulations\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nAfter solving TISE, you should set up matrices for time dependent simulations\nusing the script ``prepare_tdse``.\nMake sure that you have loaded a FEniCS installation with hdf5, petsc, and\nslepc enabled. In the provided docker image this can be achieved with\n``ml petsc/real``.\n\nThe main feature of this step is that it can change the mesh from the TISE\nsimulation. This allows you to solve TISE in a small simulation domain\nand use a larger simulation domain for time-dependent simulation.\n\nNew mesh parameters can be supplied with options\n\n- ``--radius`` for setting the radius of the simulated domain\n- ``--core_radius`` for setting finest mesh refinement inside the supplied radius\n- ``--refinement_radius`` for setting the radius where mesh refinement stops\n  (smooth transition)\n- ``--cellradius`` maximum radius of a single mesh element\n- ``--core_cellradius`` maximum radius of a single mesh element within\n  ``core_radius``\n\nIf some of these options are not given, the values used in solving the TISE are\nused. So, e.g., if you only want to increase the radius of the meshed domain,\nsupply only ``--radius X`` where X is the new radius.\n\nComplex absorbing potentials (CAP) can be included in the time propagation\nsimulations with options\n\n- ``--cap_width`` which sets the width of the absorber from the domain\n  boundary\n- ``--cap_height`` which sets the strength of the absorber\n\n``prepare_tdse`` saves the following files using PETSc binary format\n\n- ``data/tdse_CAP*`` containing the imaginary part of the CAP matrix\n- ``data/tdse_H0*`` containing the time-independent part of the Hamiltonian matrix\n- ``data/tdse_S*`` containing the overlap matrix\n- ``data/tdse_Z*`` containing the z-component of the dipole matrix\n- ``data/tdse_partialZ*`` containing matrix elements of :math:`\\partial_z`\n- ``data/tdse_state_N*`` containing the vector representation of the stationary\n  states in the TDSE mesh\n\nIn addition, ``prepare_tdse`` saves the new mesh in ``data/tdse_mesh.xdmf`` and\n``data/tdse_mesh.h5`` and *appends* the new configuration parameters in ``data/config``.\n\nTime-propagation\n~~~~~~~~~~~~~~~~\n\nNow you must load Python packages petsc4py, slepc4py, and mpi4py with support\nfor *complex numbers*. In the docker\nimage this can be done with ``ml petsc/complex``.\nUnfortunately, currently (as of version 2018.1.0)\nFEniCS doesn't support PETSc with complex numbers so we must resort to\ntwo different versions of the python\npackages, but hopefully in the near future we can remedy this.\n\nTime propagation can be achieved with the command ``feqdyn_propagate``. It reads\nthe matrices prepared in step 2 and uses those for time propagation.\n\nPossible configuration options include\n\n- ``--initial_state N`` which selects the initial state from the computed\n  stationary states.\n- ``--delta_t X`` for the time-step\n- ``--vecpot /my/path`` for setting a file describing the vector potential.\n- ``--extra_t X`` for maximum simulated time\n- ``--hamiltonian_tolerance X`` -- tolerance for computing the Hamiltonian\n  operator acting on a state\n- ``--matexp_tolerance X`` -- tolerance for computing the matrix exponential\n- ``--observables obs1 obs2`` setting a list of observables which we compute and\n  save during the time propagation. Possible observables include, e.g.,\n\n  * ``density`` for the coordinate dependent electron density,\n  * ``norm`` for the wavefunction norm,\n  * ``dipole_z`` for z-component of the dipole,\n  * ``velocity_z`` for the z-component of the dipole velocity,\n  * ``acceleration_z`` for the z-component of the dipole acceleration,\n  * ``arpes`` for angle- and time-resolved photoelectron spectrum. Set the angular\n    resolution with ``--delta_theta``.\n  * ``projection`` projections :math:``\\vert \\langle n \\mid \\psi(t) \\rangle \\vert^2``\n    to the stationary states we've computed. You can select the states with\n    option ``--project_to_states N M K...``.\n\n- ``--save_interval X`` we save data every ``X`` atomic units of time\n- ``--gauge`` select the gauge of the Hamiltonian, either ``velocity`` or ``length``\n\nTime-propagation saves data to\n\n- ``data/observables.npz`` which includes an array for each observable (except\n  the density)\n- ``data/density/prop_density_ts_N*`` which is a PETSc vector of the expansion coefficients\n  for density at time-step ``N``\n- ``data/wavefunction/prop_wf_re_ts_N*`` which is a PETSc vector of the expansion\n  coefficients for the real part of the wavefunction at time-step ``N``\n- ``data/wavefunction/prop_wf_im_ts_N*`` which is a PETSc vector of the expansion coefficients\n  for the imaginary part of the wavefunction at time-step ``N``\n- ``data/config`` where it appends new configuration options\n\nSetting laser field\n+++++++++++++++++++\n\nThe laser-field can be set with option ``--vecpot path``. The file should be\n\n1. a two-column file where the first column is time and second the z-component\n   of the vector potential, or\n2. a multi-pulse configuration with each wavelength channel defined as::\n\n        [Pulse1]\n        A = 0.1\n        w = 0.0569\n        k = 0\n        tcenter = 0\n        cep = 0.05\n        fwhm = 150\n\n\nAnalysis scripts\n~~~~~~~~~~~~~~~~\n\nWe include the following analysis scripts in the package. The scripts that need\nthe FEniCS environment (with real PETSc):\n\n``animate_density``\n+++++++++++++++++++\n\nThis script just reads ``data/prop_density_ts_N*`` and draws them. The script\nobeys the options\n\n- ``--fps`` for setting the framerate\n- ``--save`` for saving the resulting animation instead of interactive\n  visualization. Saves in ``data/figures/density.mp4``.\n\n\nAnd the scripts that just need the basic Python+numpy+matplotlib combo.\n\n``draw_norm``\n+++++++++++++\n\nFor drawing the norm as a function of time. Obeys ``--save`` for saving the\nresult instead of interactive visualization. Saves in ``data/figures/norm.pdf``.\n\n``draw_dipole`` / ``draw_velocity`` / ``draw_acceleration``\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\nDraws the dipole moment/dipole velocity/dipole acceleration\nas a function of time, the corresponding spectrum,\nand stft of the spectrum. You can tune the stft with the options\n\n- ``--stft-window-length`` in units of time\n- ``--stft-overlap-length`` in units of time\n- ``--stft-max-energy`` in units of energy\n\nUse ``--save`` to save the figure in ``data/figures/dipole.pdf`` or\n``data/figures/velocity.pdf`` or ``data/figures/acceleration.pdf``.\n\n``draw_populations``\n++++++++++++++++++++\n\nDraws the absolute value squared of the projections to stationary states. You\ncan select the states with ``--states`` if you don't want to visualize all\nprojections. Use ``--save`` to save the figure in ``data/figures/populations.pdf``\n\n``draw_pes``\n++++++++++++\n\nDraws the angle-integrated and angle-resolved photoelectron spectra. Use ``--save`` to save the\nfigures in ``data/figures``.\n\n\nInstallation\n============\n\nUsing Docker\n~~~~~~~~~~~~\n\nWe recommend using Docker images for running simulations on your personal\ncomputer. \nFor supercomputers and clusters, we recommend either installing the entire package from\nsource.\n\nTo use the prepared Docker image, first install `Docker\n<https://www.docker.com>_` to your PC. The docker image for\n`feqdyn <https://hub.docker.com/r/solanpaa/feqdyn>_` can fetched with the\ncommand ``docker pull feqdyn``. Please note that the image is a few GB in size.\n\nBy default, running the docker image for interactive process,\n\n    ``docker run -it feqdyn``\n\ndrops you in a Unix shell. All the scripts are pre-installed,\nand you can switch between the complex and\nreal PETSc installations with commands ``ml petsc/real`` and\n``ml petsc/complex``.\n\nTo enable GUIs for the scripts, you should launch the docker container with\nthe commands executed on the HOST machine (works on Linux)\n\n    ``$ xhost +local:docker``\n    ``$ docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro -it feqdyn``\n\nAs you probably wish to save the datafiles computed within the container, you\nshould create a directory ``data`` on your HOST and mount it to the container\nwith\n\n``$ docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v\n`pwd`/data:/home/feqdyn/data:Z -it feqdyn``\n\nThis also allows you to provide the laser parameters by saving it to a file\nwithin ``data`` on the HOST and passing the argument ``--vecpot data/filename``\nto ``docker run feqdyn propagate``.\n\nFor non-interactive use, you can pass the above command arguments corresponding\nto the script you would like to execute together with its arguments, e.g.,\n\n``$ docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v\n`pwd`/data:/home/feqdyn/data:Z feqdyn solve_tise --radius 10 --how_many 3``\n\nParallelization of the linear algebra backend can be achieved with the flag\n``-e OPENBLAS_NUM_THREADS N`` of ``docker run``.\n\n\nInstallation with pip\n~~~~~~~~~~~~~~~~~~~~~\n\n``pip3 install feqdyn`` should do the trick. Note that you have to manually install\nreal and complex PETSc, SLEPc, petsc4py, slepc4py, and FEniCS suite.\n\nInstallation from source\n~~~~~~~~~~~~~~~~~~~~~~~~\n\nThe ``feqdyn`` package is hosted at `GitLab <https://gitlab.com/qcad.fi/feqdyn>_`.\n\n``python3 setup.py install`` should install the package. Note that you have to \nmanually install real and complex PETSc, SLEPc, petsc4py, slepc4py, and FEniCS \nsuite.\n\nAuthors\n=======\n\nJanne Solanp\u00e4\u00e4\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/solanpaa/feqdyn",
+        "keywords": "numerics,FEM,finite-element method,quantum mechanics,Schr\u00f6dinger equation,physics",
+        "license": "Boost Software License 1.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "feqdyn",
+        "package_url": "https://pypi.org/project/feqdyn/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/feqdyn/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/solanpaa/feqdyn"
+        },
+        "release_url": "https://pypi.org/project/feqdyn/0.3.1/",
+        "requires_dist": [
+            "numpy",
+            "scipy",
+            "matplotlib",
+            "h5py",
+            "mpi4py",
+            "petsc4py",
+            "slepc4py",
+            "fenics-dolfin",
+            "mshr",
+            "psutil",
+            "progressbar2",
+            "mypy"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Finite element time-dependent quantum mechanics",
+        "version": "0.3.1"
+    },
+    "last_serial": 4493435,
+    "releases": {
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9dd70f588b09aa5c709b6dfc974629d8",
+                    "sha256": "696d79848a49becd1d01e0e712bc53f2dc6e32f8526e9fdff466f70fff26b3f6"
+                },
+                "downloads": -1,
+                "filename": "feqdyn-0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9dd70f588b09aa5c709b6dfc974629d8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 151051,
+                "upload_time": "2018-11-16T11:25:56",
+                "url": "https://files.pythonhosted.org/packages/98/af/a6349501ad384cc41780fccf551fe2fde95d0bd55c654f742b4d91c2e0b2/feqdyn-0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab510768534aa3bce52c6485fefe7282",
+                    "sha256": "1e80f0eac68fb4aec2df3a5310ebdd389a14a0a8df2dc0c7369b952b35139b2b"
+                },
+                "downloads": -1,
+                "filename": "feqdyn-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ab510768534aa3bce52c6485fefe7282",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 63008,
+                "upload_time": "2018-11-16T11:25:59",
+                "url": "https://files.pythonhosted.org/packages/cb/04/18fae2cdc21d576b64573e6148c07811a419bdf5a43c6d4db077ac617168/feqdyn-0.3.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "714e9b620082df565bfa20b863e1b441",
+                    "sha256": "ad04fe0a4c29bc7622352f35e495b198abfccd95c5ffd4be1c8c30ebdffb243e"
+                },
+                "downloads": -1,
+                "filename": "feqdyn-0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "714e9b620082df565bfa20b863e1b441",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 150782,
+                "upload_time": "2018-11-16T11:39:21",
+                "url": "https://files.pythonhosted.org/packages/34/cf/a59b9d55af4c067ba672aa36d8b41f7244fb6f35198e61382d95f7f29efb/feqdyn-0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab3fca70de808a9791c04183c719cd8c",
+                    "sha256": "cab5b2f82fb959f911b2d36d388a73e5593e673f04320ef6ae7b68ef6a58c23d"
+                },
+                "downloads": -1,
+                "filename": "feqdyn-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ab3fca70de808a9791c04183c719cd8c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 62944,
+                "upload_time": "2018-11-16T11:39:23",
+                "url": "https://files.pythonhosted.org/packages/ce/9d/afb6cc0f2ed7b6824269547767e71d3577fe726ad65ab8779e6e9ab61164/feqdyn-0.3.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "714e9b620082df565bfa20b863e1b441",
+                "sha256": "ad04fe0a4c29bc7622352f35e495b198abfccd95c5ffd4be1c8c30ebdffb243e"
+            },
+            "downloads": -1,
+            "filename": "feqdyn-0.3.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "714e9b620082df565bfa20b863e1b441",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 150782,
+            "upload_time": "2018-11-16T11:39:21",
+            "url": "https://files.pythonhosted.org/packages/34/cf/a59b9d55af4c067ba672aa36d8b41f7244fb6f35198e61382d95f7f29efb/feqdyn-0.3.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ab3fca70de808a9791c04183c719cd8c",
+                "sha256": "cab5b2f82fb959f911b2d36d388a73e5593e673f04320ef6ae7b68ef6a58c23d"
+            },
+            "downloads": -1,
+            "filename": "feqdyn-0.3.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "ab3fca70de808a9791c04183c719cd8c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 62944,
+            "upload_time": "2018-11-16T11:39:23",
+            "url": "https://files.pythonhosted.org/packages/ce/9d/afb6cc0f2ed7b6824269547767e71d3577fe726ad65ab8779e6e9ab61164/feqdyn-0.3.1.tar.gz"
+        }
+    ]
+}

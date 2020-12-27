@@ -1,0 +1,144 @@
+{
+    "info": {
+        "author": "jsyj",
+        "author_email": "853934146@qq.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Web Environment",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python"
+        ],
+        "description": "efweb\n=====\n\n\u8fd9\u662f\u4e00\u4e2a\u7b80\u5355\u7684\u5f02\u6b65API\u670d\u52a1\u5668\u6846\u67b6\u3002\n\nInstall\n-------\n\n.. code:: shell\n\n    pip install efweb\n\nBasic EXample\n-------------\n\n.. code:: python\n\n    import efweb.web\n    import asyncio\n\n    class Test(efweb.web.RequestHandler):\n        async def get(self):\n            return self.write_json({\"success\": True, 'params': self.get_arguments()})\n\n        async def post(self):\n            return self.write_json({\"success\": True, 'method': 'post', 'postdata': await self.get_post(), 'a': await self.get_argument('a')})\n\n    class Test2(efweb.web.RequestHandler):\n        async def get(self):\n            match_info = await self.match_info\n            return self.write_json({\"success\": True, 'Handler': 'test2', 'name': match_info['name']})\n\n        async def post(self):\n            # application/json\n            return self.write_json({\"success\": True, 'method': 'post', 'postjson': await self.get_json()})\n\n    routers = [(r'/', Test), (r'/user/{name}', Test2)]\n\n\n    loop = asyncio.get_event_loop()\n    loop.run_until_complete(efweb.web.init_app(loop, routers=routers))\n    loop.run_forever()\n\nBase Methods\n------------\n\n**\u521d\u59cb\u5316\u5e94\u7528\uff1a**\n\n::\n\n    efweb.web.init_app(loop, routers=routers)\n\n\u53ef\u9009\u53c2\u6570\n\n``host`` : \u670d\u52a1\u5668ip\n\n``port`` \uff1a\u7aef\u53e3\u53f7\n\n``middlewares``: \u62e6\u622a\u51fd\u6570\n\n``cors``: \u662f\u5426\u8de8\u57df\u8bf7\u6c42\n\n**\u521b\u5efaHandler\uff1a**\n\n\u521b\u5efa\u4e00\u4e2a\u7c7b\uff0c\u7ee7\u627f\\ ``efweb.web.RequestHandler``,\n\u91cd\u5199\\ ``get``\\ \u548c\\ ``post``\\ \u65b9\u6cd5\u6765\u5904\u7406\u8bf7\u6c42\u3002\u4f8b\u5b50\u5982\u4e0b\uff1a\n\n.. code:: python\n\n    class Test(efweb.web.RequestHandler):\n        async def get(self):\n            return self.write_json({\"success\": True, 'method': 'get'})\n        async def post(self):\n            return self.write_json({\"success\": True, 'method': 'post'})\n\n**\u8def\u7531\u914d\u7f6e\uff1a**\n\n\u521d\u59cb\u5316\u5e94\u7528\u7684\u65f6\u5019\uff0c\u4f20\u5165router\u53c2\u6570\uff0c\u5185\u90e8\u662f\u8def\u7531\u7684tuple,\u7b2c\u4e00\u4e2a\u5143\u7d20\u662furl\u89c4\u5219\uff0c\u7b2c\u4e8c\u4e2a\u5143\u7d20\u662fhandler\uff0c\u6784\u5efa\u5f62\u5f0f\u5982\u4e0b\uff1a\n\n::\n\n    routers = [\n                (r'/', Test),\n                (r'/user/{name}', Test2)\n            ]\n\n**\u83b7\u53d6url\u4e2d\u643a\u5e26\u7684\u53c2\u6570:**\n\n.. code:: python\n\n    self.get_arguments()  # \u6240\u6709\u53c2\u6570\n    await self.get_argument('name', 'dufault') # \u5355\u4e00\u53c2\u6570 (\u5305\u62ecpost\u8868\u5355\u4e2d\u7684\u53c2\u6570)\n\n**\u83b7\u53d6url\u4e2d\u7684\u53c2\u6570\uff1a**\n\n\u6bd4\u5982\uff0c/path/{name}\n\n.. code:: python\n\n    match_info = await self.match_info\n    name = match_info[name]\n\n**\u83b7\u53d6POST\u8868\u5355\u53c2\u6570\uff1a**\n\n.. code:: python\n\n    await self.get_post()\n\n**\u83b7\u53d6POST\u7684JSON\u6570\u636e\uff1a**\n\n.. code:: python\n\n    await self.get_json()\n\n**\u8fd4\u56dejson\u6570\u636e\uff1a**\n\n::\n\n    self.write_json({})\n    # or\n    efweb.web.json_response()\n\n**middleware:**\n\n\u76f8\u5f53\u4e8e\u4e00\u4e2a\u62e6\u622a\u5668\uff0c\u4e00\u4e2aurl\u88ab\u5904\u7406\u5668\u5904\u7406\u524d\u540e\u589e\u52a0\u4e00\u4e9b\u64cd\u4f5c\uff0c\u4f8b\u5982\uff1a\n\n.. code:: python\n\n    @efweb.web.middleware\n    async def error_middleware(request, handler):\n        if request.method == 'POST' and request.content_type != 'application/json':\n            return efweb.web.json_response({'error': 'Request data must be a json type.'})\n        response = await handler(request)\n        print('after handller do something ...')\n        return response\n\n\u521d\u59cb\u5316\u5e94\u7528\u7684\u65f6\u5019\u9700\u8981\u4f20\u5165\\ ``middlewares``\\ \u53c2\u6570\u3002\n\n.. code:: python\n\n    efweb.web.init_app(loop, routers=routers, middlewares=[error_middleware])",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mikuh/efweb",
+        "keywords": "",
+        "license": "BSD",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "efweb",
+        "package_url": "https://pypi.org/project/efweb/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/efweb/",
+        "project_urls": {
+            "Homepage": "https://github.com/mikuh/efweb"
+        },
+        "release_url": "https://pypi.org/project/efweb/0.1.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "An asynchronous REST service framework.",
+        "version": "0.1.3"
+    },
+    "last_serial": 3786426,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a0ca1bba64bbdc501fe9f9eca84f1114",
+                    "sha256": "c8d553440241c4fd4688a9555da521260db06b3fdd6362a36c0ba941a455bb2c"
+                },
+                "downloads": -1,
+                "filename": "efweb-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a0ca1bba64bbdc501fe9f9eca84f1114",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4826,
+                "upload_time": "2018-04-14T03:03:14",
+                "upload_time_iso_8601": "2018-04-14T03:03:14.408737Z",
+                "url": "https://files.pythonhosted.org/packages/d2/16/7e8d2bacb62882ec45f007225b98d0483892b75156c67e34fe9abdc508d9/efweb-0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4df59ea710163e670f8e098262de95ec",
+                    "sha256": "15d6370311c81a7d4b28817e3db2c2f616ac8527fde2bad921cce292b7951e2a"
+                },
+                "downloads": -1,
+                "filename": "efweb-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4df59ea710163e670f8e098262de95ec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4818,
+                "upload_time": "2018-04-14T03:13:58",
+                "upload_time_iso_8601": "2018-04-14T03:13:58.787919Z",
+                "url": "https://files.pythonhosted.org/packages/62/7e/6e7b9436bf2cd9dc08040d54c6cb0dda518f53866cb2826a950a7aaff162/efweb-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cc11ef55b317f809a2af46a4fb3c5846",
+                    "sha256": "94740b96b2e58b7f4283b3d1774a18612179b082fbe20746ea5a1934f32d1ab1"
+                },
+                "downloads": -1,
+                "filename": "efweb-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cc11ef55b317f809a2af46a4fb3c5846",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5284,
+                "upload_time": "2018-04-21T02:42:00",
+                "upload_time_iso_8601": "2018-04-21T02:42:00.071361Z",
+                "url": "https://files.pythonhosted.org/packages/df/b3/07cc9cc0b5b48da18df507270d9815b4f4c70695ae60cff0c9e3e7b1e9d0/efweb-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "edfff3cee8b4cc8278ba00eaf539eddc",
+                    "sha256": "f1db55a0ca860e794bf6b3199d76bbd2df01f4bf86c62c07763d4b2b0a085b34"
+                },
+                "downloads": -1,
+                "filename": "efweb-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "edfff3cee8b4cc8278ba00eaf539eddc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5293,
+                "upload_time": "2018-04-21T02:58:01",
+                "upload_time_iso_8601": "2018-04-21T02:58:01.199108Z",
+                "url": "https://files.pythonhosted.org/packages/ae/7e/edd7e159216940ef407ac3f660916e049c9aa573272612cd4d843d12b19f/efweb-0.1.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "edfff3cee8b4cc8278ba00eaf539eddc",
+                "sha256": "f1db55a0ca860e794bf6b3199d76bbd2df01f4bf86c62c07763d4b2b0a085b34"
+            },
+            "downloads": -1,
+            "filename": "efweb-0.1.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "edfff3cee8b4cc8278ba00eaf539eddc",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5293,
+            "upload_time": "2018-04-21T02:58:01",
+            "upload_time_iso_8601": "2018-04-21T02:58:01.199108Z",
+            "url": "https://files.pythonhosted.org/packages/ae/7e/edd7e159216940ef407ac3f660916e049c9aa573272612cd4d843d12b19f/efweb-0.1.3.tar.gz"
+        }
+    ]
+}

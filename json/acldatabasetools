@@ -1,0 +1,193 @@
+{
+    "info": {
+        "author": "Josh Harkema",
+        "author_email": "joshua.harkema@ucalgary.ca",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# database.acriticismlab.org Connector\n\nThis repo holds python functions to make the process of connecting to the ACL sonnet database easier. The tools in this\nrepo can also be installed via pip:\n\n```\npip install AclDatabaseTools\n```\n\n## Instructions\n\n**Requirements:**\n\nIf you've never used python or written a single line of code before you will need to install the following software\non your PC before you begin. All of these are quite painless to install. If you're dabbling in this world I recommend\nyou install Atom / Notepad++ from the IDE section; if you're planning to go a bit further, I suggest PyCharm CE.\n\n1. Git: https://git-scm.com/downloads\n2. Python 3.6: https://www.python.org/downloads/\n    * Ensure you install pip, when you install Python the default settings will automatically do this.\n3. An IDE or text editor (pick one):\n    * PyCharm CE: https://www.jetbrains.com/pycharm/download/#section=windows <- free, all the bells and whistles. \n    (Mac / Windows / *nix)\n    * Notepad++: https://notepad-plus-plus.org/download/v7.5.6.html <- free, very simple. (Windows)\n    * Atom: https://atom.io/ <- free, very simple. (Mac / Windows / *nix)\n4. A whole lot of patience. If you're new to the world of computer code, this is a good introduction.\n\nOnce you have successfully set up all this software, you can move on to the next step.\n\nTo install the AclDatabaseTools in PyCharm, open a new project (use default values to create a new project) and press\ncontrol-alt-s to open PyCharm's project settings. In the window that pops up, expand \"Project {{the name of your \nproject}}\" then click on \"Project Interpreter.\" On the right hand side of the page, click the green \"+\" (plus) symbol.\nType \"AclDatabaseTools\" in the search field, click on \"AclDatabaseTools\" in the results, then click the \"Install \nPackage\" button on the bottom of the page.\n\nThe first command \"moves\" your current active directory location to the \"root\" (i.e. the bottom) of the repository's\ndirectory tree. [Here](https://www.youtube.com/watch?v=hUW5MEKDtMM) is a video on how all this works in laymen's terms.\n\nDepending on how fast your computer is, the second command can take a couple minutes to finish up. This installs all the\n\"dependencies\" the project requires. Think of dependencies like tools, they are bits of code other people have written\nto make your life as a programmer easier. You will need them to run the python scripts in this repository.\n\n**Create a file:**\n\n**NOTE:** Items in double \"{{\" brackets indicate content that will be specific to your machine. Don't copy the content\nof the brackets, follow the instructions to find the content you will need for your individual computer. This tutorial\nuses PyCharm, if you want to use another IDE you will have to figure out how to do all this via Google-fu.\n\nNow, close the setting windows. Let's create a python file. Along the left hand side of the PyCharm window, you should\nsee a file tree. Right click on the \"top\" folder (it should have the same name as your project) and select, New->Python\nFile. Give the file a name (i.e. \"Test\") and copy the following data into the file:\n\n```python\n\"\"\"\nBasic demonstration functions for the BeyondAporia db. You must run\n'nltk.download()' from a Python interactive console before this will\nwork.\n\nauthor: Josh Harkema\n\"\"\"\n\nimport nltk\n\nimport AclDatabaseTools.word_tools as wt\nfrom AclDatabaseTools.database_connector import AclDatabaseConnector\n\n\ndef main():\n    \"\"\"\n    Testing functions for demonstration and teaching.\n    :return: noting, prints to console.\n    \"\"\"\n    # Get all the sonnets from the database.\n    sonnets = AclDatabaseConnector().get_all()\n\n    # Tokenize the text of the sonnets into words, remove all\n    # punctuation and change everything to lower case.\n    sonnets = wt.tokenize_words(sonnets, True, True)\n\n    # Print the total number of words in the database.\n    print(len(sonnets))\n\n    # Remove all the stop words.\n    sonnets = wt.remove_stop_words(sonnets)\n\n    # Plot the frequency of words from the clean word_tokens\n    frequency = nltk.FreqDist(sonnets)\n\n    # Print the plot.\n    frequency.plot(20, cumulative=False)\n\n\nmain()\n\n```\n\n**Run the code:**\n\nNow we're ready to make some sausage! Right click on the file you just created and select \"Run {{your file name}}.\"\n\nYou did it! You ran a python script. The window should now show a 'guess' about what kind of poem we fed it.\nNow we'll get into the details of what just happened. \n\nGo to your text editor from step one, browse to the directory of the repository in Windows Explorer / Finder (the file \nicon) and open SonnetAnalysis.py.\n\nThis file contains a number of elements:\n\n```python\n\"\"\"\nBasic demonstration functions for the BeyondAporia db. You must run\n'nltk.download()' from a Python interactive console before this will\nwork.\n```\n\nThis first part is the \"comments\" part of the file. These don't \"do\" anything but serve as a way to communicate details\nabout the script.\n\n```python\nimport nltk\n\nimport AclDatabaseTools.word_tools as wt\nfrom AclDatabaseTools.database_connector import AclDatabaseConnector\n```\n\nThis part is where we start by 'importing,' or making available, some of the dependencies we installed above.\n\n```python\ndef main():\n```\n\nThis line is a 'semantic' thing. It places all the code inside what is called a function. Think of a function as a self\ncontained series of instructions that you can run by typing it's name.\n\nTabs (indents) are important in python, the indented lines under the 'def main()' line are considered \"part\" \nof the function.\n\nIf you look at the last line (notice that it is not indented):\n```python\nmain()\n```\nThis an example of how this works. Using a functions name to execute (run) its instructions is called \"calling\" the \nfunction: you literally \"call\" it by its name. \n\nLets get to the juicy parts, there is a lot happening here. Skip past the \"\"\" comments.\n\n```python\nsonnets = AclDatabaseConnector().get_sonnets_by_ids(\"10\")\nsonnets = wt.tokenize_words(sonnets, True, True)\n```\n\nThe first line of this code does a tonne. In this single line a connection to the BeyondAporia database is created and\nsonnet ID \"10\" is downloaded to your computer in a format Python understands. \n[This](https://beyondaporia.com/sonnets/by_id/10) is what the computer sees. If you look closely, you'll be able to \npick out Shakespeare's *Sonnet II*. This single line of code gets all the data you'll need to perform an analysis of\nthis single sonnet (we will cover how to get larger volumes of sonnets later.)\n\nThe second line of code turns this sonnet into a series of tokens. In this case it divides the sonnet's text into its\nlines and stores them in a way that can be analyzed. The [NLTK](https://www.nltk.org/) requires text to be converted\ninto 'tokens' before you can analyze them. It's not super important to understand exactly what this means at this point.\nBut keep in mind a 'token' can be a single letter, a word, a group of words, a sentence, a paragraph, a page, a chapter,\na book, a large number of books, etc. The size of a 'token' is entirely arbitrary. In this case we're using lines of\npoetry because this is the easiest way to analyze rhyme. \n\nThe stuff in brackets \"()\" are called parameters. In the first line the parameter \"10\" indicates the sonnet ID you want.\nIn the second line the parameter \"sonnets\" tells \"tokenize_lines\" you want to tokenize the sonnets you retrieved in the\nfirst line. The parameter \"True\" (note capital \"T\") tells \"tokenize_lines\" you want to remove all the punctuation;\nchanging this parameter to \"False\" (note capital \"F) tells \"tokenize_lines\" you want to keep the punctuation. The second \n\"True\" indicates you want to transform all characters (i.e. letters) to lower case. Parameters are *always* comma \nseparated. Forgetting the comma is something you're going to do a lot. You're IDE / text editor will\nunderline the mistake (just like MS Word) when you do this.\n\nSo lets break this all down:\n\n```python\nsonnets =\n```\nBy placing a word (almost any word will do) on the left hand site of an '=' sign I'm telling the computer to 'do' \nsomething and store the results in the 'variable' (word) on the left hand side of the '=' sign.\n\n```python\nAclDatabaseConnector().get_sonnets_by_ids(\"10\")\n```\nThis tells python I need to use the Connector() class (a library from above) to get_sonnets_by_ids that match the \nnumber \"10\". You can add more than one sonnet to this string (i.e \"10,11,12,13\") will get you these four sonnets. There\nare easier ways to get large volumes of sonnets:\n\n```python\nAclDatabaseConnector().get_all()\n```\nWill give you the entire database. These 'functions' (everything after the '.' behind Connector()) will be covered\nin more detail below.\n\nThe next lines:\n\n```python\n# Plot the frequency of words from the clean word_tokens\nfrequency = nltk.FreqDist(sonnets)\n\n# Print the plot.\nfrequency.plot(20, cumulative=False)\n```\nTells python to \"print\" the results of FreqDist method to a chart in your PyCharm IDE when the \"main()\" function is run. \n\nWow, that's a lot to take in. And this is where this tutorial ends. There are 1,000's of great tutorials online about\nhow to use the NLTK. I suggest [this](https://dzone.com/articles/nlp-tutorial-using-python-nltk-simple-examples) \ntutorial as a good next step.\n\nOnce you have a better handle on the NLTK you can use the helper scripts (WordTools.py and connector.py) to connect\nto the database and do your own analysis.\n\n### Gotcha's\n\n* Python doesn't care about ' (single-quotes) or \" (double-quotes) they both do the same thing.\n* If something isn't working make sure your function calls have the () after them, this is the most common beginner\nmistake.\n* If something still isn't working check your tabs. Tabs \"nest\" in python:\n\n```python\ndef main():\n    # do main() stuff.\n    for x in y:\n        # do x stuff\n        for z in a:\n            # do z stuff.\n        # GOTCHA! also does x stuff.\n    # GOTCHA! does main() stuff.\n```\nnote: this code doesn't run, it's called pseudo-code and serves as illustration.\n\n### The helper methods\n\n**How to use the helper scripts:**\n\n1. Copy the 'connector.py' and 'WordTools.py' files into the same directory as the python script you're writing for your \nanalysis.\n2. Add the following lines to the top of the script you're writing:\n\n```python\nimport nltk\n\nimport AclDatabaseTools.word_tools as wt\nfrom AclDatabaseTools.database_connector import AclDatabaseConnector\n```\n\n**connector.py**\n\nThese methods are used to get data from the BeyondAporia database.\n\nAll sonnets:\n```python\nsonnets = AclDatabaseConnector().get_all()\n```\n\nSonnets by author's last name (replace Shakespeare with the author you want):\n```python\nsonnets = AclDatabaseConnector().get_author_last_name(\"Shakespeare\")\n```\n\nSonnets by author's first name:\n```python\nsonnets = AclDatabaseConnector().get_author_first_name(\"Bob\")\n```\n\nSonnets by id (id's can be looked up [here](https://beyondaporia.com/lookup/csv)):\n```python\nsonnets = AclDatabaseConnector().get_sonnets_by_ids(\"3,5,7,98\")\n```\nnote: you can select one sonnet or 1,000. The number of ids is unlimited.\n\nSonnet by submitter:\n```python\nsonnets = AclDatabaseConnector().get_sonnets_by_user(\"jharkema\")\n```\nnote: if you need to get 'your' sonnets from the db, this is how to do it. \n\nSonnet Search:\n```python\nsonnets = AclDatabaseConnector().search(first_name=\"william\", last_name=\"shakespeare\")\n```\n\nAvailable fields (you **do not need to enter them all, you can use one field or all five** it's up to you):\n\n* first_name = the author's first name.\n* last_name = the author's last name.\n* title = the title of the sonnet.\n* period = the period the sonnet was published in.\n* text = search the body of the sonnet.\n\n**WordTools.py**\n\nThese methods do things to make tokenizing and cleaning data easier. Here are some examples. All of these\nmethods can be preformed on any response from the Connector() class we used above. You should put one of the lines\nin the \"connector.py\" writeup directly above one of the lines below.\n\nRemove punctuation:\n```python\nsonnets = wt.remove_punctuation(sonnets)\n```\n\nRemove 'stop words' (like 'a', 'the', 'as', etc.):\n```python\nsonnets = wt.remove_stop_words(sonnets)\n```\nnote: you can see the full list of stop words by running print(stopwords) in a python script after importing them\nfrom the NLTK. \n\nTokenize into words:\n```python\nword_list = [] <- this creates a place to store the words\nword_list = wt.tokenize_words(sonnets)\n```\n\nTokenize into lines (poetry):\n```python\nline_list = []\nline_list = wt.tokenize_lines(sonnets)\n```\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://acriticismlab.org",
+        "keywords": "",
+        "license": "GPL v3.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "AclDatabaseTools",
+        "package_url": "https://pypi.org/project/AclDatabaseTools/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/AclDatabaseTools/",
+        "project_urls": {
+            "Homepage": "https://acriticismlab.org"
+        },
+        "release_url": "https://pypi.org/project/AclDatabaseTools/0.0.3/",
+        "requires_dist": [
+            "urllib3 (==1.23)",
+            "twine (==1.11.0)",
+            "tqdm (==4.23.4)",
+            "six (==1.11.0)",
+            "requests-toolbelt (==0.8.0)",
+            "requests (==2.19.1)",
+            "pkginfo (==1.4.2)",
+            "nltk (==3.3)",
+            "idna (==2.7)",
+            "chardet (==3.0.4)",
+            "certifi (==2018.4.16)"
+        ],
+        "requires_python": "",
+        "summary": "Connector and tools for working with the ACL sonnet database.",
+        "version": "0.0.3"
+    },
+    "last_serial": 4030110,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "707696864624cc820c91f22fc02fe3e4",
+                    "sha256": "f827ecfe1fe27002235b1a8713ca477f2dea56424f313113d2fead766b63e055"
+                },
+                "downloads": -1,
+                "filename": "AclDatabaseTools-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "707696864624cc820c91f22fc02fe3e4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 3598,
+                "upload_time": "2018-06-23T01:03:16",
+                "url": "https://files.pythonhosted.org/packages/40/8e/1a2b8c43f3f4b4730f6beed453c241cec5e102d2315ed6112d4924b39c0e/AclDatabaseTools-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "19adecf19856400ef6da59f9485cb1a7",
+                    "sha256": "452043ea81faa7a87985091b75e7b35218da80c55b8f3ce1845eb7e860e29b66"
+                },
+                "downloads": -1,
+                "filename": "AclDatabaseTools-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "19adecf19856400ef6da59f9485cb1a7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6876,
+                "upload_time": "2018-06-23T01:03:18",
+                "url": "https://files.pythonhosted.org/packages/1e/18/0b5f63a36cb239240280950d93c4fec47e6d483f1dc70e961bb97ada7c54/AclDatabaseTools-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94078481f5bf035b59a014f2031480be",
+                    "sha256": "40dd6cca2b4ec27d3eeef81958bb7ec9903cda9e985cf1614eb663bc5cec4d3f"
+                },
+                "downloads": -1,
+                "filename": "AclDatabaseTools-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "94078481f5bf035b59a014f2031480be",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8035,
+                "upload_time": "2018-06-23T01:16:02",
+                "url": "https://files.pythonhosted.org/packages/b5/c7/4c9c8f9fd5fd1c49ada14bf383de2e08de2a824b1636e2b02bff7f27426a/AclDatabaseTools-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21a437480b2ac5417fd5c4adf932d000",
+                    "sha256": "7a50740f1703b648a650cc871911593ad8eb1847af4dae93deb0d7fee815577c"
+                },
+                "downloads": -1,
+                "filename": "AclDatabaseTools-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "21a437480b2ac5417fd5c4adf932d000",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8077,
+                "upload_time": "2018-06-23T01:16:04",
+                "url": "https://files.pythonhosted.org/packages/9d/7f/fb94402721a0e7df02af518e4d7973d6f33ff5649f336bfda01db9f0fb28/AclDatabaseTools-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "65144149b47a2959502c790bdb8018f2",
+                    "sha256": "5aceabf35d36e3c3e433d85cd976c0e89b0094f56166d73caa6e9088b9deec28"
+                },
+                "downloads": -1,
+                "filename": "AclDatabaseTools-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "65144149b47a2959502c790bdb8018f2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8752,
+                "upload_time": "2018-07-04T13:31:46",
+                "url": "https://files.pythonhosted.org/packages/f6/1e/152c7cd377a31e4e76cf8a7d15ebb3380722ce24b3fdecbda010a1678494/AclDatabaseTools-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "978b8404fa52d2d147bc65c3caa8677f",
+                    "sha256": "44aeef01ae8edea34b3f90339ce2d31bf6199d6b5d55560adb63301de3703df3"
+                },
+                "downloads": -1,
+                "filename": "AclDatabaseTools-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "978b8404fa52d2d147bc65c3caa8677f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8893,
+                "upload_time": "2018-07-04T13:31:47",
+                "url": "https://files.pythonhosted.org/packages/d1/4e/41a52780afa01d8172e85576e4b6d77261165821ce17ed0aa682b9185050/AclDatabaseTools-0.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "65144149b47a2959502c790bdb8018f2",
+                "sha256": "5aceabf35d36e3c3e433d85cd976c0e89b0094f56166d73caa6e9088b9deec28"
+            },
+            "downloads": -1,
+            "filename": "AclDatabaseTools-0.0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "65144149b47a2959502c790bdb8018f2",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 8752,
+            "upload_time": "2018-07-04T13:31:46",
+            "url": "https://files.pythonhosted.org/packages/f6/1e/152c7cd377a31e4e76cf8a7d15ebb3380722ce24b3fdecbda010a1678494/AclDatabaseTools-0.0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "978b8404fa52d2d147bc65c3caa8677f",
+                "sha256": "44aeef01ae8edea34b3f90339ce2d31bf6199d6b5d55560adb63301de3703df3"
+            },
+            "downloads": -1,
+            "filename": "AclDatabaseTools-0.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "978b8404fa52d2d147bc65c3caa8677f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 8893,
+            "upload_time": "2018-07-04T13:31:47",
+            "url": "https://files.pythonhosted.org/packages/d1/4e/41a52780afa01d8172e85576e4b6d77261165821ce17ed0aa682b9185050/AclDatabaseTools-0.0.3.tar.gz"
+        }
+    ]
+}

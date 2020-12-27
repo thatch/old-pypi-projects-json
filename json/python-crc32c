@@ -1,0 +1,430 @@
+{
+    "info": {
+        "author": "Google LLC",
+        "author_email": "googleapis-packages@oogle.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# `google-crc32c`\n\n> Python / CFFI wrapper for `google/crc32c`\n\n## Checking Out\n\nBe sure to check out all submodules:\n\n```\n$ git clone --recursive https://github.com/googleapis/python-crc32c\n```\n\n## Prerequisites\n\nOn Linux:\n\n- `docker`\n- `python3.7`\n\nOn OS X:\n\n- `make`\n- [Official][1] `python.org` Python 2.7, 3.5, 3.6 and 3.7\n\nOn Windows:\n\n- `cmake`\n- [Official][1] `python.org` Python 3.5, 3.6 and 3.7\n- Visual Studio 15 2017 (just the compiler toolchain)\n\nUnfortunately, `libcrc32c` relies on many C++11 features, so\nbuilding a Python 2.7 extension with the\n[Visual C++ Compiler for Python 2.7][2] is infeasible.\n\n## Building Wheels\n\nOn Linux:\n\n```\n./scripts/manylinux/build.sh\n```\n\nOn OS X:\n\n```\n./scripts/osx/build.sh\n```\n\nOn Windows: see `.appveyor.yml`.\n\n## Verify Wheels\n\nOn Linux (i.e. a host OS, not a `docker` container):\n\n```\n$ ./scripts/manylinux/check-37.sh\n...\n+ venv/bin/python check_cffi_crc32c.py\n_crc32c_cffi: <module 'crc32c._crc32c_cffi' from '.../py-crc32c/venv/lib/python3.7/site-packages/crc32c/_crc32c_cffi.abi3.so'>\n_crc32c_cffi.lib: <Lib object for 'crc32c._crc32c_cffi'>\ndir(_crc32c_cffi.lib): ['crc32c_extend', 'crc32c_value']\n+ unzip -l wheels/python_crc32c-0.0.1-cp37-cp37m-manylinux1_x86_64.whl\nArchive:  wheels/python_crc32c-0.0.1-cp37-cp37m-manylinux1_x86_64.whl\n  Length      Date    Time    Name\n---------  ---------- -----   ----\n    26120  2018-10-25 00:09   crc32c/_crc32c_cffi.abi3.so\n      765  2018-10-24 23:57   crc32c/__init__.py\n    29552  2018-10-25 00:09   crc32c/.libs/libcrc32c-f865a225.so\n      109  2018-10-25 00:09   python_crc32c-0.0.1.dist-info/WHEEL\n      766  2018-10-25 00:09   python_crc32c-0.0.1.dist-info/METADATA\n      652  2018-10-25 00:09   python_crc32c-0.0.1.dist-info/RECORD\n        1  2018-10-25 00:09   python_crc32c-0.0.1.dist-info/zip-safe\n        7  2018-10-25 00:09   python_crc32c-0.0.1.dist-info/top_level.txt\n---------                     -------\n    57972                     8 files\n...\n```\n\nOn OS X:\n\n```\n$ ./scripts/osx/check.sh\n...\n+ venv37/bin/python .../py-crc32c/check_cffi_crc32c.py\n_crc32c_cffi: <module 'crc32c._crc32c_cffi' from '.../py-crc32c/venv37/lib/python3.7/site-packages/crc32c/_crc32c_cffi.abi3.so'>\n_crc32c_cffi.lib: <Lib object for 'crc32c._crc32c_cffi'>\ndir(_crc32c_cffi.lib): ['crc32c_extend', 'crc32c_value']\n+ /Library/Frameworks/Python.framework/Versions/3.7/bin/delocate-listdeps --all --depending .../py-crc32c/wheels/python_crc32c-0.0.1-cp37-cp37m-macosx_10_6_intel.whl\n/usr/lib/libSystem.B.dylib:\n    crc32c/_crc32c_cffi.abi3.so\n    crc32c/.dylibs/libcrc32c.dylib\n/usr/lib/libc++.1.dylib:\n    crc32c/.dylibs/libcrc32c.dylib\n@loader_path/.dylibs/libcrc32c.dylib:\n    crc32c/_crc32c_cffi.abi3.so\n...\n```\n\nOn Windows: TBD.\n\n[1]: https://www.python.org/downloads/\n[2]: https://aka.ms/vcpython27\n\n## Installing locally for testing\n\nInitialize the submodules and build the main `libcrc32c.so` shared\nlibrary using `cmake` / `make`:\n\n```bash\n$ cd py-crc32c\n$ git submodule update --init --recursive\n$ python -m virtualenv venv\n$ venv/bin/pip install --upgrade setuptools pip wheel\n$ venv/bin/pip install cmake\n$ mkdir usr\n$ export CRC32C_INSTALL_PREFIX=$(pwd)/usr\n$ mkdir crc32c/build\n$ cd crc32c/build\n$ ../../venv/bin/cmake \\\n>   -DCRC32C_BUILD_TESTS=no \\\n>   -DCRC32C_BUILD_BENCHMARKS=no \\\n>   -DBUILD_SHARED_LIBS=yes \\\n>   -DCMAKE_INSTALL_PREFIX:PATH=${CRC32C_INSTALL_PREFIX} \\\n>   ..\n$ make all install\n$ cd ../..\n```\n\nNow, run the tests:\n\n```bash\n$ venv/bin/pip install -e .[testing]\n$ venv/bin/py.test tests/\n============================= test session starts ==============================\nplatform linux -- Python 3.6.7, pytest-3.10.0, py-1.7.0, pluggy-0.8.0\nrootdir: ..., inifile:\ncollected 9 items\n\ntests/test___init__.py .........                                         [100%]\n\n=========================== 9 passed in 0.03 seconds ===========================\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/googleapis/python-crc32c",
+        "keywords": "",
+        "license": "Apache 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "python-crc32c",
+        "package_url": "https://pypi.org/project/python-crc32c/",
+        "platform": "Posix; MacOS X; Windows",
+        "project_url": "https://pypi.org/project/python-crc32c/",
+        "project_urls": {
+            "Homepage": "https://github.com/googleapis/python-crc32c"
+        },
+        "release_url": "https://pypi.org/project/python-crc32c/0.0.1/",
+        "requires_dist": [
+            "cffi (>=1.0.0)",
+            "pytest; extra == 'testing'",
+            "mock; (python_version == \"2.7\") and extra == 'testing'"
+        ],
+        "requires_python": "",
+        "summary": "A python wrapper of the C library 'Google CRC32C'",
+        "version": "0.0.1"
+    },
+    "last_serial": 4557658,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "83f406ee5b985283a0fff4ca0fa0c7eb",
+                    "sha256": "8d84aa88a97263df2198ff0abcba73cb92c5c4716d59472522be9f16bb1b7c53"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp27-cp27m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "83f406ee5b985283a0fff4ca0fa0c7eb",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 29657,
+                "upload_time": "2018-12-03T23:01:57",
+                "url": "https://files.pythonhosted.org/packages/ee/ca/6d39b5afdc7bffe9a3143cdcafaa81210e0b0504512c3afe6a05fbec956c/python_crc32c-0.0.1-cp27-cp27m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "81b344fa62ab626fa9a315099a8cf2e8",
+                    "sha256": "ff2b257db728e3d38ec6d4a49c9b65a93777762e5f1566877d5cb63a2d204f63"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "81b344fa62ab626fa9a315099a8cf2e8",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp27",
+                "requires_python": null,
+                "size": 29662,
+                "upload_time": "2018-12-03T23:01:18",
+                "url": "https://files.pythonhosted.org/packages/7d/15/b8854f2a5fbe9c6bb7a04bf5ddb791fd8146475adc265912a14eb5356d76/python_crc32c-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4923f6a0a9d2283aa83fd324cea947b8",
+                    "sha256": "af05e24d405cf74cab7558cb0891d902446efb6fe25344c2fa3290bd8746518f"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp35-cp35m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "4923f6a0a9d2283aa83fd324cea947b8",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp35",
+                "requires_python": null,
+                "size": 26545,
+                "upload_time": "2018-12-03T23:01:59",
+                "url": "https://files.pythonhosted.org/packages/38/ee/924a62c5e785486c0609617b8ddd224d721f9a887dbd2cfec5b0b7c625e0/python_crc32c-0.0.1-cp35-cp35m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed0b2c362aafa9cf4660978f44902b99",
+                    "sha256": "b95799badff4634ff8743896776b0584cc6ef280e49646824bed7e1e36ea7d56"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp35-none-win32.whl",
+                "has_sig": false,
+                "md5_digest": "ed0b2c362aafa9cf4660978f44902b99",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp35",
+                "requires_python": null,
+                "size": 24380,
+                "upload_time": "2018-12-03T23:02:00",
+                "url": "https://files.pythonhosted.org/packages/c4/5a/09cbb369a72b1411aaba0e032f7aab5096c073512be5474029b747d52c83/python_crc32c-0.0.1-cp35-none-win32.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7998a1e8db82e36a48911ddcf17b0900",
+                    "sha256": "5ddfe6c86dab325f92028f45e39f623a9d379e39ab06e088f3d434110034c8dc"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp35-none-win_amd64.whl",
+                "has_sig": false,
+                "md5_digest": "7998a1e8db82e36a48911ddcf17b0900",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp35",
+                "requires_python": null,
+                "size": 29351,
+                "upload_time": "2018-12-03T23:02:02",
+                "url": "https://files.pythonhosted.org/packages/d9/df/79131256a4ec71a6a39e7f827c19479e91903b4a23eacf25436fe082d44b/python_crc32c-0.0.1-cp35-none-win_amd64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6086f851e17eef05faf78bf04580778b",
+                    "sha256": "2ec7b206d28ad6b8a3385f1db1f3b973f17bc7a09b9cbbf890ae63c17a85ca50"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp36-cp36m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "6086f851e17eef05faf78bf04580778b",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 26544,
+                "upload_time": "2018-12-03T23:02:03",
+                "url": "https://files.pythonhosted.org/packages/95/33/39bf085a4493dba9fd21b79aa136117aa4ab9b11ca72b6b8958acdc628c1/python_crc32c-0.0.1-cp36-cp36m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3c6f21c4c326841a6d864b5ba21a5589",
+                    "sha256": "88dff22ad6dd73ee8b72e2d02e24e3da9f26f6f5f7d59a7e6177838d1dd43ee3"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp36-none-win32.whl",
+                "has_sig": false,
+                "md5_digest": "3c6f21c4c326841a6d864b5ba21a5589",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 24357,
+                "upload_time": "2018-12-03T23:02:05",
+                "url": "https://files.pythonhosted.org/packages/b9/bf/d7751e60a6c3643e5d5074ceb14601c2e77987cb53441bc413f71fcbf25a/python_crc32c-0.0.1-cp36-none-win32.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9f8486cee4efd7533d015a4685e6d38a",
+                    "sha256": "ba23d1491ae292548fe73562b7a9ab5bfcc6d2557502377c77bcd8892135ada2"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp36-none-win_amd64.whl",
+                "has_sig": false,
+                "md5_digest": "9f8486cee4efd7533d015a4685e6d38a",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp36",
+                "requires_python": null,
+                "size": 29381,
+                "upload_time": "2018-12-03T23:02:06",
+                "url": "https://files.pythonhosted.org/packages/1a/6f/d2b50f0f567938754f88feeff3c1547c405738066b8dc0c2cb149a4a5874/python_crc32c-0.0.1-cp36-none-win_amd64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "05b8781cfd1a53bc649157792d558fb8",
+                    "sha256": "752f3990818b13e72bff71a3a0edf92f8aeb27b94f3afb3cbadb01875d4b44b7"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp37-cp37m-manylinux1_x86_64.whl",
+                "has_sig": false,
+                "md5_digest": "05b8781cfd1a53bc649157792d558fb8",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 26543,
+                "upload_time": "2018-12-03T23:02:08",
+                "url": "https://files.pythonhosted.org/packages/13/6b/bdf341071776eba6aaa389e08c007d19c54b27a3fb238826a41f12369923/python_crc32c-0.0.1-cp37-cp37m-manylinux1_x86_64.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d59c3044ac35de48ea0b191cb82147fa",
+                    "sha256": "82dd189dc71d64fe9edd18af3d1c1439ee3f249c327fa024aa8015823f0f9c36"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp37-none-win32.whl",
+                "has_sig": false,
+                "md5_digest": "d59c3044ac35de48ea0b191cb82147fa",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 24357,
+                "upload_time": "2018-12-03T23:02:09",
+                "url": "https://files.pythonhosted.org/packages/8f/a7/cbbb60387966a2e5cc9c4fe55d73e41278c60507e5088cbe8fe06276adbb/python_crc32c-0.0.1-cp37-none-win32.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c92d324a1ea25cf030be0882bca36099",
+                    "sha256": "9d046893b7814f2ff950cee1f98cef196547069cfb5c0c87ad4b8906ddc74ac7"
+                },
+                "downloads": -1,
+                "filename": "python_crc32c-0.0.1-cp37-none-win_amd64.whl",
+                "has_sig": false,
+                "md5_digest": "c92d324a1ea25cf030be0882bca36099",
+                "packagetype": "bdist_wheel",
+                "python_version": "cp37",
+                "requires_python": null,
+                "size": 29379,
+                "upload_time": "2018-12-03T23:02:11",
+                "url": "https://files.pythonhosted.org/packages/19/c2/0e490a844e80887b606fa2e047be536d3b963502c3225a155960c89f7487/python_crc32c-0.0.1-cp37-none-win_amd64.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "83f406ee5b985283a0fff4ca0fa0c7eb",
+                "sha256": "8d84aa88a97263df2198ff0abcba73cb92c5c4716d59472522be9f16bb1b7c53"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp27-cp27m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "83f406ee5b985283a0fff4ca0fa0c7eb",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 29657,
+            "upload_time": "2018-12-03T23:01:57",
+            "url": "https://files.pythonhosted.org/packages/ee/ca/6d39b5afdc7bffe9a3143cdcafaa81210e0b0504512c3afe6a05fbec956c/python_crc32c-0.0.1-cp27-cp27m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "81b344fa62ab626fa9a315099a8cf2e8",
+                "sha256": "ff2b257db728e3d38ec6d4a49c9b65a93777762e5f1566877d5cb63a2d204f63"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "81b344fa62ab626fa9a315099a8cf2e8",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp27",
+            "requires_python": null,
+            "size": 29662,
+            "upload_time": "2018-12-03T23:01:18",
+            "url": "https://files.pythonhosted.org/packages/7d/15/b8854f2a5fbe9c6bb7a04bf5ddb791fd8146475adc265912a14eb5356d76/python_crc32c-0.0.1-cp27-cp27mu-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4923f6a0a9d2283aa83fd324cea947b8",
+                "sha256": "af05e24d405cf74cab7558cb0891d902446efb6fe25344c2fa3290bd8746518f"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp35-cp35m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "4923f6a0a9d2283aa83fd324cea947b8",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp35",
+            "requires_python": null,
+            "size": 26545,
+            "upload_time": "2018-12-03T23:01:59",
+            "url": "https://files.pythonhosted.org/packages/38/ee/924a62c5e785486c0609617b8ddd224d721f9a887dbd2cfec5b0b7c625e0/python_crc32c-0.0.1-cp35-cp35m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ed0b2c362aafa9cf4660978f44902b99",
+                "sha256": "b95799badff4634ff8743896776b0584cc6ef280e49646824bed7e1e36ea7d56"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp35-none-win32.whl",
+            "has_sig": false,
+            "md5_digest": "ed0b2c362aafa9cf4660978f44902b99",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp35",
+            "requires_python": null,
+            "size": 24380,
+            "upload_time": "2018-12-03T23:02:00",
+            "url": "https://files.pythonhosted.org/packages/c4/5a/09cbb369a72b1411aaba0e032f7aab5096c073512be5474029b747d52c83/python_crc32c-0.0.1-cp35-none-win32.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7998a1e8db82e36a48911ddcf17b0900",
+                "sha256": "5ddfe6c86dab325f92028f45e39f623a9d379e39ab06e088f3d434110034c8dc"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp35-none-win_amd64.whl",
+            "has_sig": false,
+            "md5_digest": "7998a1e8db82e36a48911ddcf17b0900",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp35",
+            "requires_python": null,
+            "size": 29351,
+            "upload_time": "2018-12-03T23:02:02",
+            "url": "https://files.pythonhosted.org/packages/d9/df/79131256a4ec71a6a39e7f827c19479e91903b4a23eacf25436fe082d44b/python_crc32c-0.0.1-cp35-none-win_amd64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6086f851e17eef05faf78bf04580778b",
+                "sha256": "2ec7b206d28ad6b8a3385f1db1f3b973f17bc7a09b9cbbf890ae63c17a85ca50"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp36-cp36m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "6086f851e17eef05faf78bf04580778b",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 26544,
+            "upload_time": "2018-12-03T23:02:03",
+            "url": "https://files.pythonhosted.org/packages/95/33/39bf085a4493dba9fd21b79aa136117aa4ab9b11ca72b6b8958acdc628c1/python_crc32c-0.0.1-cp36-cp36m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3c6f21c4c326841a6d864b5ba21a5589",
+                "sha256": "88dff22ad6dd73ee8b72e2d02e24e3da9f26f6f5f7d59a7e6177838d1dd43ee3"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp36-none-win32.whl",
+            "has_sig": false,
+            "md5_digest": "3c6f21c4c326841a6d864b5ba21a5589",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 24357,
+            "upload_time": "2018-12-03T23:02:05",
+            "url": "https://files.pythonhosted.org/packages/b9/bf/d7751e60a6c3643e5d5074ceb14601c2e77987cb53441bc413f71fcbf25a/python_crc32c-0.0.1-cp36-none-win32.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9f8486cee4efd7533d015a4685e6d38a",
+                "sha256": "ba23d1491ae292548fe73562b7a9ab5bfcc6d2557502377c77bcd8892135ada2"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp36-none-win_amd64.whl",
+            "has_sig": false,
+            "md5_digest": "9f8486cee4efd7533d015a4685e6d38a",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp36",
+            "requires_python": null,
+            "size": 29381,
+            "upload_time": "2018-12-03T23:02:06",
+            "url": "https://files.pythonhosted.org/packages/1a/6f/d2b50f0f567938754f88feeff3c1547c405738066b8dc0c2cb149a4a5874/python_crc32c-0.0.1-cp36-none-win_amd64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "05b8781cfd1a53bc649157792d558fb8",
+                "sha256": "752f3990818b13e72bff71a3a0edf92f8aeb27b94f3afb3cbadb01875d4b44b7"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp37-cp37m-manylinux1_x86_64.whl",
+            "has_sig": false,
+            "md5_digest": "05b8781cfd1a53bc649157792d558fb8",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 26543,
+            "upload_time": "2018-12-03T23:02:08",
+            "url": "https://files.pythonhosted.org/packages/13/6b/bdf341071776eba6aaa389e08c007d19c54b27a3fb238826a41f12369923/python_crc32c-0.0.1-cp37-cp37m-manylinux1_x86_64.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d59c3044ac35de48ea0b191cb82147fa",
+                "sha256": "82dd189dc71d64fe9edd18af3d1c1439ee3f249c327fa024aa8015823f0f9c36"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp37-none-win32.whl",
+            "has_sig": false,
+            "md5_digest": "d59c3044ac35de48ea0b191cb82147fa",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 24357,
+            "upload_time": "2018-12-03T23:02:09",
+            "url": "https://files.pythonhosted.org/packages/8f/a7/cbbb60387966a2e5cc9c4fe55d73e41278c60507e5088cbe8fe06276adbb/python_crc32c-0.0.1-cp37-none-win32.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c92d324a1ea25cf030be0882bca36099",
+                "sha256": "9d046893b7814f2ff950cee1f98cef196547069cfb5c0c87ad4b8906ddc74ac7"
+            },
+            "downloads": -1,
+            "filename": "python_crc32c-0.0.1-cp37-none-win_amd64.whl",
+            "has_sig": false,
+            "md5_digest": "c92d324a1ea25cf030be0882bca36099",
+            "packagetype": "bdist_wheel",
+            "python_version": "cp37",
+            "requires_python": null,
+            "size": 29379,
+            "upload_time": "2018-12-03T23:02:11",
+            "url": "https://files.pythonhosted.org/packages/19/c2/0e490a844e80887b606fa2e047be536d3b963502c3225a155960c89f7487/python_crc32c-0.0.1-cp37-none-win_amd64.whl"
+        }
+    ]
+}

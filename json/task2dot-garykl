@@ -1,0 +1,117 @@
+{
+    "info": {
+        "author": "Gary Klindt",
+        "author_email": "gary.klindt@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "Operating System :: Unix",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# task2dot\n\nThis program helps with the creation of visualizations of todo\nlists. It works as a simple filter between [taskwarrior](https://github.com/GothenburgBitFactory/taskwarrior) and [graphviz](http://www.graphviz.org/).\n\n## general usage\n\nAt the command line write\n\n    task export | python3 task2dot.py | dot -Tsvg > test.svg\n\nWith this, all todo items that you have ever created are fed into\n`task2dot`. Without any arguments, it just translates the export\ninto a format that is suitable for `graphviz` whose output is saved\nin the file `test.svg`. We can expect this to result in an insanely\nmessy network graphics.\n\nFor clarity, I will not show the dot command and the output\nredirection into a file in any the following code snipptes. Note\nthat those have to be added for obtaining useful commands.\n\nWhen exporting data from `taskwarrior` one has to explicitely state\nthat one only wants to export pending tasks:\n\n    task status:pendung export | python3 task2dot.py\n\nSee a working example: \n\n## what are the nodes, what are the edges\n\nEvery task in the taskwarrior export is a node in the dot\ngraph. The text in the task's nodes are its descriptions and all of\nits annotations, except for the information of items being started\nor stopped. Also projects and tags are nodes. The projects and the\ntasks are connected and the tasks are connected with its tags. The\ndependencies between tasks are shown as well.\n\nUser defined attributes are supported as well. If the task\nconfiguration file is `~/.taskrc` or can be found in the environment\nvariable `$TASKRC` then all user defined attributes are shown as\nnodes that are connected to its respective tasks. This usually is\noverkill, which is why there are two mechanisms to exclude nodes\nand connections from the graph.\n\n## node and edge exclusion\n\n### node exclusion\n\nTo exclude a specific node write\n\n    task status:pending export | python3 task2dot.py -node\n\nThen there will be no node with the content 'node' in the output\ngraph.\n\nSo why is this useful? If you try to implement *Kanban* or something\nsimilar you are very likely to have a certain tag or a user\ndefined attribute, like `todo` far too often for having it in a\ngraph visualization. Almost all tasks would be connected to it via\nedges, which is useless. Also, if you export taskwarrior data,\nwhich is filtered with a specific `tag` will cause the resulting\ngraph having a lot of connections to that tag. So the following\nvisualization would be useful:\n\n    task status:pending +work | python3 task2dot.py -work\n\n### node type and edge exclusion\n\nA specific type of node can be excluded by using two hyphens. For\nexample, not showing any project nodes looks like this:\n\n    task status:pendung export | python3 task2dot.py --project\n\nOr not showing any tags:\n\n    task status:pendung export | python3 task2dot.py --tags\n\nIn my workflow, paths and emails ids are attached to tasks, so I\nneed to write\n\n    task export | python3 task2dot.py --path --email\n\nIt is also possible to exclude certain connections also by using\ndouble hyphen. Let's get rid of all connections from tasks to\ntags:\n\n    task export | python3 task2dot.py --task-tags\n\n## more connections: overnext neighbors\n\nIt is possible to add additional edges than what taskwarrior\nexports directly. One could for example add edges between projects\nand tags because they are connected by tasks that have both. If one\nthen removes the tasks one can look at a graph that shows us which\n'actions' are needed for certain projects, if the tags represent\n'actions'. Similarly to edge exclusion, we use ++node1-node2 to add\nadditional edges.\n\n    task export | python3 task2dot.py ++tags-project --task\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/gary/task2dot",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "task2dot-garykl",
+        "package_url": "https://pypi.org/project/task2dot-garykl/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/task2dot-garykl/",
+        "project_urls": {
+            "Homepage": "https://github.com/gary/task2dot"
+        },
+        "release_url": "https://pypi.org/project/task2dot-garykl/0.0.1/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "convert taskwarrior export to graphviz format and analyse projects",
+        "version": "0.0.1"
+    },
+    "last_serial": 6077155,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2c09db86e2ad7250dbf38cf9edeefb74",
+                    "sha256": "edd12b1a280e6e04120e861ad84327cb9d238e12145cc044b1e1a3788a937cd9"
+                },
+                "downloads": -1,
+                "filename": "task2dot_garykl-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2c09db86e2ad7250dbf38cf9edeefb74",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 7538,
+                "upload_time": "2019-11-04T19:35:15",
+                "upload_time_iso_8601": "2019-11-04T19:35:15.122188Z",
+                "url": "https://files.pythonhosted.org/packages/a3/c6/5f710ed69454c35e2e03054394a6ab51332c6013a97f5aecb14218cadf74/task2dot_garykl-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c7ddc0f91cf8fc407d7cc50e85cd4169",
+                    "sha256": "4b44eba42c6e24bc35487ef20b39fd352c984d5cf748976e902bb47e25a1c71b"
+                },
+                "downloads": -1,
+                "filename": "task2dot-garykl-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c7ddc0f91cf8fc407d7cc50e85cd4169",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 5715,
+                "upload_time": "2019-11-04T19:35:18",
+                "upload_time_iso_8601": "2019-11-04T19:35:18.031307Z",
+                "url": "https://files.pythonhosted.org/packages/48/30/6f4a9ef8bb23506f20ce140f146d0a0b8736dfa7da3a4c6305913171b972/task2dot-garykl-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2c09db86e2ad7250dbf38cf9edeefb74",
+                "sha256": "edd12b1a280e6e04120e861ad84327cb9d238e12145cc044b1e1a3788a937cd9"
+            },
+            "downloads": -1,
+            "filename": "task2dot_garykl-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2c09db86e2ad7250dbf38cf9edeefb74",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 7538,
+            "upload_time": "2019-11-04T19:35:15",
+            "upload_time_iso_8601": "2019-11-04T19:35:15.122188Z",
+            "url": "https://files.pythonhosted.org/packages/a3/c6/5f710ed69454c35e2e03054394a6ab51332c6013a97f5aecb14218cadf74/task2dot_garykl-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c7ddc0f91cf8fc407d7cc50e85cd4169",
+                "sha256": "4b44eba42c6e24bc35487ef20b39fd352c984d5cf748976e902bb47e25a1c71b"
+            },
+            "downloads": -1,
+            "filename": "task2dot-garykl-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c7ddc0f91cf8fc407d7cc50e85cd4169",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 5715,
+            "upload_time": "2019-11-04T19:35:18",
+            "upload_time_iso_8601": "2019-11-04T19:35:18.031307Z",
+            "url": "https://files.pythonhosted.org/packages/48/30/6f4a9ef8bb23506f20ce140f146d0a0b8736dfa7da3a4c6305913171b972/task2dot-garykl-0.0.1.tar.gz"
+        }
+    ]
+}

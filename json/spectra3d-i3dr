@@ -1,0 +1,237 @@
+{
+    "info": {
+        "author": "Ben Knight",
+        "author_email": "bknight@i3drobotics.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# **PY SPECTRA 3D**\n\nPython tool for using spectroscopy data along side 3D by reading and writing the special ply format.\n\n![GIF of labelled 3D point cloud showing spectrum data](https://raw.githubusercontent.com/i3drobotics/Spectra3D/master/Python/Spectra3D/pySpectra3D_example.gif)\n\n## **Run**\nThis tool can be used to add spectral data to 3D data and write it to ply format. This brings several sources of data into one collated file that is much easier to deal with.\n\nIt is adviced to look at and run the example code [Samples](https://github.com/i3drobotics/Spectra3D/tree/master/Python/Samples) to understand the data format expected. This script demonstrates using spectra 3D with auto generated data or loading data from csv and ply files.\n\n### **3D data**\n3D data contains x,y,z co-ordinates generated from stereo cameras / lidar / photogrammetry. This script expects this data in the form of a ply file. This can include vertex color data which will be preserved. \n\nExample usage:\n```python\nres, data_3D = sp3D.read_ply(ply_3D_filename)\n```\n```\nINPUTs\n    filename (string): location of ply file\nOUTPUTs\n    res (bool): succeeded or failed to load ply data\n    data_3D (PlyElement): 3D data read from file [TODO: Change this to standard numpy 3D data]\n```\n\nWARNING: module 'plyfile' used in this script only supports ply properties in the format:\n```code\nproperty {type} {name}\n```\nThis appears to be the de facto standard however is not explicitly defined in the standard so be careful.\n\n### **Spectral data**\nThe spectral data this module was created for is from Raman Spectroscopy. This data has two outputs; wavenumber and intensity. Also included is a machine learning result that tries to identify the substance described by the spectrum. The machine learning result is a sorted list of 5 possible substances with similarity rating for each (%). pySpectra3D expects this data as a 3 csv files (comma seperated). Firstly there should be csv file for each spectrum which contains 4 columns. \n```\n| Wavenumber | Intensity | Label Index | Similarity |\n|------------|-----------|-------------|------------|\n| 1234.56    | 1234.56   | 2           | 0.999      |\n| 1234.56    | 1234.56   | 5           | 0.123      |\n| . . .      | . . .     | . . .       | . . .      |\n```\nThere is an option when loading the csv data as to if includes headers in the first row ('isFirstRowHeader'). Set this to **true** if the csv contains headers. \n\nSecondly there should be a csv that contains a list of substance labels. The order of these should match the index used in 'label index' in the first csv. This index **MUST** be consistant across all spectrum files.\n```\n| Label              |\n|--------------------|\n| Aluminium_Sulphate |\n| Potassium_Sulphate |\n| . . .              |\n```\nThirdly there should be a csv file contains the xyz co-ordinate of where the spectrum was recorded and the filename of that spectrum csv. The co-ordinate should be in the same co-ordinate system so that it is placed in the scene in the correct position (World zero should be the same in both).\n```\n| X     | Y     | Z     | Filename             |\n|-------|-------|-------|----------------------|\n| 1     | 2     | 3     | sample_spectrum1.csv |\n| 4     | 5     | 6     | sample_spectrum2.csv |\n| . . . | . . . | . . . | . . .                |\n```\n\nExample data is included in this repository to clarify this format. Check the [Samples](https://github.com/i3drobotics/Spectra3D/tree/master/Python/Samples) for an example of usage. \n\n## **Generating sample data**\nPackage contains functions for generating test data to try out the class. \n### **Generate 3D**\nFunction name: **'generate_3D'**\n\nGenerate random 3D data within chosen bounds. \n\n### **Generate labels**\nFunction name: **'generate_labels'**\n\nGenerate random strings as substance labels.\n\n### **Generate spectrum**\nFunction name: **'generate_spectra'**\n\nGenerate random spectral data and labels within chosen bounds (this data is not representitive of a normal spectrum as it is random data). Label indices are chosen at random from chosen label list length.\n\n## **PLY HEADER**\nA custom ply header is used to store the extra spectroscopy data. This includes text labels that identify the material that was scanned and x y z positioning of where the data was captured from. The spectroscopy data includes wavenumber and intensity.\nIt is advised to keep the comments in the header of all ply files of this type to avoid confusion by explaining the data format. \n```\nply\nformat ascii 1.0\ncomment -------------------------------------------------------\ncomment This data format is a varient of the ply format for use\ncomment combining 3D and spectrometer data.\ncomment -------------------------------------------------------\ncomment Developed by i3D Robotics and is-instruments (C)2020\ncomment -------------------------------------------------------\ncomment Care has been taken to make sure the 3D data is still viewable\ncomment in standard ply readers however using custom properties and elements\ncomment may cause issues so it is advised to use i3DR's ply tools.\ncomment See [INSERT GITHUB LINK] for tools to read and write this data format\ncomment -------------------------------------------------------\ncomment Define in vertex element 3D point cloud data.\ncomment Also included is label_index, a scalar that can be used\ncomment to identify different types of points.\ncomment A label_index of 0 will refer to an un-lablled point.\ncomment Label_index can be used as a Scalar field to quickly see\ncomment the labelled groups in a point cloud.\nelement vertex 8\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\ncomment -------------------------------------------------------\ncomment Define in spectrum the spectrometer data.\nelement spectrum 1\nproperty float x\nproperty float y\nproperty float z\nproperty list uchar int label_indices\nproperty list uchar float similarity\nproperty list int float wavenumber\nproperty list int float intensity\ncomment -------------------------------------------------------\ncomment Define in label the labels used in this dataset.\ncomment Text is in ascii integer.\nelement label 5\nproperty list uchar int label_text\ncomment -------------------------------------------------------\nend_header\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/i3drobotics/Spectra3D",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "spectra3D-i3DR",
+        "package_url": "https://pypi.org/project/spectra3D-i3DR/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/spectra3D-i3DR/",
+        "project_urls": {
+            "Homepage": "https://github.com/i3drobotics/Spectra3D"
+        },
+        "release_url": "https://pypi.org/project/spectra3D-i3DR/0.0.3.1/",
+        "requires_dist": [
+            "numpy",
+            "matplotlib",
+            "mpl-toolkits",
+            "plyfile",
+            "csv"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Adding spectrum to 3D",
+        "version": "0.0.3.1"
+    },
+    "last_serial": 6568402,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a977503d41d91a1250cc187b86a0e9d",
+                    "sha256": "5bc328774db5d80aa305884787500834d296fa5da54652e91d1a4729eb5ddbf6"
+                },
+                "downloads": -1,
+                "filename": "spectra3D_i3DR-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8a977503d41d91a1250cc187b86a0e9d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 10195,
+                "upload_time": "2020-02-04T12:14:33",
+                "upload_time_iso_8601": "2020-02-04T12:14:33.220628Z",
+                "url": "https://files.pythonhosted.org/packages/ae/2b/7a0acfb0db5cab014b6fd0207de353703ab51c0e869d189ff4039880fe49/spectra3D_i3DR-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d4ab2f278033b1208acc917d17b6071d",
+                    "sha256": "2b680dc59db72416087334ae81739f55751f3be24fe300fa90bd132f0227c622"
+                },
+                "downloads": -1,
+                "filename": "spectra3D-i3DR-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d4ab2f278033b1208acc917d17b6071d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 11085,
+                "upload_time": "2020-02-04T12:14:37",
+                "upload_time_iso_8601": "2020-02-04T12:14:37.622803Z",
+                "url": "https://files.pythonhosted.org/packages/44/34/4dbb244e36ae53ef34de963dd4fbb2559eae53e1e78632df9672be120a82/spectra3D-i3DR-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "365c8ec32716d4b48dadb29b75d41427",
+                    "sha256": "52237730fc06ffeeec79b4da91cc87d4d8ff7f682b27c62d9d08441689420f0b"
+                },
+                "downloads": -1,
+                "filename": "spectra3D_i3DR-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "365c8ec32716d4b48dadb29b75d41427",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 15741,
+                "upload_time": "2020-02-04T12:14:36",
+                "upload_time_iso_8601": "2020-02-04T12:14:36.309655Z",
+                "url": "https://files.pythonhosted.org/packages/3d/cb/961c028adbc999e9e8d0790e17ee8104decb50e3ecea46d382952ba4678e/spectra3D_i3DR-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "426f97546eb96e56a32d43c54a856936",
+                    "sha256": "d58d5000d967d5d1a29d4768f30c62f9b4488c69636cdeae0aa46fd1b908bba6"
+                },
+                "downloads": -1,
+                "filename": "spectra3D-i3DR-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "426f97546eb96e56a32d43c54a856936",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 11136,
+                "upload_time": "2020-02-04T12:14:38",
+                "upload_time_iso_8601": "2020-02-04T12:14:38.803104Z",
+                "url": "https://files.pythonhosted.org/packages/ce/97/5bde92d5309c6cc0183a61cb312c9edbfac7c3712734f7f036c76f1b537e/spectra3D-i3DR-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3ff31c2f62701c0dae4e7b5676356bb3",
+                    "sha256": "c0e04eb9134b0a8bdd6699c5ad5314075b967651f1d3416790654d17f2c10c20"
+                },
+                "downloads": -1,
+                "filename": "spectra3D_i3DR-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3ff31c2f62701c0dae4e7b5676356bb3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 15755,
+                "upload_time": "2020-02-04T12:35:35",
+                "upload_time_iso_8601": "2020-02-04T12:35:35.898296Z",
+                "url": "https://files.pythonhosted.org/packages/a7/f5/76fa228c2a0c6f476cdd8c3cf6dea97855138e4b5b3cd5644c06d10873b3/spectra3D_i3DR-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8bb6694e339b5fd611a0a8bb3380dcf",
+                    "sha256": "c5ed8581b57499a68138b52d0889b1d2919e9dff4cb5c2ba273503b5d1be83e1"
+                },
+                "downloads": -1,
+                "filename": "spectra3D-i3DR-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c8bb6694e339b5fd611a0a8bb3380dcf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 11142,
+                "upload_time": "2020-02-04T12:35:39",
+                "upload_time_iso_8601": "2020-02-04T12:35:39.030517Z",
+                "url": "https://files.pythonhosted.org/packages/30/b8/082ef10840c36e8a9e6cbdce3c5306db46bf9a7b4e79efdc59815ca352fd/spectra3D-i3DR-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7739e490bb82a18a5a604bb77e66a9ad",
+                    "sha256": "ad30a5ea7d12041b0691cbebba11cff94c365e83ec0690a6e4de1b80f3ec7571"
+                },
+                "downloads": -1,
+                "filename": "spectra3D_i3DR-0.0.3.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7739e490bb82a18a5a604bb77e66a9ad",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 15792,
+                "upload_time": "2020-02-04T12:45:11",
+                "upload_time_iso_8601": "2020-02-04T12:45:11.601663Z",
+                "url": "https://files.pythonhosted.org/packages/a8/0d/7d9f83f25d48b7da80cd33ff6e6183e43c3d16e6e9315c96efda41a90f0b/spectra3D_i3DR-0.0.3.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "de29a7ab65322f683718fb53cfc506cf",
+                    "sha256": "d35322ffb1234dfa55077e45e66a31a14d5e2b5495c1b3b5debc7b7258280631"
+                },
+                "downloads": -1,
+                "filename": "spectra3D-i3DR-0.0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "de29a7ab65322f683718fb53cfc506cf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 11172,
+                "upload_time": "2020-02-04T12:45:15",
+                "upload_time_iso_8601": "2020-02-04T12:45:15.054802Z",
+                "url": "https://files.pythonhosted.org/packages/a3/a1/79ba2fc8a748a0d5a7123807baf00373bed7c2091f1b1cc59e0ca43712c0/spectra3D-i3DR-0.0.3.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7739e490bb82a18a5a604bb77e66a9ad",
+                "sha256": "ad30a5ea7d12041b0691cbebba11cff94c365e83ec0690a6e4de1b80f3ec7571"
+            },
+            "downloads": -1,
+            "filename": "spectra3D_i3DR-0.0.3.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "7739e490bb82a18a5a604bb77e66a9ad",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 15792,
+            "upload_time": "2020-02-04T12:45:11",
+            "upload_time_iso_8601": "2020-02-04T12:45:11.601663Z",
+            "url": "https://files.pythonhosted.org/packages/a8/0d/7d9f83f25d48b7da80cd33ff6e6183e43c3d16e6e9315c96efda41a90f0b/spectra3D_i3DR-0.0.3.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "de29a7ab65322f683718fb53cfc506cf",
+                "sha256": "d35322ffb1234dfa55077e45e66a31a14d5e2b5495c1b3b5debc7b7258280631"
+            },
+            "downloads": -1,
+            "filename": "spectra3D-i3DR-0.0.3.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "de29a7ab65322f683718fb53cfc506cf",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 11172,
+            "upload_time": "2020-02-04T12:45:15",
+            "upload_time_iso_8601": "2020-02-04T12:45:15.054802Z",
+            "url": "https://files.pythonhosted.org/packages/a3/a1/79ba2fc8a748a0d5a7123807baf00373bed7c2091f1b1cc59e0ca43712c0/spectra3D-i3DR-0.0.3.1.tar.gz"
+        }
+    ]
+}

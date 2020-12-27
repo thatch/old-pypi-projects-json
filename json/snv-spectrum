@@ -1,0 +1,95 @@
+{
+    "info": {
+        "author": "clintval",
+        "author_email": "valentine.clint@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Scientific/Engineering :: Bio-Informatics"
+        ],
+        "description": "<h1 align=\"center\">snv-spectrum</h2>\n\n<p align=\"center\">A Python 3.6 library for plotting mutational spectra</p>\n\n<p align=\"center\">\n  <a href=\"#installation\"><strong>Installation</strong></a>\n  \u00b7\n  <a href=\"#tutorial\"><strong>Tutorial</strong></a>\n  \u00b7\n  <a href=\"#contributing\"><strong>Contributing</strong></a>\n</p>\n\n<p align=\"center\">\n  <a href=\"https://travis-ci.org/clintval/snv-spectrum\">\n    <img src=\"https://travis-ci.org/clintval/snv-spectrum.svg?branch=master\"></img>\n  </a>\n\n  <a href=\"https://codecov.io/gh/clintval/snv-spectrum\">\n    <img src=\"https://codecov.io/gh/clintval/snv-spectrum/branch/master/graph/badge.svg\"></img>\n  </a>\n\n  <a href=\"https://badge.fury.io/py/snv_spectrum\">\n    <img src=\"https://badge.fury.io/py/snv_spectrum.svg\" alt=\"PyPI version\"></img>\n  </a>\n\n  <a href=\"https://github.com/clintval/snv-spectrum/issues\">\n    <img src=\"https://img.shields.io/github/issues/clintval/snv-spectrum.svg\"></img>\n  </a>\n\n  <a href=\"https://github.com/clintval/snv-spectrum/blob/master/LICENSE\">\n    <img src=\"https://img.shields.io/github/license/clintval/snv-spectrum.svg\"></img>\n  </a>\n</p>\n\n<br>\n\nA base substitution spectrum includes the frequency or probability of all transition and transversions in the DNA grammar. Including the local context of the base substitution aids in the interpretation of biochemical process and disease etiology.\n\nThis **in-development** library will aid in the construction of spectrums with different local context sizes and their visualization in Python.\n\nPlease see [Contributing](#contributing) for feature requests and an intended roadmap.\n\n<br>\n\n<h3 align=\"center\">Installation</h3>\n\n```\n\u276f pip install git+https://github.com/clintval/snv-spectrum.git\n```\n\n<br>\n\n<h3 align=\"center\">Tutorial</h3>\n\nThe base unit of the library is the `Snv` which represents a transition or transversion in a given local context.\n\nThe local context must be symmetrical in length about the base substitution.\n\n```python\nfrom snv_spectrum import Snv\n\nsnv = Snv(reference='G', alternate='T', context='AGC')\n```\n\nUnless the chemical process for the base substitution is specifically known it is useful to represent all base substitutions in a canonical form with either a pyrimidine or purine as the reference base.\n\n```python\n>>> snv.with_pyrimidine_reference\nSnv(reference=\"C\", alternate=\"A\", context=\"GCT\")\n```\n\nYou can automatically generate a spectrum of `Snv` by specifying both the size of the local context and the reference notation.\n\n```python\n>>> from snv_spectrum import Spectrum\n>>> spectrum = Spectrum(k=3, reference_notation='pyrimidine')\n>>> list(Spectrum(k=3, reference_notation='pyrimidine'))\n\"\"\"\n[(Snv(reference=\"C\", alternate=\"A\", context=\"ACA\"), 0),\n (Snv(reference=\"C\", alternate=\"A\", context=\"ACC\"), 0),\n (Snv(reference=\"C\", alternate=\"A\", context=\"ACG\"), 0),\n (Snv(reference=\"C\", alternate=\"A\", context=\"ACT\"), 0),\n (Snv(reference=\"C\", alternate=\"A\", context=\"CCA\"), 0),\n (Snv(reference=\"C\", alternate=\"A\", context=\"CCC\"), 0),\n ...\n\"\"\"\n```\n\nBegin to record observations by accessing the `Spectrum` like a Python dictionary.\n\n```python\nspectrum[snv] += 2\n```\n\nIf you already have a vector of counts or probabilities then you can build a `Spectrum` quickly as long as the data is listed in the correct lexicographic order of the chosen reference notation.\n\n```python\nvector = [0, 2, 3, 4, ..., 95]\nspectrum = Spectrum(k=3, reference_notation='pyrimidine')\nfor snv, count in zip(spectrum.substitutions, vector):\n    spectrum[snv] = count\n```\n\n##### Working with Probability\n\nMany spectra are produced from whole-genome or whole-exome sequencing experiments. Spectra must be normalized to the _kmer_ frequencies in the target study. Without normalization, no valid spectrum comparison can be made between data generated from different target territories or species.\n\nBy default each `Snv` is given a weight of 1 and calling `spectrum.density` will simply give the proportion of `Snv` counts in the `Spectrum`. After weights are set to the observed _kmer_ counts or frequency of the target territory, calling `spectrum.density` will compute a true normalized probability density.\n\nAll weights can be set with assignment _e.g._: `spectrum.weights['ACA'] = 23420`.\n\n```python\n>>> spectrum.density\n\"\"\"\n{Snv(reference=\"C\", alternate=\"A\", context=\"ACA\"): 0.015677491601343786,\n Snv(reference=\"C\", alternate=\"A\", context=\"ACC\"): 0.007838745800671893,\n Snv(reference=\"C\", alternate=\"A\", context=\"ACG\"): 0.0011198208286674132,\n Snv(reference=\"C\", alternate=\"A\", context=\"ACT\"): 0.006718924972004479,\n Snv(reference=\"C\", alternate=\"A\", context=\"CCA\"): 0.010078387458006719,\n Snv(reference=\"C\", alternate=\"A\", context=\"CCC\"): 0.008958566629339306,\n ...\n\"\"\"\n```\n\n_Kmer_ counts can be found with [`skbio.DNA.kmer_frequencies`](http://scikit-bio.org/docs/latest/generated/skbio.sequence.DNA.kmer_frequencies.html) for small targets and with [`jellyfish`](http://www.genome.umd.edu/jellyfish.html) for large targets.\n\n##### Plotting\n\nSpectra with `k=3` in either `pyrimidine` or `purine` reference notation can be plotted using a style that was first used in Alexandrov _et. al._  in 2013 (PMID: [23945592](https://www.ncbi.nlm.nih.gov/pubmed/23945592)).\n\nBoth `Snv` raw counts (`kind=\"count\"`) or their probabilities (`kind=\"density\"`) can be plotted.\n\nThe figure and axes are returned to allow for custom formatting.\n\n```python\nimport numpy\n\nfrom snv_spectrum import plot_spectrum\n\nspectrum = Spectrum(k=3, reference_notation='pyrimidine')\n\nfor snv, count in zip(spectrum.substitutions, range(96)):\n     spectrum[snv] = numpy.random.randint(20)\n\nfig, axes = plot_spectrum(spectrum, kind='density')\n```\n\n![Demo Plot Random][demo-plot-random]\n\n##### Fetching COSMIC Signatures\n\nA helper function is provided to download the [COSMIC signatures](http://cancer.sanger.ac.uk/cosmic/signatures) of mutational processes in human cancer.\n\n```python\nfrom snv_spectrum import get_cosmic_signatures\n\ncosmic_signatures = get_cosmic_signatures()\n\nfig, axes = plot_spectrum(cosmic_signatures['Signature 1'], kind='density')\nfig, axes = plot_spectrum(cosmic_signatures['Signature 14'], kind='density')\n```\n![Signature 1][signature-1]\n![Signature 14][signature-14]\n\n[demo-plot-random]: docs/img/demo-plot-random.png \"Demo Plot Random\"\n[signature-1]: docs/img/signature-1.png \"Signature 1\"\n[signature-14]: docs/img/signature-14.png \"Signature 14\"\n\n<br>\n\n<h3 align=\"center\">Contributing</h3>\n\nPull requests, feature requests, and issues welcome!\n\nUnit tests, continuous test integration, docstrings, and code coverage to come soon.\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "https://github.com/clintval/snv-spectrum/archive/v0.2.0.tar.gz",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/clintval/snv-spectrum",
+        "keywords": "signature mutation transition transversion spectra bioinformatics",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "snv_spectrum",
+        "package_url": "https://pypi.org/project/snv_spectrum/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/snv_spectrum/",
+        "release_url": "https://pypi.org/project/snv_spectrum/0.2.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A Python 3.6 library for plotting mutational spectra.",
+        "version": "0.2.0"
+    },
+    "last_serial": 3592273,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1108e23524af8ddddaf3a440e2b46454",
+                    "sha256": "1a933b9401dac38c19129340cced5a7e4b764ab59889884e80ea9bbfe99466b6"
+                },
+                "downloads": -1,
+                "filename": "snv_spectrum-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1108e23524af8ddddaf3a440e2b46454",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 6263,
+                "upload_time": "2018-02-17T23:30:16",
+                "url": "https://files.pythonhosted.org/packages/ed/b8/0e6d25df3a5dbfdeb3699dba0119800865667fed72f304fe04df6d151647/snv_spectrum-0.1.0.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c6362d700d17d2741925dbe3a389bed",
+                    "sha256": "c9dac6b3975b38f47c9c4f6430e40df96578fe3fab8ce1b439ad4bff7df25b0a"
+                },
+                "downloads": -1,
+                "filename": "snv_spectrum-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7c6362d700d17d2741925dbe3a389bed",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 6882,
+                "upload_time": "2018-02-18T00:37:23",
+                "url": "https://files.pythonhosted.org/packages/76/87/629bd6800458e54cbb5e96db7e3acde1c35c5f5e9888be0fa9c5faab1f55/snv_spectrum-0.2.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7c6362d700d17d2741925dbe3a389bed",
+                "sha256": "c9dac6b3975b38f47c9c4f6430e40df96578fe3fab8ce1b439ad4bff7df25b0a"
+            },
+            "downloads": -1,
+            "filename": "snv_spectrum-0.2.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7c6362d700d17d2741925dbe3a389bed",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 6882,
+            "upload_time": "2018-02-18T00:37:23",
+            "url": "https://files.pythonhosted.org/packages/76/87/629bd6800458e54cbb5e96db7e3acde1c35c5f5e9888be0fa9c5faab1f55/snv_spectrum-0.2.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,95 @@
+{
+    "info": {
+        "author": "Gunnar Aastrand Grimnes",
+        "author_email": "gromgull@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "RDFLib-SPARQL\n=============\n\nA SPARQL 1.1 implementation for RDFLib.\n\nThis replaces the old implementation available in RDFExtras, hopefully\nwith more maintainable code.\n\n[![Build Status](https://travis-ci.org/RDFLib/rdflib-sparql.png?branch=master)](https://travis-ci.org/RDFLib/rdflib-sparql)\n\nUsage: \n------\n\nInstall with setuptools, either easy_install or pip will register the\nSPARQL processor with RDFLib automatically. I cannot recommend this\nstrongly enough.\n\n(you should also uninstall rdfextras - although my test with both\ninstalled still gave me the NEW sparql implementation - but I belive\nthis was random, i.e. depending on a hash value of something)\n\n```python\n#./examples/query.py\n\ng = rdflib.Graph()\ng.load(\"foaf.rdf\")\n\nfor row in g.query(\n    'select ?s where { [] <http://xmlns.com/foaf/0.1/knows> ?s .}'):\n    print row\n```\n\nPrepared Queries\n----------------\n\nQueries can be parsed/translated beforehand - and the initBindings\nkwarg to graph.query can be used to fill in variables that are known:\n\n```python\n# ./examples/preparedquery.py\n\nimport rdflib\nfrom rdflib_sparql.processor import prepareQuery\n\nq = prepareQuery(\n    'select ?s where { ?person <http://xmlns.com/foaf/0.1/knows> ?s .}')\n\ng = rdflib.Graph()\ng.load(\"foaf.rdf\")\n\ntim = rdflib.URIRef(\"http://www.w3.org/People/Berners-Lee/card#i\")\n\nfor row in g.query(q, initBindings={'person': tim}): \n    print row\n\n```\n\nProperty Paths\n--------------\n\nSPARQL PropertyPaths are also available as \"pseudo properties\" in python\ncode. See docs in *rdflib_sparql/paths.py*\n\n```python\n# ./examples/foafpath.py\n\ng = Graph()\ng.load(\"foaf.rdf\")\n\ntim = URIRef(\"http://www.w3.org/People/Berners-Lee/card#i\")\n\nprint(\"Timbl knows:\")\n\n# find name of everyone tim knows:\nfor o in g.objects(tim, FOAF.knows/FOAF.name):\n    print o\n```\n\nSPARQL Update\n-------------\n\nSPARQL Update is implemented - but no HTTP/SPARQL Protocol yet.\nSPARQL Update requests can be evaluated with\n`rdflib_sparql.processor.processUpdate`\n\n```python\n# ./examples/update.py*\n\nimport rdflib\nfrom rdflib_sparql.processor import processUpdate\n\ng = rdflib.Graph()\ng.load(\"foaf.rdf\")\n\nprocessUpdate(g, '''\nPREFIX foaf: <http://xmlns.com/foaf/0.1/> \nPREFIX dbpedia: <http://dbpedia.org/resource/> \nINSERT \n    { ?s a dbpedia:Human . } \nWHERE \n    { ?s a foaf:Person . }\n''')\n\nfor x in g.subjects(\n        rdflib.RDF.type, \n        rdflib.URIRef('http://dbpedia.org/resource/Human')): \n    print(x)\n\n```\n\nStatus: \n-------\n\nCurrently about 90% of SPARQL 1.0 and SPARQL 1.1 Query tests pass. This\nshould be much better than the RDFExtras implementation. \n\nFor test results, see also: \n\nhttp://www.w3.org/2009/sparql/implementations/\n\nSo far, only functional testing has been done, i.e. performance may be rubbish. \n\nIf you would like to dig into the code, see DEVELOPERS\n\nI would welcome any feedback on this!\n\n- Gunnar \nhttp://gromgull.net\n\n\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/RDFLib/rdflib-sparql",
+        "keywords": null,
+        "license": "UNKNOWN",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "rdflib-sparql",
+        "package_url": "https://pypi.org/project/rdflib-sparql/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/rdflib-sparql/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://github.com/RDFLib/rdflib-sparql"
+        },
+        "release_url": "https://pypi.org/project/rdflib-sparql/0.2/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "UNKNOWN",
+        "version": "0.2"
+    },
+    "last_serial": 798604,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3d2a0653f04991289408da0906ae9668",
+                    "sha256": "75b466230b9b22c270a6a09566c8af53f48ee4cc149635bbb0bd132b68b0bde0"
+                },
+                "downloads": -1,
+                "filename": "rdflib-sparql-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3d2a0653f04991289408da0906ae9668",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1595225,
+                "upload_time": "2012-12-06T15:13:07",
+                "url": "https://files.pythonhosted.org/packages/74/91/d1c82b461a0f0962e5f6d60fb8f91211c6d194f1e32647f1f038a79c8935/rdflib-sparql-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "77818e821c930d728c7293cca209f123",
+                    "sha256": "e9a57e45143bb789be2b2b3326ca33f0c7acd9b56920b75d492a9d55e114c0d8"
+                },
+                "downloads": -1,
+                "filename": "rdflib-sparql-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "77818e821c930d728c7293cca209f123",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1638317,
+                "upload_time": "2013-04-19T07:33:33",
+                "url": "https://files.pythonhosted.org/packages/50/64/844f8d169718f4b534579d5def66befee15a5c80a66a7a53c074e66da98c/rdflib-sparql-0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "77818e821c930d728c7293cca209f123",
+                "sha256": "e9a57e45143bb789be2b2b3326ca33f0c7acd9b56920b75d492a9d55e114c0d8"
+            },
+            "downloads": -1,
+            "filename": "rdflib-sparql-0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "77818e821c930d728c7293cca209f123",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 1638317,
+            "upload_time": "2013-04-19T07:33:33",
+            "url": "https://files.pythonhosted.org/packages/50/64/844f8d169718f4b534579d5def66befee15a5c80a66a7a53c074e66da98c/rdflib-sparql-0.2.tar.gz"
+        }
+    ]
+}

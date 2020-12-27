@@ -1,0 +1,133 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 0,
+        "author": "Cory Benfield",
+        "author_email": "cory@lukasa.co.uk",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: Implementation :: CPython"
+        ],
+        "description": "===============================\nHyper: HTTP/2 Client for Python\n===============================\n\nThis is just temporary release until original package will be released with\nversion < 0.7.0.\nRelease will be removed after that.\n\n.. image:: https://raw.github.com/Lukasa/hyper/development/docs/source/images/hyper.png\n\n.. image:: https://travis-ci.org/Lukasa/hyper.svg?branch=master\n    :target: https://travis-ci.org/Lukasa/hyper\n\nHTTP is changing under our feet. HTTP/1.1, our old friend, is being\nsupplemented by the brand new HTTP/2 standard. HTTP/2 provides many benefits:\nimproved speed, lower bandwidth usage, better connection management, and more.\n\n``hyper`` provides these benefits to your Python code. How? Like this::\n\n    from hyper import HTTPConnection\n\n    conn = HTTPConnection('nghttp2.org:443')\n    conn.request('GET', '/httpbin/get')\n    resp = conn.get_response()\n\n    print(resp.read())\n\nSimple.\n\nCaveat Emptor!\n==============\n\nPlease be warned: ``hyper`` is in a very early alpha. You *will* encounter bugs\nwhen using it. In addition, there are very many rough edges. With that said,\nplease try it out in your applications: I need your feedback to fix the bugs\nand file down the rough edges.\n\nVersions\n========\n\n``hyper`` supports the final draft of the HTTP/2 specification: additionally,\nit provides support for drafts 14, 15, and 16 of the HTTP/2 specification. It\nalso supports the final draft of the HPACK specification.\n\nCompatibility\n=============\n\n``hyper`` is intended to be a drop-in replacement for ``http.client``, with a\nsimilar API. However, ``hyper`` intentionally does not name its classes the\nsame way ``http.client`` does. This is because most servers do not support\nHTTP/2 at this time: I don't want you accidentally using ``hyper`` when you\nwanted ``http.client``.\n\nDocumentation\n=============\n\nLooking to learn more? Documentation for ``hyper`` can be found on `Read the Docs`_.\n\n.. _Read the Docs: http://hyper.readthedocs.io/en/latest/\n\nContributing\n============\n\n``hyper`` welcomes contributions from anyone! Unlike many other projects we are\nhappy to accept cosmetic contributions and small contributions, in addition to\nlarge feature requests and changes.\n\nBefore you contribute (either by opening an issue or filing a pull request),\nplease `read the contribution guidelines`_.\n\n.. _read the contribution guidelines: http://hyper.readthedocs.org/en/development/contributing.html\n\nLicense\n=======\n\n``hyper`` is made available under the MIT License. For more details, see the\n``LICENSE`` file in the repository.\n\nAuthors\n=======\n\n``hyper`` is maintained by Cory Benfield, with contributions from others. For\nmore details about the contributors, please see ``CONTRIBUTORS.rst``.\n\n\nRelease History\n===============\n\ndev\n---\n\n*Bugfixes*\n\n- Stream end flag when length of last chunk equal to MAX_CHUNK\n\nv0.7.0 (2016-09-27)\n-------------------\n\n*Major Changes*\n\n- Added a ``ping`` method, allowing the user to use the HTTP/2 ``PING`` frame\n  to check connection liveness before, instead of, or between issuing requests.\n\n*Bugfixes*\n\n- Don't send WINDOWUPDATE frames on closed streams.\n- Clean up the outstanding stream reads on stream close.\n- Ensured that connection state is always unconditionally reset on stream\n  close, regardless of whether the connection has a socket object open or not.\n\n0.6.2 (2016-06-13)\n------------------\n\n*Bugfixes*\n\n- Fixed packaging error made in prior release.\n\n0.6.1 (2016-06-13)\n------------------\n\n*Bugfixes*\n\n- Tolerate errors when attempting to send a RST_STREAM frame.\n- Ensure that calls to ``fileno()`` on the compatibility ``SSLSocket`` object\n  actually work correctly. Thanks to @benlast!\n- Improved some problems with thread-safety in the ``Stream`` class. Thanks to\n  @fredthomsen!\n- Allowed for systems to use hyper without the bundled cert file being present.\n  Thanks to @JasonGowthorpe!\n\n0.6.0 (2016-05-06)\n------------------\n\n*Major Changes*\n\n- The ``HTTP20Connection`` object is now thread-safe, so long as stream IDs are\n  used on all method calls.\n- Replaced the HTTP/2 state machine logic entirely to use hyper-h2. This will\n  dramatically change the behaviour of the library in many situations, mostly\n  for the better. However, this is also likely to introduce new bugs, so please\n  be cautious.\n\n*API Changes*\n\n- Allow non-dictionary headers in ``request``.\n- ``HTTP20Connection`` now has a ``force_proto`` keyword argument to allow the\n  ``HTTP20Connection`` to ignore the NPN/ALPN result.\n- The ``--h2`` CLI flag now ignores the result of NPN/ALPN negotiation when\n  hitting HTTPS URLs.\n- Added support for HTTPS client certificates.\n- Notifications about streams being reset is now delayed to fire when the\n  stream in question is next accessed, rather than immediately.\n\n*Bugfixes*\n\n- Overriding HTTP/2 special headers no longer leads to ill-formed header blocks\n  with special headers at the end.\n- Vastly improved IPv6 support.\n- Fix converting unicode bodies to bytestrings on Python 2.7.\n- Allow overriding the HTTP/2 pseudo-headers from the CLI.\n- Fixed problems with incorrectly generating the ``HTTP2-Settings`` header.\n- Improved handling of socket errors.\n\n0.5.0 (2015-10-11)\n------------------\n\n*Feature Enhancement*\n\n- Pay attention to max frame length changes from remote peers. Thanks to\n  @jdecuyper!\n\n*Bugfixes*\n\n- Prevent hyper from emitting oversized frames. Thanks to @jdecuyper!\n- Prevent hyper from emitting RST_STREAM frames whenever it finishes consuming\n  a stream.\n- Prevent hyper from emitting lots of RST_STREAM frames.\n- Hyper CLI tool now correctly uses TLS for any ``https``-schemed URL.\n- Hyper CLI tool no longer attempts to decode bytes, instead writing them\n  straight to the terminal.\n- Added new ``--h2`` flag to the Hyper CLI tool, which allows straight HTTP/2\n  in plaintext, rather than attempting to upgrade from HTTP/1.1.\n- Allow arguments and keyword arguments in abstract version of\n  ``get_response``.\n\n*Software Updates*\n\n- Updated hyperframe to version 2.1.0\n\n0.4.0 (2015-06-21)\n------------------\n\n*New Features*\n\n- HTTP/1.1 and HTTP/2 abstraction layer. Don't specify what version you want to\n  use, just automatically get the best version the server supports!\n- Support for upgrading plaintext HTTP/1.1 to plaintext HTTP/2, with thanks to\n  @fredthomsen! (`Issue #28`_)\n- ``HTTP11Connection`` and ``HTTPConnection`` objects are now both context\n  managers.\n- Added support for ALPN negotiation when using PyOpenSSL. (`Issue #31`_)\n- Added support for user-provided SSLContext objects, with thanks to\n  @jdecuyper! (`Issue #8`_)\n- Better support for HTTP/2 error codes, with thanks to @jdecuyper!\n  (`Issue #119`_)\n- More gracefully close connections, with thanks to @jdecuyper! (`Issue #15`_)\n\n*Structural Changes*\n\n- The framing and HPACK layers were stripped out into their own libraries.\n\n*Bugfixes*\n\n- Properly verify hostnames when using PyOpenSSL.\n\n.. _Issue #8: https://github.com/Lukasa/hyper/issues/8\n.. _Issue #15: https://github.com/Lukasa/hyper/issues/15\n.. _Issue #28: https://github.com/Lukasa/hyper/issues/28\n.. _Issue #31: https://github.com/Lukasa/hyper/issues/31\n.. _Issue #119: https://github.com/Lukasa/hyper/issues/119\n\n0.3.1 (2015-04-03)\n------------------\n\n*Bugfixes*\n\n- Fix blocking ``ImportError``. (`Issue #114`_)\n\n.. _Issue #114: https://github.com/Lukasa/hyper/issues/114\n\n0.3.0 (2015-04-03)\n------------------\n\n*New Features*\n\n- HTTP/1.1 support! See the documentation for more. (`Issue #75`_)\n- Implementation of a ``HTTPHeaderMap`` data structure that provides dictionary\n  style lookups while retaining all the semantic information of HTTP headers.\n\n*Major Changes*\n\n- Various changes in the HTTP/2 APIs:\n\n  - The ``getheader``, ``getheaders``, ``gettrailer``, and ``gettrailers``\n    methods on the response object have been removed, replaced instead with\n    simple ``.headers`` and ``.trailers`` properties that contain\n    ``HTTPHeaderMap`` structures.\n  - Headers and trailers are now bytestrings, rather than unicode strings.\n  - An ``iter_chunked()`` method was added to response objects that allows\n    iterating over data in units of individual data frames.\n  - Changed the name of ``getresponse()`` to ``get_response()``, because\n    ``getresponse()`` was a terrible name forced upon me by httplib.\n\n.. _Issue #75: https://github.com/Lukasa/hyper/issues/75\n\n0.2.2 (2015-04-03)\n------------------\n\n*Bugfixes*\n\n- Hyper now correctly handles 'never indexed' header fields. (`Issue #110`_)\n\n.. _Issue #110: https://github.com/Lukasa/hyper/issues/110\n\n0.2.1 (2015-03-29)\n------------------\n\n*New Features*\n\n- There is now a `hyper` command-line client that supports making HTTP/2\n  requests directly from the command-line.\n\n*Major Changes*\n\n- Support for the final drafts of HTTP/2 and HPACK. Updated to offer the 'h2'\n  ALPN token.\n\n*Minor Changes*\n\n- We not only remove the Connection header but all headers it refers to.\n\n0.2.0 (2015-02-07)\n------------------\n\n*Major Changes*\n\n- Python 2.7.9 is now fully supported.\n\n0.1.2 (2015-02-07)\n------------------\n\n*Minor Changes*\n\n- We now remove the ``Connection`` header if it's given to us, as that header\n  is not valid in HTTP/2.\n\n*Bugfixes*\n\n- Adds workaround for HTTPie to make our responses look more like urllib3\n  responses.\n\n0.1.1 (2015-02-06)\n------------------\n\n*Minor Changes*\n\n- Support for HTTP/2 draft 15, and 16. No drop of support for draft 14.\n- Updated bundled certificate file.\n\n*Bugfixes*\n\n- Fixed ``AttributeError`` being raised when a PING frame was received, thanks\n  to @t2y. (`Issue #79`_)\n- Fixed bug where large frames could be incorrectly truncated by the buffered\n  socket implementation, thanks to @t2y. (`Issue #80`_)\n\n.. _Issue #79: https://github.com/Lukasa/hyper/issues/79\n.. _Issue #80: https://github.com/Lukasa/hyper/issues/80\n\n0.1.0 (2014-08-16)\n------------------\n\n*Regressions and Known Bugs*\n\n- Support for Python 3.3 has been temporarily dropped due to features missing\n  from the Python 3.3 ``ssl`` module. PyOpenSSL has been identified as a\n  replacement, but until NPN support is merged it cannot be used. Python 3.3\n  support *will* be re-added when a suitable release of PyOpenSSL is shipped.\n- Technically this release also includes support for PyPy and Python 2.7. That\n  support is also blocked behind a suitable PyOpenSSL release.\n\nFor more information on these regressions, please see `Issue #37`_.\n\n*Major Changes*\n\n- Support for HPACK draft 9.\n- Support for HTTP/2 draft 14.\n- Support for Sever Push, thanks to @alekstorm. (`Issue #40`_)\n- Use a buffered socket to avoid unnecessary syscalls. (`Issue #56`_)\n- If `nghttp2`_ is present, use its HPACK encoder for improved speed and\n  compression efficiency. (`Issue #60`_)\n- Add ``HTTP20Response.gettrailer()`` and ``HTTP20Response.gettrailers()``,\n  supporting downloading and examining HTTP trailers. (Discussed in part in\n  `Issue #71`_.)\n\n*Bugfixes*\n\n- ``HTTP20Response`` objects are context managers. (`Issue #24`_)\n- Pluggable window managers are now correctly informed about the document size.\n  (`Issue #26`_)\n- Header blocks can no longer be corrupted if read in a different order to the\n  one in which they were sent. (`Issue #39`_)\n- Default window manager is now smarter about sending WINDOWUPDATE frames.\n  (`Issue #41`_ and `Issue #52`_)\n- Fixed inverted window sizes. (`Issue #27`_)\n- Correct reply to PING frames. (`Issue #48`_)\n- Made the wheel universal, befitting a pure-Python package. (`Issue #46`_)\n- HPACK encoder correctly encodes header sets with duplicate headers.\n  (`Issue #50`_)\n\n.. _Issue #24: https://github.com/Lukasa/hyper/issues/24\n.. _Issue #26: https://github.com/Lukasa/hyper/issues/26\n.. _Issue #27: https://github.com/Lukasa/hyper/issues/27\n.. _Issue #33: https://github.com/Lukasa/hyper/issues/33\n.. _Issue #37: https://github.com/Lukasa/hyper/issues/37\n.. _Issue #39: https://github.com/Lukasa/hyper/issues/39\n.. _Issue #40: https://github.com/Lukasa/hyper/issues/40\n.. _Issue #41: https://github.com/Lukasa/hyper/issues/41\n.. _Issue #46: https://github.com/Lukasa/hyper/issues/46\n.. _Issue #48: https://github.com/Lukasa/hyper/issues/48\n.. _Issue #50: https://github.com/Lukasa/hyper/issues/50\n.. _Issue #52: https://github.com/Lukasa/hyper/issues/52\n.. _Issue #56: https://github.com/Lukasa/hyper/issues/56\n.. _Issue #60: https://github.com/Lukasa/hyper/issues/60\n.. _Issue #71: https://github.com/Lukasa/hyper/issues/71\n.. _nghttp2: https://nghttp2.org/\n\n0.0.4 (2014-03-08)\n------------------\n\n- Add logic for pluggable objects to manage the flow-control window for both\n  connections and streams.\n- Raise new ``HPACKDecodingError`` when we're unable to validly map a\n  Huffman-encoded string.\n- Correctly respect the HPACK EOS character.\n\n0.0.3 (2014-02-26)\n------------------\n\n- Use bundled SSL certificates in addition to the OS ones, which have limited\n  platform availability. (`Issue #9`_)\n- Connection objects reset to their basic state when they're closed, enabling\n  them to be reused. Note that they may not be reused if exceptions are thrown\n  when they're in use: you must open a new connection in that situation.\n- Connection objects are now context managers. (`Issue #13`_)\n- The ``HTTP20Adapter`` correctly reuses connections.\n- Stop sending WINDOWUPDATE frames with a zero-size window increment.\n- Provide basic functionality for gracelessly closing streams.\n- Exhausted streams are now disposed of. (`Issue #14`_)\n\n.. _Issue #9: https://github.com/Lukasa/hyper/issues/9\n.. _Issue #13: https://github.com/Lukasa/hyper/issues/13\n.. _Issue #14: https://github.com/Lukasa/hyper/issues/14\n\n0.0.2 (2014-02-20)\n------------------\n\n- Implemented logging. (`Issue #12`_)\n- Stopped HTTP/2.0 special headers appearing in the response headers.\n  (`Issue #16`_)\n- `HTTP20Connection` objects are now context managers. (`Issue #13`_)\n- Response bodies are automatically decompressed. (`Issue #20`_)\n- Provide a requests transport adapter. (`Issue #19`_)\n- Fix the build status indicator. (`Issue #22`_)\n\n\n.. _Issue #12: https://github.com/Lukasa/hyper/issues/12\n.. _Issue #16: https://github.com/Lukasa/hyper/issues/16\n.. _Issue #13: https://github.com/Lukasa/hyper/issues/13\n.. _Issue #20: https://github.com/Lukasa/hyper/issues/20\n.. _Issue #19: https://github.com/Lukasa/hyper/issues/19\n.. _Issue #22: https://github.com/Lukasa/hyper/issues/22\n\n0.0.1 (2014-02-11)\n------------------\n\n- Initial Release\n- Support for HTTP/2.0 draft 09.\n- Support for HPACK draft 05.\n- Support for HTTP/2.0 flow control.\n- Verifies TLS certificates.\n- Support for streaming uploads.\n- Support for streaming downloads.\n\n\n",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "http://hyper.rtfd.org",
+        "keywords": "",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "hyper-temp",
+        "package_url": "http://pypi.python.org/pypi/hyper-temp",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/hyper-temp/0.8.0",
+        "requires_dist": [
+            "pycohttpparser; extra == 'fast'",
+            "enum34 (>=1.0.4,<2); python_version == \"2.7\" or python_version == \"3.3\"",
+            "service-identity (>=14.0.0); python_full_version < \"2.7.9\"",
+            "pyOpenSSL (>=0.15); python_full_version < \"2.7.9\"",
+            "cryptography (<1.0); platform_python_implementation == \"PyPy\" and python_full_version < \"2.7.9\"",
+            "rfc3986 (<2.0,>=1.1.0)",
+            "hyperframe (>=3.2,<4.0)",
+            "h2 (>=2.4,!=2.5.0,<3.0)",
+            "brotlipy (>=0.7.0,<1.0)"
+        ],
+        "requires_python": "",
+        "summary": "HTTP/2 Client for Python",
+        "version": "0.8.0"
+    },
+    "releases": {
+        "0.8.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "30c1065faac1a85df3059d289e4f5cf1",
+                    "sha256": "448b55b8718b9e321bce7276748cbdcafe9dfef8c1f0b184f8098e360c2b8894"
+                },
+                "downloads": 0,
+                "filename": "hyper-temp-0.8.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "30c1065faac1a85df3059d289e4f5cf1",
+                "packagetype": "sdist",
+                "path": "f3/95/53a4d08245c5e8ccc7fbf993e414cd34550cccdb82d72309f9261663a5bd/hyper-temp-0.8.0.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "448b55b8718b9e321bce7276748cbdcafe9dfef8c1f0b184f8098e360c2b8894",
+                "size": 245835,
+                "upload_time": "2018-04-06T05:41:12",
+                "url": "https://pypi.python.org/packages/f3/95/53a4d08245c5e8ccc7fbf993e414cd34550cccdb82d72309f9261663a5bd/hyper-temp-0.8.0.tar.gz"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8a8598000a0d22547c7153d722dfea88",
+                    "sha256": "6a8a19c764353180159d16724fbea8d91a70509b34c1eeb2b025ff2aa193fd8c"
+                },
+                "downloads": 0,
+                "filename": "hyper_temp-0.8.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8a8598000a0d22547c7153d722dfea88",
+                "packagetype": "bdist_wheel",
+                "path": "b9/a0/6d90b46486e7f89afe2e5df6bf9165313fef984dba126f396ce91af5e85a/hyper_temp-0.8.0-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "sha256_digest": "6a8a19c764353180159d16724fbea8d91a70509b34c1eeb2b025ff2aa193fd8c",
+                "size": 216011,
+                "upload_time": "2018-04-06T05:41:10",
+                "url": "https://pypi.python.org/packages/b9/a0/6d90b46486e7f89afe2e5df6bf9165313fef984dba126f396ce91af5e85a/hyper_temp-0.8.0-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "30c1065faac1a85df3059d289e4f5cf1",
+                "sha256": "448b55b8718b9e321bce7276748cbdcafe9dfef8c1f0b184f8098e360c2b8894"
+            },
+            "downloads": 0,
+            "filename": "hyper-temp-0.8.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "30c1065faac1a85df3059d289e4f5cf1",
+            "packagetype": "sdist",
+            "path": "f3/95/53a4d08245c5e8ccc7fbf993e414cd34550cccdb82d72309f9261663a5bd/hyper-temp-0.8.0.tar.gz",
+            "python_version": "source",
+            "sha256_digest": "448b55b8718b9e321bce7276748cbdcafe9dfef8c1f0b184f8098e360c2b8894",
+            "size": 245835,
+            "upload_time": "2018-04-06T05:41:12",
+            "url": "https://pypi.python.org/packages/f3/95/53a4d08245c5e8ccc7fbf993e414cd34550cccdb82d72309f9261663a5bd/hyper-temp-0.8.0.tar.gz"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8a8598000a0d22547c7153d722dfea88",
+                "sha256": "6a8a19c764353180159d16724fbea8d91a70509b34c1eeb2b025ff2aa193fd8c"
+            },
+            "downloads": 0,
+            "filename": "hyper_temp-0.8.0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "8a8598000a0d22547c7153d722dfea88",
+            "packagetype": "bdist_wheel",
+            "path": "b9/a0/6d90b46486e7f89afe2e5df6bf9165313fef984dba126f396ce91af5e85a/hyper_temp-0.8.0-py2.py3-none-any.whl",
+            "python_version": "py2.py3",
+            "sha256_digest": "6a8a19c764353180159d16724fbea8d91a70509b34c1eeb2b025ff2aa193fd8c",
+            "size": 216011,
+            "upload_time": "2018-04-06T05:41:10",
+            "url": "https://pypi.python.org/packages/b9/a0/6d90b46486e7f89afe2e5df6bf9165313fef984dba126f396ce91af5e85a/hyper_temp-0.8.0-py2.py3-none-any.whl"
+        }
+    ]
+}

@@ -1,0 +1,323 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 5,
+        "author": "Crossbar.io Technologies GmbH",
+        "author_email": "",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy"
+        ],
+        "description": "# Crossbar.io Fabric Shell\n\nInteractive shell to access Crossbar.io Fabric Center and manage your Crossbar.io Fabric nodes from the command line.\n\n## Installation\n\nCrossbar.io Fabric Shell is [available from PyPI](https://pypi.python.org/pypi/crossbarfabricshell) and requires Python 3.5 or higher.\n\nWe recommend installation into a dedicated Python [virtualenv](https://virtualenv.pypa.io/en/stable/):\n\n```console\nvirtualenv venv\nsource venv/bin/activate\npip install crossbarfabricshell\n```\n\nA straigforward way to install into a shared directory outside your personal user HOME is installing into `/opt/cbsh` by creating a virtualenv:\n\n```console\nsudo virtualenv -p /usr/bin/python3 /opt/cbsh\nsudo /opt/cbsh/bin/pip3 install crossbarfabricshell\n```\n\nTo test the installation:\n\n```consoleb\n(cpy361_12) oberstet@thinkpad-t430s:~$ cbsh version\nCrossbar.io Fabric Shell 17.7.1\n```\n\n## Usage\n\n### Registering\n\n> Note: if you are running a local CFC, please see [Using a local CFC](#using-a-local-cfc)).\n\nTo use Crossbar.io Fabric Shell with Crossbar.io Fabric Center, the first thing to do is to register or login as a user:\n\n```console\ncbsh auth\n```\n\nIf you haven't run this before, you will be asked for your email address:\n\n```console\n(cpy362_3) oberstet@thinkpad-t430s:~$ cbsh version\nCrossbar.io Fabric Shell 17.9.1\n(cpy362_3) oberstet@thinkpad-t430s:~$ cbsh\nCrossbar.io Fabric Shell: v17.9.1\nCreated new local user directory: /home/oberstet/.cbf\nCrossbar.io Fabric Center URL [wss://fabric.crossbario.com/ws]:\nCreated new local user configuration: /home/oberstet/.cbf/config.ini\nActive user profile: default\nPlease enter your email address: tobias.oberstein@gmail.com\nWe will send an activation code to tobias.oberstein@gmail.com, ok? [Y/n]:\nNew user public key generated: /home/oberstet/.cbf/default.pub\nNew user private key generated (keep this safe!): /home/oberstet/.cbf/default.priv\nConnecting to wss://fabric.crossbario.com/ws ..\nEntering event loop ..\n\nThanks for registering! We have sent an authentication code to tobias.oberstein@gmail.com.\nPlease check your inbox and run \"cbsh auth --code <THE CODE YOU GOT BY EMAIL>.\n```\n\nYou should now receive an email with an activation code, eg `RESF-MQPJ-WPYQ`. To use that code:\n\n```console\ncbsh auth --code RESF-MQPJ-WPYQ\n```\n\nWhen activation was successful, as short notice with your session details will be shown:\n\n\n```console\n(cpy362_3) oberstet@thinkpad-t430s:~$ cbsh auth --code RESF-MQPJ-WPYQ\nCrossbar.io Fabric Shell: v17.9.1\nActive user profile: default\nUser public key loaded: /home/oberstet/.cbf/default.pub\nUser private key loaded: /home/oberstet/.cbf/default.priv\nConnecting to wss://fabric.crossbario.com/ws ..\nEntering event loop ..\n\n    Welcome to Crossbar.io Fabric Shell v17.9.1\n\n    Press Ctrl-C to cancel the current command, and Ctrl-D to exit the shell.\n    Type \"help\" to get help. Try TAB for auto-completion.\n\n    Connection:\n\n        url         : wss://fabric.crossbario.com/ws\n        authmethod  : cryptosign\n        realm       : com.crossbario.fabric\n        authid      : tobias.oberstein@gmail.com\n        authrole    : user\n        session     : 6186592563885360\n\n```\n\nYour client is now all setup. A public/private key pair as well as a configuration file for CBSH was generated:\n\n```console\n(cpy361_12) oberstet@thinkpad-t430s:~$ ls -la ~/.cbf/\ninsgesamt 20\ndrwxrwxr-x  2 oberstet oberstet 4096 Aug  5 15:45 .\ndrwxr-xr-x 95 oberstet oberstet 4096 Aug  7 16:16 ..\n-rw-rw-r--  1 oberstet oberstet   78 Aug  5 15:46 config.ini\n-rw-------  1 oberstet oberstet  332 Aug  5 15:45 default.priv\n-rw-r--r--  1 oberstet oberstet  227 Aug  5 15:45 default.pub\n```\n\nYou can now start CBSH just by typing:\n\n```console\ncbsh\n```\n\nCBSH will connect and present an interactive REPL loop:\n\n```\n\n    Welcome to Crossbar.io Fabric Shell v17.9.1\n\n    Press Ctrl-C to cancel the current command, and Ctrl-D to exit the shell.\n    Type \"help\" to get help. Try TAB for auto-completion.\n\n    Connection:\n\n        url         : wss://fabric.crossbario.com/ws\n        authmethod  : cryptosign\n        realm       : com.crossbario.fabric\n        authid      : tobias.oberstein@gmail.com\n        authrole    : user\n        session     : 5159216761637739\n\n>>\n```\n\n---\n\n\n### Using a local CFC\n\nWhen running CFC on-premise (for OEMs), you will need to configure your CFC listening URL in `~/.cbf/config.ini`, eg:\n\n```\n[default]\n\nurl=ws://localhost:9000/ws\nprivkey=default.priv\npubkey=default.pub\n```\n\nYou can specify a custom CFC URL during the first run of `cbsh`:\n\n```console\nCrossbar.io Fabric Shell: v17.7.1\nCreated new local user directory: /home/oberstet/.cbf\nCrossbar.io Fabric Center URL [wss://fabric.crossbario.com]: ws://localhost:9000/ws\nCreated new local user configuration: /home/oberstet/.cbf/config.ini\nActive user profile: default\nPlease enter your email address: tobias.oberstein@gmail.com\nWe will send an activation code to tobias.oberstein@gmail.com, ok? [Y/n]:\nNew user public key generated: /home/oberstet/.cbf/default.pub\nNew user private key generated (keep this safe!): /home/oberstet/.cbf/default.priv\nConnecting to ws://localhost:9000/ws ..\nEntering event loop ..\n\nThanks for registering! We have sent an authentication code to tobias.oberstein@gmail.com.\nPlease check your inbox and run \"cbsh auth --code <THE CODE YOU GOT BY EMAIL>.\n```\n\nWhen the OEM CFC was configured including Mailgun connection, you will receive an email with an activation code.\n\nWhen the OEM CFC lacks Mailgun configuration, the authentication code will instead be printed in the CFC log:\n\n```\ncfc1_1   | 2017-08-09T14:50:35+0000 [Router         18] Mailgun not configured! This is the mail that would have been sent: {\"from\": \"Crossbar.io <no-reply@mailing.crossbar.io>\", \"to\": [\"tobias.oberstein@gmail.com\"], \"subject\": \"Crossbar.io Fabric: your REGISTRATION code\", \"text\": \"We have received a registration request for your account. Please use this activation code: 7M46-7XWT-GA9P\"}\n```\n\nIn both cases, activation then works like this:\n\n\n```console\n(cpy361_10) oberstet@thinkpad-t430s:$ cbsh auth --code 7M46-7XWT-GA9P\nCrossbar.io Fabric Shell: v17.7.1\nActive user profile: default\nUser public key loaded: /home/oberstet/.cbf/default.pub\nUser private key loaded: /home/oberstet/.cbf/default.priv\nConnecting to ws://localhost:9000/ws ..\nEntering event loop ..\n\n    Welcome to Crossbar.io Fabric Shell v17.7.1\n\n    Press Ctrl-C to cancel the current command, and Ctrl-D to exit the shell.\n    Type \"help\" to get help. Try TAB for auto-completion.\n\n    Connection:\n\n        url         : ws://localhost:9000/ws\n        authmethod  : cryptosign\n        realm       : com.crossbario.fabric\n        authid      : tobias.oberstein@gmail.com\n        authrole    : user\n        session     : 7988562296859153\n\n```\n\n---\n\n\n\n",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "http://crossbario.com",
+        "keywords": "crossbar.io crossbar wamp router cli administration management",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "crossbarfabricshell",
+        "package_url": "http://pypi.python.org/pypi/crossbarfabricshell",
+        "platform": "Any",
+        "release_url": "http://pypi.python.org/pypi/crossbarfabricshell/18.3.1",
+        "requires_dist": [
+            "autobahn[encryption,asyncio,serialization] (>=18.3.1)",
+            "click (>=6.7)",
+            "prompt-toolkit (>=1.0.13)",
+            "colorama (>=0.3.7)",
+            "pygments (>=2.2.0)",
+            "humanize (>=0.5.1)",
+            "tabulate (>=0.7.7)",
+            "pyyaml (>=3.12)"
+        ],
+        "requires_python": "",
+        "summary": "Interactive shell to access Crossbar.io Fabric Center and manage your Crossbar.io Fabric nodes from the command line.",
+        "version": "18.3.1"
+    },
+    "releases": {
+        "17.8.1.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e60025a6a8b2994beed5c5c07333d39",
+                    "sha256": "5a600161b4e6d94899f10c1c47cce8c0ec4c4bce6ad02514e069ffbe31d69a20"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.8.1.dev1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8e60025a6a8b2994beed5c5c07333d39",
+                "packagetype": "bdist_wheel",
+                "path": "96/0d/6339ce53b52e584fe1502728c12bf2138f3a6d72ee365e4d737641b05cd4/crossbarfabricshell-17.8.1.dev1-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "sha256_digest": "5a600161b4e6d94899f10c1c47cce8c0ec4c4bce6ad02514e069ffbe31d69a20",
+                "size": 63138,
+                "upload_time": "2017-08-07T14:14:16",
+                "url": "https://pypi.python.org/packages/96/0d/6339ce53b52e584fe1502728c12bf2138f3a6d72ee365e4d737641b05cd4/crossbarfabricshell-17.8.1.dev1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c53702f6526af010075fda4408a899e6",
+                    "sha256": "20ec1f38d22f1d7c16e04fc25aaa7cef4dd7372acfbab184791f70e7bafb06a7"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.8.1.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c53702f6526af010075fda4408a899e6",
+                "packagetype": "sdist",
+                "path": "d3/a2/503e784cd84f7087ea3921b122e552bf5fe59c41efaeaca1d95ad92b4667/crossbarfabricshell-17.8.1.dev1.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "20ec1f38d22f1d7c16e04fc25aaa7cef4dd7372acfbab184791f70e7bafb06a7",
+                "size": 51106,
+                "upload_time": "2017-08-07T14:14:18",
+                "url": "https://pypi.python.org/packages/d3/a2/503e784cd84f7087ea3921b122e552bf5fe59c41efaeaca1d95ad92b4667/crossbarfabricshell-17.8.1.dev1.tar.gz"
+            }
+        ],
+        "17.8.1.dev2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9c77474e1fab201082cfa3a87117bb3c",
+                    "sha256": "3b7bb3a3afc709ff85d2b55861b11fbbb2225df7f5a423491a80b5e0b1796ce3"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.8.1.dev2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9c77474e1fab201082cfa3a87117bb3c",
+                "packagetype": "bdist_wheel",
+                "path": "cf/ac/818c11b860b0bdf5370c6ed2acf40fa408625990c168e1f1f7547202e1fb/crossbarfabricshell-17.8.1.dev2-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "sha256_digest": "3b7bb3a3afc709ff85d2b55861b11fbbb2225df7f5a423491a80b5e0b1796ce3",
+                "size": 35098,
+                "upload_time": "2017-08-10T13:52:21",
+                "url": "https://pypi.python.org/packages/cf/ac/818c11b860b0bdf5370c6ed2acf40fa408625990c168e1f1f7547202e1fb/crossbarfabricshell-17.8.1.dev2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f5a3d13ceb170341ed25cf242acd0989",
+                    "sha256": "3a7eb320622b883a68898a0c42ca93db0bb70392d2903d6dd6fd3f28c4afdc37"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.8.1.dev2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f5a3d13ceb170341ed25cf242acd0989",
+                "packagetype": "sdist",
+                "path": "62/44/814cd164062f59def0fa2d07c631c3b73a59ebf049c9058d21de2c9b0c89/crossbarfabricshell-17.8.1.dev2.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "3a7eb320622b883a68898a0c42ca93db0bb70392d2903d6dd6fd3f28c4afdc37",
+                "size": 20308,
+                "upload_time": "2017-08-10T13:52:24",
+                "url": "https://pypi.python.org/packages/62/44/814cd164062f59def0fa2d07c631c3b73a59ebf049c9058d21de2c9b0c89/crossbarfabricshell-17.8.1.dev2.tar.gz"
+            }
+        ],
+        "17.8.1.dev3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e1e1d15703373edcd80ff6708cefd43",
+                    "sha256": "49a507e919757b98a6db6640186178aed651ded13537159511d7dec8809d7987"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.8.1.dev3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2e1e1d15703373edcd80ff6708cefd43",
+                "packagetype": "bdist_wheel",
+                "path": "2b/86/8dcf4893286aa3b4c4a3d9eeb64644cfb28c669244ef5ade738e73824694/crossbarfabricshell-17.8.1.dev3-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "sha256_digest": "49a507e919757b98a6db6640186178aed651ded13537159511d7dec8809d7987",
+                "size": 35099,
+                "upload_time": "2017-08-22T13:30:32",
+                "url": "https://pypi.python.org/packages/2b/86/8dcf4893286aa3b4c4a3d9eeb64644cfb28c669244ef5ade738e73824694/crossbarfabricshell-17.8.1.dev3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f43dd46f7a213cbdabdf8a1d58730856",
+                    "sha256": "f498251c1b51fc36ba92be9d518d8a619d64d3e1f04d9cc6de654e3faed467a1"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.8.1.dev3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f43dd46f7a213cbdabdf8a1d58730856",
+                "packagetype": "sdist",
+                "path": "89/f6/d2f9db8dc4692dde199e9b673c8a7121d89efaf95a167a9e5fe93d88dce7/crossbarfabricshell-17.8.1.dev3.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "f498251c1b51fc36ba92be9d518d8a619d64d3e1f04d9cc6de654e3faed467a1",
+                "size": 20306,
+                "upload_time": "2017-08-22T13:30:36",
+                "url": "https://pypi.python.org/packages/89/f6/d2f9db8dc4692dde199e9b673c8a7121d89efaf95a167a9e5fe93d88dce7/crossbarfabricshell-17.8.1.dev3.tar.gz"
+            }
+        ],
+        "17.8.2.dev4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9041126a40d9eaa808b35836d6875022",
+                    "sha256": "a15131994e1fe66fa9ad7f4adde6736eb87b57c50bae85d4657176c8d48ff63e"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.8.2.dev4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9041126a40d9eaa808b35836d6875022",
+                "packagetype": "bdist_wheel",
+                "path": "42/fd/c5ccf7277724f624e1e407d2f968219b36526007eda6c0c4e9a05f0ccd3d/crossbarfabricshell-17.8.2.dev4-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "sha256_digest": "a15131994e1fe66fa9ad7f4adde6736eb87b57c50bae85d4657176c8d48ff63e",
+                "size": 36128,
+                "upload_time": "2017-08-31T18:04:01",
+                "url": "https://pypi.python.org/packages/42/fd/c5ccf7277724f624e1e407d2f968219b36526007eda6c0c4e9a05f0ccd3d/crossbarfabricshell-17.8.2.dev4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "953dae09b13077e784b09ce1c184a5dd",
+                    "sha256": "8309e146bd1b4f9dcd8df9dfe7e4ab4e0684173e22a396c86f083dc9ee06a4bc"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.8.2.dev4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "953dae09b13077e784b09ce1c184a5dd",
+                "packagetype": "sdist",
+                "path": "6a/3c/bc4bf8dfa1a5f6cc5f826f7ecec0aa83379c0b8a937c9cf82af4811c73a5/crossbarfabricshell-17.8.2.dev4.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "8309e146bd1b4f9dcd8df9dfe7e4ab4e0684173e22a396c86f083dc9ee06a4bc",
+                "size": 21199,
+                "upload_time": "2017-08-31T18:04:04",
+                "url": "https://pypi.python.org/packages/6a/3c/bc4bf8dfa1a5f6cc5f826f7ecec0aa83379c0b8a937c9cf82af4811c73a5/crossbarfabricshell-17.8.2.dev4.tar.gz"
+            }
+        ],
+        "17.9.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "563cb1bc99caf791d1304168d90adeb6",
+                    "sha256": "543277b1fc86982ab602f750cf51cbc471cbf4db0bc551438f130dd41a18181b"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.9.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "563cb1bc99caf791d1304168d90adeb6",
+                "packagetype": "bdist_wheel",
+                "path": "f0/08/ea0bdff58ac62a11c54e8ad7ecac09527f78cfe8757716e85fdba655e60b/crossbarfabricshell-17.9.1-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "sha256_digest": "543277b1fc86982ab602f750cf51cbc471cbf4db0bc551438f130dd41a18181b",
+                "size": 36102,
+                "upload_time": "2017-09-05T19:10:06",
+                "url": "https://pypi.python.org/packages/f0/08/ea0bdff58ac62a11c54e8ad7ecac09527f78cfe8757716e85fdba655e60b/crossbarfabricshell-17.9.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c743da215039103eab760ae9a4ebb947",
+                    "sha256": "fec783fbec8caebd88bd0ae71f01b1b8981338760b34b2b32a53c9da7ecb4153"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-17.9.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c743da215039103eab760ae9a4ebb947",
+                "packagetype": "sdist",
+                "path": "0f/26/5eb56341ed2b9f0903bde07313a8c8b63a7a5d107f77719b183c57e62db9/crossbarfabricshell-17.9.1.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "fec783fbec8caebd88bd0ae71f01b1b8981338760b34b2b32a53c9da7ecb4153",
+                "size": 21258,
+                "upload_time": "2017-09-05T19:10:08",
+                "url": "https://pypi.python.org/packages/0f/26/5eb56341ed2b9f0903bde07313a8c8b63a7a5d107f77719b183c57e62db9/crossbarfabricshell-17.9.1.tar.gz"
+            }
+        ],
+        "18.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "905a065180824b8e1f213438a8c910b7",
+                    "sha256": "35352ca4b753405ed58f858dcddd76413f7c6d7851fa85cd80565d48cc93baca"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-18.3.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "905a065180824b8e1f213438a8c910b7",
+                "packagetype": "bdist_wheel",
+                "path": "4d/90/534cd50d7dda5879e269503934648b2de9e61eb1cc17dd18b4e932cad60c/crossbarfabricshell-18.3.1-py2.py3-none-any.whl",
+                "python_version": "py2.py3",
+                "sha256_digest": "35352ca4b753405ed58f858dcddd76413f7c6d7851fa85cd80565d48cc93baca",
+                "size": 36804,
+                "upload_time": "2018-03-08T08:41:49",
+                "url": "https://pypi.python.org/packages/4d/90/534cd50d7dda5879e269503934648b2de9e61eb1cc17dd18b4e932cad60c/crossbarfabricshell-18.3.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9bad1e914bc1fd7327e37e06c548be7e",
+                    "sha256": "f3c9f25c62699566bf6db73065bc05c8893a2ec33f68a02dc028f078d9a0f9d3"
+                },
+                "downloads": 0,
+                "filename": "crossbarfabricshell-18.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9bad1e914bc1fd7327e37e06c548be7e",
+                "packagetype": "sdist",
+                "path": "04/16/11887c487a7ee04b30eb4cba4024cbc1d1f027bd7a186ee80398a5c16f8b/crossbarfabricshell-18.3.1.tar.gz",
+                "python_version": "source",
+                "sha256_digest": "f3c9f25c62699566bf6db73065bc05c8893a2ec33f68a02dc028f078d9a0f9d3",
+                "size": 21714,
+                "upload_time": "2018-03-08T08:41:51",
+                "url": "https://pypi.python.org/packages/04/16/11887c487a7ee04b30eb4cba4024cbc1d1f027bd7a186ee80398a5c16f8b/crossbarfabricshell-18.3.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "905a065180824b8e1f213438a8c910b7",
+                "sha256": "35352ca4b753405ed58f858dcddd76413f7c6d7851fa85cd80565d48cc93baca"
+            },
+            "downloads": 0,
+            "filename": "crossbarfabricshell-18.3.1-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "905a065180824b8e1f213438a8c910b7",
+            "packagetype": "bdist_wheel",
+            "path": "4d/90/534cd50d7dda5879e269503934648b2de9e61eb1cc17dd18b4e932cad60c/crossbarfabricshell-18.3.1-py2.py3-none-any.whl",
+            "python_version": "py2.py3",
+            "sha256_digest": "35352ca4b753405ed58f858dcddd76413f7c6d7851fa85cd80565d48cc93baca",
+            "size": 36804,
+            "upload_time": "2018-03-08T08:41:49",
+            "url": "https://pypi.python.org/packages/4d/90/534cd50d7dda5879e269503934648b2de9e61eb1cc17dd18b4e932cad60c/crossbarfabricshell-18.3.1-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9bad1e914bc1fd7327e37e06c548be7e",
+                "sha256": "f3c9f25c62699566bf6db73065bc05c8893a2ec33f68a02dc028f078d9a0f9d3"
+            },
+            "downloads": 0,
+            "filename": "crossbarfabricshell-18.3.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "9bad1e914bc1fd7327e37e06c548be7e",
+            "packagetype": "sdist",
+            "path": "04/16/11887c487a7ee04b30eb4cba4024cbc1d1f027bd7a186ee80398a5c16f8b/crossbarfabricshell-18.3.1.tar.gz",
+            "python_version": "source",
+            "sha256_digest": "f3c9f25c62699566bf6db73065bc05c8893a2ec33f68a02dc028f078d9a0f9d3",
+            "size": 21714,
+            "upload_time": "2018-03-08T08:41:51",
+            "url": "https://pypi.python.org/packages/04/16/11887c487a7ee04b30eb4cba4024cbc1d1f027bd7a186ee80398a5c16f8b/crossbarfabricshell-18.3.1.tar.gz"
+        }
+    ]
+}

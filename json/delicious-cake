@@ -1,0 +1,87 @@
+{
+    "info": {
+        "author": "Mike Urbanski",
+        "author_email": "mike@theitemshoppe.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Utilities"
+        ],
+        "description": "Delicious Cake\n==============\n\nDelicious Cake is a flexible, Tastypie derived, REST framework for\nDjango.\n\nOver the years I've used both Tastypie and Piston to create RESTful\nAPIs. While they both have their advantages neither is as flexible as\nplain old Django views.\n\nWhy Delicious Cake?\n-------------------\n\nDelicious Cake is a framework that removes much of the pain of creating\nRESTful APIs, without imposing many constraints.\n\nHow is this different from Tastypie?\n------------------------------------\n\nTastypie makes taking your models and quickly exposing them in a RESTful\nmanner extremely easy. Unfortunately, that's not often the best way to\nexpose an api. Some functionality is simply difficult to express within\nTastypie's constraints.\n\nTastypie resources tightly couple several features: List views, detail\nviews, data hydration/dehydration, url construction, and\npre-serialization processing of objects. For simple APIs this can reduce\nthe amount of code necessary to get your project off the ground. As your\nproject evolves it can become increasingly difficult to express your\nideal API with Tastypie.\n\nDelicious Cake is an attempt to take the best of Tastypie and present it\nin a more flexible form.\n\nThis is an experiment\n---------------------\n\nI want to get this out quickly to see if there is any interest in this\nmodel of API development.\n\nBoth tests and documentation are sparse. If there's enough interest,\ntest coverage and documentation will become a priority.\n\nLet me know what you think!\n\n[mike@theitemshoppe.com](mailto:mike@theitemshoppe.com)\n\nDid you know that Delicious Cake is on PyPi?\n--------------------------------------------\n\n[http://pypi.python.org/pypi/delicious-cake](http://pypi.python.org/pypi/delicious-cake)/\n\nOr run:\n\n    pip install delicious-cake\n\nWhat does it look like?\n-----------------------\n\n**resources.py**:\n\n```python\nclass CakeListResource(ListResource):\n    '''A simple list view'''\n    def get(self, request, *args, **kwargs):\n        return Cake.objects.all()\n\n    def head(self, request, *args, **kwargs):\n        return self.get(request, *args, **kwargs)\n\n    def post(self, request, *args, **kwargs):\n        cake_form = CakeForm(request.DATA)\n\n        if not cake_form.is_valid():\n            raise ValidationError(cake_form.errors)\n\n        # Return the newly created instance and indicate that \n        # HTTP 201 CREATED should be used in the response.\n\n        # return object, created (boolean)\n        return cake_form.save(), True\n\n    def delete(self, request, *args, **kwargs):\n        Cake.objects.all().delete()\n\n    # Used to get the base uri when paginating.   \n    @models.permalink\n    def get_resource_uri(self):\n        return ('cake-list',)\n\n    class Meta(object):\n        # See delicious_cake/options.py for more 'Resource' options.\n\n        # 'Entity' classes are used to pre-process objects before \n        # serialization.        \n\n        # The 'list_entity_cls' will be used to pre-process the returned \n        # objects when viewed as a list.\n        list_entity_cls = CakeListEntity\n\n        # The 'detail_entity_cls' will be used to pre-process the returned \n        # objects when returned individually.        \n        detail_entity_cls = CakeDetailEntity\n\n        # If the same representation of the object is used in both list and \n        # details views the 'entity_cls' option can be used\n        # (e.g.  entity_cls = CakeDetailEntity) \n\n\nclass CakeDetailResource(DetailResource):\n    '''A simple detail view'''\n    def get(self, request, *args, **kwargs):\n        return get_object_or_404(Cake, pk=kwargs['pk'])\n\n    def put(self, request, *args, **kwargs):\n        pk = kwargs['pk']\n\n        try:\n            created = False\n            instance = Cake.objects.get(pk=pk)\n        except Cake.DoesNotExist:\n            created = True\n            instance = Cake(id=pk)\n\n        cake_form = CakeForm(request.DATA, instance=instance)\n\n        if not cake_form.is_valid():\n            raise ValidationError(cake_form.errors)\n\n        # Return the newly created instance and indicate that \n        # HTTP 201 CREATED should be used in the response.\n        # OR\n        # Return the updated instance with HTTP 200 OK\n        return cake_form.save(), created\n\n    def delete(self, request, *args, **kwargs):\n        get_object_or_404(Cake, pk=kwargs['pk']).delete()\n\n    def head(self, request, *args, **kwargs):\n        return self.get(self, request, *args, **kwargs)\n\n    class Meta(object):\n        detail_entity_cls = CakeDetailEntity\n\n\nclass CakeListResourceExtra(ListResource):\n    # Add a response header to all responses.\n    def process_http_response(self, http_response, entities):\n        http_response['X-The-Cake-Is-A-Lie'] = False\n\n    # Add a response header to all GET responses.\n    def process_http_response_get(self, http_response, entities):\n        http_response['X-Cake-Count'] = len(entities)\n\n    def get(self, request, *args, **kwargs):\n        # Tell the resource to use the 'CakeDetailEntity' instead of the \n        # default ('CakeListEntity' in this case) by specifying 'entity_cls'.\n        return ResourceResponse(\n           Cake.objects.all(), entity_cls=CakeDetailEntity)\n\n    def post(self, request, *args, **kwargs):\n        cake_form = CakeForm(request.DATA)\n\n        if not cake_form.is_valid():\n            raise ValidationError(cake_form.errors)\n\n        cake = cake_form.save()\n\n        # You can return 'ResourceResponse's if you need to \n        # use a custom 'HttpResponse' class or pass in specific parameters to \n        # the 'HttpResponse' class's constructor.  \n\n        # For example, in this method we want to return an HTTP 201 (CREATED) \n        # response, with the newly created cake's uri in 'Location' header.  \n        # To do this we set the 'response_cls' argument to 'http.HttpCreated' \n        # and add a 'location' key to 'response_kwargs' dict.  \n\n        # This is equilivant to returning \"cake_form.save(), created\"\n\n        # In this case, the value passed into the location parameter of our \n        # 'HttpCreated' response will be  a callable.  When invoked it will be \n        # passed one parameter, the entity created from our cake object.\n\n        # And, just for fun, let's set 'include_entity' to False.\n\n        # So again, we'll return HTTP 201 (CREATED), with a Location header,\n        # the X-The-Cake-Is-A-Lie header, and no entity body.\n\n        return ResourceResponse(\n            cake, include_entity=False,\n            response_cls=http.HttpCreated,\n            response_kwargs={\n                'location': lambda entity: entity.get_resource_uri()})\n\n    @models.permalink\n    def get_resource_uri(self):\n        return ('cake-list-extra',)\n\n    class Meta(object):\n        entity_cls = CakeListEntity\n```\n**urls.py**:\n\n```python\nurlpatterns = patterns('',\n    url(r'^cake/(?P<pk>\\d+)/$', CakeDetailResource.as_view(), name='cake-detail'),\n    url(r'^cake/$', CakeListResource.as_view(), name='cake-list'),\n    url(r'^cake/extra/$', CakeListResourceExtra.as_view(), name='cake-list-extra'),)\n```\n**entities.py**:\n\n```python\nclass CakeEntity(Entity):\n    @models.permalink\n    def get_resource_uri(self):\n        return ('cake-detail', (self.obj.pk,))\n\n\nclass CakeListEntity(CakeEntity):\n    CAKE_TYPE_CHOICES_LOOKUP = dict(Cake.CAKE_TYPE_CHOICES)\n\n    resource_id = fields.IntegerField(attr='pk')\n    cake_type = fields.CharField(attr='cake_type')\n\n    def process_cake_type(self, cake_type):\n        return self.CAKE_TYPE_CHOICES_LOOKUP.get(cake_type, 'Unknown')\n\n\nclass CakeDetailEntity(CakeListEntity):\n    message = fields.CharField()\n```\n**models.py**:\n\n```python\nclass Cake(models.Model):\n    CAKE_TYPE_BIRTHDAY = 1\n    CAKE_TYPE_GRADUATION = 2\n    CAKE_TYPE_SCHADENFREUDE = 3\n\n    CAKE_TYPE_CHOICES = (\n        (CAKE_TYPE_BIRTHDAY, u'Birthday Cake',),\n        (CAKE_TYPE_GRADUATION, u'Graduation Cake',),\n        (CAKE_TYPE_SCHADENFREUDE, u'Shameful Pride Cake',),)\n\n    message = models.CharField(max_length=128)\n    cake_type = models.PositiveSmallIntegerField(db_index=True)\n```",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/itemshoppe/delicious-cake",
+        "keywords": null,
+        "license": "UNKNOWN",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "delicious-cake",
+        "package_url": "https://pypi.org/project/delicious-cake/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/delicious-cake/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://github.com/itemshoppe/delicious-cake"
+        },
+        "release_url": "https://pypi.org/project/delicious-cake/0.0.10/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "A flexible REST framework for Django",
+        "version": "0.0.10"
+    },
+    "last_serial": 1769792,
+    "releases": {
+        "0.0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8b71e03874e9ba6e6a04d84035e10e7a",
+                    "sha256": "244cf3bbd51313c2ab168920f0b9175c3df4dda74e4927766b9d351d7285cd3c"
+                },
+                "downloads": -1,
+                "filename": "delicious-cake-0.0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8b71e03874e9ba6e6a04d84035e10e7a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 33290,
+                "upload_time": "2013-06-01T19:46:05",
+                "upload_time_iso_8601": "2013-06-01T19:46:05.887177Z",
+                "url": "https://files.pythonhosted.org/packages/aa/03/a26a7690402b2c180eb795a1ee3136519a5404201ef6ed1d147db7d9b05a/delicious-cake-0.0.10.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8b71e03874e9ba6e6a04d84035e10e7a",
+                "sha256": "244cf3bbd51313c2ab168920f0b9175c3df4dda74e4927766b9d351d7285cd3c"
+            },
+            "downloads": -1,
+            "filename": "delicious-cake-0.0.10.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8b71e03874e9ba6e6a04d84035e10e7a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 33290,
+            "upload_time": "2013-06-01T19:46:05",
+            "upload_time_iso_8601": "2013-06-01T19:46:05.887177Z",
+            "url": "https://files.pythonhosted.org/packages/aa/03/a26a7690402b2c180eb795a1ee3136519a5404201ef6ed1d147db7d9b05a/delicious-cake-0.0.10.tar.gz"
+        }
+    ]
+}

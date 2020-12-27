@@ -1,0 +1,300 @@
+{
+    "info": {
+        "author": "Cooper Yang",
+        "author_email": "cm_yang@yeah.net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: System :: Filesystems"
+        ],
+        "description": "NfsClient\n===============\n\n.. contents::\n   :local:\n\nIntroduction\n------------\n\nNfsClient is a generic open source toolkit for Linux NFS file system simulation as client.\nConstructed parameters sent via RPC and then analyse the response in reference to NFS protocol specifications (RFC1813).\nYou could form your custom scenarios that consist of basic actions to meet expecations.\n**Currently only NFS v3 supported, NFS v4.1 is under development.**\n\nNfsClient is operating system and application independent. The toolkit is implemented using \n`Python <https://www.python.org>`__, supports both\nPython 2.7 and Python 3.\n\nNfsClient project is hosted on GitHub_ where you can find source code,\nan issue tracker, and some further documentation.\n\n.. _GitHub: https://github.com/CharmingYang0/NfsClient\n.. _PyPI: https://pypi.org/project/NfsClient\n\n.. image:: https://img.shields.io/pypi/v/NfsClient.svg?label=version\n   :target: https://pypi.org/project/NfsClient/\n   :alt: Latest version\n\nInstallation\n------------\n\nIf you already have `Python <https://www.python.org>`__ with `pip <http://pip-installer.org>`__ installed,\nyou can simply run::\n\n    pip install nfsclient\n\nAlternatively you can get source code by downloading the source\ndistribution from PyPI_ and extracting it, or by cloning the project repository\nfrom GitHub_. After that you can install the framework with::\n\n    python setup.py install\n\nExample\n-------\n\nBelow is a simple example which lookup a file and then do several operations on it.\n\n.. code:: python\n\n    from NfsClient import (Portmap, Mount, NFSv3, MNT3_OK, NFS_PROGRAM,\n                           NFS_V3, NFS3_OK, DATA_SYNC)\n\n    # variable preparation\n    host = \"192.221.4.119\"\n    mount_path = \"/nfsshare\"\n\n    auth = {\"flavor\": 1,\n            \"machine_name\": \"host1\",\n            \"uid\": 0,\n            \"gid\": 0,\n            \"aux_gid\": list(),\n            }\n\n    # portmap initialization\n    portmap = Portmap(host, timeout=3600)\n    portmap.connect()\n\n    # mount initialization\n    mnt_port = portmap.getport(Mount.program, Mount.program_version)\n    mount = Mount(host=host, port=mnt_port, timeout=3600)\n    mount.connect()\n\n    # do mount\n    mnt_res =mount.mnt(mount_path, auth)\n    if mnt_res[\"status\"] == MNT3_OK:\n        root_fh =mnt_res[\"mountinfo\"][\"fhandle\"]\n        try:\n            nfs_port =portmap.getport(NFS_PROGRAM, NFS_V3)\n            # nfs actions\n            nfs3 =NFSv3(host, nfs_port, 3600)\n            nfs3.connect()\n            lookup_res = nfs3.lookup(root_fh, \"file.txt\", auth)\n            if lookup_res[\"status\"] == NFS3_OK:\n                fh = lookup_res[\"resok\"][\"object\"][\"data\"]\n                write_res = nfs3.write(fh, offset=0, count=11, content=\"Sample text\",\n                                       stable_how=DATA_SYNC, auth=auth)\n                if write_res[\"status\"] == NFS3_OK:\n                    read_res = nfs3.read(fh, offset=0, auth=auth)\n                    if read_res[\"status\"] == NFS3_OK:\n                        read_content = str(read_res[\"resok\"][\"data\"], encoding=\"utf-8\")\n                        assert read_content.startswith(\"Sample text\")\n                else:\n                    print(\"write failed\")\n            else:\n                print(\"Lookup failed\")\n        finally:\n            if nfs3:\n                nfs3.disconnect()\n            mount.umnt(mount_path, auth)\n            mount.disconnect()\n            portmap.disconnect()\n    else:\n        mount.disconnect()\n        portmap.disconnect()\n\nLicense\n-------\n\n**The MIT License (MIT)**\n\nCopyright (c) 2019 `Cooper Yang <https://github.com/CharmingYang0>`__\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n\n",
+        "description_content_type": "text/x-rst",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/CharmingYang0/NfsClient",
+        "keywords": "RPC NFS struct",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "NfsClient",
+        "package_url": "https://pypi.org/project/NfsClient/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/NfsClient/",
+        "project_urls": {
+            "Homepage": "https://github.com/CharmingYang0/NfsClient"
+        },
+        "release_url": "https://pypi.org/project/NfsClient/0.6.3/",
+        "requires_dist": null,
+        "requires_python": ">=2.7",
+        "summary": "Pure python NFS client",
+        "version": "0.6.3"
+    },
+    "last_serial": 5159598,
+    "releases": {
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a150edc72603adc487e92af56ebc2f12",
+                    "sha256": "20dead5f7ccacb2a5cca1a1f7087748686b3ab67eb2052a934758b9ca36befaf"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a150edc72603adc487e92af56ebc2f12",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=2.7",
+                "size": 25625,
+                "upload_time": "2019-04-09T11:10:03",
+                "url": "https://files.pythonhosted.org/packages/d4/a8/f616924eab2fb354e31580fc21ff407cdcba4d3cca0acd6b26e771577118/NfsClient-0.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "155de2beb1dca014b8af15689b16b881",
+                    "sha256": "90a80e1ef48f06617ee96f33608e9d77f2b67940f228284e4292fd11556c0bc2"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "155de2beb1dca014b8af15689b16b881",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 23332,
+                "upload_time": "2019-04-09T11:10:05",
+                "url": "https://files.pythonhosted.org/packages/66/52/7865902aad4772cbe332202c055a4830fa805c9075424699819105425454/NfsClient-0.4.tar.gz"
+            }
+        ],
+        "0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "06d5e722bcb83c060036c3e559d2fc81",
+                    "sha256": "c6c223223f0eb94584f25d5ffc31405aa8a4be7340aa84678a55434ef8ad677c"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "06d5e722bcb83c060036c3e559d2fc81",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=2.7",
+                "size": 25634,
+                "upload_time": "2019-04-09T11:25:38",
+                "url": "https://files.pythonhosted.org/packages/be/93/d95347ec64a3dd3d2c9f110bce81275141fb007bfe5776360655788ad759/NfsClient-0.5-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3995b4cbdf31b2dba7dd263225148993",
+                    "sha256": "7eae98b6302e68ee7166056b19ea93e464fdff226f0d0ac8be20129cd27aadd1"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3995b4cbdf31b2dba7dd263225148993",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 23342,
+                "upload_time": "2019-04-09T11:25:40",
+                "url": "https://files.pythonhosted.org/packages/0e/02/a4029192e396a54d38866c58c6141ec212b98e2b06d375c1628dddc927ac/NfsClient-0.5.tar.gz"
+            }
+        ],
+        "0.6.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "34fb3e83542518cb51c3968405f40f6d",
+                    "sha256": "506971301c2ed94ee832c59822f4b92d00fc450dc00d6bea1e297c5c52af4acf"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.6.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "34fb3e83542518cb51c3968405f40f6d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=2.7",
+                "size": 36519,
+                "upload_time": "2019-04-18T07:22:49",
+                "url": "https://files.pythonhosted.org/packages/f8/18/06a67ac7c80cd2b3f1a4ec9de42d4ab92f53f8f79fa1e14dbea6b8ae36ad/NfsClient-0.6.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b92097880c9fd1960399e8d9f4ffcf1f",
+                    "sha256": "7844af448b75d8d03c9154461d878b53046c262f72612c34c821612696bdf35b"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.6.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b92097880c9fd1960399e8d9f4ffcf1f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 34124,
+                "upload_time": "2019-04-18T07:22:51",
+                "url": "https://files.pythonhosted.org/packages/ed/cd/51189dad9573909ce9fe7142bef6a336c90616532d2632e7cf047ae3036c/NfsClient-0.6.0.tar.gz"
+            }
+        ],
+        "0.6.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5a8e51f4d3139619c266873bc370fa62",
+                    "sha256": "c1edf302f122f009e87f0f7877934d5185fe2a21e1468be1fca367e15a30fe37"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.6.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5a8e51f4d3139619c266873bc370fa62",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=2.7",
+                "size": 36556,
+                "upload_time": "2019-04-18T07:35:00",
+                "url": "https://files.pythonhosted.org/packages/e8/a2/a2e3014a9a076c955b0fb57de6295365173b1841d817ffa1b59effd6fb8a/NfsClient-0.6.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7b50fdd50e6e69477eb43a7dadfffad8",
+                    "sha256": "86bfee8073303cfd424dc7af648f20d8042bec6cbf697ddb1591d5a97e672846"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.6.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7b50fdd50e6e69477eb43a7dadfffad8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 34168,
+                "upload_time": "2019-04-18T07:35:03",
+                "url": "https://files.pythonhosted.org/packages/83/31/fe012263c69e9a2e9dc1d81f0b91c21110072d114b7f93ad56c7eaa05c7e/NfsClient-0.6.1.tar.gz"
+            }
+        ],
+        "0.6.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "000e186687f3455d1911143e44bb2f9b",
+                    "sha256": "df8dc34487e654b50e3064d136b2381e5b2f82a82ba8b25c4f2e06749f1a6646"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.6.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "000e186687f3455d1911143e44bb2f9b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=2.7",
+                "size": 36642,
+                "upload_time": "2019-04-18T10:12:04",
+                "url": "https://files.pythonhosted.org/packages/31/3a/c11b00732c6dbda33f341aa2955da7148385e28fc57978eb3ffa3aa176ee/NfsClient-0.6.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cf0d3143ef698017580a00e41c3f6c79",
+                    "sha256": "21f39e0de3588a17f34af6de03b8a0d97e6f2a8c2d69b2565fee765504abd772"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.6.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cf0d3143ef698017580a00e41c3f6c79",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 34256,
+                "upload_time": "2019-04-18T10:12:06",
+                "url": "https://files.pythonhosted.org/packages/fc/e8/a6cf632d2ec3a0c5d1f830c356298ed82733e4cd3973de82c0a48170bce0/NfsClient-0.6.2.tar.gz"
+            }
+        ],
+        "0.6.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d4ec26d0436c2d4d885ccbcc4932afd",
+                    "sha256": "30d9a4cbb693fe3f353a1c3b4fb78357a51b0123da70f47ad9b1bddc0248936e"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.6.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4d4ec26d0436c2d4d885ccbcc4932afd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">=2.7",
+                "size": 36636,
+                "upload_time": "2019-04-18T10:51:28",
+                "url": "https://files.pythonhosted.org/packages/56/fa/4d40243854871efb5f355d2c044a58e053161721e5b3d10f431f6d01b3ab/NfsClient-0.6.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a84fd5cb63d32b00cbee187d82ed5709",
+                    "sha256": "6adadbcf0ba03fc9782c4c496f7ac4f61b84f71304831a53e7cd61e2b7139c29"
+                },
+                "downloads": -1,
+                "filename": "NfsClient-0.6.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a84fd5cb63d32b00cbee187d82ed5709",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=2.7",
+                "size": 34261,
+                "upload_time": "2019-04-18T10:51:30",
+                "url": "https://files.pythonhosted.org/packages/59/06/e25d26e98f657ec00ae8156a0ccf1fa66a1cd5e67edf84827f6a8d384a45/NfsClient-0.6.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4d4ec26d0436c2d4d885ccbcc4932afd",
+                "sha256": "30d9a4cbb693fe3f353a1c3b4fb78357a51b0123da70f47ad9b1bddc0248936e"
+            },
+            "downloads": -1,
+            "filename": "NfsClient-0.6.3-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "4d4ec26d0436c2d4d885ccbcc4932afd",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": ">=2.7",
+            "size": 36636,
+            "upload_time": "2019-04-18T10:51:28",
+            "url": "https://files.pythonhosted.org/packages/56/fa/4d40243854871efb5f355d2c044a58e053161721e5b3d10f431f6d01b3ab/NfsClient-0.6.3-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a84fd5cb63d32b00cbee187d82ed5709",
+                "sha256": "6adadbcf0ba03fc9782c4c496f7ac4f61b84f71304831a53e7cd61e2b7139c29"
+            },
+            "downloads": -1,
+            "filename": "NfsClient-0.6.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a84fd5cb63d32b00cbee187d82ed5709",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=2.7",
+            "size": 34261,
+            "upload_time": "2019-04-18T10:51:30",
+            "url": "https://files.pythonhosted.org/packages/59/06/e25d26e98f657ec00ae8156a0ccf1fa66a1cd5e67edf84827f6a8d384a45/NfsClient-0.6.3.tar.gz"
+        }
+    ]
+}

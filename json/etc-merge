@@ -1,0 +1,84 @@
+{
+    "info": {
+        "author": "Xavier de Gaye",
+        "author_email": "xdegaye at users dot sourceforge dot net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: System :: Systems Administration"
+        ],
+        "description": "**Name**\n    etc-merge - Archlinux tool to track /etc files and .pacnew files using\n    mercurial_.\n\n**Synopsis**\n    ``etc-merge [--version] {help,commit,merge,sync} ...``\n\n**Description**\n\nThe .pacnew files are tracked in a mercurial branch named *pacnew*.  After a\npacman upgrade, the mercurial internal merge tool is used to automatically merge\nthe differences in .pacnew files to the /etc files in the *default* branch.\nMerge conflicts are handled with Vim_. Merging is done with the *merge*\ncommand::\n\n    etc-merge merge\n\nThe *sync* command is used to retrofit /etc with the result of the merge::\n\n    sudo etc-merge sync\n\nThe user changes in /etc files is the difference between both branches and may\nbe viewed using mercurial with the Vim DirDiff_ plugin (an AUR package)::\n\n    hg vimdiff -r pacnew:default\n\nAfter a merge, the latest changes in the .pacnew files can be seen using\nmercurial with the Vim DirDiff plugin::\n\n    hg vimdiff -c pacnew\n\nThe DirDiff plugin may also be used to view the difference between the\nrepository and /etc with the Vim command::\n\n    :DirDiff <path_to_repository> /etc\n\nAll the commands (except *help*) have a *--dry-run* option to perform a trial\nrun with no changes made.  These commands also have a *--repo* option to specify\nthe location of the repository root directory that is otherwise the current\nworking directory.\n\n**Commands**\n\n*Help*\n    * Show help for a given command or a help overview.\n\n*Merge*\n    * Create the repository with a *pacnew* branch if the repository does not\n      exist. Add the /etc files that have a .pacnew file and are unknown to the\n      repository to the *default* branch and their .pacnew files to the *pacnew*\n      branch. Also copy the changed .pacnew files to the *pacnew* branch and\n      merge the changes to the *default* branch:\n\n          etc-merge merge\n\n    * When a .pacnew file does not exist in the repository, the file is added to\n      the *default* branch (except for ``passwd`` and ``group`` and not readable\n      files such as ``sudoers``) and its .pacnew file is added to the *pacnew*\n      branch. Then ``etc-merge`` does a null merge as there is no means to know\n      which changes have been brought by this .pacnew file. So the difference\n      between the file and its corresponding .pacnew file may include .pacnew\n      changes as well as user changes. It is **important** [1]_ to correct this\n      so as to have only user changes in this difference: after the *merge* and\n      *sync* commands, fix the file in /etc and run the *commit* command to\n      synchronize /etc to the repository. This needs to be done only the first\n      time when the file is added to the repository.\n\n    * A merge conflict [2]_ is handled with Vim showing three windows, from left\n      to right:\n\n      * the current file where to write the result of the merge\n\n      * the latest .pacnew file\n\n      * the previous .pacnew file\n\n      Apply the changes between the previous and latest .pacnew files to the\n      current file in the leftmost window and type ``:wqa`` in the leftmost\n      window to save the changes and quit.  Or type ``:cq`` to abort the merge,\n      this will cause all the the changes made by the previous or following\n      merges in this same session to be reverted, then you can restart the\n      merge all over again.\n\n*Sync*\n    * Synchronize the files of the *default* branch to /etc::\n\n          sudo etc-merge sync\n\n    * Copy to /etc the files in the *default* branch whose md5sum differs with\n      the one in /etc and that have a corresponding file in the *pacnew* branch.\n\n*Commit*\n    * Synchronize /etc files to the *default* branch and commit the changes::\n\n          etc-merge commit\n\n    * Copy to the *default* branch, the /etc files whose md5sum differs with the\n      one in the *default* branch and that have a corresponding file in the\n      *pacnew* branch. Then commit the changes.\n\n**Tests**\n    Run the test suite with the command ``/usr/bin/python2 setup.py test``. To\n    see the available options add ``--help`` to this command.\n\n**Licensing**\n    This software is licensed under the GNU General Public License version 3 or\n    later.\n\n.. [1] The difference between a file in the *default* branch and the file in the\n   *pacnew* branch is an invariant after a merge. So if this difference includes\n   a line that is not a user change and that line is changed much later by a\n   pacman upgrade, then a very much confusing merge conflict will occur because\n   you will have forgotten by that time that you had (wrongly) handled this line\n   as a user change when the file was added to the repository.\n\n.. [2] Note that the mercurial internal merge tool also considers that there is\n   a conflict when  the line of a change between the pacnew files is next to a\n   line that is a user change.\n\n.. _Vim: http://www.vim.org/\n.. _mercurial: https://www.mercurial-scm.org/\n.. _DirDiff: https://aur.archlinux.org/packages/vim-dirdiff/\n.. vim:filetype=rst:tw=80:ts=8:et:",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/xdegaye/etc-merge",
+        "keywords": null,
+        "license": "GNU General Public License v3 or later",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "etc-merge",
+        "package_url": "https://pypi.org/project/etc-merge/",
+        "platform": "archlinux",
+        "project_url": "https://pypi.org/project/etc-merge/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://bitbucket.org/xdegaye/etc-merge"
+        },
+        "release_url": "https://pypi.org/project/etc-merge/0.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Archlinux tool to track /etc files and .pacnew files using mercurial.",
+        "version": "0.1"
+    },
+    "last_serial": 1831625,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "45f85ccc2ebd201a8dd10a783370e26f",
+                    "sha256": "33cb7d1eca3b553951a183421c1f756299e22d30b7112980cc66c2543e992582"
+                },
+                "downloads": -1,
+                "filename": "etc-merge-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "45f85ccc2ebd201a8dd10a783370e26f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27860,
+                "upload_time": "2015-11-24T15:49:35",
+                "url": "https://files.pythonhosted.org/packages/f5/01/3b135eaeea62a47ae44b1b63b42f924669442d01950e5d29bd87c71ce648/etc-merge-0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "45f85ccc2ebd201a8dd10a783370e26f",
+                "sha256": "33cb7d1eca3b553951a183421c1f756299e22d30b7112980cc66c2543e992582"
+            },
+            "downloads": -1,
+            "filename": "etc-merge-0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "45f85ccc2ebd201a8dd10a783370e26f",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 27860,
+            "upload_time": "2015-11-24T15:49:35",
+            "url": "https://files.pythonhosted.org/packages/f5/01/3b135eaeea62a47ae44b1b63b42f924669442d01950e5d29bd87c71ce648/etc-merge-0.1.tar.gz"
+        }
+    ]
+}

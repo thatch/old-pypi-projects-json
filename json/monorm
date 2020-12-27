@@ -1,0 +1,470 @@
+{
+    "info": {
+        "author": "cymoo",
+        "author_email": "wakenee@hotmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Database",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: Utilities"
+        ],
+        "description": "# Monorm: An Object-Document-Mapper for MongoDB with type hints\n\n## Installation\n\n```bash\n$ pip install monorm\n```\n\n## About\n\nMonorm is designed to manage your models clearly and easily, which is as simple and thin as possible.\n\n* schema declaration using type hints\n\n* document validation on insert and update\n\n* default value, field alias, index declaration, custom converter and validator\n\n* minimum api, least memory burden\n\n-----\n\n## A Quick Example\n\n```python\nfrom monorm import *\n\nclass User(EmbeddedModel):\n    name: str\n    email: str\n\nclass Post(Model):\n    user: User\n    title: str\n    content: str\n    tags: List[str]\n    rank: int\n    visible: bool = True\n    created_on: datetime = datetime.utcnow\n    placeholder: Any\n\n    class Meta:\n        required = ['user', 'title']\n        indexes = ['title']\n        converters = {\n            'title': lambda x: x.capitalize()\n        }\n        validators = {\n            'title': lambda x: len(x) > 5\n        }\n\n    @property\n    def url(self):\n        return '/posts/' + str(self.pk)\n\n    @classmethod\n    def find_posts_by_lucy(cls):\n        return Post.find({'user.name': 'Lucy'}).sort('created_on')\n\ndb = MongoClient().get_database('demo')\nPost.set_db(db)\npost = Post(\n    user={'name': 'Lucy', 'email': 'foo@example.com'},\n    # same as the above\n    # user=User(name='Lucy', email='foo@example.com'),\n    title='hello world',\n    content='monorm is awesome...',\n    tags=['life', 'art']\n)\npost.save()\nassert post.visible is True\nassert isinstance(post.user, User)\nassert post.user.name == 'Lucy'\n```\n\n-----\n\n## Guide\n\n### Connection\n\nNo extra connection methods. Just pass pymongo's `Database` instance to your model.\n\n```python\nfrom monorm import Model, MongoClient\n\nclass MyModel(Model):\n    pass\n\ndb = MongoClient().get_database('demo')\nMyModel.set_db(db)\n```\n\n-----\n\n### Field Type\n\n* `str`, `int`, `float`, `bool`, `bytes`, `datetime`, `ObjectId`: you are familiar with them already\n\n* `dict`: accepts a `dict` regardless of its items\n\n* `list`: accepts a `list` regardless of its items\n\n* subclass of `EmbeddedModel`: represents MongoDB's embedded document\n\n* `List`: `List`[*the above type*] or `List`[`List`[*the above type*]] or any nested depth\n\n* `Any`: any type that can be saved into MongoDB\n\n-----\n\n### Model\n\n#### Model Instance\n\nTo create a new model object, provide values for its fields as constructor keyword arguments.\nMonorm will convert and validate these values when constructing the new instance.\n\n```python\nfrom monorm import Model\n\nclass User(Model):\n    name: str\n    visible: bool = True\n\nuser = User(name='foo')\n```\n\nYou can declare a field with an initial value, which acts as the field's default value.\nIf the value is a `callable`, it will be called on each saving or inserting.\n\n#### Methods\n\n* `save(full_update=False, *kw)`\n\nSave the data into MongoDB.\n\n1. The new document will be inserted into MongoDB.\n\n2. The existing document will be updated atomically using operator '$set' and '$unset'.\n\n3. `list` mutation cannot be tracked; but you can pass an keyword argument `full_update=True` to perform a full update.\n\n```python\nfrom monorm import *\n\nclass User(Model):\n    name: str\n    email: str\n    hobbits: List[str]\n    active: bool = True\n    created_on: datetime = datetime.utcnow\n\n# connect to mongodb\nUser.set_db(MongoClient().get_database('demo'))\n\n# insert a doc\nUser(name='Lucy', email='lucy@foo.com', hobbits=['music', 'sport']).save()\n\n# find a doc filtering out some fields\nuser = User.find_one({}, {'created_on': False})\n\nuser.name = 'foobar'\ndel user.email\n\n# saved with an atomic update\nuser.save()\n\nuser.hobbits.append('programming')\n# to save a doc with changed list items, you should set `full_update=True`\nuser.save(full_update=True)\n\n```\n\n* `delete(**kw)`\n\nDelete the data from MongoDB.\n\n* `pk`\n\nAn alias for the primary key (`_id` in MongoDB).\n\n* `to_dict()`\n\nReturn an ordered dict containing the instance's data with the same order as the field definition order.\n\n* `to_json(**kw)`\n\nReturn a json string. Some specific types (`ObjectId`, `datetime`, etc.) will be handled correctly.\n\n#### Class Methods\n\n* `set_db(db)`\n\nPass a `pymongo.database.Database` to the model.\n\n* `set_collection(collection)`\n\nPass a string or a `pymongo.collection.Collection` to the model.\n\nIf it isn't called explicitly, plural form of the model's name will be the collection name.\n\n* `get_db()`\n\n* `get_collection()`\n\n#### CRUD Methods\n\nMonorm adds no extra methods to operate MongoDB.\n\nIt proxies a subset of methods in `pymongo.collection:Collection`, which will perform data cleaning and convert the data from query operations to the model object.\n\n* `insert_one`, `insert_many`, `replace_one`, `update_one`, `update_many`, `find_one_and_update`, `find_one_and_replace` will perform data conversion and validation.\n\n* `find_one`, `find`, `find_one_and_delete`, `find_one_and_replace`, `find_one_and_update` will convert query results to the corresponding model instance.\n\n__`find` returns a `Cursor` of model instances instead of dicts. Before dump your documents to json, remember to do a small conversion.__\n\n```python\nfrom monorm import *\n\nclass BinData(Model):\n    name: str\n    data: bytes\n\nBinData.set_db(MongoClient().get_database('demo'))\nBinData(name='foo', data=b'abc').save()\nBinData(name='bar', data=b'xyz').save()\n\njson_dumps([bd.to_dict() for bd in BinData.find()])\n# or call pymongo's methods directly\njson_dumps(BinData.get_collection().find())\n```\n\n-----\n\n#### Meta\n\nYou can add extra constraints for your models by defining an inner class named `Meta` in your model or embedded model.\n\n* `required`: the field must exist in your data\n\n```python\nfrom monorm import Model\n\nclass User(Model):\n    name: str\n    email: str\n\n    class Meta:\n        required = ['name']\n```\n\n* `validators` and `converters`\n\n```python\nfrom monorm import Model\n\nclass User(Model):\n    name: str\n    age: int\n\n    class Meta:\n        validators = {\n            'age': lambda x: x < 200\n        }\n        converters = {\n            'name': lambda x: x.strip()\n        }\n```\n\n* `aliases`: sometimes you may want to save some fields in another names\n\n```python\nfrom monorm import Model\n\nclass User(Model):\n    id: int\n    first_name: str\n\n    class Meta:\n        aliases = [\n            ('id', '_id'),\n            ('first_name', 'firstName'),\n        ]\n\nuser = User(id=42, first_name='Lucy')\nuser.id\n# 42\nuser.to_dict()\n# {'_id': 42, 'firstName': 'Lucy'}\n```\n\n* `Indexes`\n\n```python\nfrom monorm import Model, DESCENDING\n\nclass FancyModel(Model):\n    class Meta:\n        indexes = [\n            'f1',  # a single key ascending index\n            ('f2', DESCENDING),  # a single key descending index\n            ['f3', 'f4'],  # a compound index both ascending\n            ['f5', ('f6', DESCENDING)],  # a compound index on 'f5' ascending and 'f6' descending\n            [('f7', DESCENDING), ('f8', DESCENDING)],  # a compound index both descending\n            {'key': 'f9', 'expire_after_seconds': 3600, 'unique': True}  # a single key ascending index with ttl and unique property\n        ]\n```\n\n__Index declaration cannot appear in embedded model.__\n\n-----\n\n#### Options\n\n* `dict_class`\n\nThe underlying data of model instance are saved in an ordered dict. You may change it to `bson.son.SON` or other compatible types.\nDefault value is `collections.OrderedDict`.\n\n* `warn_extra_data`\n\nWhether checks extra data that aren't declared in the model and emits some warnings.\nDefault value is `True`.\n\n* `auto_build_index`\n\nWhether enables auto index creation or deletion.\nYou may disable it when in production because index management may be performed as part of a deployment system.\nDefault value is `True`.\n\n__Theses options can be set on `Model` or the subclass of `Model`; if set on `Model`, all subclasses will inherit them.__\n\n```python\nfrom monorm import Model\nfrom bson.son import SON\n\nModel.dict_class = SON\n\nclass User(Model):\n    name: str\n\nuser = User(name='foo')\nassert isinstance(user.to_dict(), SON)\n```\n\n-----\n\n### Helpers\n\n* `switch_db`: switch to a different database temporarily\n\n```python\nfrom monorm import Model, MongoClient, switch_db\n\nclass FancyModel(Model):\n    pass\n\nfoo_db = MongoClient().get_database('foo')\nFancyModel.set_db(foo_db)\n\nbar_db = MongoClient().get_database('bar')\n\nwith switch_db(FancyModel, bar_db):\n    assert FancyModel.get_db().name == 'bar'\n```\n\n* `switch_collection`: switch to a different collection temporarily\n\n```python\nfrom monorm import Model, MongoClient, switch_collection\n\nclass FancyModel(Model):\n    pass\n\ndb = MongoClient().get_database('my-db')\nFancyModel.set_db(db)\n\nwith switch_collection(FancyModel, 'foobar'):\n    assert FancyModel.get_collection().name == 'foobar'\n```\n\n### Logging\n\nIn several cases, some warnings will be emitted. If that's annoying, you can change the logger level or set a new logger.\n\n```python\nimport logging\nfrom monorm import get_logger, set_logger\n\n# change level\nget_logger().setLevel(logging.ERROR)\n\n# or set a new logger\nset_logger(logging.getLogger('foobar'))\n```\n\n-----\n\n### Good Old Django-Style\n\nIf you like the classical style, here you are.\n\n```python\nfrom monorm.fields import *\nfrom monorm import Model, EmbeddedModel, datetime\n\nclass Comment(EmbeddedModel):\n    content = StringField()\n    created_on = DateTimeField(default=datetime.utcnow)\n\nclass Post(Model):\n    id = ObjectIdField(name='_id')\n    title = StringField(required=True, converter=lambda x: x.capitalize())\n    content = StringField(validator=lambda x: len(x) > 50)\n    comments = ArrayField(EmbeddedField(Comment))\n    rank = IntField(max_value=100)\n    visible = BooleanField(default=True)\n```\n\nUsing this style, you can pass `name` (`alias` aka), `required`, `default`, `converter`, `validator` as constructor keyword arguments.\n\n#### One-to-one match with type hints\n\n* `str` -> `StringField`\n\n* `int` -> `IntField`\n\n* `float` -> `FloatField`\n\n* `bool` -> `BooleanField`\n\n* `bytes` -> `BytesField`\n\n* `datetime` -> `DateTimeField`\n\n* `ObjectId` -> `ObjectIdField`\n\n* `dict` -> `DictField`\n\n* subclass of `EmbeddedModel` -> `EmbeddedField`\n\n* `list` -> `ListField`\n\n* `List` -> `ArrayField`\n\n* `Any` -> `AnyField`\n\n-----\n\n### Caveats\n\n* Inheritance of fields through class inheritance cannot work, for it will cause confusing relationships between model and embedded model.\n\n* You'd better not mix type-hints style with django-orm style; if you insist on that the field definition order may not be reserved.\n\n## Tests\n\nTo run the test suite, ensure you are running a local MongoDB instance on the default port and have pytest installed.\n\n```bash\n$ pytest\n```\n\n## Dependencies\n\n* Python >= 3.6\n* pymongo >= 3.7\n\n## License\n\nMIT\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/cymoo/monorm",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "monorm",
+        "package_url": "https://pypi.org/project/monorm/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/monorm/",
+        "project_urls": {
+            "Homepage": "https://github.com/cymoo/monorm"
+        },
+        "release_url": "https://pypi.org/project/monorm/0.1.0/",
+        "requires_dist": [
+            "pymongo (>=3.7)",
+            "pytest ; extra == 'dev'"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "An Object-Document-Mapper for MongoDB with type hints.",
+        "version": "0.1.0"
+    },
+    "last_serial": 6636910,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a0a3d2a23fca47c00d53ea65997fb03d",
+                    "sha256": "2bd580e9b3e62a8c8ac7126e75e8956733ce317e204ebd2f5720e24bc96a8a1e"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a0a3d2a23fca47c00d53ea65997fb03d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18099,
+                "upload_time": "2020-02-07T15:16:53",
+                "upload_time_iso_8601": "2020-02-07T15:16:53.592051Z",
+                "url": "https://files.pythonhosted.org/packages/d7/ee/4e7985280e3b6778823ce1b6d9bbcd29d08c4fd43f875332f90cec2af92d/monorm-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ffe58c7f2bcc56f3b2fdc12e2b4643f5",
+                    "sha256": "06723944287d5b6d6bc91b770bad9ffcb1cb46276cffc2fa13cee91657d1d1a7"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ffe58c7f2bcc56f3b2fdc12e2b4643f5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 19704,
+                "upload_time": "2020-02-07T15:16:57",
+                "upload_time_iso_8601": "2020-02-07T15:16:57.244810Z",
+                "url": "https://files.pythonhosted.org/packages/71/00/ead5d0cb0c16e7ccef59cd1c1fe30dce4c3472f0ed4ddfd251cd4ae614be/monorm-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "397dc1403fc10e361864956be7aec408",
+                    "sha256": "e45b768f2ec3396061e53a2f0fbd400b2f53f5555448139c2e5160fddec662c2"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "397dc1403fc10e361864956be7aec408",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18221,
+                "upload_time": "2020-02-08T14:22:08",
+                "upload_time_iso_8601": "2020-02-08T14:22:08.047157Z",
+                "url": "https://files.pythonhosted.org/packages/77/df/16840b9d05baed73407a4395eace05444e12fde2dc949dcb8b261bdfa5ab/monorm-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14e33bf7432ab96a95264ccbca346e03",
+                    "sha256": "2470f5f8d06fd53b3a67a979dfd4ea667c14bcec5e128cb37570a7305195171f"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "14e33bf7432ab96a95264ccbca346e03",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 19808,
+                "upload_time": "2020-02-08T14:22:11",
+                "upload_time_iso_8601": "2020-02-08T14:22:11.573172Z",
+                "url": "https://files.pythonhosted.org/packages/73/d4/7ce91620312b4992b9af7237bbcea9ad32e40ebbf7b4c7ecf1dd51430afd/monorm-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ad5a78e58dc858cef3b353adf5cb2848",
+                    "sha256": "861310a4b139d49be6176be7ae7bad35189a2a26d3ba3e16a6e826b2ec44617c"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ad5a78e58dc858cef3b353adf5cb2848",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18254,
+                "upload_time": "2020-02-08T18:12:53",
+                "upload_time_iso_8601": "2020-02-08T18:12:53.107422Z",
+                "url": "https://files.pythonhosted.org/packages/3a/4d/d1a68d6dfd682df2544bb6638aa52549fa66ad5d73685ec5c8d378e0a523/monorm-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "988929663c5120577f3d0f6265f9ba0a",
+                    "sha256": "9ebd7b11d7b97050abbafe9c950586d8c4d414af996fa1eea1a183620b48d0fc"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "988929663c5120577f3d0f6265f9ba0a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 19807,
+                "upload_time": "2020-02-08T18:12:57",
+                "upload_time_iso_8601": "2020-02-08T18:12:57.419438Z",
+                "url": "https://files.pythonhosted.org/packages/03/b5/da4e9ab64512685c14c66a92f3463eb3ae761ed670c844f5b18000bd3caf/monorm-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8d6265a2e3487840b3b6512fd199e987",
+                    "sha256": "8b6257074d564f28b1197687943ac4b6292ce028c9ad11fa507bb5a9756ca8ef"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8d6265a2e3487840b3b6512fd199e987",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18399,
+                "upload_time": "2020-02-09T10:15:18",
+                "upload_time_iso_8601": "2020-02-09T10:15:18.276725Z",
+                "url": "https://files.pythonhosted.org/packages/66/c0/7c55bad3107c67e6a6b7ca2e6a174ffffa1d1a43673e2d590106beff2873/monorm-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "09ca26d7ea3df1534ce6e315deace680",
+                    "sha256": "e699c01cc4a54002011b00b2afd5e99d8d2a44a280a2bdb669f41f7816a13768"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "09ca26d7ea3df1534ce6e315deace680",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 20127,
+                "upload_time": "2020-02-09T10:15:24",
+                "upload_time_iso_8601": "2020-02-09T10:15:24.035990Z",
+                "url": "https://files.pythonhosted.org/packages/5f/df/6941fef8a69d0e816f018ff1156d5553ad201eec18c789a5b709bec605ab/monorm-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "991b933c5c9c86707b8ca4635842d114",
+                    "sha256": "5e0d6c22cc57832939bfe584cfff6931c7c270f99e2fb975eaf9c37b56537c96"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "991b933c5c9c86707b8ca4635842d114",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18405,
+                "upload_time": "2020-02-09T14:58:58",
+                "upload_time_iso_8601": "2020-02-09T14:58:58.795376Z",
+                "url": "https://files.pythonhosted.org/packages/de/e4/76548fc78688513f8112aef4d6f09f6885ce509a958db0f9c9c84c08265e/monorm-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6aee889dc1f6d8809e9fd3fa23b26a73",
+                    "sha256": "a3e6fdbb0ba13bc227f7a5d01b38f97285b83f82a1a2c0ed545e0d0f28800b21"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6aee889dc1f6d8809e9fd3fa23b26a73",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 20161,
+                "upload_time": "2020-02-09T14:59:09",
+                "upload_time_iso_8601": "2020-02-09T14:59:09.202760Z",
+                "url": "https://files.pythonhosted.org/packages/7b/1a/e43ea20c977b1cc8a969831635b285b6b59206317abb6e1792fffaa69322/monorm-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7db0d9f1850ee1de5370ed96943eb93c",
+                    "sha256": "ca548d13657c9e8b316a21efc7b2252ec240507b2508846a9c1e5defec0b44bd"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7db0d9f1850ee1de5370ed96943eb93c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 19657,
+                "upload_time": "2020-02-12T04:29:02",
+                "upload_time_iso_8601": "2020-02-12T04:29:02.320644Z",
+                "url": "https://files.pythonhosted.org/packages/5e/7a/9fb2b0b9cf699e5249790dac144b45470dbc23427ee55ee7c6bb8541b2d5/monorm-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8f51d82b0992bb1a859af87cdf48a849",
+                    "sha256": "f3d1bdde7a21e1a9b63c9f84b8d15c5020b4e8d4fc1b1c13bd7c2bf19973fcf4"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8f51d82b0992bb1a859af87cdf48a849",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 21468,
+                "upload_time": "2020-02-12T04:29:09",
+                "upload_time_iso_8601": "2020-02-12T04:29:09.857904Z",
+                "url": "https://files.pythonhosted.org/packages/e2/ed/961789c0579c37a78520006ac83bda6ed9972b1db95cb1dab5f02b4f192a/monorm-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f9a2bc9435b0187e8e34a1fcd63a34e3",
+                    "sha256": "05acc7b9eb9f9b39bb74a6ecdd45c82e49a789ba5359106ebfc1a782ee7d676a"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f9a2bc9435b0187e8e34a1fcd63a34e3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 19832,
+                "upload_time": "2020-02-12T14:30:44",
+                "upload_time_iso_8601": "2020-02-12T14:30:44.263015Z",
+                "url": "https://files.pythonhosted.org/packages/09/d1/67cfdf421c7767fbf10dcc592f09742b8c9030ac991d29b1a95a695f7261/monorm-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a46e1a8f1ff071fbf397330ef0ad4d5b",
+                    "sha256": "fadaeb7ab435b737b957891743bb26eebd94d8ba58773e339017c355c3ad282d"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a46e1a8f1ff071fbf397330ef0ad4d5b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 21675,
+                "upload_time": "2020-02-12T14:30:53",
+                "upload_time_iso_8601": "2020-02-12T14:30:53.686545Z",
+                "url": "https://files.pythonhosted.org/packages/4c/37/a54e8bc1b3552eec81f5b90984b50b634c0001aee007dd242a1dfa72272d/monorm-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "639c4b6b367426b343dbdda2d525bb44",
+                    "sha256": "05ceeeae2c319348473683e94478bb99355597cfa9fccbff527a3e4ac90802ae"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "639c4b6b367426b343dbdda2d525bb44",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 20832,
+                "upload_time": "2020-02-13T14:35:27",
+                "upload_time_iso_8601": "2020-02-13T14:35:27.161556Z",
+                "url": "https://files.pythonhosted.org/packages/d1/05/a0f8e13f291206c3b3225ea8df51f8ced6b3453b7465c30807c31df0dacc/monorm-0.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48bb62319c0638fbed681c703cdd8e7e",
+                    "sha256": "b1a9939a1f479d323b143aeb44e12249bd0328ddb80d3f9f3103592291658688"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "48bb62319c0638fbed681c703cdd8e7e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 22998,
+                "upload_time": "2020-02-13T14:35:36",
+                "upload_time_iso_8601": "2020-02-13T14:35:36.411934Z",
+                "url": "https://files.pythonhosted.org/packages/ed/9a/fd5905990d5eba8a5ec91e9c97d49752b8d28ede2a056328de16cca36db3/monorm-0.0.8.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1ef6df929a9b865595b87d1a38738312",
+                    "sha256": "a945a53dd5ddb672dcfff0e315f338b7f3aea4695a9bcb4af1d53049de261169"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1ef6df929a9b865595b87d1a38738312",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 20801,
+                "upload_time": "2020-02-14T15:56:19",
+                "upload_time_iso_8601": "2020-02-14T15:56:19.748237Z",
+                "url": "https://files.pythonhosted.org/packages/d6/d8/2e9237324f1f8a9f22384e4c9de785578a8c4c33868729eadfabe5a854ba/monorm-0.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "22500cc345511d7c13367fd914927035",
+                    "sha256": "07c95da6a5372e5fca154ebb3e3eab0236506f0b467edcd97238512611c3fd2f"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "22500cc345511d7c13367fd914927035",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 22883,
+                "upload_time": "2020-02-14T15:56:34",
+                "upload_time_iso_8601": "2020-02-14T15:56:34.812901Z",
+                "url": "https://files.pythonhosted.org/packages/b7/55/f00166abe162f05807138bec7c7b3547f80da1cc21900460a27ea5d8b56e/monorm-0.0.9.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78cfbc9f1973e0739c5d6fff22b4fe2f",
+                    "sha256": "2138e58dcc0e8121c3a1fa059395a8e660c7e65d75cb6b326b2e6ab3a8ecef4a"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "78cfbc9f1973e0739c5d6fff22b4fe2f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 21029,
+                "upload_time": "2020-02-15T16:20:56",
+                "upload_time_iso_8601": "2020-02-15T16:20:56.814032Z",
+                "url": "https://files.pythonhosted.org/packages/a8/33/50b5d0d7bf70e10da0f6126e72c3cbbf7b51b5215dda38693ee87bdc6350/monorm-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e4f1eed3cf1a08c0b443b6f94ae4bc4",
+                    "sha256": "aff0fa588c3cc3c8023cb75b998a4bb4c5c1f47e26b4091176d6f9c2191a10cf"
+                },
+                "downloads": -1,
+                "filename": "monorm-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9e4f1eed3cf1a08c0b443b6f94ae4bc4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 23099,
+                "upload_time": "2020-02-15T16:21:11",
+                "upload_time_iso_8601": "2020-02-15T16:21:11.583916Z",
+                "url": "https://files.pythonhosted.org/packages/6d/4c/7630396474a409dfc1244d1394939499d02d150e0be4fee8bdd62de258b1/monorm-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "78cfbc9f1973e0739c5d6fff22b4fe2f",
+                "sha256": "2138e58dcc0e8121c3a1fa059395a8e660c7e65d75cb6b326b2e6ab3a8ecef4a"
+            },
+            "downloads": -1,
+            "filename": "monorm-0.1.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "78cfbc9f1973e0739c5d6fff22b4fe2f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 21029,
+            "upload_time": "2020-02-15T16:20:56",
+            "upload_time_iso_8601": "2020-02-15T16:20:56.814032Z",
+            "url": "https://files.pythonhosted.org/packages/a8/33/50b5d0d7bf70e10da0f6126e72c3cbbf7b51b5215dda38693ee87bdc6350/monorm-0.1.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9e4f1eed3cf1a08c0b443b6f94ae4bc4",
+                "sha256": "aff0fa588c3cc3c8023cb75b998a4bb4c5c1f47e26b4091176d6f9c2191a10cf"
+            },
+            "downloads": -1,
+            "filename": "monorm-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "9e4f1eed3cf1a08c0b443b6f94ae4bc4",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 23099,
+            "upload_time": "2020-02-15T16:21:11",
+            "upload_time_iso_8601": "2020-02-15T16:21:11.583916Z",
+            "url": "https://files.pythonhosted.org/packages/6d/4c/7630396474a409dfc1244d1394939499d02d150e0be4fee8bdd62de258b1/monorm-0.1.0.tar.gz"
+        }
+    ]
+}

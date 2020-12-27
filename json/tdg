@@ -1,0 +1,75 @@
+{
+    "info": {
+        "author": "Aengine",
+        "author_email": "zhangzheng@aengine.com.cn",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# TDG\n\n## \u8bbe\u8ba1\u76ee\u6807\n\n- \u964d\u4f4e\u63a5\u53e3\u6d4b\u8bd5\u7ef4\u62a4\u6210\u672c\n- \u63d0\u5347\u63a5\u53e3\u6d4b\u8bd5\u5f00\u53d1\u6548\u7387\n\n## \u8bbe\u8ba1\u7406\u5ff5\n\n- \u76f4\u89c2\u7684\u6570\u636e\u5173\u7cfb\n- \u65e0\u7528\u6570\u636e\u96f6\u8f93\u5165\n- \u914d\u7f6e\u4f18\u4e8e\u547d\u4ee4\n\n## \u5bf9\u6bd4\u5b9e\u4f8b\n\n- \u57fa\u7840\u5199\u6cd5\n\n  ```python\n  @pytest.fixture(scope=\"function\")\n  def obj(app: Flask):\n      with app.app_context():\n          school_obj = School(name=\"SSDF\", code=\"SSDF\")\n          grade_obj = Grade(school=school_obj, name=\"G01\")\n          respkg_obj_01 = Respkg(type=\"prose\", name=\"respkg_01\", schools=[school_obj])\n          db.session.add(school_obj)\n          db.session.add(grade_obj)\n          db.session.add(respkg_obj_01)\n          db.session.flush()\n  \n          class_obj = Clas(name=\"C01\", code=\"C01\", grade=grade_obj, respkgs=str(respkg_obj_01.id), teacher_id=1)\n          stu_obj = Student(school=school_obj, name=\"S01\", stu_code=\"S01\", gender=0, avatar=\"https://avatar\")\n  \n          db.session.add(class_obj)\n          db.session.add(stu_obj)\n          db.session.flush()\n  \n          stuClas_obj = StudentClas(stu_id=stu_obj.id, cls_id=class_obj.id, finish_reason='')\n          art_obj_01 = Article(title=\"art_title_01\", title_py=\"art_title_py_01\", author=\"art_aut_01\",\n                               author_py=\"art_aut_py_01\",\n                               cover_img=\"http://cover_01\", banner_img=\"http://banner_01\", content=\"art_con_01\",\n                               content_py=\"art_con_py_01\", brief=\"brief_01\", brief_py=\"brief_py_01\", note=\"note_01\",\n                               note_py=\"note_py_01\",\n                               appreciation=\"app_01\", appreciation_py=\"app_py_01\", type=\"prose\", respkgs=[respkg_obj_01])\n          art_obj_02 = Article(title=\"art_title_02\", title_py=\"art_title_py_02\", author=\"art_aut_02\",\n                               author_py=\"art_aut_py_02\",\n                               cover_img=\"http://cover_02\", banner_img=\"http://banner_02\", content=\"art_con_02\",\n                               content_py=\"art_con_py_02\", brief=\"brief_02\", brief_py=\"brief_py_02\", note=\"note_02\",\n                               note_py=\"note_py_02\",\n                               appreciation=\"app_02\", appreciation_py=\"app_py_02\", type=\"prose\", respkgs=[respkg_obj_01])\n          art_obj_03 = Article(title=\"art_title_03\", title_py=\"art_title_py_03\", author=\"art_aut_03\",\n                               author_py=\"art_aut_py_03\",\n                               cover_img=\"http://cover_03\", banner_img=\"http://banner_03\", content=\"art_con_03\",\n                               content_py=\"art_con_py_03\", brief=\"brief_03\", brief_py=\"brief_py_03\", note=\"note_03\",\n                               note_py=\"note_py_03\",\n                               appreciation=\"app_03\", appreciation_py=\"app_py_03\", type=\"prose\", respkgs=[respkg_obj_01])\n          db.session.add(stuClas_obj)\n          db.session.add(art_obj_01)\n          db.session.add(art_obj_02)\n          db.session.add(art_obj_03)\n          db.session.flush()\n  \n          read_statu_01 = ReadingStatu(student_id=stu_obj.id, article_id=art_obj_01.id, finished=1, read_finished=1,\n                                       pron_finished=1,\n                                       answer_finished=1, read_stars=1, pron_stars=2, answer_stars=3, stars=6,\n                                       article_type=\"prose\")\n          read_statu_02 = ReadingStatu(student_id=stu_obj.id, article_id=art_obj_02.id, finished=0, article_type=\"prose\")\n          db.session.add(read_statu_01)\n          db.session.add(read_statu_02)\n  \n          db.session.commit()\n          obj = (stu_obj, art_obj_01)\n          yield obj\n  \n          db.session.delete(school_obj)\n          db.session.delete(grade_obj)\n          db.session.delete(class_obj)\n          db.session.delete(stu_obj)\n          db.session.delete(stuClas_obj)\n          db.session.delete(respkg_obj_01)\n          db.session.delete(art_obj_01)\n          db.session.delete(art_obj_02)\n          db.session.delete(art_obj_03)\n          db.session.delete(read_statu_01)\n          db.session.delete(read_statu_02)\n          db.session.commit()\n  ```\n\n- TDG \u8bed\u6cd5\n\n  ```python\n  TDG\n  tdg.gen({\n      'model': School,\n      'items': [{\n          'model': Grade,\n          'school': p,\n          'items': [{\n              'model': Clas,\n              'alias': 'c1',\n              'grade': p,\n              'respkg': lambda rp1: str(rp1.id),\n          }]\n      }, {\n          'model': Student,\n          'school': p,\n          'items':[{\n              'model': StudentClas,\n              'stu_id': p.id,\n              'cls_id': ref('c1').id\n          }, {\n              'model': ReadingStau,\n              'student_id': p.id,\n              'insts':[{\n                  'article_id': ref('r1').id,\n                  'finished': 1,\n                  'read_finished': 1,\n                  'pron_finished': 1,\n                  'answer_finished': 1,\n                  'pron_stars': 3,\n                  'read_stars': 3,\n                  'answer_stars': 3\n  \n              }, {\n                  'article_id': ref('r2').id,\n                  'finished': 0,\n              }]\n          }]\n      }, {\n          'model': Respkg,\n          'alias': 'rp1',\n          'schools': [p],\n          'items': [{\n              'model': Article,\n              'respkgs': lambda p: [p],\n              'insts':[{\n                  'alias': 'r1',\n              },{\n                  'alias': 'r2',\n              },{\n                  'alias': 'r3',\n              },]\n          }]\n      }]\n  })\n  \n  ```\n\n## \u8bed\u6cd5\u8bf4\u660e\n\n### \u5b57\u6bb5\u8bf4\u660e\n\n| \u5b57\u6bb5     | \u5fc5\u987b | \u63cf\u8ff0                                                         |\n| -------- | ---- | ------------------------------------------------------------ |\n| model    | \u221a    | \u58f0\u660e\u8be5\u6761\u8bb0\u5f55\u7684\u7c7b\u578b\uff0e                                         |\n| alias    | \u00d7    | \u6307\u5b9a\u8be5\u6761\u8bb0\u5f55\u7684\u8bbf\u95ee\u522b\u540d\uff0e                                     |\n| items    | \u00d7    | \u8be5\u6761\u8bb0\u5f55\u5728\u903b\u8f91\u4e0a\u7684\u5b50\u9879\uff0e                                     |\n| insts    | \u00d7    | \u7528\u4e8e\u6279\u91cf\u5236\u5b9a\u5b57\u9879\uff0c\u5b58\u5728\u8be5\u5b57\u6bb5\u65f6\u4f1a\u5c06\u5f53\u524d\u5176\u4ed6\u5b57\u6bb5\u4f5c\u4e3ainst\u4e2d\u5404\u8bb0\u5f55\u5b9e\u4f8b\u7684\u9ed8\u8ba4\u503c. |\n| \u4efb\u610f\u5b57\u6bb5 | \u00d7    | \u4f20\u9012\u7ed9Model\u5b9e\u4f8b\u5316\u65b9\u6cd5                                        |\n\n### \u7279\u6b8a\u503c\u53ca\u7279\u6b8a\u65b9\u6cd5\n\n| \u5b57\u6bb5\u503c     | \u63cf\u8ff0                                                     |\n| ---------- | -------------------------------------------------------- |\n| \u53ef\u8c03\u7528\u65b9\u6cd5 | \u4f1a\u5c06\u4e0e\u65b9\u6cd5\u7684\u53c2\u6570\u540d\u76f8\u540calias\u7684obj\u4f20\u5165. \u8fd4\u56de\u503c\u4f5c\u4e3a\u8be5\u5b57\u6bb5\u503c |\n| p          | \u4ee3\u8868\u7236\u7ea7object\u5bf9\u8c61                                       |\n| ref()      | \u76f8\u5f53\u4e8e\u3000lambda v: v, \u64cd\u4f5c\u65b9\u5f0f\u4e0ep\u76f8\u540c                     |\n\n## API\u8bf4\u660e\n\n### \u521b\u5efa\u5173\u7cfb\u6570\u636e\u7ec4\n\n- \u521b\u5efa\u4e00\u6761\u5b66\u6821\u8bb0\u5f55\n\n    ```python\n    tdg.gen({\n        'model': School,\n    })\n    ```\n\n- \u521b\u5efa\u8be5\u5b66\u6821\u5185\u6709\u4e00\u4e2a\u5e74\u7ea7\n\n  ```python\n  from tdg import p\n  tdg.gen({\n      'model': School,\n      'items':[{\n          'model': Grade,\n          'school': p\n      }]\n  })\n  ```\n\n### \u76f4\u63a5\u83b7\u53d6object\u6570\u636e\n\n```python\ntdg.gen({\n    'model': School,\n    'alias': 's1',\n    'name': 'Aengine\u5b66\u6821'\n})\n\nschool_obj = tdg['s1']\nassert school_obj.name == 'Aengine\u5b66\u6821' # True\n```",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitee.com/zhangbingxue/TDS",
+        "keywords": "",
+        "license": "BSD License",
+        "maintainer": "Carl.Zhang",
+        "maintainer_email": "zhangzheng@aengine.com.cn",
+        "name": "TDG",
+        "package_url": "https://pypi.org/project/TDG/",
+        "platform": "all",
+        "project_url": "https://pypi.org/project/TDG/",
+        "project_urls": {
+            "Homepage": "https://gitee.com/zhangbingxue/TDS"
+        },
+        "release_url": "https://pypi.org/project/TDG/0.1.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "\u57fa\u4e8eflask-sqlalchemy\u7684\u914d\u7f6e\u5316\u6d4b\u8bd5\u6570\u636e\u751f\u4ea7\u5de5\u5177",
+        "version": "0.1.0"
+    },
+    "last_serial": 5291141,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3fcff65c3f9fa6517b568d218fd2c902",
+                    "sha256": "faa712e0078d7b8d8dab2405be70a181ddc5891144878a682abdfebadff8ba00"
+                },
+                "downloads": -1,
+                "filename": "TDG-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3fcff65c3f9fa6517b568d218fd2c902",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7447,
+                "upload_time": "2019-05-20T08:56:51",
+                "url": "https://files.pythonhosted.org/packages/2e/07/f09a4f74d353535a5065f5e379040d2bece72baa8f7edc0d574439993ff5/TDG-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3fcff65c3f9fa6517b568d218fd2c902",
+                "sha256": "faa712e0078d7b8d8dab2405be70a181ddc5891144878a682abdfebadff8ba00"
+            },
+            "downloads": -1,
+            "filename": "TDG-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3fcff65c3f9fa6517b568d218fd2c902",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7447,
+            "upload_time": "2019-05-20T08:56:51",
+            "url": "https://files.pythonhosted.org/packages/2e/07/f09a4f74d353535a5065f5e379040d2bece72baa8f7edc0d574439993ff5/TDG-0.1.0.tar.gz"
+        }
+    ]
+}

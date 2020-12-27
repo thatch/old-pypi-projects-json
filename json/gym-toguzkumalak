@@ -1,0 +1,291 @@
+{
+    "info": {
+        "author": "Zhassulan Berdibekov",
+        "author_email": "zhasulan87@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "<h1 align=\"center\">Toguzkumalak OpenAI Gym</h1> <br>\n<p align=\"center\">\n   <img alt=\"Toguzkumalak\" title=\"Toguzkumalak\" src=\"https://raw.githubusercontent.com/zhasulan/gym-toguzkumalak/master/logo.jpg\">\n</p>\n\n# Table of Contents\n- [About Game](#about_game)\n    - [Rules](#rules)\n- [gym-toguzkumalak](#gym_toguzkumalak)\n- [Installation](#installation)\n- [Usage](#usage)\n- [Environment](#env)\n    - [Observation](#observation)\n    - [Actions](#actions)\n    - [Reward](#reward)\n    - [Starting State](#starting_state)\n    - [Episode Termination](#episode_termination)\n    - [Reset](#reset)\n    - [Rendering](#rendering)\n    - [Example](#example)\n        - [Play random Agents](#play)\n        - [Valid actions](#valid_actions)\n- [Useful links and related works](#useful_links)\n- [License](#license)\n\n---\n## <a name=\"about_game\"></a>About Game\nToguz Kumalak (\u0442\u043e\u0493\u044b\u0437 \u049b\u04b1\u043c\u0430\u043b\u0430\u049b - Kazakh for \u201csheep droppings\u201d), also known as Toguz Korgool (\u0442\u043e\u0433\u0443\u0437 \u043a\u043e\u0440\u0433\u043e\u043e\u043b; same meaning) in Kyrgyz, is widely played in Central Asia. It is one of the few mancala games in which pits can be captured and turned into accumulation holes, a distinctive feature that adds another layer of strategic complexity. Toguz Kumalak has become a major mind sport that is officially promoted by the governments of Kazakhstan and Kyrgyztan.\n\n### <a name=\"rules\"></a>Rules\nThe game is played on a board, which consists of two rows of nine oblong holes (otau, literally, \u201cyurt\u201d) and two parallel furrows (kazan, literally, \u201ckettle\u201d) between them. The kazan serve as stores for captured balls. Initially, there are 9 little black balls (kumalak) in each hole. The holes are made in such a way that the two players can easily distinguish between an odd and an even number of balls. In addition, each player has a larger ball in a different color (usually white) that serves as a marker for any tuzduk the player might make later (see below). The players sit opposite each other, on the long sides of the board, directly in front of their holes. A player\u2019s kazan, however, is adjacent to the opponent\u2019s row. The player who starts the game is called \u201cWhite\u201d, the other player \u201cBlack\u201d.\nPicture\nToguz Kumalak starting position. White is light blue; Black is dark blue.\nAt his turn, a player takes with his index and middle finger all the balls of one of his holes, except one ball that is left in the hole, and distributes them, one by one, into the following holes in an anticlockwise direction around the board. If a hole contains only one ball, it is put into the next hole.\n\nIf the last ball thus sown makes the contents of an opponent\u2019s hole even, its contents are captured. They are shifted with the index and the middle finger into the player\u2019s kazan. Note that the opening move of each game captures 10 balls except move 19 (see notation), which is for that reason a bad move.\n\nIf the last ball falls into an opponent\u2019s hole that has two balls (then numbering three balls), this hole is turned into a tuzduk (literally, \u201csalty\u201d) and marked with a special ball. During the game any balls, which fall into a tuzduk, are won by the player who owns the tuzduk, and are then transferred into this player\u2019s kazan. A tuzduk is never skipped. Therefore, a tuzduk is an acquired accumulation hole, quite similar to the lubang rumah in Congkak or the kalah in the game of Kalah (usually known as \u201cmancala\u201d in the USA), except that in these games the accumulation holes are fixed from the beginning.\n\nThere are some restrictions in regard to the tuzduk:\n\nEach player can create a tuzduk only once in a game. Players are permitted to make more moves that end in enemy holes containing two balls, but they will not turn them into tuzduk\u2019s.\nThe ninth hole of the opponent cannot be turned into a tuzduk, only holes 1-8.\nA hole becomes immune from being turned into a tuzduk, when the corresponding hole of the opponent has already become a tuzduk. For instance, if your opponent has created his tuzduk in YOUR second hole, you are no longer able to make a tuzduk in HIS second hole.\n\nThe players move alternately and passing is prohibited. The game is finished when a player, on his turn, cannot make a move. In Kazakh this is called atsis kalu (literally, \u201cleft without a horse\u201d). A player owns the balls he captured, the balls which fell into his tuzduk, and those that are still in his holes. The player with 82 balls or more wins. If both players have 81 balls, the game is a draw. In practical play, the game ends as soon as one player has secured the minimum number of balls needed to win, and the remaining moves are not played out.\n\nGame clocks are used in all important Toguz Kumalak tournaments. In world championships the thinking time is up to three hours for each player. In blitz tournaments, however, players may be given as little as seven minutes. When a player\u2019s time has expired, the balls that have not been captured yet are awarded to his opponent.\n\n---\n## <a name=\"gym_toguzkumalak\"></a>gym-toguzkumalak\nThis repository contains a Toguz Kumalak game implementation in OpenAI Gym.\nGiven the current state of the board, and the current player, it computes all the legal actions/moves (iteratively) that the current player can execute. The legal actions are generated in such a way that they can be moved in comparison with other actions that cannot be moved due to the fact that the holes may be empty or they are in a tuzduk state.\n\n---\n## <a name=\"installation\"></a>Installation\n\nInstall the [OpenAI gym](https://gym.openai.com/docs/).\n\nThen install this package via\n\n```\ngit clone https://github.com/zhasulan/gym-toguzkumalak.git\ncd gym-toguzkumalak/\npip install -e .\n```\nor\n```\npip install gym-toguzkumalak\n```\n\n---\n## <a name=\"usage\"></a>Usage\n\n```\nimport gym\nimport gym_toguzkumalak\n\nenv = gym.make('Toguzkumalak-v0')\n```\n\n---\n## <a name=\"env\"></a>Environment\nThe encoding used to represent the state is inspired by the one used by Gerald Tesauro[1], although different due to the rules of the current game.\n\n### <a name=\"observation\"></a>Observation\n\nType: Box(127)\n\n| Component| Observation                      | Min | Max  |\n| -------- | -------------------------------- | --- | ---- |\n| 0        | WHITE - 1st hole,  1st component | 0.0 | 1.0  |\n| 1        | WHITE - 1st hole,  2nd component | 0.0 | 1.0  |\n| 2        | WHITE - 1st hole,  3rd component | 0.0 | 1.0  |\n| 3        | WHITE - 1st hole,  4th component | 0.0 | 1.0  |\n| 4        | WHITE - 1st hole,  5th component | 0.0 | 1.0  |\n| 5        | WHITE - 1st hole,  6th component | 0.0 | 18.0 |\n| 6        | WHITE - 1st hole,  7th component | 0.0 | 1.0  |\n| 7        | WHITE - 2nd hole,  1st component | 0.0 | 1.0  |\n| 8        | WHITE - 2nd hole,  2nd component | 0.0 | 1.0  |\n| 9        | WHITE - 2nd hole,  3rd component | 0.0 | 1.0  |\n| 10       | WHITE - 2nd hole,  4th component | 0.0 | 1.0  |\n| 11       | WHITE - 2nd hole,  5th component | 0.0 | 1.0  |\n| 12       | WHITE - 2nd hole,  6th component | 0.0 | 18.0 |\n| 13       | WHITE - 2nd hole,  7th component | 0.0 | 1.0  |\n| ...      |                                  |     |      |\n| 56       | WHITE - 9th hole,  1st component | 0.0 | 1.0  |\n| 57       | WHITE - 9th hole,  2nd component | 0.0 | 1.0  |\n| 58       | WHITE - 9th hole,  3rd component | 0.0 | 1.0  |\n| 59       | WHITE - 9th hole,  4th component | 0.0 | 1.0  |\n| 60       | WHITE - 9th hole,  5th component | 0.0 | 18.0 |\n| 61       | WHITE - KAZAN hole balls         | 0.0 | 1.0  |\n| 62       | WHITE - Comparision kazans       | 0.0 | 1.0  |\n| 63       | BLACK - 1st hole,  1st component | 0.0 | 1.0  |\n| 64       | BLACK - 1st hole,  2nd component | 0.0 | 1.0  |\n| 65       | BLACK - 1st hole,  3rd component | 0.0 | 1.0  |\n| 66       | BLACK - 1st hole,  4th component | 0.0 | 1.0  |\n| 67       | BLACK - 1st hole,  5th component | 0.0 | 1.0  |\n| 68       | BLACK - 1st hole,  6th component | 0.0 | 18.0 |\n| 69       | BLACK - 1st hole,  7th component | 0.0 | 1.0  |\n| 70       | BLACK - 2nd hole,  1st component | 0.0 | 1.0  |\n| 71       | BLACK - 2nd hole,  2nd component | 0.0 | 1.0  |\n| 72       | BLACK - 2nd hole,  3rd component | 0.0 | 1.0  |\n| 73       | BLACK - 2nd hole,  4th component | 0.0 | 1.0  |\n| 74       | BLACK - 2nd hole,  5th component | 0.0 | 1.0  |\n| 75       | BLACK - 2nd hole,  6th component | 0.0 | 18.0 |\n| 76       | BLACK - 2nd hole,  7th component | 0.0 | 1.0  |\n| ...      |                                  |     |      |\n| 119      | BLACK - 9th hole,  1st component | 0.0 | 1.0  |\n| 120      | BLACK - 9th hole,  2nd component | 0.0 | 1.0  |\n| 121      | BLACK - 9th hole,  3rd component | 0.0 | 1.0  |\n| 122      | BLACK - 9th hole,  4th component | 0.0 | 1.0  |\n| 123      | BLACK - 9th hole,  5th component | 0.0 | 18.0 |\n| 124      | BLACK - KAZAN hole balls         | 0.0 | 1.0  |\n| 125      | BLACK - Comparision kazans       | 0.0 | 1.0  |\n| 126-127  | Current player                   | 0.0 | 1.0  |\n\nEncoding of a single hole (from 1st to 8th holes):\n\n| Component | Algorithm         |\n| --------- | ----------------- |\n| 1st       | n >= 1            |\n| 2nd       | n >= 2            |\n| 3th       | n mod 2           |\n| 4th       | (n mod 9) / 8     |\n| 5th       | (n mod 18) / 17   |\n| 6th       | n / 9             |\n| 7th       | if hole is tuzduk |\n\n9th hole algorithm is different\n\n| Component | Algorithm         |\n| --------- | ----------------- |\n| 1st       | n >= 1            |\n| 2nd       | n mod 2           |\n| 3th       | (n mod 9) / 8     |\n| 4th       | (n mod 18) / 17   |\n| 5th       | n / 9             |\n\nExample:\n\n| Balls | Encoding                                          |\n| ----- | ------------------------------------------------- |\n| 0     | [0.0, 0.0, 0.0, 0.0 / 8,  0.0 / 17, 0.0 / 9, 0.0] |\n| 1     | [1.0, 0.0, 1.0, 1.0 / 8,  1.0 / 17, 1.0 / 9, 0.0] |\n| 2     | [1.0, 1.0, 0.0, 2.0 / 8,  2.0 / 17, 2.0 / 9, 0.0] |\n| ...   |                                                   |\n| 9     | [1.0, 1.0, 1.0, 0.0 / 8,  9.0 / 17, 2.0 / 9, 0.0] |\n| 10    | [1.0, 1.0, 0.0, 1.0 / 8, 10.0 / 17, 2.0 / 9, 0.0] |\n| ...   |                                                   |\n| 18    | [1.0, 1.0, 0.0, 0.0 / 8,  0.0 / 17, 2.0 / 9, 0.0] |\n| 19    | [1.0, 1.0, 1.0, 1.0 / 8,  1.0 / 17, 2.0 / 9, 0.0] |\n\nEncoding of KAZAN balls:\n\n| Balls           | Encoding                |           \n| --------------- | ----------------------- |\n| 0 - 82 and more | [ min(balls, 82) / 82 ] |\n\nEncoding of comparision kazans (Example for WHITE player):\n\n| Balls    | Encoding |           \n| -------- | -------- |\n| WK > BL  | [1.0]    |\n| WK <= BL | [0.0]    |\n\n- WK = White kazan\n- BK = Black kazan\n\nEncoding of the current player:\n\n| Player  | Encoding   |\n| ------- | ---------- |\n| WHITE   | [1.0, 0.0] |\n| BLACK   | [0.0, 1.0] |\n\n### <a name=\"actions\"></a>Actions\n### <a name=\"reward\"></a>Reward\n### <a name=\"starting_state\"></a>Starting State\n### <a name=\"episode_termination\"></a>Episode Termination\n### <a name=\"reset\"></a>Reset\n### <a name=\"rendering\"></a>Rendering\n### <a name=\"example\"></a>Example\n#### <a name=\"play\"></a>Play Random Agents\n#### <a name=\"valid_actions\"></a>Valid actions\n\n---\n## <a name=\"useful_links\"></a>Useful links\n- [1] [Implementation Details TD-Gammon](http://www.scholarpedia.org/article/User:Gerald_Tesauro/Proposed/Td-gammon)\n\n- [https://www.abstractgames.org/toguz-kumalak.html](https://www.abstractgames.org/toguz-kumalak.html)\n- [Wikipedia](https://en.wikipedia.org/wiki/Toguz_korgol)\n\n---\n## <a name=\"license\"></a>License\n[MIT](https://github.com/dellalibera/gym-backgammon/blob/master/LICENSE) \n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/zhasulan/gym-toguzkumalak",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "gym-toguzkumalak",
+        "package_url": "https://pypi.org/project/gym-toguzkumalak/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/gym-toguzkumalak/",
+        "project_urls": {
+            "Homepage": "https://github.com/zhasulan/gym-toguzkumalak"
+        },
+        "release_url": "https://pypi.org/project/gym-toguzkumalak/0.1.0/",
+        "requires_dist": [
+            "gym",
+            "texttable",
+            "numpy"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Toguzkumalak is one of the version of mancala games",
+        "version": "0.1.0"
+    },
+    "last_serial": 6482291,
+    "releases": {
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14bdb075de4c29d1df3ee1dae754d861",
+                    "sha256": "4687718f2ab84ca384f3a21de957d3e4488706a3a13db8b1ce1cd1a9bfea2e10"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "14bdb075de4c29d1df3ee1dae754d861",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4150,
+                "upload_time": "2020-01-14T04:45:49",
+                "upload_time_iso_8601": "2020-01-14T04:45:49.330921Z",
+                "url": "https://files.pythonhosted.org/packages/12/0e/65a8a74dde90c1eb0a2f9ad2df7267f2cd7eda282b9a61358fc973c1d529/gym_toguzkumalak-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3031a00788e0e51ad2f5138623815e44",
+                    "sha256": "4f487ff9905c1d5a3dfaa0f89348b4d5a2b23789a5291bc2c02eb73845c536fe"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3031a00788e0e51ad2f5138623815e44",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4010,
+                "upload_time": "2020-01-14T11:32:02",
+                "upload_time_iso_8601": "2020-01-14T11:32:02.730780Z",
+                "url": "https://files.pythonhosted.org/packages/69/96/6d1e1255da2e19f897a18122ab3f9a81942f9166aeb87e7e7bb5daee9f6e/gym_toguzkumalak-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "39d4d7589c9aa885b6b99a13180083be",
+                    "sha256": "694fe2038079fa64df236bdaa71e09caba5213b037cfa6af9adb958422a67794"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "39d4d7589c9aa885b6b99a13180083be",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4016,
+                "upload_time": "2020-01-14T12:51:58",
+                "upload_time_iso_8601": "2020-01-14T12:51:58.519533Z",
+                "url": "https://files.pythonhosted.org/packages/80/39/36829b04cc63f4ecac048940fd6950ed7b70c8d226dea39ed4b1306a39d6/gym_toguzkumalak-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "54e651fbb4fd9c02ee4c889615170fc1",
+                    "sha256": "abd9fa7998276f15b92aee6e7cf7a42509fb0c3804d0f38765c6dd618f84c963"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "54e651fbb4fd9c02ee4c889615170fc1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 11824,
+                "upload_time": "2020-01-19T14:39:30",
+                "upload_time_iso_8601": "2020-01-19T14:39:30.562248Z",
+                "url": "https://files.pythonhosted.org/packages/da/62/9ba10ef3f4289074d1d22ecd25b6bbe1d35e37691674287c8016f1357a5a/gym_toguzkumalak-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d7916a99abbc9bd3f42f670c453d3fe9",
+                    "sha256": "0e0783b3aca569bb694954bd8c3794038d123a292adf50be903a3f627d04e3a7"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d7916a99abbc9bd3f42f670c453d3fe9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 9295,
+                "upload_time": "2020-01-19T14:39:32",
+                "upload_time_iso_8601": "2020-01-19T14:39:32.047791Z",
+                "url": "https://files.pythonhosted.org/packages/0d/72/087bd52c791fca204c0bff9de59cc94200c2639ff0fc439a67657f807b0b/gym_toguzkumalak-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2a5c3a2471aaae83dc572b8da6a3e3dd",
+                    "sha256": "bfec0ffc31dcbc7011618243cdc437d01261d7570db7c402799cbdd9daa4a330"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2a5c3a2471aaae83dc572b8da6a3e3dd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 54971,
+                "upload_time": "2020-01-19T14:54:49",
+                "upload_time_iso_8601": "2020-01-19T14:54:49.787141Z",
+                "url": "https://files.pythonhosted.org/packages/1c/76/b74adbdad60c005cf657b3b8be629fb2693c2de8f0b75ba4273e714b279b/gym_toguzkumalak-0.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fa3db26717309af4ce4f692146f881f1",
+                    "sha256": "13971b362eab936bf9f16327c2a6443e4adda3b6700f04d08057ce0d5db5feac"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fa3db26717309af4ce4f692146f881f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 147257,
+                "upload_time": "2020-01-19T14:54:52",
+                "upload_time_iso_8601": "2020-01-19T14:54:52.216346Z",
+                "url": "https://files.pythonhosted.org/packages/96/e3/0dee4e55624badf527e7f87377e42e1e6f7ffbb6300dd52b7c162d34c477/gym_toguzkumalak-0.0.8.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5b0aa8e58c5bffa65657f4abbef87f9c",
+                    "sha256": "4d68bb9ef53cc23792b7913e6469b6a9b8530331ab9dc210cb3e200b6c38f8c8"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5b0aa8e58c5bffa65657f4abbef87f9c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 11827,
+                "upload_time": "2020-01-19T14:59:51",
+                "upload_time_iso_8601": "2020-01-19T14:59:51.818067Z",
+                "url": "https://files.pythonhosted.org/packages/64/8b/2735c01c305363cfb74a98c07b22e05d481cbea7429ebbef34d62e284971/gym_toguzkumalak-0.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f7744e316e56c16552734e98adf36b9e",
+                    "sha256": "6b6c7d76164c31dc90e3840b1d77d0d980b994895b2874526ea65121495d9648"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f7744e316e56c16552734e98adf36b9e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 9327,
+                "upload_time": "2020-01-19T14:59:53",
+                "upload_time_iso_8601": "2020-01-19T14:59:53.602908Z",
+                "url": "https://files.pythonhosted.org/packages/e0/b9/b7b4f936042a6238cbacb6458264ba2e34cad406a48feec43667ad2c44a1/gym_toguzkumalak-0.0.9.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0bdf17b31eb6368ac1584667543d671b",
+                    "sha256": "bdc328c8cdddbd1b5277fd5ffb1d8bd8a8b1a156729e92cfded56e77e5fb6d14"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0bdf17b31eb6368ac1584667543d671b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 11842,
+                "upload_time": "2020-01-19T15:02:35",
+                "upload_time_iso_8601": "2020-01-19T15:02:35.921690Z",
+                "url": "https://files.pythonhosted.org/packages/5a/65/3b816300b0682dd0a9adc53d38c1d3dd8ae6e4b46e1e3020d0e5abaf0e27/gym_toguzkumalak-0.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "24b3cb526edfd2e69164fef4d4790bcc",
+                    "sha256": "fbc59438f3e56463afe8df889bc872d63caadcc7eb5f6617d764069275eccb5f"
+                },
+                "downloads": -1,
+                "filename": "gym_toguzkumalak-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "24b3cb526edfd2e69164fef4d4790bcc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 9301,
+                "upload_time": "2020-01-19T15:02:37",
+                "upload_time_iso_8601": "2020-01-19T15:02:37.694463Z",
+                "url": "https://files.pythonhosted.org/packages/62/a9/33bb58ade0d655b0b632436bb5f4352951fce3fc07b1aacf67427ed9020b/gym_toguzkumalak-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0bdf17b31eb6368ac1584667543d671b",
+                "sha256": "bdc328c8cdddbd1b5277fd5ffb1d8bd8a8b1a156729e92cfded56e77e5fb6d14"
+            },
+            "downloads": -1,
+            "filename": "gym_toguzkumalak-0.1.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "0bdf17b31eb6368ac1584667543d671b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 11842,
+            "upload_time": "2020-01-19T15:02:35",
+            "upload_time_iso_8601": "2020-01-19T15:02:35.921690Z",
+            "url": "https://files.pythonhosted.org/packages/5a/65/3b816300b0682dd0a9adc53d38c1d3dd8ae6e4b46e1e3020d0e5abaf0e27/gym_toguzkumalak-0.1.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "24b3cb526edfd2e69164fef4d4790bcc",
+                "sha256": "fbc59438f3e56463afe8df889bc872d63caadcc7eb5f6617d764069275eccb5f"
+            },
+            "downloads": -1,
+            "filename": "gym_toguzkumalak-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "24b3cb526edfd2e69164fef4d4790bcc",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 9301,
+            "upload_time": "2020-01-19T15:02:37",
+            "upload_time_iso_8601": "2020-01-19T15:02:37.694463Z",
+            "url": "https://files.pythonhosted.org/packages/62/a9/33bb58ade0d655b0b632436bb5f4352951fce3fc07b1aacf67427ed9020b/gym_toguzkumalak-0.1.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,77 @@
+{
+    "info": {
+        "author": "PrimaryIO",
+        "author_email": "support@primaryio.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7"
+        ],
+        "description": "HDM SQS-Connect\n===\n\nAmazon SQS is a distributed queue system that enables web service applications to queue messages that one component in\nthe application generates to be consumed by another component.\n\nHDM SQS-Connect built on top of the SQS Python boto3 library. SQS-Connect will be shipped with HDM\nproduct as a docker container in the appliance host. SQS-Connect currently supports the following\nHDM operations(messages):\n```\nOn-premise deployment  \nOn-cloud deployment  \nConfigure source  \nMigrate VMs  \nMigrate-back VMs  \nARM sync  \nARM commit  \nARM full migrate  \nARM bulktransfer  \nBulktransfer complete notify  \nHDM reset  \n```\n\nThere are some helper operations(messages) also defined such as\n```\nGet job status  \nGet task status  \nGet ARM job status  \nStart SQS Heartbeat  \nGet HDM reset status  \n```\nThese operations (SQS messages) will be served by the daemon running in the SQS-Connect container. Daemon polls SQS command\nqueue every 30 seconds and executes the mapped operations corresponding to messages and put result in SQS response queue.\n\nHDM SQS-Connect has a Flask based RESTful microservice running inside the container for the following operations:\n```\nConfigure AWS SQS  \nCreate queue  \nDelete queue  \nList queue  \nSend messages  \nGet response  \n```\n\nHDM SQS-Connect provides a python-based CLI to send/receive messages.\n\n## Build docker images\n```\n$ git clone https://github.com/CacheboxInc/sqs-connect.git  \n$ cd sqs-connect  \n$ bash build_docker.sh  \n```\n\n## Run SQS-Connect container\n```\n$ docker run -d -p 8085:8085 --name sqs_service sqs-images:latest  \n```\n\n## Logging\nLog file for microservice will be at sqs-connect/src/log/ and for daemon process at sqs-connect/src/daemon/tmp/\n\n\n## Unit tests\n```\n$ cd sqs-connect/src  \n$ python3.5 -m unittest tests/sqs_test.py  \n```\n\n## Configure SQS-Connect\nRun the following command to configure SQS-Connect\n\n```\n$ curl -i -k -H \"Content-Type: application/json ; charset=utf-8\" -X POST 'http://<host-ip>:8085/v1/sqs/configure' -d '{\"token\": <token>}'  \n\nToken would base64.urlsafe_b64decode of the following  \n\n{ \n\t\"response_queue\": <response-queue>,  \n\t\"message_queue\": <message-queue>,  \n\t\"aws_secret_key\": <secret-key>,  \n\t\"aws_access_key_id\": <access-key>,  \n\t\"aws_region_name\": <region>  \n} \n\n```\n\n## Examples to send message\nFollowings are the defined SQS messages\n```\nDEPLOY_ON_PREMISE  \nDEPLOY_ON_CLOUD  \nCONFIGURE_SOURCE  \nGET_JOB_STATUS  \nMIGRATE  \nMIGRATE_BACK  \nGET_TASK_STATUS  \nARM_SYNC  \nARM_COMMIT  \nGET_ARM_JOB_STATUS  \nARM_FULL_MIGRATE  \nARM_BULK_TRANSFER  \nBULK_TRANSFER_COMPLETE_NOTIFY  \nGET_INVENTORY  \nHEARTBEAT  \nSTART_HDM_RESET  \nGET_HDM_RESET_STATUS  \n```\n\nSend a message for DEPLOY_ON_PREMISE using cURL:\n```\ncurl -i -k -H \"Content-Type: application/json ; charset=utf-8\" -X POST 'http://<host-ip>:8085/v1/sqs/queue/message' -d '{\"attributes\": {\"command\": {\"StringValue\": \"DEPLOY_ON_PREMISE\", \"DataType\": \"String\"}}, \"message\": {\"network\": <network>, \"vcenter_ip\": <ip>, \"datastore\": <ds>, \"datacenter\": <dc>, \"password\": <password>, \"cluster\": <cluster>, \"username\": <username>, \"resource_pool\": <pool>}, \"group_id\": <GID>}'  \n```\n\nSend a message for DEPLOY_ON_PREMISE using AWS SQS portal:\n```\nMessage body\n{\n\t\"network\": <network>,  \n\t\"vcenter_ip\": <ip>,  \n\t\"datastore\": <ds>,  \n\t\"datacenter\": <dc>,  \n\t\"password\": <password>,  \n\t\"cluster\": <cluster>,  \n\t\"username\": <username>,  \n\t\"resource_pool\": <pool>  \n}\n\nAttributes:  \ncommand : DEPLOY_ON_PREMISE  \n\nMessage Group ID: 12153  \n```\n\nSend a message for DEPLOY_ON_PREMISE using SQS-Connect CLI:\n```\npython3.5 sqs_cli.py --send-message '{\"attributes\": {\"command\": {\"StringValue\": \"DEPLOY_ON_PREMISE\", \"DataType\": \"String\"}}, \"message\": {\"network\": <network>, \"vcenter_ip\": <ip>, \"datastore\": <ds>, \"datacenter\": <dc>, \"password\": <password>, \"cluster\": <cluster>, \"username\": <username>, \"resource_pool\": <pool>}, \"group_id\": <GID>}'  \n\n```\n\n\nSend a message for DEPLOY_ON_CLOUD using AWS SQS portal:\n```\nMessage body  \n{  \n\t\"network\": <network>,  \n\t\"vcenter_ip\": <ip>\",  \n\t\"datastore\": <ds>,  \n\t\"datacenter\": <dc>,  \n\t\"cluster\": <cluster>,  \n\t\"resource_pool\": <pool>,  \n        \"cloud_ip\": <cloud-ip>,  \n        \"cloud_username\": <username>,  \n        \"cloud_password\": <password>,  \n        \"cloud_datacenter\": <cloud-dc>,  \n        \"cloud_cluster\": <cloud-cluster>,  \n        \"cloud_resource_pool\": <cloud-pool>,  \n        \"cloud_datastore\": <cloud-ds>,  \n        \"cloud_network\": <cloud-network>,  \n        \"cloud_vm_folder\": <cloud-vm-folder>  \n}  \n\nAttributes-:  \ncommand : DEPLOY_ON_CLOUD  \n\nMessage Group ID: 12153  \n````\n\nSend a message for GET_JOB_STATUS using AWS SQS portal:\n```\nMessage body  \n{  \n  \"job_id\": <id> // id should be in string  \n}  \n\nAttributes-:  \ncommand : GET_JOB_STATUS  \n\nMessage Group ID: 12153  \n````\n\nSend a message for CONFIGURE_SOURCE using AWS SQS portal:\n```\nMessage body  \n{  \n \"vcenter_ip\" : <ip>,  \n \"cluster\": <cluster>,  \n \"monitor\": \"1\" or \"0\"  \n}\n\nAttributes-:  \ncommand : CONFIGURE_SOURCE  \n\nMessage Group ID: 12153  \n````\n\nSend a message for MIGRATE using AWS SQS portal:\n```\nMessage body  \n{ \n   \"vcenter_ip\": <ip>,  \n   \"vm_names\": <list of VMs>,  \n   \"extra_params\": {\"ArmMigration\": \"Enabled\"}  \n}  \n\nAttributes-:  \ncommand : MIGRATE  \n\nMessage Group ID: 12153  \n````\n\nSend a message for MIGRATE_BACK using AWS SQS portal:\n```\nMessage body  \n{  \n   \"vcenter_ip\": <ip>,  \n   \"vm_names\": <list of VMs>,  \n   \"extra_params\": {\"ArmMigration\": \"Enabled\"}  \n}  \n\nAttributes-:  \ncommand : MIGRATE_BACK  \n\nMessage Group ID: 12153  \n````\n\nSend a message for ARM_FULL_MIGRATE using AWS SQS portal:\n```\nMessage body  \n{  \n   \"prem_url\": <prem-vc-ip>,  \n   \"cloud_url\": <cloud-vc-ip>,  \n   \"vm_details\": [{  \n                   \"vm_name\": <vm-name>,  \n                   \"vm_username\": <username>,  \n                   \"vm_password\": <password>,  \n                   \"extra_params\": {  \n                                     \"push_status\": true  \n                                   }  \n                 }]  \n}  \n\nAttributes-:  \ncommand : ARM_FULL_MIGRATE  \n\nMessage Group ID: 12153  \n````\n\nSend a message for ARM_BULK_TRANSFER using AWS SQS portal:\n```\nMessage body  \n{\n   \"prem_url\": <prem-vc-ip>,  \n   \"vm_name\": <vm-name>,  \n   \"arm_vm_name\": <arm-vm-name>  \n}  \n\nAttributes-:  \ncommand : ARM_BULK_TRANSFER  \n\nMessage Group ID: 12153  \n````\n\nSend a message for GET_INVENTORY using AWS SQS portal:\n```\nMessage body  \n{  \n   \"vcenter_ip\": <ip>,  \n   \"cluster_name\": <cluster>  \n}\nAttributes-:  \ncommand : GET_INVENTORY    \n\nMessage Group ID: 12153  \n````\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pio-rm",
+        "package_url": "https://pypi.org/project/pio-rm/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pio-rm/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/pio-rm/0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Primayio Rivermeadow package",
+        "version": "0.1"
+    },
+    "last_serial": 5790376,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f9a6ca68f4ab8977c3a6ad8d0191f3b3",
+                    "sha256": "daa7ecf825c6b59b3357fbfc88fb2f79ded479c2a19a58864866822d40515206"
+                },
+                "downloads": -1,
+                "filename": "pio_rm-0.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f9a6ca68f4ab8977c3a6ad8d0191f3b3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 4100,
+                "upload_time": "2019-09-06T06:28:56",
+                "url": "https://files.pythonhosted.org/packages/de/d1/7a906d1b078d86ef63732ff4ba43f5114e39a788a351561d06314f4ab42e/pio_rm-0.1-py2-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f9a6ca68f4ab8977c3a6ad8d0191f3b3",
+                "sha256": "daa7ecf825c6b59b3357fbfc88fb2f79ded479c2a19a58864866822d40515206"
+            },
+            "downloads": -1,
+            "filename": "pio_rm-0.1-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "f9a6ca68f4ab8977c3a6ad8d0191f3b3",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 4100,
+            "upload_time": "2019-09-06T06:28:56",
+            "url": "https://files.pythonhosted.org/packages/de/d1/7a906d1b078d86ef63732ff4ba43f5114e39a788a351561d06314f4ab42e/pio_rm-0.1-py2-none-any.whl"
+        }
+    ]
+}

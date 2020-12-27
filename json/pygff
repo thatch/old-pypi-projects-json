@@ -1,0 +1,115 @@
+{
+    "info": {
+        "author": "Marcus D. Sherman",
+        "author_email": "mdsherm@umich.edu",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "Intended Audience :: End Users/Desktop",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: Unix",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Scientific/Engineering :: Information Analysis"
+        ],
+        "description": "[![Conda Version](https://img.shields.io/conda/vn/conda-forge/pygff.svg)](https://anaconda.org/conda-forge/pygff) \n[![PyPI version](https://badge.fury.io/py/pygff.svg)](https://badge.fury.io/py/pygff)\n[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/betteridiot/pygff/blob/master/LICENSE) \n</br>\n\n# Installation:\n\nThere are multiple options available for installation\n\n```bash\n# Recommended: from conda-forge\nconda install -c conda-forge pygff\n\n# From PyPI\npip install pygff\n\n# From GitHub\ngit clone https://github.com/betteridiot/pygff.git\ncd pygff\npython3 ./setup.py install\n\n```\n\nOptionally, you may want to test the program. A very small testing suite has been\nprovided. **Note**: *`pytest` is required* for testing.\n\nIf you choose to test the program on your current environment/build:\n\n```bash\n# If installed from conda-forge or the PyPI\npytest --pyargs pygff\n\n# Or, if installed from source\npython ./setup.py test\n\n```\n\n---\n# 'As-is' Warranty:\nThis program was written expressly for the purposes of education at the University\nof Michigan's Department of Computational Medicine & Bioinformatics. It was only\nintended to work for a specific subset of GFF/GTF files: **GFF3 files**. No promises are\nmade as to its wider functionality.\n\n---\n# Background:\nThe General Feature Format (GFF) was developed as a way to succinctly represent\ngenomic features (e.g. exons, introns, genes, etc). They are a 9-column, tab-delimited\nplain text (or gzip compressed) file. The 9 columns are described as such:\n\n| Column | Content | Description |\n| :----- | :-----: | :---------- |\n| 1 | seqid | The ID of the landmark used to establish the coordinate system for the current feature |\n| 2 | source | The source is a free text qualifier intended to describe the algorithm or operating procedure that generated this feature |\n| 3 | type | The type of the feature (previously called the \"method\") |\n| 4 | start | The start coordinate of the feature, given in positive 1-based integer coordinates, relative to the landmark given in column one |\n| 5 | end | The end coordinate of the feature, given in positive 1-based integer coordinates, relative to the landmark given in column one |\n| 6 | score | The score of the feature, a floating point number |\n| 7 | strand | The strand of the feature. '+' for positive strand (relative to the landmark), '-' for minus strand, and '.' for features that are not stranded |\n| 8 | phase | For features of type \"CDS\", the phase indicates where the feature begins with reference to the reading frame |\n| 9 | attributes | A list of feature attributes in the format tag=value |\n\n**Note**: this information was taken, in part, from [The Sequence Ontology](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md) group's GitHub.\n\n---\n# Description:\n`pygff` was written to provide a helpful interface when handling GFF3 files. It \nallows the user to easily process the parsed GFF3 content, entry-by-entry, in a \nlazily generated way.\n\nHowever, an additional functionality was written that produces a GFF3 index \non the fly. This index allows for *pseudo-random access*. Due to how it is implemented, \nit is not recommended that this program is run from the command line directly since\nthe index is ephemeral by nature.\n\n`pygff` exposes two classes for dealing with GFF3 data:\n\n### `pygff.GffFile`:\nMain class of the pygff package\n\nHandles the opening, iterating, and closing GFF3 files. Can handle both\nzipped and unzipped GFF3 files.\n\nWhen iterated, it lazily returns a `pygff.GffEntry` object. These objects\ncan be compared against each other and programmatically accessed for all traits.\n\n**Args**:\n1. `filename` (`str`): /path/to/file.gff[.gz]\n2. `periods` (`int`): For indexing purposes, the period to determine thresholding (default: 3)\n\n**Raises**:\n* `TypeError` if GFF file is not version 3\n\nAnd exposes the `pygff.GffFile.fetch(seqid, start, stop)` method:\n\nGenerator that fetches all GFF entries within a given region. \n\nAlso can only pull specific *types* of GFF entries (if supplied)\n\n**Args**:\n1. `seqid` (`str`): name of the chromosome of scaffold\n2. `start` (`int`): start position of the feature (1-indexed)\n3. `end` (`int`): end position of the feature (1-indexed)\n4. `type` (`str`): GFF feature type (default: None)\n\n**Yields**:\n* (`pygff.GffEntry`): A given GFF entry from the region of interest\n\n### `pygff.GffEntry`:\nAn object that represents a single GFF entry. \n\nThis object also has the ability to perform total ordered comparison\noperations (<, <=, ==, !=, >=, >) based on seqid first, then start\nposition, and finally the end position.\n\n**Attributes**:\n1. `seqid` (`str`): name of the chromosome of scaffold</br>\n2. `source` (`str`): name of the program that generated the feature</br>\n3. `type` (`str`): type of feature</br>\n4. `start` (`int`): start position of the feature (1-indexed)</br>\n5. `end` (`int`): end position of the feature (1-indexed)</br>\n6. `score` (`float`): a quality score of the feature</br>\n7. `strand` (`str`): either '+' (forward), '-'(reverse), or '.'</br>\n8. `phase` (`int`): 0,1, or 2 that indicates that the first base of the is the first base of the codon</br>\n9. `attributes` (`dict`): a dictionary of all tag/value pairs</br>\n\n---\n# Quickstart\n\n### Importing\n\n```python\n\nimport pygff\n\n```\n\n### Sequential Iteration\n\n```python\n\nwith pygff.GffFile('/path/to/file.gff[.gz]') as gff:\n    for entry in gff:\n        do_something(entry)\n\n```\n\n### *Pseudo*-Random Access\n\n```python\ngff = pygff.GffFile('/path/to/file.gff[.gz]')\nfor entry in gff.fetch('chr1', 123040, 128040):\n    do_something(entry)\n\n```\n\n### Output\n\n```python\n\nwith open('outfile.gff', 'wb') as outfile:\n    with pygff.GffFile('/path/to/file.gff[.gz]') as gff:\n        for entry in gff:\n            # Some filtering\n            print(entry, file = outfile)\n\n```\n\n---\n# Contributing & Code of Conduct:\nThis project is built on Open Science, Open Source, and Open Minds. To encourage\nan environment of inclusivity and positivity, please see our [Code of Conduct](https://github.com/betteridiot/pygff/blob/master/CODE_OF_CONDUCT.md).\n\nIf you are interested in contributing to the project, please see the [CONTRIBUTING](https://github.com/betteridiot/pygff/blob/master/CONTRIBUTING.md) guidelines",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/betteridiot/pygff",
+        "keywords": "gff parsing bioinformatics genomics",
+        "license": "BSD 3-Clause",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pygff",
+        "package_url": "https://pypi.org/project/pygff/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pygff/",
+        "project_urls": {
+            "Homepage": "https://github.com/betteridiot/pygff"
+        },
+        "release_url": "https://pypi.org/project/pygff/0.0.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Utility program for parsing GFF3 files",
+        "version": "0.0.2"
+    },
+    "last_serial": 4662402,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8d422a4d699396deee5b5078d18c9b39",
+                    "sha256": "fce5fb10672681f56e661fffda0f8541481c9e65342c32dbc9a1667cef329e30"
+                },
+                "downloads": -1,
+                "filename": "pygff-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8d422a4d699396deee5b5078d18c9b39",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10239,
+                "upload_time": "2019-01-04T18:10:38",
+                "upload_time_iso_8601": "2019-01-04T18:10:38.125456Z",
+                "url": "https://files.pythonhosted.org/packages/ad/ad/25371ca54022af008bed57d9c775525d13ebf3feb4f8395092f69a620145/pygff-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dceac863062c26c3a8d826536be45061",
+                    "sha256": "39b92b4394b63df84287b14e4dd842e812a9acee0c5663910b0c8e083a90d301"
+                },
+                "downloads": -1,
+                "filename": "pygff-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dceac863062c26c3a8d826536be45061",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10371,
+                "upload_time": "2019-01-05T01:54:56",
+                "upload_time_iso_8601": "2019-01-05T01:54:56.970832Z",
+                "url": "https://files.pythonhosted.org/packages/7e/ae/5af7de62aa89eedc3260a163b66a626fd6375c36e9d9594902bb8fa81e20/pygff-0.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "dceac863062c26c3a8d826536be45061",
+                "sha256": "39b92b4394b63df84287b14e4dd842e812a9acee0c5663910b0c8e083a90d301"
+            },
+            "downloads": -1,
+            "filename": "pygff-0.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "dceac863062c26c3a8d826536be45061",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 10371,
+            "upload_time": "2019-01-05T01:54:56",
+            "upload_time_iso_8601": "2019-01-05T01:54:56.970832Z",
+            "url": "https://files.pythonhosted.org/packages/7e/ae/5af7de62aa89eedc3260a163b66a626fd6375c36e9d9594902bb8fa81e20/pygff-0.0.2.tar.gz"
+        }
+    ]
+}

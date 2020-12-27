@@ -1,0 +1,145 @@
+{
+    "info": {
+        "author": "Akuli",
+        "author_email": "akuviljanen17@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# Pythotk\n\n[![Build Status](https://travis-ci.org/Akuli/pythotk.svg?branch=master)](https://travis-ci.org/Akuli/pythotk)\n[![Documentation Status](https://readthedocs.org/projects/pythotk/badge/?version=latest)](https://pythotk.readthedocs.io/en/latest/?badge=latest)\n[![Coverage Status](https://coveralls.io/repos/github/Akuli/pythotk/badge.svg?branch=master)](https://coveralls.io/github/Akuli/pythotk?branch=master)\n\nPythotk, short for \"pythonic Tk\", is a pythonic and user-friendly alternative\nto tkinter. It doesn't come with Python so you need to install it yourself, but\nit's nice and light-weight.\n\nDocumentation: https://pythotk.rtfd.org/\n\n\n## Pythotk is Pythonic\n\nIf you have worked with tkinter a lot, you know that it's kind of annoying.\nAlmost everything is represented as strings in Tcl. Tkinter is dumb and it\ndoesn't try to do things like they would be usually done in Python; instead,\ntkinter users need to deal with many inconveniences themselves. On the other\nhand, Pythotk is *pythonic*; it does things like they are best done in Python,\nnot how they are done in Tcl.\n\n\n### Ttk\n\nNever heard of Ttk before? Shame on you. Ttk is the new way to write GUIs in\nTk, and you should be already using it in tkinter. Ttk GUIs look a *lot* better\nthan non-Ttk GUIs on most platforms. For example, this GUI has a Ttk button and\na non-Ttk button. Guess which is which:\n\n[comment]: # (this must be a full url to make it work in pypi description)\n\n![good and bad button](https://github.com/Akuli/pythotk/raw/master/tk-ttk.png)\n\nThe problem is that Tk's windows (in tkinter, `tkinter.Toplevel` and\n`tkinter.Tk`) are *not* Ttk widgets. If you add Ttk widgets into them, the GUI\nlooks messy on some systems, like my linux system with MATE desktop. The\nsolution is to add a big Ttk frame that fills the window, and then add all\nwidgets into that frame.\n\n**Tkinter:**\n\n```python3\n# this is a well-done hello world, and tbh, most people don't use tkinter \"well\"\nimport tkinter as tk\nfrom tkinter import ttk\n\nroot = tk.Tk()\nbig_frame = ttk.Frame(root)\nbig_frame.pack(fill='both', expand=True)   # make sure it fills the root window\nttk.Label(big_frame, text=\"Hello World!\").pack()\nroot.mainloop()\n```\n\n**Pythotk:**\n\n```python3\nimport pythotk as tk\n\nwindow = tk.Window(\"Hello\")\ntk.Label(window, \"Hello World!\").pack()\ntk.run()\n```\n\nAll pythotk widgets are Ttk, so you don't need to do a separate import to use\nttk widgets. Also, when you create a pythotk `Window`, the big ttk frame is\ncreated and packed automatically for you, and you don't need to think about it\nat all; you just create a `Window` and add stuff into it.\n\n\n### Threads\n\nHere `time.sleep`s represent blocking things. In real life you could e.g. do\nnetwork requests, run a subprocess or perform CPU-sensitive computations in the\nthread.\n\n**Tkinter:**\n\n```python3\nimport queue\nimport threading\nimport time\nimport tkinter\n\nroot = tkinter.Tk()\nroot.title(\"Thread Demo\")\ntext = tkinter.Text(root)\ntext.pack()\n\nmessage_queue = queue.Queue()\n\ndef queue_poller():\n    while True:\n        try:\n            message = message_queue.get(block=False)\n        except queue.Empty:\n            break\n        text.insert('end', message)\n\n    root.after(50, queue_poller)\n\ndef thread_target():\n    message_queue.put('doing things...\\n')\n    time.sleep(1)\n    message_queue.put('doing more things...\\n')\n    time.sleep(2)\n    message_queue.put('done')\n\nthreading.Thread(target=thread_target).start()\nqueue_poller()\nroot.mainloop()\n```\n\n**Pythotk:**\n\n```python3\nimport threading\nimport time\nimport pythotk as tk\n\ntext = tk.Text(tk.Window(\"Thread Demo\"))\ntext.pack()\n\ndef thread_target():\n    text.insert(text.end, 'doing things...\\n')\n    time.sleep(1)\n    text.insert(text.end, 'doing more things...\\n')\n    time.sleep(2)\n    text.insert(text.end, 'done')\n\ntk.init_threads()\nthreading.Thread(target=thread_target).start()\ntk.run()\n```\n\nThis is not a joke. Using threads with tkinter is a horrible mess, but pythotk\nworks with threads nicely. All you need is `tk.init_threads()`, and then you\ncan do pythotk things from threads. See [concurrency docs] for details.\n\n[concurrency docs]: https://pythotk.readthedocs.io/en/latest/concurrency.html\n\n\n### Debuggability\n\n**Tkinter:**\n\n```python3\nlabel = ttk.Label(some_widget, text=\"hello world\")\nprint(label)        # prints something like '.140269016152776', which is confusing\nprint(repr(label))  # somewhat better: <tkinter.ttk.Label object .140269016152776>\n```\n\n**Pythotk:**\n\n```python3\nlabel = tk.Label(some_widget, \"hello world\")\nprint(label)    # <pythotk.Label widget: text='hello world'>\n```\n\n\n### Text Widget Indexes\n\nThe 4th character of the 3rd line of a text widget is the string `'3.4'` in\nTcl and tkinter. This is not only confusing because `3.4` looks like a float\neven though treating it as a float messes things up, but this makes code look\nmessy.\n\n**Tkinter:**\n\n```python3\n# figure out where the cursor is\nline, column = textwidget.index('insert').split('.')\nline = int(line)\ncolumn = int(column)\n\n# same thing, more concise\nline, column = map(int, textwidget.index('insert').split('.'))\n```\n\n**Pythotk:**\n\n```python3\nline, column = textwidget.marks['insert']\n```\n\n`textwidget.marks` is a dictionary-like object with mark names as keys and text\nindex namedtuples as values. Pythotk represents text indexes as namedtuples\nthat have `line` and `column` attributes, which is useful if you only need the\nline. In tkinter, you need to parse the `'line.column'` string with\n`.split('.')` and take the first element of the split result.\n\n**Tkinter:**\n\n```python3\ncursor_lineno = int(textwidget.index('insert').split('.')[0])\n```\n\n**Pythotk:**\n\n```python3\ncursor_lineno = textwidget.marks['insert'].line\n```\n\nIn tkinter you also need to construct the `'line.column'` strings yourself, but\nin pythotk you can use `(line, column)` tuples.\n\n**Tkinter:**\n\n```python3\ntextwidget.mark_set('insert', '{}.{}'.format(new_cursor_line, new_cursor_column))\n```\n\n**Pythotk:**\n\n```python3\ntextwidget.marks['insert'] = (new_cursor_line, new_cursor_column)\n```\n\nTcl uses strings like `3.4 + 5 chars` to denote the position that is 5\ncharacters after the position `3.4`. Pythotk's text position namedtuples have a\npythonic `forward()` method that returns a new text position.\n\n**Tkinter:**\n\n```python3\n# textwidget.index always returns the position as 'line.column'\nnew_position = textwidget.index('{}.{} + 5 chars - 1 line'.format(line, column))\n# now new_position is a string, and you may need to parse it back to\n# separate line and column\n```\n\n**Pythotk:**\n\n```python3\nnew_position = textwidget.index(line, column).forward(chars=5).back(lines=1)\n# new_position is now a text position namedtuple\n```\n\n\n### Timeouts\n\nIn tkinter, `any_widget.after(1000, func)` runs `func()` after 1 second, and\nthe `any_widget` can be any tkinter widget. That's right, you need a widget for\nscheduling timeouts. This can be a problem in library code. But what if during\nthat 1 second of waiting time, you decide that you don't want to run the\ntimeout after all? You can cancel the timeout, but as usual, pythotk makes it\neasier.\n\n**Tkinter:**\n\n```python3\nwidget = get_some_widget_from_somewhere()\ntimeout_id = widget.after(1000, my_function)\n...\n# debugging\nprint(timeout_id)       # prints 'after#0'... very useful, eh??\n...\nif we_actually_dont_want_to_timeout():\n    widget.after_cancel(timeout_id)\n    print(timeout_id)   # still prints 'after#0'\n\n# for debugging, print(timeout_id) prints something like after#0, which is not\n# very useful at all\n```\n\n**Pythotk:**\n\n```python3\ntimeout_object = tk.after(1000, my_function)\n...\n# debugging\nprint(timeout_object)   # prints <pending 'my_function' timeout 'after#0'>\n...\nif we_actually_dont_want_to_timeout():\n    timeout.cancel()\n    print(timeout)      # prints <cancelled 'my_function' timeout 'after#0'>\n```\n\n\n## Developing pythotk\n\nThis section contains the commands I use when working on pythotk. If you\nuse windows, replace `python3` with `py`.\n\n- `python3 -m pip install --user sphinx pytest pytest-cov flit` installs\n  everything you need for developing pythotk.\n- `python3 -m pytest` runs tests (they are in the `tests` subdirectory). It is\n  normal to get lots of tiny windows on the screen while running the tests. I\n  use these pytest options:\n    - `--skipslow` makes the tests run faster by skipping tests that are\n      decorated with `@pytest.mark.slow`.\n    - `--durations=10` prints the list of 10 slowest tests at the end of the\n      test run. This is a good way to figure out which tests to mark slow.\n    - `--cov=pythotk` runs the tests under coverage. Run\n      `python3 -m coverage html` and open `htmlcov/index.html` to view the\n      results. Coverage results from travis builds go to [coveralls].\n- `python3 -m pytest --cov=pythotk run --include='pythotk/*' -m pytest && coverage html` runs tests\n  under coverage and generates a coverage report to `htmlcov/index.html`. Open\n  it in a browser to view it. The tests run slower under coverage, so I like\n  to first run them without coverage and run again with coverage when they all\n  pass.\n- `cd docs` followed by `py -m sphinx . _build` builds documentation locally.\n  You can view it by opening `docs/_build/index.html` in your browser.\n  [readthedocs builds the docs] when you push to master, but it's best to make\n  sure that everything's fine first.\n- Sphinx seems to only build parts of the documentation if you change some of\n  it, but sometimes it doesn't detect your changes. Run `cd docs` followed by\n  `rm -r _build` to make it build everything next time.\n- I don't usually lint the files on my system. I push to GitHub (to any\n  branch), and if [the travis build] fails, I know I did something badly. If\n  you want to lint things yourself, find the correct command from\n  `.travis.yml`.\n- `flit publish` uploads to PyPI. You can ask me to run this after I have\n  merged something to master.\n\n[readthedocs builds the docs]: https://readthedocs.org/projects/pythotk/builds/\n[the travis build]: https://travis-ci.org/Akuli/pythotk\n[coveralls]: https://coveralls.io/github/Akuli/pythotk\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Akuli/pythotk",
+        "keywords": "pythonic tk tcl tkinter gui beginner",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pythotk",
+        "package_url": "https://pypi.org/project/pythotk/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pythotk/",
+        "project_urls": {
+            "Homepage": "https://github.com/Akuli/pythotk"
+        },
+        "release_url": "https://pypi.org/project/pythotk/0.2/",
+        "requires_dist": null,
+        "requires_python": ">=3.4",
+        "summary": "Pythotk is a pythonic alternative to tkinter.",
+        "version": "0.2"
+    },
+    "last_serial": 4251750,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fe4b292ed46f266a601c89cde68fffe8",
+                    "sha256": "b248c28faa5be46474783043c0d853653af1dd5cf384bdb49261a59e6476af83"
+                },
+                "downloads": -1,
+                "filename": "pythotk-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fe4b292ed46f266a601c89cde68fffe8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4",
+                "size": 144097,
+                "upload_time": "2018-09-06T13:40:54",
+                "url": "https://files.pythonhosted.org/packages/cd/01/49098fe24b03301355547f7e9f8265be6fb0dbc5e2366c7699338c81a0b4/pythotk-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a583da4c5afe11a0046ee40f26da20ac",
+                    "sha256": "303926f2d3b2e483b16ec0549e45f1163b730891867ed71f2daccaffba42b210"
+                },
+                "downloads": -1,
+                "filename": "pythotk-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a583da4c5afe11a0046ee40f26da20ac",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.4",
+                "size": 113866,
+                "upload_time": "2018-09-06T13:41:08",
+                "url": "https://files.pythonhosted.org/packages/d9/38/3ecdff46efb848a41913fce1ce83562b8e1723dc0d897f4799948f4f75f8/pythotk-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6d563fc67868885456dc71efdddf4e1d",
+                    "sha256": "ee1bd82e88e23fea36a359bd0dbb3ce4f78efa0356caf55363f77f27d90a1d69"
+                },
+                "downloads": -1,
+                "filename": "pythotk-0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6d563fc67868885456dc71efdddf4e1d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.4",
+                "size": 149337,
+                "upload_time": "2018-09-08T15:03:16",
+                "url": "https://files.pythonhosted.org/packages/db/04/97949402c6894a0a8f66114952634352650599dbc2902ba14c936619fe03/pythotk-0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d75176621311b61c040ef4fbc6c0a8d7",
+                    "sha256": "b061eb6292a8d120e83bda9fa22896c6f9d0be61ab2b86d64f5b1e1b63175b3f"
+                },
+                "downloads": -1,
+                "filename": "pythotk-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d75176621311b61c040ef4fbc6c0a8d7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.4",
+                "size": 117266,
+                "upload_time": "2018-09-08T15:03:22",
+                "url": "https://files.pythonhosted.org/packages/ed/32/7a3ff5b9a5b0493ae5c7944b113b0252cc2a61e06464bee36f47f610c855/pythotk-0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6d563fc67868885456dc71efdddf4e1d",
+                "sha256": "ee1bd82e88e23fea36a359bd0dbb3ce4f78efa0356caf55363f77f27d90a1d69"
+            },
+            "downloads": -1,
+            "filename": "pythotk-0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "6d563fc67868885456dc71efdddf4e1d",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.4",
+            "size": 149337,
+            "upload_time": "2018-09-08T15:03:16",
+            "url": "https://files.pythonhosted.org/packages/db/04/97949402c6894a0a8f66114952634352650599dbc2902ba14c936619fe03/pythotk-0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d75176621311b61c040ef4fbc6c0a8d7",
+                "sha256": "b061eb6292a8d120e83bda9fa22896c6f9d0be61ab2b86d64f5b1e1b63175b3f"
+            },
+            "downloads": -1,
+            "filename": "pythotk-0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d75176621311b61c040ef4fbc6c0a8d7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.4",
+            "size": 117266,
+            "upload_time": "2018-09-08T15:03:22",
+            "url": "https://files.pythonhosted.org/packages/ed/32/7a3ff5b9a5b0493ae5c7944b113b0252cc2a61e06464bee36f47f610c855/pythotk-0.2.tar.gz"
+        }
+    ]
+}

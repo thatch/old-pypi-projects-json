@@ -1,0 +1,119 @@
+{
+    "info": {
+        "author": "Jonatan Almen",
+        "author_email": "almen.jonatan@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "#  Asynclightweight Example\n\n ### Goals:\n\n * Make __betfairlightweight__ more modular, adding custom processors.\n * Async the network part. \n * Make CPU bound code run in own process,\n\n### DAG\n\nThe idea is to have several processes be able to output to one or more \"child\" processes\n```.env\n                         _ _ filwriter_processor\n                       /\nraw_data_processor ----\n                       \\ _ _ MarketProcessr -> TradingStrategy  \n``` \n\n### Usage example:\n\nFull example main.py\n```python\nimport asyncio\nimport json\nimport logging\nfrom betfair.StreamAPI import StreamAPI\nfrom betfairlightweight.filters import streaming_market_filter, streaming_market_data_filter\n\nlogging.basicConfig(level=logging.DEBUG)\n\n\ndef p1(data):\n    unique_id, part = data\n    return part\n\n\ndef p2(data):\n    return json.loads(data.decode('utf-8'))\n\n\nclass P3:\n\n    def __call__(self, data):\n        print(\"I'm also callable: \", data)\n\n\nasync def main():\n    ...\n\n    trading: APIClient = betfairlightweight.APIClient(username=USERNAME, password=PASSWORD, app_key=APP_KEY, locale=\"sweden\")\n\n    mf = streaming_market_filter(\n        country_codes=[country_code],\n        market_types=[\"MATCH_ODDS\"]\n    )\n\n    mdf = streaming_market_data_filter(\n        fields=['EX_BEST_OFFERS', 'EX_MARKET_DEF'],\n        ladder_levels=3,\n    )\n\n    streaming_api = StreamAPI(trading, client_cert_path=\"/certs/client-2048.crt\", client_key_path=\"/certs/client-2048.key\")\n\n    await streaming_api.set_pipeline([p1, p2, P3()])\n    await streaming_api.subscribe_to_markets(market_data_filter=mdf, market_filter=mf)\n    await streaming_api.wait_forever()\n\n\nasyncio.run(main())\n\n```\n#### Case: Subscribe to other markets while running another subscription\n```python\n    .... # Same as above\n\n    country_codes = ['FR', 'DE', 'ES']\n\n    while True:\n        country_code = random.randrange(0, len(country_codes))\n        country_code = country_codes[country_code]\n\n        mf = streaming_market_filter(\n            country_codes=[country_code],\n            market_types=[\"MATCH_ODDS\"]\n        )\n\n        mdf = streaming_market_data_filter(\n            fields=['EX_BEST_OFFERS', 'EX_MARKET_DEF'],\n            ladder_levels=3,\n        )\n        await streaming_api.subscribe_to_markets(market_data_filter=mdf, market_filter=mf)\n        await asyncio.sleep(30)\n\n```\n### Multiple stream\nSupply a unique name for the stream you want to start.\n\nTODO: Remove strem, replace stream does not change name, but replace is available just supply the same name\n```python\nawait streaming_api.subscribe_to_markets(market_data_filter=mdf, market_filter=mf, name=\"StreamName\")\n```\n ### Processors\n\n Processors is just any callable that have a \n   single parameter __data__ and returns the processed data in any form\n   data -> data\n\n#### example:\nThere are right now 3 processors in the repository\nasynclightweight.example.market_processors. \n```python\n# The first processor will always take in raw data from the socket, \n\ndef raw_data_processor(data):\n    data = data.decode(encoding=\"utf-8\").split('\\r\\n')[0]\n    return json.loads(data)\n\n# Market Processor, Should maybe have another name. This code is taken \n# directly from betfairlightweight. This will  create a cache which will hold new orders and output\n# each update aggregated with respective Market Definition\n# Note that we implement __call__ to be able to handle new incoming data.\n\nclass MarketProcessor:\n    ...\n\n    def __call__(self, data):\n        op, ct = data['op'], data.get('ct', 'UPDATE')\n\n        if op == \"mcm\" and data.get(self._lookup) and (ct == 'SUB_IMAGE' or ct == 'UPDATE'):\n            return self.on_update(data)\n        elif ct == 'HEARTBEAT':\n            print(\"MY HEART IS BEATING!\")\n\n        return []\n\n# Prints the marketbooks from MarketProcessor\ndef print_processor(data):\n    for market_book in data:\n        print(market_book['marketId'])\n\n\n# To make all of these pipelines depend on each other we add \n# them to a list, [raw_data_processor,  MarketProcessor, print_processor]\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/almenjonatan/asynclightweightexample",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "betfairasync",
+        "package_url": "https://pypi.org/project/betfairasync/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/betfairasync/",
+        "project_urls": {
+            "Homepage": "https://github.com/almenjonatan/asynclightweightexample"
+        },
+        "release_url": "https://pypi.org/project/betfairasync/0.0.1/",
+        "requires_dist": [
+            "betfairlightweight"
+        ],
+        "requires_python": ">=3.7",
+        "summary": "API for betfair exchange stream",
+        "version": "0.0.1"
+    },
+    "last_serial": 6510655,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0a5f74544d87ba21b1289bdbd783ca8",
+                    "sha256": "48fcd70c7c5e85a005997676bfbc90c7b0c45c7975063ca37d868b710c71b51e"
+                },
+                "downloads": -1,
+                "filename": "betfairasync-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c0a5f74544d87ba21b1289bdbd783ca8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7",
+                "size": 20808,
+                "upload_time": "2020-01-23T22:20:54",
+                "upload_time_iso_8601": "2020-01-23T22:20:54.046982Z",
+                "url": "https://files.pythonhosted.org/packages/aa/03/deacae12bf58d9ed835ee610e854865ace96e9c1647e8c1060fcb030c6e2/betfairasync-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "54c6fad0bdfa5ed5f0ebb3d1a1a1e6ac",
+                    "sha256": "f28ec919540eb3295bd689aa080f492c6aaa5e84d45de54005d3695972a42f58"
+                },
+                "downloads": -1,
+                "filename": "betfairasync-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "54c6fad0bdfa5ed5f0ebb3d1a1a1e6ac",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7",
+                "size": 18502,
+                "upload_time": "2020-01-23T22:20:57",
+                "upload_time_iso_8601": "2020-01-23T22:20:57.022213Z",
+                "url": "https://files.pythonhosted.org/packages/f0/82/81580c3eed4e85cf70b60fad109dc1d9e6d3b28a3c8bf4aacc192d5c67d9/betfairasync-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c0a5f74544d87ba21b1289bdbd783ca8",
+                "sha256": "48fcd70c7c5e85a005997676bfbc90c7b0c45c7975063ca37d868b710c71b51e"
+            },
+            "downloads": -1,
+            "filename": "betfairasync-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c0a5f74544d87ba21b1289bdbd783ca8",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7",
+            "size": 20808,
+            "upload_time": "2020-01-23T22:20:54",
+            "upload_time_iso_8601": "2020-01-23T22:20:54.046982Z",
+            "url": "https://files.pythonhosted.org/packages/aa/03/deacae12bf58d9ed835ee610e854865ace96e9c1647e8c1060fcb030c6e2/betfairasync-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "54c6fad0bdfa5ed5f0ebb3d1a1a1e6ac",
+                "sha256": "f28ec919540eb3295bd689aa080f492c6aaa5e84d45de54005d3695972a42f58"
+            },
+            "downloads": -1,
+            "filename": "betfairasync-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "54c6fad0bdfa5ed5f0ebb3d1a1a1e6ac",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7",
+            "size": 18502,
+            "upload_time": "2020-01-23T22:20:57",
+            "upload_time_iso_8601": "2020-01-23T22:20:57.022213Z",
+            "url": "https://files.pythonhosted.org/packages/f0/82/81580c3eed4e85cf70b60fad109dc1d9e6d3b28a3c8bf4aacc192d5c67d9/betfairasync-0.0.1.tar.gz"
+        }
+    ]
+}

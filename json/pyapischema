@@ -1,0 +1,118 @@
+{
+    "info": {
+        "author": "Joseph Perez",
+        "author_email": "joperez@hotmail.fr",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# APISchema\n\nAnother Python API schema handling through typing annotation; light, simple, powerful.\n\n## Getting Started\n\nInstall with `pip install pyapischema` (I'm currently claiming `apischema` name on PyPi).\nUse it following example below \n\n\n## Examples\n\nSimple example:\n```Python\nimport json\nimport uuid\nfrom dataclasses import dataclass\nfrom typing import Iterator, Sequence\n\nfrom apischema.data import from_data, to_data\nfrom apischema.model import Model\nfrom apischema.schema import build_schema\nfrom apischema.validator import Error, validate\n\n\nclass UUID(Model[str], uuid.UUID):\n    pass\n\n\n@dataclass\nclass MyModel:\n    id: UUID\n    elts: Sequence[int]\n    check_sum: int\n\n    @validate(\"elts\", \"check_sum\")\n    def elts_sum(self) -> Iterator[Error]:\n        if sum(self.elts) != self.check_sum:\n            yield \"check_sum doesn't match elts\"\n\n\ndata = json.load(...) # type: ignore\n# data = {\"id\": str(uuid4()), \"elts\": [1, 2], \"check_sum\": 3} \nmy_model = from_data(MyModel, data, camel_case=False)\ndata2 = to_data(MyModel, my_model, camel_case=False)\n\nopenapi = build_schema(MyModel, camel_case=False)\n```\n\nA little bit more complex\n```Python\nfrom __future__ import annotations\n\nfrom dataclasses import dataclass, field\nfrom typing import List, TypeVar, Union, Iterator, Generic\n\nimport pytest\n\nfrom apischema.data import from_data\nfrom apischema.model import Model\nfrom apischema.validation import ValidationError\nfrom apischema.validator import Error, validate\n\nT = TypeVar(\"T\")\n\n\nclass A(Model[Union[T, List[T]]], List[T]):\n    @classmethod\n    def from_model(cls, obj: Union[T, List[T]]) -> A:\n        if isinstance(obj, list):\n            return A(obj)\n        else:\n            return A([obj])\n\n    def to_model(self) -> Union[T, List[T]]:\n        return self[0] if len(self) == 1 else list(self)\n\n    @validate\n    def no_consecutive_duplicates(self) -> Iterator[Error]:\n        if len(self) == 0:\n            return\n        cur = self[0]\n        for i in range(1, len(self)):\n            if cur == self[i]:\n                yield f\"duplicate elt {cur} in position {i}\"\n            cur = self[i]\n\n\n@dataclass\nclass B(Generic[T]):\n    a: A[T] = field(default_factory=A)\n\n\ndef test():\n    print()\n    print(from_data(B, {}))\n    print(from_data(B[int], {}))\n    print(from_data(B[int], {\"a\": 0}))\n    print(from_data(B[int], {\"a\": [1, 2]}))\n    with pytest.raises(ValidationError) as err:\n        print(from_data(B[int], {\"a\": [1, 2, 2]}))\n    print(err.value)\n    with pytest.raises(ValidationError) as err:\n        print(from_data(B[str], {\"a\": [\"\", 0, 1]}))\n    print(err.value)\n\n```\n\nWith *spec*:\n```Python\nfrom dataclasses import dataclass\n\nfrom apischema.data import from_data, to_data\nfrom apischema.field import field\nfrom apischema.model import Model\nfrom apischema.schema import Schema, build_schema\nfrom apischema.spec import NumSpec, SpecClass\n\n\nclass ShortString(Model[str], SpecClass, str):\n    max_length = 10\n\n\n@dataclass\nclass A:\n    positive: int = field(spec=NumSpec(min=0))\n    short_string: ShortString = ShortString(\"\")\n\n\ndef test():\n    # data = json.load(...)\n    data = {\"positive\": 1, \"shortString\": \"ok\"}\n    a = from_data(A, data)\n    data2 = to_data(A, a)\n    print(data2)\n\n    openapi = build_schema(A)\n    print(to_data(Schema, openapi))\n\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/wyfo/apischema",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pyapischema",
+        "package_url": "https://pypi.org/project/pyapischema/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pyapischema/",
+        "project_urls": {
+            "Homepage": "https://github.com/wyfo/apischema"
+        },
+        "release_url": "https://pypi.org/project/pyapischema/1.0.0/",
+        "requires_dist": [
+            "tmv",
+            "pyhumps"
+        ],
+        "requires_python": "",
+        "summary": "Another Python API schema handling through typing annotation; light, simple, powerful.",
+        "version": "1.0.0"
+    },
+    "last_serial": 5673934,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b5e8d3abb6021164b2ef4a4a091bbe32",
+                    "sha256": "194e0139e193e6abe82827ad8f9e5f05fa5a199dfd38045cfdf7a12810754d16"
+                },
+                "downloads": -1,
+                "filename": "pyapischema-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b5e8d3abb6021164b2ef4a4a091bbe32",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13621,
+                "upload_time": "2019-08-13T22:28:32",
+                "upload_time_iso_8601": "2019-08-13T22:28:32.130267Z",
+                "url": "https://files.pythonhosted.org/packages/b6/bf/9a143570e2ba562e4539333ab7c120cbfc6f6f099db57c82443ea58e6908/pyapischema-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3477099edec9e2b029c8b9c5d9aee1eb",
+                    "sha256": "b8b4f4e6e46601b817dee988fb506d0d9821ca286c6840cc68df1b5e19d8da82"
+                },
+                "downloads": -1,
+                "filename": "pyapischema-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3477099edec9e2b029c8b9c5d9aee1eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10927,
+                "upload_time": "2019-08-13T22:28:34",
+                "upload_time_iso_8601": "2019-08-13T22:28:34.681909Z",
+                "url": "https://files.pythonhosted.org/packages/33/64/c74516512a9901db1af85832851e4082ee9e15778c44d87ec1753d939fdd/pyapischema-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b5e8d3abb6021164b2ef4a4a091bbe32",
+                "sha256": "194e0139e193e6abe82827ad8f9e5f05fa5a199dfd38045cfdf7a12810754d16"
+            },
+            "downloads": -1,
+            "filename": "pyapischema-1.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "b5e8d3abb6021164b2ef4a4a091bbe32",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 13621,
+            "upload_time": "2019-08-13T22:28:32",
+            "upload_time_iso_8601": "2019-08-13T22:28:32.130267Z",
+            "url": "https://files.pythonhosted.org/packages/b6/bf/9a143570e2ba562e4539333ab7c120cbfc6f6f099db57c82443ea58e6908/pyapischema-1.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3477099edec9e2b029c8b9c5d9aee1eb",
+                "sha256": "b8b4f4e6e46601b817dee988fb506d0d9821ca286c6840cc68df1b5e19d8da82"
+            },
+            "downloads": -1,
+            "filename": "pyapischema-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3477099edec9e2b029c8b9c5d9aee1eb",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 10927,
+            "upload_time": "2019-08-13T22:28:34",
+            "upload_time_iso_8601": "2019-08-13T22:28:34.681909Z",
+            "url": "https://files.pythonhosted.org/packages/33/64/c74516512a9901db1af85832851e4082ee9e15778c44d87ec1753d939fdd/pyapischema-1.0.0.tar.gz"
+        }
+    ]
+}

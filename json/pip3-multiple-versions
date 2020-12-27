@@ -1,0 +1,143 @@
+{
+    "info": {
+        "author": "Dmytro Striletskyi",
+        "author_email": "dmytro.striletskyi@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "Install many versions of the same Python package with pip3 support. \n\n* [Getting started](#getting-started)\n  * [Technical stack](#technical-stack)\n  * [Requirements](#requirements)\n  * [Installation](#installation)\n* [Usage](#usage)\n  * [Example](#example)\n  * [Versions](#versions)\n  * [Command line interface](#command-line-interface)\n    * [Version](#version)\n    * [Help](#help)\n    * [Install](#install)\n* [How it works](#how-it-works)\n  * [Benchmark](#benchmark)\n* [Troubleshootings](#troubleshootings)\n  * [Unknown module folder](#unknown-module-folder)\n* [Development](#development)\n  * [Clone the project](#clone-the-project)\n  * [Distribution](#distribution)\n\n## Getting started\n\n### Technical stack\n\n1. [Python3](https://www.python.org/downloads) as an interpreter (programming language) to execute the code.\n   * The following list of versions has been tested: `3.4`, `3.5`, `3.6`, `3.7`.\n\n### Requirements\n\n1. [Git](https://git-scm.com) as a version control system to work with current repository.\n2. [pip](https://pip.pypa.io/en/stable) as a package manager for `Python`.\n\n### Installation\n\nInstall using `pip3`:\n\n```bash\n$ pip3 install pip3-multiple-versions\n```\n\n## Usage\n\n### Example\n\nInstall multiple version of the same package with the following commands:\n\n```bash\n$ pip3-multiple-versions package install --name=requests --version=1.0.0\n$ pip3-multiple-versions package install --name=requests --version=2.0.0\n```\n\nUse any of them:\n\n```python\nimport multiple_versions\nmultiple_versions.use(name='requests', version='1.0.0')\n\nimport requests\nprint(requests.__version__)\n'1.0.0'\n```\n\nOr another one:\n\n```python\nimport multiple_versions\nmultiple_versions.use(name='requests', version='2.0.0')\n\nimport requests\nprint(requests.__version__)\n'2.0.0'\n```\n\n### Versions\n\nTo specify particular version, use the function named `use` from `multiple_versions`. You should define `use` function \nstrictly before importing a target library:\n\n```python\nimport multiple_versions\nmultiple_versions.use(name='requests', version='2.0.0')\n\nimport requests\n```\n\n### Distribution \n\nDistribution functionality ([pkg_resources](https://setuptools.readthedocs.io/en/latest/pkg_resources.html)) is \nsupported by default:\n\n```python\nimport multiple_versions\nmultiple_versions.use(name='requests', version='2.0.0')\nimport requests\n\nimport pkg_resources\nprint(pkg_resources.get_distribution('requests').version)\n2.0.0\n```\n\n### Command line interface \n\n#### Version\n\nGet the version of the package \u2014 `pip3-multiple-versions --version`:\n\n```bash\n$ pip3-multiple-versions --version\npip3-multiple-versions, version 0.0.1\n```\n\n#### Help\n\nGet the detailed description of all supported commands by the package \u2014 `pip3-multiple-versions --help`:\n\n```bash\n$ pip3-multiple-versions --help\nUsage: pip3-multiple-versions [OPTIONS] COMMAND [ARGS]...\n\n  Provide command-line interface for pip3 package's multiple versions.\n\nOptions:\n  --version  Show the version and exit.\n  --help     Show this message and exit.\n```\n\n#### Install\n\nInstall a package \u2014 `pip3-multiple-versions package install`.\n\nYou can install as many version as you wish.\n\n| Arguments       | Type    | Required | Restrictions                      | Description                                            |\n|:---------------:|:-------:|:--------:|:---------------------------------:|--------------------------------------------------------|\n| name            | String  | Yes      | -                                 | Name of a package.                                     |\n| version         | String  | Yes      | -                                 | Version of a package.                                  |\n| extra-index-url | String  | No       | May contain authentication token. | URL to extra Python Package Index. May be private one. |\n\n\n```bash\n$ pip3-multiple-versions package install \\\n      --name=requests \\\n      --version=2.0.0 \\\n      --extra-index-url=https://${AUTHENTICATION_TOKEN}:@${GEMFURY_PRIVATE_REPOSITORY}\n```\n\n## How it works\n\n### Benchmark\n\nAny cache system from `Python` is not used and the library does not decrease speed of imports call.\n\nPerformance without multiple versions calling:\n\n```bash\n$ python3 -mtimeit -s \"import requests\"\n50000000 loops, best of 5: 6.62 nsec per loop\n```\n\nPerformance with multiple versions calling:\n\n```bash\n$ python3 -mtimeit -s \"import multiple_versions; multiple_versions.use(name='requests', version='2.0.0'); import requests\"\n50000000 loops, best of 5: 6.56 nsec per loop\n```\n\n## Troubleshootings\n\n### Unknown module folder\n\nYou may get the unknown module folder error illustrated below.\n\n```bash\nTraceback (most recent call last):\n  File \"test.py\", line 45, in <module>\n    multiple_versions.use(name='requests', version='2.0.0')\n  File \"/Users/dmytro/projects/pip3-multiple-versions/multiple_versions/main.py\", line 140, in use\n    imported_package_folder = _get_imported_package_folder(package_name=name, package_version=version)\n  File \"/Users/dmytro/projects/pip3-multiple-versions/multiple_versions/main.py\", line 112, in _get_imported_package_folder\n    raise ModuleNotFoundError('Unknown module folder, package name is different from package folder name.')\nModuleNotFoundError: Unknown module folder, package name is different from package folder name.\n```\n\nIt means, that the project name is different from package folder name. After installation this kind of projects, you have:\n\n1. Package folder you do imports from.\n\n    ```python\n    import rest_framework\n    ```\n\n2. Folder with [meta data from setup.py](https://packaging.python.org/tutorials/packaging-projects/#creating-setup-py) such\nas version, description, etc.\n\n    ```bash\n    $ ls /Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages\n    ...\n    rest_framework\n    djangorestframework-3.11.0-py3.7.egg-info\n    ...\n    ```\n\nAnd the point is that `multiple_versions.use` under the hood requires data for both of them and the problem is these\ndifferent names \u2014 `djangorestframework` (package name while installing) and `rest_framework` (package folder name).\n\nThe library easily parse package name, but not package folder name. The solution is to use `import_name` variable to be\npassed to `multiple_versions.use`.\n\n```python\nimport multiple_versions\nmultiple_versions.use(name='djangorestframework', version='3.11.0', import_name='rest_framework')\n\nimport rest_framework\n```\n\nYou don't need `import_name` variable in case package name and package folder name is the same:\n\n```bash\n$ ls /Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages\n...\nmarshmallow\nmarshmallow-3.3.0.dist-info\ntyping_inspect\ntyping_inspect-0.4.0.dist-info\n...\n```\n\n## Development\n\n### Clone the project\n\nTo start working with the project, clone it with the following commands.\n\n```bash\n$ git clone git@github.com:dmytrostriletskyi/pip3-multiple-versions.git\n$ cd dmytrostriletskyi/pip3-multiple-versions\n```\n\nInstall requirements:\n\n```bash\n$ pip3 install -r requirements/project.txt -r requirements/tests.txt\n```\n\n### Run tests\n\n```bash\n$ pytest tests\n```\n\n### Distribution\n\nBuild the project with the following command:\n\n```bash\n$ python3 setup.py sdist\n```\n\nInstall it locally:\n\n```bash\n$ pip3 install dist/*.tar.gz\n```\n\nAfter the command above, you can execute the command line interface as if you installed it through `pip3`:\n\n```bash\n$ pip3-multiple-versions --version\npip3-multiple-versions, version 0.0.1\n```",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/dmytrostriletskyi/pip3-multiple-versions",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pip3-multiple-versions",
+        "package_url": "https://pypi.org/project/pip3-multiple-versions/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pip3-multiple-versions/",
+        "project_urls": {
+            "Homepage": "https://github.com/dmytrostriletskyi/pip3-multiple-versions"
+        },
+        "release_url": "https://pypi.org/project/pip3-multiple-versions/0.2.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Install many versions of the same Python package with pip3 support.",
+        "version": "0.2.2"
+    },
+    "last_serial": 6495948,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5236b3913069b23d66a681f62e29a549",
+                    "sha256": "b0b47149f4cb9ad891f59a3465bdd5b3ac97cdda19a968651eef8a9b781f5093"
+                },
+                "downloads": -1,
+                "filename": "pip3-multiple-versions-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5236b3913069b23d66a681f62e29a549",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2591,
+                "upload_time": "2020-01-15T19:44:20",
+                "upload_time_iso_8601": "2020-01-15T19:44:20.696086Z",
+                "url": "https://files.pythonhosted.org/packages/52/15/4235af7bcaf213b2c87f669f3b6204b741310d758b20127b624f034f107c/pip3-multiple-versions-0.0.1.tar.gz"
+            }
+        ],
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2b7c41a19f0afdeac0699b301a9bfabe",
+                    "sha256": "699515eb2e01fd434745f8de02d09e550526b661e3ab71536c8db4ccb91f4e92"
+                },
+                "downloads": -1,
+                "filename": "pip3-multiple-versions-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2b7c41a19f0afdeac0699b301a9bfabe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4510,
+                "upload_time": "2020-01-17T19:23:50",
+                "upload_time_iso_8601": "2020-01-17T19:23:50.609446Z",
+                "url": "https://files.pythonhosted.org/packages/f0/84/8628722a5a4edeab2d0324f8980711be74a3663f6dae35b2835bc1f1d2a2/pip3-multiple-versions-0.1.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e505b2440d31ae188783f48396057f6",
+                    "sha256": "2af96a7f71dff4b3dff398c03b81cac211e07956f9b3e8987f12dac0301dcf1d"
+                },
+                "downloads": -1,
+                "filename": "pip3-multiple-versions-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2e505b2440d31ae188783f48396057f6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9284,
+                "upload_time": "2020-01-19T16:23:32",
+                "upload_time_iso_8601": "2020-01-19T16:23:32.824722Z",
+                "url": "https://files.pythonhosted.org/packages/5b/a6/0fbc3984eef72477808ed121707542046b9e77a91bbf9de1c45b73be1bc9/pip3-multiple-versions-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c41fafe9e32fd922ab8406884ae845f7",
+                    "sha256": "5ce8540a8281fa1886ac0fe3f9a2c4780c3089ceb3422bf02dd3341788755ef6"
+                },
+                "downloads": -1,
+                "filename": "pip3-multiple-versions-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c41fafe9e32fd922ab8406884ae845f7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11247,
+                "upload_time": "2020-01-21T19:42:17",
+                "upload_time_iso_8601": "2020-01-21T19:42:17.060124Z",
+                "url": "https://files.pythonhosted.org/packages/51/6f/e1649777571416d944621003d61907458df8702e0768fdbef4e614c0822c/pip3-multiple-versions-0.2.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c41fafe9e32fd922ab8406884ae845f7",
+                "sha256": "5ce8540a8281fa1886ac0fe3f9a2c4780c3089ceb3422bf02dd3341788755ef6"
+            },
+            "downloads": -1,
+            "filename": "pip3-multiple-versions-0.2.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "c41fafe9e32fd922ab8406884ae845f7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11247,
+            "upload_time": "2020-01-21T19:42:17",
+            "upload_time_iso_8601": "2020-01-21T19:42:17.060124Z",
+            "url": "https://files.pythonhosted.org/packages/51/6f/e1649777571416d944621003d61907458df8702e0768fdbef4e614c0822c/pip3-multiple-versions-0.2.2.tar.gz"
+        }
+    ]
+}

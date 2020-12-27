@@ -1,0 +1,183 @@
+{
+    "info": {
+        "author": "Kyle Cooper",
+        "author_email": "coope149@purdue.edu",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# pydovs\n\nThis project implements the R-PERLE algorithm for solving bi-objective simulation optimization problems on integer lattices and the R-MinRLE algorithm, a benchmark algorithm for solving multi-objective simulation optimization problems on integer lattices. This project is in beta! Please email the authors with any issues.\n\n## Reference\nIf you use this software for work leading to publications, please cite the article in which R-PERLE and R-MinRLE were proposed:\n\nCooper, K., Hunter, S. R., and Nagaraj, K. 2018. Bi-objective simulation optimization on integer lattices using the epsilon-constraint method in a retrospective approximation framework. Optimization Online, http://www.optimization-online.org/DB_HTML/2018/06/6649.html.\n\nWe also include an implementation of R-SPLINE, which can be cited as follows:\n\nWang, H., Pasupathy, R., and Schmeiser, B. W. 2013. Integer-ordered simulation optimization using R-SPLINE: Retrospective Search with Piecewise-Linear Interpolation and Neighborhood Enumeration. ACM Transactions on Modeling and Computer Simulation, Vol. 23, No. 3, Article 17 (July 2013), 24 pages. DOI:http://dx.doi.org/10.1145/2499913.2499916\n\n## Installation\n### Install Python 3.6+\nThis software requires Python 3.6 or higher. Python can be downloaded from https://www.python.org/downloads/.\n\n### Install from PyPI\n`pip install pydovs`\n\n### Install latest trunk version from git\n`pip install git+https://github.rcac.purdue.edu/HunterGroup/pydovs.git`\n\n### Install from source\n1. Install prerequisite packages.   \n`pip install wheel docopt`\n1. Download the project code either from  \nhttps://github.rcac.purdue.edu/HunterGroup/pydovs/releases   \nfor the official releases or using  \n`git clone git@github.rcac.purdue.edu:HunterGroup/pydovs.git`  \nfor the latest version.  \n1. Navigate to the newly downloaded project directory containing setup.py and build the binary wheel.  \n`python setup.py bdist_wheel`\n1. Install the wheel.  \n`pip install dist/pydovs-x.x.x-py3-none-any.whl`  \nReplace the x.x.x with the correct file name corresponding to the code version. Modify the command to select the particular wheel you've built or downloaded.\n\n## Command line help\n```\nUsage:\n  pydovs listitems\n  pydovs solve [--budget=B] [--odir=D] [--radius=R] [--simpar=P]\n    [(--seed <s> <s> <s> <s> <s> <s>)] [(--params <param> <val>)]...\n    <problem> <solver> <x>...\n  pydovs testsolve [--budget=B] [--odir=D] [--radius=R] [--isp=T] [--proc=Q]\n    [(--seed <s> <s> <s> <s> <s> <s>)] [(--params <param> <val>)]...\n    <tester> <solver> [<x>...]\n  pydovs -h | --help\n  pydovs -v | --version\n\nOptions:\n  --budget=B                Simulation budget [default: 50000]\n  --isp=T                   Number of independent sample paths of the algorithm to solve. [default: 1]\n  --odir=D                  A name to assign to the output. [default: testrun]\n  --simpar=P                Number of processes available for simulation replications. [default: 1]\n  --seed                    Specify a seed by entering 6 spaced integers > 0.\n  --radius=R                Specify a neighborhood radius. [default: 1]\n  --proc=Q                  Total number of processes to make available to pydovs. [default: 1]\n  --params                  Allows specifying a <param> <val> pair.\n  -h --help                 Show this screen.\n  -v --version              Show version.\n\nExamples:\n  pydovs listitems\n  pydovs solve ProbTPA RPERLE 4 14\n  pydovs solve --budget=100000 --odir=test1 --radius=3 ProbTPB RMINRLE 3 12\n  pydovs solve --seed 12345 32123 5322 2 9543 666666666 ProbTPC RPERLE 31 21 11\n  pydovs solve --parsim --proc=4 --params betaeps 0.4 ProbTPA RPERLE 30 30\n  pydovs solve --params betaeps 0.7 --params betadel 0.5 ProbTPA RPERLE 45 45\n  pydovs testsolve --isp=16 --proc=4 TPATester RPERLE\n  pydovs testsolve --isp=20 --proc=10 TPBTester RMINRLE 9 9\n\nHelp:\n  Use the listitems command to view a list of available solvers, problems, and\n  test problems.\n```\nThe `<x>` argument cannot take negative numbers from the command line. Use the commands in a Python program if a negative starting point is required (see examples below).\n\n## Programming guide\n### Example problem (myproblem.py)\n```\n# import the Oracle base class\nfrom pydovs.chnbase import Oracle\n\nclass MyProblem(Oracle):\n    '''Example implementation of a user-defined MOSO problem.'''\n    def __init__(self, rng):\n        '''Specify the number of objectives and dimensionality of points.'''\n        self.num_obj = 2\n        self.dim = 1\n        super().__init__(rng)\n\n    def g(self, x, rng):\n        '''Check feasibility and simulate objective values.'''\n        # feasible values for x in this example\n        feas_range = range(-100, 101)\n        # initialize obj to empty and is_feas to False\n        obj = []\n        is_feas = False\n        # check that dimensions of x match self.dim\n        if len(x) == self.dim:\n            is_feas = True\n            # then check that each component of x is in the range above\n            for i in x:\n                if not i in feas_range:\n                    is_feas = False\n        # if x is feasible, simulate the objectives\n        if is_feas:\n            #use rng to generate random numbers\n            z0 = rng.normalvariate(0, 1)\n            z1 = rng.normalvariate(0, 1)\n            obj1 = x[0]**2 + z0\n            obj2 = (x[0] - 2)**2 + z1\n            obj = (obj1, obj2)\n        return is_feas, obj\n\n```\nTo set up a problem to solve, typically a Monte Carlo simulation oracle, follow the example above which can be used with the `solve` command. Subclass the Oracle class shipped with pydovs. Implement `__init__` and `g` with the signatures `__init__(self, rng)` and `g(self, x, rng)`. For `__init__`, it's enough to set the desired values for the number of objectives, `self.num_obj`, and the dimensionality of the feasible domain, `self.dim`.  \n\nThe function `g` must run one simulation at the feasible point `x`. The return values must be ordered correctly. The first value is a boolean (`True` or `False`) indicating whether `x` is feasible. It is up to the programmer to implement the feasibility check. The second value is a tuple of length `self.num_obj` where each element is a number indicating one of the objective values. The simulation doesn't necessarily have to be implemented in Python, but of course the implementation of `g` must be valid Python code. For example, `g` may wrap a function call to a C library which runs the simulation and returns the objectives.  \n\nThe `rng` parameter is a subclass of Python's built-in `random.Random()` class and implements the same methods. Thus, its used in the same way as a `random.Random()` object for programmers implementing their simulations in Python. For example, `rng.random()`, `rng.normalvariate()`, `rng.normalvariate(4, 7)`, and `rng.getState()` are valid. The generator uses mrg32k3a as it's backbone and uses Beasley-Springer-Moro to generate normal random variates.  \n\nOnce implemented, the problem can be solved with, say, R-PERLE using the following command. For your problem, choose an appropriate starting point.  \n`pydovs solve myproblem.py RPERLE 97`\n\n### Example tester (mytester.py)\n```\nimport sys, os\nsys.path.insert(0,os.path.dirname(__file__))\n# use hausdorff distance (dh) as an example metric\nfrom pydovs.chnutils import dh\n# import the MyProblem oracle\nfrom myproblem import MyProblem\n\n# optionally, define a function to randomly choose a MyProblem feasible x0\ndef get_ranx0(rng):\n    val = rng.choice(range(-100, 101))\n    x0 = (val, )\n    return x0\n\n# compute the true values of x, for computing the metric\ndef true_g(x):\n    '''Compute the objective values.'''\n    obj1 = x[0]**2\n    obj2 = (x[0] - 2)**2\n    return obj1, obj2\n\n# define a solution as appropriate for the metric\nsoln = {(0, 4), (4, 0), (1, 1)}\n\n\nclass MyTester(object):\n    '''Example tester implementation for MyProblem.'''\n    def __init__(self):\n        self.ranorc = MyProblem\n        self.soln = soln\n        self.true_g = true_g\n        self.get_ranx0 = get_ranx0\n\n    def metric(self, eles):\n        '''Metric to be computed per retrospective iteration.'''\n        efrontier = []\n        for point in eles:\n            objs = self.true_g(point)s\n            efrontier.append(objs)\n        haus = dh(efrontier, self.soln)\n        return haus\n```\nTo test a problem using the `testsolve` command, implement a `Tester` object as above. The only strict pydovs requirement is that a tester is a class with a member called `ranorc` which is an Oracle class. To generate useful test metrics, programmers may find it convenient to include a solution and a function which can generate the expected values of the objectives of the oracle.  Once implemented, the tester can be solved as follows.  \n`pydovs testsolve mytester.py RPERLE 97`  \n\nImplement a `MyTester.get_ranx0(rng)` method if you want a tester that can generate random starting points. For example, using `MyProblem` feasible space.\n```\ndef get_ranx0(self, rng):\n    val = rng.choice(range(-100, 101))\n    x0 = (val, )\n    return x0\n```\nThen, testsolve can run multiple independent sample paths of an algorithm using different starting points, and no `x0` needs to be specified. The following command will run 16 independent sample paths using 4 processes, where each sample path has a random starting points.  \n\n`pydovs testsolve --isp=16 --proc=4 mytester.py RPERLE`\n\n### Example of a (bad) RLE accelerator algorithm (myaccel.py)\n```\nfrom pydovs.chnbase import RLESolver\n\n# create a subclass of RLESolver\nclass MyAccel(RLESolver):\n    '''Example implementation of an RLE accelerator.'''\n\n    def accel(self, warm_start):\n        '''Return a collection of points to send to RLE.'''\n        # bring up the sample sizes of the \"warm start\"\n        self.upsample(warm_start)\n        return warm_start\n```\nProgrammers can use pydovs to create new algorithms that use RLE for convergence. The novel part of these algorithms will be the `accel` function, which should efficiently collect points to send to RLE for certification. The function `accel` must have the signature `accel(self, warm_start)` where `warm_start` is a set of tuples. The tuples are feasible points. The pydovs method, shown above, allows programmers to easily implement and test these accelerators. These accelerators are to be used in a retrospective approximation framework.  Every retrospective iterations, pydovs will first call `accel(self, warm_start)` and send the returned set to `RLE`. The return value must be a set of tuples, where each tuple is a feasible point. The implementer does not need to implement or call `RLE`.\n\nOnce implmented, solve a problem using the accelerator as follows.  \n`pydovs solve myproblem.py myaccel.py 97`  \n\n### Example of a (bad) RA algorithm (myraalg.py)\n```\nfrom pydovs.chnbase import RASolver\n\n# create a subclass of RASolver\nclass MyRAAlg(RASolver):\n    '''Example implementation of an RA algorithm.'''\n\n    def spsolve(self, warm_start):\n        '''Compute a solution to the sample path problem.'''\n        # bring up the sample sizes of the \"warm start\"\n        self.upsample(warm_start)\n        return warm_start\n```\nMore generally, algorithm designers can quickly implement a retrospective approximation algorithm by subclassing `RASolver` and implementing the `spsolve` function as shown. For convergence, the output of `spsolve` should be a certified sample path solution. The algorithm can be a single-objective algorithm even though its class is a child of `MOSOSolver`.  \n\n`pydovs solve myproblem.py myraalg.py 97`\n\n### Example of a (bad) MOSO algorithm (mymoso.py)\n```\nfrom pydovs.chnbase import MOSOSolver\n\n# create a subclass of MOSOSolver\nclass MyMOSO(MOSOSolver):\n    '''Example implementation of a MOSO algorithm.'''\n\n    def solve(self, budget):\n        '''Compute a solution using fewer than budget simulations.'''\n        # implement your genius algorithm here\n        # return a set of points.\n```\nArbitrary algorithms can used in pydovs by implementing the `solve` function of a `MOSOSolver` class as shown. It does not have to be a multi-objective algorithm.  \n\n`pydovs solve myproblem.py mymoso.py 97`\n\n### Class Structure and internal functions\nThe base class `MOSOSolver` implements basic members required to solve MOSO problems. To implement a general (i.e. non-RA) MOSO algorithm in pydovs, one must subclass `MOSOSolver` and implement the `MOSOSolver.solve` function with signature `solve(self, budget)` and it must return a set, even if the set contains a single point. `RASolver` is a subclass of `MOSOSolver` which provides the machinery needed to quickly implement a retrospective approximation algorithm. To implement an RA algorithm, one must subclass `RASolver` and implement its `spsolve` method with signature `spsolve(self, warm_start)` which returns a set of points.`RLESolver`, subclass of `RASolver`, allows quick implementation of MOSO solvers that use `RLE` to ensure convergence, as shown in the example accelerator above. One only needs to implement the `accel` method of `RLESolver`. Oracles are the problems that pydovs can solve. Here, we provide a listing of the important objects available to pydovs programmers who are implementing MOSO algorithms.\n\n| pydovs object | Example | Description |\n| ------------- | ------- | ----------- |\n|`pydovs.prng.mrg32k3a.MRG32k3a`| `rng = MRG32k3a()` | Subclass of `random.Random()` for generating random numbers. |\n|`pydovs.prng.mrg32k3a.get_next_prnstream`| `prn = get_next_prnstream(seed)` | Returns a stream 2^127 places from the given `seed` |\n|`pydovs.chnbase.Oracle`| `orc = Oracle(rng)` | Implements the `Oracle` class. |\n|`pydovs.chnbase.MOSOSolver` | `ms = MOSOSolver(orc)` | Implements the `MOSOSolver` class. |\n|`pydovs.chnbase.RASolver` | `ras = RASolver(orc)` | Implements the `RASolver` class. |\n|`pydovs.chnbase.RLESolver` | `res = RLESolver(orc)`| Implements the `RLESolver` class. |\n|`pydovs.chnutils.solve` | `soln = solve(prob, alg, x0)` | The solve command used in the examples. |\n|`pydovs.chnutils.testsolve` | `solns = testsolve(tester, alg, x0)`| The testsolve command used in the examples. |\n|`pydovs.chnutils` | Not applicable. | The module contains a number of functions useful in algorithm implementation. See the next table. |\n| `Oracle.hit` | `isfeas, gx, se = Oracle.hit(x, 4)` | Call the simulation 4 times and compute the mean value and standard error of each objective at `x`. For RA algorithms, don't call this directly but use `RASolver.estimate`. |\n| `Oracle.set_crnflag` | `Oracle.set_crnflag(False)` | Turn common random numbers on or off. Default is true (on). |\n| `Oracle.crn_advance` | `Oracle.crn_advance()` | Wind the rng forward. pydovs handles this automatically for RA algorithms. |\n| `Oracle.rng` | `r = Oracle.rng.random()` | A random.Random() object used in `hit`. Usually don't use `rng` directly in algorithms. |\n| `Oracle.num_obj` | `no = Oracle.num_obj` | The number of objectives. |\n| `Oracle.dim` | `dim = Oracle.dim` | The cardinality of the feasible points. |\n| `MOSOSolver.orc` | `MOSOSolver.orc.hit(x, 4)` | The simulation oracle object being solved. |\n| `MOSOSolver.num_calls` | nc = MOSOSolver.num_calls | The current number of simulations used. |\n| `MOSOSOlver.num_obj` | `no = MOSOSolver.num_obj` | Should match `MOSOSolver.orc.num_obj` |\n| `MOSOSolver.dim` | `dim = MOSOSolver.dim` | Should match `MOSOSolver.orc.dim` |\n| `RASolver.gbar`   | `objs = self.gbar[x]` | A dictionary of the estimated values for visited points in the current retrospective iteration. |\n| `RASolver.sehat` | `seobjs = self.sehat[x]`| A dictionary of the estimated standard errors for visited points in the current retrospective iteration. |\n| `RASolver.nbor_rad` | `radius = RASolver.nbor_rad` | The radius defining which points are considered neighbors. |\n| `RASolver.sprn` | `RASolver.sprn.random()` | The random generator used by the solver. |\n| `RASolver.x0` | `x0 = RASolver.x0` | The initial feasible point. |\n| `RASolver.estimate` | `isfeas, gx, se = RASolver.estimate(x, 4, const, obj)` | Performs simulations and updates `gbar` and `sehat`. `const` and `obj` are optional. If provided, `isfeas` will only be `True` when `gx[obj] < const`. |\n|`RASolver.upsample`| `RASolver.upsample(mcS)` | Sample a set of points at the current iteration's sample size. |\n|`RASolver.calc_m` | `m = RASolver.calc_m(nu)` | Compute the sample size for iteration `nu`. Overwrite this function if desired. |\n|`RASolver.calc_b` | `b = RASolver.calc_b(nu)` | Compute the searching sample limit for iteration `nu`. Overwrite this function if desired. |\n|`RASolver.spline` | `T, xmin, gxmin, sexmin = RASolver.spline(x, const, objmin, objcon)` | Find a sample path local minimizer such that `gxmin[objmin]` is a local min and `gxmin[objcon] < const`. |\n|`RLESolver.betadel` | `bd = RLESolver.betadel` | The relaxation parameter used by `RLE`. |\n|`RLESolver.calc_delta` | `d = RLESolver.calc_delta(nu)` | Compute the relaxation for iteration `nu`. |\n\n\n| chnutils function | Example | Description |\n| ------------- | ------- | ----------- |\n|`does_weak_dominate` | `dwd = does_weak_dominate(g1, g2, rel1, rel2)` | Returns true if `g1[i] - rel1[i] <= g2[i] + rel2[i]` for every `i`.\n|`does_dominate` | `dd = does_dominate(g1, g2, rel1, rel2)` | Returns true if `g1[i] - rel1[i] <= g2[i] + rel2[i]` for every `i` and `g1[i] - rel1[i] < g2[i] + rel2[i]` for at least one `i`. |\n|`does_strict_dominate` | `dsd = does_strict_dominate(g1, g2, rel1, rel2)` | Returns true if `g1[i] - rel1[i] < g2[i] + rel2[i]` for every `i`. |\n|`get_biparetos` | `pars = get_biparetos(mcS)` | `mcS` is a dictionary where each key is a tuple and each value is a tuple of length 2. Returns the set of keys with non-dominated values. |\n|`get_nondom` | `nd = get_nondom(mcS)` | Like `get_biparetos` but the values are tuples of any length. |\n|`get_nbors` | `nbors = get_nbors(x, r)` | Return the set of points no farther than `r` from `x` and exclude `x`. |\n|`get_setnbors` | `nbors = get_setnbors(S, r)` | Excluding points in the set `S`, return `get_nbors(s, r)` for every `s` in `S`. |\n\n\n### Solve example\n```\n# import the solve function\nfrom pydovs.chnutils import solve\n# import the module containing the RPERLE implementation\nimport pydovs.solvers.rperle as rp\n# import MyProblem - myproblem.py should usually be in the script directory\nimport myproblem as mp\n\n# specify an x0. In MyProblem, it is a tuple of length 1\nx0 = (97,)\nsoln = solve(mp.MyProblem, rp.RPERLE, x0)\nprint(soln)\n```\n\nThe `solve` function can take keyword arguments. The keyword values correspond to options in the command line help.\nHere is a listing: `radius`, `budget`, `simpar`, `seed`.\n\n### TestSolve example\n```\n# import the testsolve functions\nfrom pydovs.chnutils import testsolve\n# import the module containing RPERLE\nimport pydovs.solvers.rperle as rp\n# import the MyTester class\nfrom mytester import MyTester\n\n# choose a feasible starting point of MyProblem\nx0 = (97,)\nrun_data = testsolve(MyTester, rp.RPERLE, x0)\nprint(run_data)\n```\n\nThe `testsolve` function can take keyword arguments. The keyword values correspond to options in the command line help.\nHere is a listing: `radius`, `budget`, `seed`, `isp`, `proc`.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.rcac.purdue.edu/HunterGroup/pydovs",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pydovs",
+        "package_url": "https://pypi.org/project/pydovs/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pydovs/",
+        "project_urls": {
+            "Homepage": "https://github.rcac.purdue.edu/HunterGroup/pydovs"
+        },
+        "release_url": "https://pypi.org/project/pydovs/0.1.12/",
+        "requires_dist": [
+            "docopt"
+        ],
+        "requires_python": ">=3.6.0",
+        "summary": "Python Discrete Optimization Via Simulation: An integer-ordered simulation-optimization package.",
+        "version": "0.1.12"
+    },
+    "last_serial": 4348457,
+    "releases": {
+        "0.1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a2e3c25242f7c19caef666e197ada769",
+                    "sha256": "39fb6c756e891df975bebf8735289b4fe58c53f0756ee4a05cb7111532df5b8c"
+                },
+                "downloads": -1,
+                "filename": "pydovs-0.1.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a2e3c25242f7c19caef666e197ada769",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 36171,
+                "upload_time": "2018-09-20T02:26:44",
+                "url": "https://files.pythonhosted.org/packages/f6/51/a931bc4bd1ade46b7f7b7229348156be7ff37461035fd47602842f271959/pydovs-0.1.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "02c483e5aff237c5bc968b340feb1c01",
+                    "sha256": "4382fdf46929902377f6f1ce3e785fed234c1224e346f22e3082cafbe50f5aa5"
+                },
+                "downloads": -1,
+                "filename": "pydovs-0.1.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "02c483e5aff237c5bc968b340feb1c01",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 29699,
+                "upload_time": "2018-09-20T02:26:46",
+                "url": "https://files.pythonhosted.org/packages/b9/1f/20b24992cf4693005f5bf559e15c7b519aaa168188352f9bd359bf2a31ee/pydovs-0.1.10.tar.gz"
+            }
+        ],
+        "0.1.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2230cf7eca0aaf88ed439a2f1ce61b72",
+                    "sha256": "9957e0ffcbeca8ffd255a4f8d6a9fa099222115e1fb8ea9b36074b4e4384c726"
+                },
+                "downloads": -1,
+                "filename": "pydovs-0.1.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2230cf7eca0aaf88ed439a2f1ce61b72",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 37557,
+                "upload_time": "2018-10-03T18:56:45",
+                "url": "https://files.pythonhosted.org/packages/57/28/ef7aa0300ed8dbd122b13b3128b95889b0e00e3b4ea0822943de45a46aa6/pydovs-0.1.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "73c581d92593796ec3f89cc3dcfd2966",
+                    "sha256": "e0623273a305de409b7901f3fde19d77ef18db180e72dd8902e32470affe3e13"
+                },
+                "downloads": -1,
+                "filename": "pydovs-0.1.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "73c581d92593796ec3f89cc3dcfd2966",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 32675,
+                "upload_time": "2018-10-03T18:56:47",
+                "url": "https://files.pythonhosted.org/packages/16/20/2b5e49f852aca6ce4078202dbcfb3048e074234d92f391cb062578851ac4/pydovs-0.1.11.tar.gz"
+            }
+        ],
+        "0.1.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "205fcc854f25f038e7ffcd89ace5dbff",
+                    "sha256": "f73eeda568eb525d3f130a10841ad5f6bfa1363ccd66cd7caa402416b02ad6ad"
+                },
+                "downloads": -1,
+                "filename": "pydovs-0.1.12-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "205fcc854f25f038e7ffcd89ace5dbff",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6.0",
+                "size": 42740,
+                "upload_time": "2018-10-07T02:36:30",
+                "url": "https://files.pythonhosted.org/packages/dc/14/f06b8b49cdc0b31df1b0735042254e9cfe59bd223d0d5cc39c76426980cf/pydovs-0.1.12-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "312b0c53ac1b58bd44d1dc71b0eef9a5",
+                    "sha256": "182a63f8789e0a27d6ca1b4502721e4ef884dc9e8ea518a72ac8c527b2ea3935"
+                },
+                "downloads": -1,
+                "filename": "pydovs-0.1.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "312b0c53ac1b58bd44d1dc71b0eef9a5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6.0",
+                "size": 38508,
+                "upload_time": "2018-10-07T02:36:31",
+                "url": "https://files.pythonhosted.org/packages/49/8a/459db4e6bdedb395734d9b2da27538ff8110d0cce5382e859d1e1d783dd7/pydovs-0.1.12.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "205fcc854f25f038e7ffcd89ace5dbff",
+                "sha256": "f73eeda568eb525d3f130a10841ad5f6bfa1363ccd66cd7caa402416b02ad6ad"
+            },
+            "downloads": -1,
+            "filename": "pydovs-0.1.12-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "205fcc854f25f038e7ffcd89ace5dbff",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6.0",
+            "size": 42740,
+            "upload_time": "2018-10-07T02:36:30",
+            "url": "https://files.pythonhosted.org/packages/dc/14/f06b8b49cdc0b31df1b0735042254e9cfe59bd223d0d5cc39c76426980cf/pydovs-0.1.12-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "312b0c53ac1b58bd44d1dc71b0eef9a5",
+                "sha256": "182a63f8789e0a27d6ca1b4502721e4ef884dc9e8ea518a72ac8c527b2ea3935"
+            },
+            "downloads": -1,
+            "filename": "pydovs-0.1.12.tar.gz",
+            "has_sig": false,
+            "md5_digest": "312b0c53ac1b58bd44d1dc71b0eef9a5",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6.0",
+            "size": 38508,
+            "upload_time": "2018-10-07T02:36:31",
+            "url": "https://files.pythonhosted.org/packages/49/8a/459db4e6bdedb395734d9b2da27538ff8110d0cce5382e859d1e1d783dd7/pydovs-0.1.12.tar.gz"
+        }
+    ]
+}

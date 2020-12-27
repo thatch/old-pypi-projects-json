@@ -1,0 +1,49 @@
+{
+    "info": {
+        "author": "Joe Cross",
+        "author_email": "joe.mcross@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Software Development :: Libraries"
+        ],
+        "description": "Pure python.  Path keys.  ChainedMap on steroids.\n\nInstallation\n============\n\nPure python.\n\n::\n\n    pip install multiplane\n\nUsage\n=====\n\nContexts are python dictionaries with path lookups::\n\n    import multiplane\n\n    context = multiplane.Context()\n\n    # normal dictionary operations\n    context[\"foo\"] = \"bar\"\n    assert \"bar\" == context[\"foo\"]\n    del context[\"foo\"]\n\n    # paths\n    context[\"foo.bar\"] = \"baz\"\n    assert \"baz\" == context[\"foo.bar\"]\n    del context[\"foo.bar\"]\n\n    # length, iteration\n    n = 10\n    context.update((i, i+1) for i in range(n))\n    assert len(context) == n\n\n    for key, value in context.items():\n        assert key + 1 == value\n\n\nBut they also track contextual changes::\n\n    ctx = multiplane.Context()\n    ctx[\"root.layer.key\"] = \"root_value\"\n\n    with ctx(\"layer1\"):\n        # read through\n        assert \"root_value\" == ctx[\"root.layer.key\"]\n        # local to layer1\n        ctx[\"layer1.key\"] = \"layer1_value\"\n\n    # layer1 not active\n    assert \"layer1.key\" not in ctx\n\n    # manually push layer1 back on\n    ctx.push_context(\"layer1\")\n    assert \"layer1_value\" == ctx[\"layer1.key\"]\n    ctx.pop_context()\n\n    # global context\n    # WARNING: be careful in the reserved area of the global root,\n    # as you can break the context tracking.\n    assert ctx.g is ctx.g[\"_.root\"]\n    assert ctx.g is ctx.g[\"_.current\"]\n\n    # all contexts are available from the root node\n    assert \"layer1\" in ctx.g[\"_.contexts\"]\n    assert \"layer1.key\" in ctx.g[\"_.contexts.layer1\"]\n    assert \"layer1_value\" == ctx.g[\"_.contexts.layer1.layer1.key\"]\n\n    # nesting:\n    ctx[\"root_key\"] = \"root_value\"\n\n    with ctx(\"layer1\"):\n        ctx[\"layer1_key\"] = \"layer1_value\"\n\n        with ctx(\"layer2\"):\n            ctx[\"layer2_key\"] = \"layer2_value\"\n\n            assert \"root_key\" in ctx\n            assert \"layer1_key\" in ctx\n            assert \"layer2_key\" in ctx\n\n        # Lost layer2\n        assert \"root_key\" in ctx\n        assert \"layer1_key\" in ctx\n        assert \"layer2_key\" not in ctx\n\n    # Lost layer1, layer2\n    assert \"root_key\" in ctx\n    assert \"layer1_key\" not in ctx\n    assert \"layer2_key\" not in ctx",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/numberoverzero/multiplane",
+        "keywords": "dict nested context",
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "multiplane",
+        "package_url": "https://pypi.org/project/multiplane/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/multiplane/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/numberoverzero/multiplane"
+        },
+        "release_url": "https://pypi.org/project/multiplane/0.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "nested dictionaries with paths",
+        "version": "0.1"
+    },
+    "last_serial": 1963032,
+    "releases": {
+        "0.1": []
+    },
+    "urls": []
+}

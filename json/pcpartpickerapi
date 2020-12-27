@@ -1,0 +1,405 @@
+{
+    "info": {
+        "author": "",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# pcpartpickerapi\n\n[![license](https://img.shields.io/github/license/psidex/pcpartpickerapi.svg)](https://github.com/psidex/pcpartpickerapi/blob/master/LICENSE.txt)\n[![pypi version](https://img.shields.io/pypi/v/pcpartpickerapi.svg)](https://pypi.org/project/pcpartpickerapi/)\n[![pypi downloads](https://img.shields.io/pypi/dm/pcpartpicker.svg)](https://pypistats.org/packages/pcpartpickerapi)\n[![ko-fi link](https://img.shields.io/badge/Ko--fi-Donate-orange.svg?style=flat&colorA=grey)](https://ko-fi.com/M4M18XB1)\n\nAn unofficial Py3 API to scrape and retrieve information from [PcPartPicker](https://pcpartpicker.com)\n\n### What can this API do?\n\nCurrently this library contains these features:\n\n- The `part_lists` file\n  - Extract information from pages that are lists of parts, as seen under the \"browse by individual parts\" tab on the PCPartPicker website (such as [products/cpu-cooler](https://pcpartpicker.com/products/cpu-cooler))\n  - All part lists are supported except the ones under the \"Software\" catergory, although those may be supported in the future\n  - All regions supported by PCPartPicker are supported and can be requested by using the `region` paramter in public functions. The region defaults to \"US\"\n  - All filters for part lists are supported (explained further in the documentation below)\n\nA quick note about the words \"product\" and \"part\", PCPartPicker seems to use these words somewhat interchangeably. For this API, all PC parts are referred to as \"parts\"\n\n## Installation\n\n`pip install pcpartpickerapi`\n\nSee the PyPi page [here](https://pypi.org/project/pcpartpickerapi/)\n\n## Quickstart\n\n```python\nfrom pcpartpickerapi import part_lists\n\ncpu_page_count = part_lists.list_page_count(\"cpu\")\nprint(\"Total amount of CPU pages:\", cpu_page_count)\n\n# Pull info from page 1 of CPUs\ncpu_info = part_lists.get_list(\"cpu\", page=1)\n\n# Print the names and prices of all the CPUs on the page\nfor cpu in cpu_info:\n    print(cpu[\"name\"], \":\", cpu[\"price\"])\n\n# Pull info from all CPU pages and make use of threading\n# Also pull this info from the UK region of the site\ncpu_info_uk = part_lists.get_list(\"cpu\", region=\"uk\", use_threading=True)\n\n# Print the names and prices of all the CPUs on all pages\n# The prices will now be in GBP (\u00a3) instead of USD ($)\nfor cpu in cpu_info_uk:\n    print(cpu[\"name\"], \":\", cpu[\"price\"])\n```\n\n## Documentation\n\nThe `pcpartpickerapi` module contains these (public) files / classes / functions:\n\nName | Type | Paramaters | Returns / Type | Notes\n-|-|-|-|-\n`part_lists.get_list` | Function | `part_type, page=0, region=\"us\", part_filter=\"\", use_threading=False, thread_count=4` | List | Returns a list of dictionaries containing information about each part. The `part_type` you select will determine what dictionary keys will be available to you for each dictionary in the returned list. If `page` is `0` it will iterate over all available pages. If `use_threading` is `True`, `get_list` will attempt to use Python's `threading` module to parrelilize the downloading and parsing of pages, which should be much faster\n`part_lists.list_page_count` | Function | `part_type, region=\"us\", part_filter=\"\"` | int | Returns the total number of pages for the given parameters\n`part_lists.supported_part_types` | Variable | | List | A list of supported `part_type`s\n`part_lists.supported_regions` | Variable | | List | A list of supported regions\n`part_lists.supported_keys` | Function | `part_type` | List | Returns a list of dictionary keys that the dictionaries from `get_list` will have when called with that `part_type`, e.g. `supported_keys(\"cpu\")` will return `[\"name\", \"speed\", \"cores\", \"tdp\", \"ratings_count\", \"price\"]`\n\n### Parameter Explanations\n\n#### threading\n\nIn `get_list`, the `use_threading` parameter is only useful if you are requesting multiple pages (by leaving `page` set to `0`)\n\n`thread_count` is the number of threads that will be used to parrelilize the process. If `thread_count` is `0` and `use_threading` is set to `True`, it will set `thread_count` to the number of pages you are requesting (so one thread for each page request)\n\n#### part_filter\n\nThe `part_filter` parameter supports filters used by the PCPP website (it is not shortened to `filter` because that is a built-in function in Python)\n\nFor example, for this URL: `https://pcpartpicker.com/products/cpu/#k=30&R=4` the filter is `k=30&R=4` (this filters all LGA1151 socket CPUs with 4 or more stars)\n\nTo use this you would put it into the `part_filter` paramter:\n\n```python\npart_lists.get_list(\"cpu\", part_filter=\"k=30&R=4\")\n```\n\nIf you want to filter for something specific, you will need to visit the PcPartPicker website and filter it by hand, and then the URL will contain the filter you want. Using an incorrect filter for this paramter might cause unexpected errors\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/psidex/pcpartpickerapi",
+        "keywords": "pcpartpickerapi api scraping scraper webscraper pcparts",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pcpartpickerapi",
+        "package_url": "https://pypi.org/project/pcpartpickerapi/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pcpartpickerapi/",
+        "project_urls": {
+            "Homepage": "https://github.com/psidex/pcpartpickerapi"
+        },
+        "release_url": "https://pypi.org/project/pcpartpickerapi/0.1.12/",
+        "requires_dist": [
+            "requests",
+            "lxml",
+            "pandas"
+        ],
+        "requires_python": "",
+        "summary": "An unofficial Py3 API to scrape and retrieve information from PCPartPicker",
+        "version": "0.1.12"
+    },
+    "last_serial": 5273117,
+    "releases": {
+        "0.1.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed8f01407bfb761c64dd28c092021da2",
+                    "sha256": "aaf7b8fe62c90d725f93d0c4a13271ec766e3a0af08ac26444cb9aff8db911c9"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ed8f01407bfb761c64dd28c092021da2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8375,
+                "upload_time": "2019-05-11T16:30:41",
+                "url": "https://files.pythonhosted.org/packages/21/7c/07eb28e170f098b1d97ff34d52b6cc90edc7da23727cc89043aa3902f731/pcpartpickerapi-0.1.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ecdc531165c8cd025949c71468a6f77",
+                    "sha256": "9bd6c6aa5e67bc013d78fab30e6b3a2e2caea2be5712357234c0df18f8d933d7"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2ecdc531165c8cd025949c71468a6f77",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7753,
+                "upload_time": "2019-05-11T16:30:43",
+                "url": "https://files.pythonhosted.org/packages/7f/c8/0754d3ec6eb71b9e1c504327d2642ecbc32efbf43153fb02f5dd23659020/pcpartpickerapi-0.1.10.tar.gz"
+            }
+        ],
+        "0.1.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9ff0ad56cf0fcaaf33bb977e4dfdbf92",
+                    "sha256": "843c1522b369e1bdcb35738e1afc8a07efde55532a9d87ac59f433307d654013"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9ff0ad56cf0fcaaf33bb977e4dfdbf92",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8293,
+                "upload_time": "2019-05-11T16:47:05",
+                "url": "https://files.pythonhosted.org/packages/24/8c/4543794745f21afbc3850ab87b1ef04ccc701b4c705b197f70220c123ffd/pcpartpickerapi-0.1.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2fd87f509813af66b6e324e8947ac640",
+                    "sha256": "d498a3b81a59e4a4b47b97904be28806089f40fe91ee31541f72abab9bddbe20"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2fd87f509813af66b6e324e8947ac640",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7672,
+                "upload_time": "2019-05-11T16:47:06",
+                "url": "https://files.pythonhosted.org/packages/99/4f/a5eda417716b8e3c5db8d9296545ac4a6411bcafb3d9f4cdb048063674c5/pcpartpickerapi-0.1.11.tar.gz"
+            }
+        ],
+        "0.1.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "db9b9b7511d3f3a0a240aaa2e21c934e",
+                    "sha256": "17dcc3e46d6154157309f0eeabcc46aea6db6ddf733fe79fa8a2d9b569aae000"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.12-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "db9b9b7511d3f3a0a240aaa2e21c934e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8348,
+                "upload_time": "2019-05-15T15:47:21",
+                "url": "https://files.pythonhosted.org/packages/1c/54/c8ab78262aa6c603e59ac0b217319bc080db91948e694724bdefb3d6df0e/pcpartpickerapi-0.1.12-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1368ff4aa12a8d367b49e83982ccc158",
+                    "sha256": "6c9f6784c1cd2330750291806c7d6c8c245bf5ef383fec72db8d7f7ded03b73a"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1368ff4aa12a8d367b49e83982ccc158",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7703,
+                "upload_time": "2019-05-15T15:47:23",
+                "url": "https://files.pythonhosted.org/packages/57/5d/a46b733de1104235302a20ed1cc283ed5db596b4f8e23455f3e007952139/pcpartpickerapi-0.1.12.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "39c8c05ba343f292ad4f251eca2863c3",
+                    "sha256": "2c51f6370fa56828651bc39f6b9da5b5888adbfd61472b293262351437dff777"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "39c8c05ba343f292ad4f251eca2863c3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6975,
+                "upload_time": "2019-05-07T02:32:52",
+                "url": "https://files.pythonhosted.org/packages/41/5e/39d6235632a2d5053f5f6098b80248193eccb47fadfe9bf8d371b1794475/pcpartpickerapi-0.1.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0a8cecc037cfe0ea2d1a3f959697e72d",
+                    "sha256": "60bf78de6de3c39b4f893e1a3f472029355709c32d1a01c9212723c9032f79ff"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0a8cecc037cfe0ea2d1a3f959697e72d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6633,
+                "upload_time": "2019-05-07T02:32:54",
+                "url": "https://files.pythonhosted.org/packages/6f/82/9ea047b0f8549d5a69da4fadf57d44aa3349722e2d9d1e873da9ae60689f/pcpartpickerapi-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a76b8e0afb248736da3a99fd73be34d9",
+                    "sha256": "d9bd2bd3796b0ea25b06400bea8003fedce0eef7d6241af293c827aef1f11eb8"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a76b8e0afb248736da3a99fd73be34d9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6845,
+                "upload_time": "2019-05-07T02:39:19",
+                "url": "https://files.pythonhosted.org/packages/23/34/70475b9d1a3d73bcb6a4211c46d5729433fc49f2b3fde792221dc8092b19/pcpartpickerapi-0.1.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "87bcd80e21753877da8116d3ce26a355",
+                    "sha256": "63da2d48d296e0dca0be6a0c6bc53ea331494e81651cc868cad8def00fa705e0"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "87bcd80e21753877da8116d3ce26a355",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6467,
+                "upload_time": "2019-05-07T02:39:20",
+                "url": "https://files.pythonhosted.org/packages/26/e2/7fcf6702833f3aecd42911553e228d6e4cd9f44c73f956ade82a1539f175/pcpartpickerapi-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6fc5de75f16164838a75eb31e794b0e8",
+                    "sha256": "9d7b6b75f9a8950199282b56eaf40f77d8f22d821da49972ac4e4de3040985c8"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6fc5de75f16164838a75eb31e794b0e8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4859,
+                "upload_time": "2019-05-07T14:14:13",
+                "url": "https://files.pythonhosted.org/packages/54/0e/d8f4bc18749f0dd7ee665b229a277b7690584f62df508aa959491bb75265/pcpartpickerapi-0.1.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "73f7ba45acffed0103980a01752403ee",
+                    "sha256": "af6e06e40244513a5e937e7c9ad9ee1c8f54369b04ce176cf46d845e091f1fa9"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "73f7ba45acffed0103980a01752403ee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6050,
+                "upload_time": "2019-05-07T14:14:15",
+                "url": "https://files.pythonhosted.org/packages/4c/03/451214ff15c9ad89e7f28b4b7b098dfe6a5d21cc5be0389bca8b7efe411a/pcpartpickerapi-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bc2c45acbd95716c4386d3ab20fbb734",
+                    "sha256": "d04de82f56d1409d94fdc663a30df36a2102abe1b6aaaa27e537eb6895c35c8d"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bc2c45acbd95716c4386d3ab20fbb734",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6602,
+                "upload_time": "2019-05-07T14:26:14",
+                "url": "https://files.pythonhosted.org/packages/06/2b/37ac6ed637bad065b5e002a9ef53f2c12571a531f74dc1f755e796cc1606/pcpartpickerapi-0.1.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f9c1c3b0f6501ec31b4573dcfa3a5eb4",
+                    "sha256": "b933ddb0d8fdc18c636ce20a208e0294bd481471540cfad0a9997215eeedbdec"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f9c1c3b0f6501ec31b4573dcfa3a5eb4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6035,
+                "upload_time": "2019-05-07T14:26:15",
+                "url": "https://files.pythonhosted.org/packages/f3/5f/40e919a47dac77c357409af9851f4ad6047138aad674619be52193ca63db/pcpartpickerapi-0.1.7.tar.gz"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "79fa76797a60b62593a7d550eab1f727",
+                    "sha256": "3822f198d04aeae7f5f65732bf5632c927d782c091d0e79627d46d99c73855c2"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "79fa76797a60b62593a7d550eab1f727",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6167,
+                "upload_time": "2019-05-09T12:58:25",
+                "url": "https://files.pythonhosted.org/packages/f1/93/c331be9d8add93cac6ba11ae672a3447fea6580140a401ed6c09a2c38d04/pcpartpickerapi-0.1.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4e2269ef19743a8d0e88fdd715caafca",
+                    "sha256": "20a3770a05b1f45820913974926e460301cebb8159e9cb507d8169565804b7d0"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4e2269ef19743a8d0e88fdd715caafca",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5589,
+                "upload_time": "2019-05-09T12:58:27",
+                "url": "https://files.pythonhosted.org/packages/88/92/a6e78b49dea7910313360ab89104bf0f5d144d0dd2ec943233657eb62612/pcpartpickerapi-0.1.8.tar.gz"
+            }
+        ],
+        "0.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "48cd94d51811fccc73d33747a2977c15",
+                    "sha256": "0212c1d53c427e3d9ee1997efb368b96009422223004d74435bd8b242a46ff43"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "48cd94d51811fccc73d33747a2977c15",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6801,
+                "upload_time": "2019-05-09T22:18:49",
+                "url": "https://files.pythonhosted.org/packages/74/9c/ed4b82bf6372448ac3bbca1f65a6aa353deed131112139a68180e3bb8ee9/pcpartpickerapi-0.1.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e6265691cc79c456964fd6d4876516fa",
+                    "sha256": "953bea189d06d6470afb7ed387e038b11d632692fca372793d1fb651629863f4"
+                },
+                "downloads": -1,
+                "filename": "pcpartpickerapi-0.1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e6265691cc79c456964fd6d4876516fa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6197,
+                "upload_time": "2019-05-09T22:18:50",
+                "url": "https://files.pythonhosted.org/packages/de/38/1ab2460def961dfb296e2373554f08c5ce8e3216d0e2029c7a33939b2885/pcpartpickerapi-0.1.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "db9b9b7511d3f3a0a240aaa2e21c934e",
+                "sha256": "17dcc3e46d6154157309f0eeabcc46aea6db6ddf733fe79fa8a2d9b569aae000"
+            },
+            "downloads": -1,
+            "filename": "pcpartpickerapi-0.1.12-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "db9b9b7511d3f3a0a240aaa2e21c934e",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 8348,
+            "upload_time": "2019-05-15T15:47:21",
+            "url": "https://files.pythonhosted.org/packages/1c/54/c8ab78262aa6c603e59ac0b217319bc080db91948e694724bdefb3d6df0e/pcpartpickerapi-0.1.12-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "1368ff4aa12a8d367b49e83982ccc158",
+                "sha256": "6c9f6784c1cd2330750291806c7d6c8c245bf5ef383fec72db8d7f7ded03b73a"
+            },
+            "downloads": -1,
+            "filename": "pcpartpickerapi-0.1.12.tar.gz",
+            "has_sig": false,
+            "md5_digest": "1368ff4aa12a8d367b49e83982ccc158",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7703,
+            "upload_time": "2019-05-15T15:47:23",
+            "url": "https://files.pythonhosted.org/packages/57/5d/a46b733de1104235302a20ed1cc283ed5db596b4f8e23455f3e007952139/pcpartpickerapi-0.1.12.tar.gz"
+        }
+    ]
+}

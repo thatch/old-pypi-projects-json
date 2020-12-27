@@ -1,0 +1,193 @@
+{
+    "info": {
+        "author": "Stefan Schweter",
+        "author_email": "stefan@schweter.it",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# *DEEP-EOS*: Deep end-of-sentence boundary detection\n\n[![PyPI version](https://badge.fury.io/py/deep-eos.svg)](https://badge.fury.io/py/deep-eos)\n[![GitHub Issues](https://img.shields.io/github/issues/stefan-it/deep_eos.svg)](https://github.com/stefan-it/deep_eos/issues)\n[![Travis](https://img.shields.io/travis/stefan-it/deep_eos.svg)](https://travis-ci.org/stefan-it/deep_eos)\n\nIn this repository we present a network models for sentence\nboundary detection. This repository superseeds the [old implementation](https://github.com/stefan-it/deep-eos).\n\n## Introduction\n\nThe task of sentence boundary detection is to identify sentences within\na text. Many natural language processing tasks take a sentence as an\ninput unit, such as part-of-speech tagging ([Manning,\n2011](http://dl.acm.org/citation.cfm?id=1964799.1964816)), dependency\nparsing ([Yu and Vu, 2017](http://aclweb.org/anthology/P17-2106)),\nnamed entity recognition or machine translation.\n\nSentence boundary detection is a nontrivial task, because of the\nambiguity of the period sign `.`, which has several functions\n([Grefenstette and Tapanainen,\n1994](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.28.5162)),\ne.g.:\n\n* End of sentence\n* Abbreviation\n* Acronyms and initialism\n* Mathematical numbers\n\nA sentence boundary detection system has to resolve the use of\nambiguous punctuation characters to determine if the punctuation\ncharacter is a true end-of-sentence marker. In this implementation we\ndefine `?!:;.` as potential end-of sentence markers.\n\nVarious approaches have been employed to achieve sentence boundary\ndetection in different languages. Recent research in sentence boundary\ndetection focus on machine learning techniques, such as hidden Markov\nmodels ([Mikheev, 2002](http://dx.doi.org/10.1162/089120102760275992)),\nmaximum entropy ([Reynar and Ratnaparkhi,\n1997](https://doi.org/10.3115/974557.974561)), conditional random\nfields ([Tomanek et al.,\n2007](http://www.bootstrep.org/files/publications/FSU_2007_Tomanek_Pacling.pdf)),\ndecision tree ([Wong et al.,\n2014](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4030568/)) and\nneural networks ([Palmer and Hearst,\n1997](http://dl.acm.org/citation.cfm?id=972695.972697)). [Kiss and\nStrunk (2006)](http://dx.doi.org/10.1162/coli.2006.32.4.485) use an\nunsupervised sentence detection system called Punkt, which does not\ndepend on any additional resources. The system use collocation\ninformation as evidence from unannotated corpora to detect e.g.\nabbreviations or ordinal numbers.\n\nThe sentence boundary detection task can be treated as a classification\nproblem. Our work is similar to the *SATZ* system, proposed by [Palmer\nand Hearst (1997)](http://dl.acm.org/citation.cfm?id=972695.972697),\nwhich uses a fully-connected feed-forward neural network. The *SATZ*\nsystem disambiguates a punctuation mark given a context of *k*\nsurrounding words. This is different to our approach, as we use a\nchar-based context window instead of a word-based context window.\n\nIn the present work, we train a long short-term memory (LSTM) and compare the results\nwith *OpenNLP*. *OpenNLP* is a state-of-the-art tool and uses a maximum\nentropy model for sentence boundary detection. To test the robustness of our\nmodel, we use the *Universal Dependencies* for several languages as\ndatasets.\n\n# Datasets\n\nAt the moment, training, prediction and evaluation is supported on the\n*Universal Dependencies* (<http://universaldependencies.org/>) datasets, as well as for plain-text\ndatasets (one sentence per line).\n\n## *Universal Dependencies*\n\n*Universal Dependencies* in version 2.2 can be downloaded with the following command (you should not\nplace these files in the `deep-eos` repository folder):\n\n```bash\ncd ..\ncurl --remote-name-all \"https://lindat.mff.cuni.cz/repository/xmlui/bitstream/handle/11234/1-2837/ud-treebanks-v2.2.tgz\"\ntar -xzf ud-treebanks-v2.2.tgz\n```\n\n# Configuration\n\n*deep-eos* uses a configuration-based commandline interface for training, prediction and evaluation. \nThat means, all parameters are specified in a *toml* configuration file. This heavily reduces the \namount of commandline arguments. The only commandline option is the path to the *toml* configuration\nfile.\n\n## *toml* configuration\n\n### *Universal Dependencies* datasets\n\nA typical configurations for a *Universal Dependencies* dataset looks like:\n\n```toml\n[ud]\ntrain_path = \"../ud-treebanks-v2.2/UD_German-GSD/de_gsd-ud-train.conllu\"\ndev_path = \"../ud-treebanks-v2.2/UD_German-GSD/de_gsd-ud-dev.conllu\"\ntest_path = \"../ud-treebanks-v2.2/UD_German-GSD/de_gsd-ud-test.conllu\"\n\n[lstm]\nembedding_size = 256\nhidden_size = 256\noutput_size = 2\n\n[training]\nbatch_size = 32\nepochs = 10\nmodel_file = \"./best_ud_german_model.pt\"\nlearning_rate = 0.001\n\n[deep-eos]\nleft_ws = 4\nright_ws = 4\n\n[prediction]\ndev_tagged_file = \"ud_german_dev_tagged.txt\"\ntest_tagged_file = \"ud_german_test_tagged.txt\"\neos_marker = \"</eos>\"\n```\n\n### Plain-text datasets\n\nIt is also possible to use plain-text datasets for training, development and testing. Then you\nhave to specify *one* sentence per line. In the *toml* configuration you have to specifiy a\n`[text]` section instead of `[ud]` as used for *Universal Dependencies* datasets.\n\n# Model\n\nWe use a long short-term memory for sentence boundary detection. This\nmodel captures information at the character level. Our models\ndisambiguate potential end-of-sentence markers followed by a whitespace\nor line break given a context of *k* surrounding characters. The\npotential end-of-sentence marker is also included in the context\nwindow. The following table shows an example of a sentence and its\nextracted contexts: left context, middle context and right context. We\nalso include the whitespace or line break after a potential\nend-of-sentence marker.\n\n\n| Input sentence        | Left  | Middle | Right\n| --------------------- | ----- | ------ | -----\n| I go to Mr. Pete Tong | to Mr | .      | _Pete\n\n## LSTM\n\nWe use a standard LSTM ([Hochreiter and Schmidhuber,\n1997](http://dx.doi.org/10.1162/neco.1997.9.8.1735); [Gers et al.,\n2000](http://dx.doi.org/10.1162/089976600300015015)) network with an\nembedding size of 256. The number of hidden states is 256.\n\n## Other Hyperparameters\n\nOur proposed character-based model disambiguates a punctuation mark\ngiven a context of *k* surrounding characters. In our experiments we\nfound that a context size of 4 surrounding characters gives the best\nresults. We found that it is very important to include the\nend-of-sentence marker in the context, as this increases the F1-score\nof 2%.  All models are trained with averaged stochastic gradient\ndescent with a learning rate of 0.001 and mini-batch size of 32. We use\nAdam for first-order gradient-based optimization. We use binary\ncross-entropy as loss function.\n\n# Implementation\n\nWe use *PyTorch* for the implementation of the neural network\narchitecture.\n\n# Contact (Bugs, Feedback, Contribution and more)\n\nFor questions about *deep-eos*, just open an issue [here](https://github.com/stefan-it/deep_eos/issues).\nA contribution is coming soon!\n\n# License\n\nTo respect the Free Software Movement and the enormous work of Dr.\nRichard Stallman this implementation is released under the *GNU Affero\nGeneral Public License* in version 3. More information can be found\n[here](https://www.gnu.org/licenses/licenses.html) and in `COPYING`.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/stefan-it/deep_eos",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "deep-eos",
+        "package_url": "https://pypi.org/project/deep-eos/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/deep-eos/",
+        "project_urls": {
+            "Homepage": "https://github.com/stefan-it/deep_eos"
+        },
+        "release_url": "https://pypi.org/project/deep-eos/0.0.2.post1/",
+        "requires_dist": [
+            "certifi (==2018.10.15)",
+            "chardet (==3.0.4)",
+            "Click (==7.0)",
+            "idna (==2.7)",
+            "numpy (==1.15.4)",
+            "requests (==2.20.1)",
+            "toml (==0.10.0)",
+            "torch (==0.4.1)",
+            "torchtext (==0.3.1)",
+            "tqdm (==4.28.1)",
+            "urllib3 (==1.24.1)"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Deep end-of-sentence detection",
+        "version": "0.0.2.post1"
+    },
+    "last_serial": 4484921,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "279270349c16424b25820f6afdc31bdb",
+                    "sha256": "4e0d112b2e125d0ab0e180d407b4ea3e3d71a4cc0d55e8e6e021e365a6b60cf4"
+                },
+                "downloads": -1,
+                "filename": "deep_eos-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "279270349c16424b25820f6afdc31bdb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 24011,
+                "upload_time": "2018-11-13T17:16:36",
+                "url": "https://files.pythonhosted.org/packages/ad/be/84e16c88c9e73df4b87a14cf37be472c00bab529463044990e60d82001b8/deep_eos-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3b1d22c4c09ffed62f3941be655e859",
+                    "sha256": "a9854a57ad841c3fdc6ee49ed0a7eb9e37f149849c849f4eb6ca3ab20dd90d40"
+                },
+                "downloads": -1,
+                "filename": "deep-eos-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f3b1d22c4c09ffed62f3941be655e859",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 13315,
+                "upload_time": "2018-11-13T17:16:38",
+                "url": "https://files.pythonhosted.org/packages/5d/68/22742d1ee74b199c265cd8b5d154c441309aa6563d774f5767396740ec8b/deep-eos-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8518ab0702af0fdb1b23827c70c70ece",
+                    "sha256": "1b247b32edbfad61e3f5198a7f37f6ca11446789f6b784aba8b6c00d4e71f59e"
+                },
+                "downloads": -1,
+                "filename": "deep_eos-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8518ab0702af0fdb1b23827c70c70ece",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 24038,
+                "upload_time": "2018-11-13T17:40:54",
+                "url": "https://files.pythonhosted.org/packages/08/7f/2d11f2b7e3993ff0e3d3c918ec8335df57051740b6e785583bafeb59e72a/deep_eos-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aebd235ab094ec0ee1cc77095c55ffc0",
+                    "sha256": "913dc572a9ba30ed6554a66213e261da8a4d612cad009575ff1ea1aae2286cd2"
+                },
+                "downloads": -1,
+                "filename": "deep-eos-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aebd235ab094ec0ee1cc77095c55ffc0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 13369,
+                "upload_time": "2018-11-13T17:40:55",
+                "url": "https://files.pythonhosted.org/packages/6f/e5/aa21ded86d8e2672c427ab68805d2c02624eb566167daf10cee6bfafdade/deep-eos-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.2.post1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ecf82962d2e522d40baaf7247a08b615",
+                    "sha256": "cf5a28b78404eaf8393ce95eae90901870e1d4d093dd0945050e9fc8b47a2dee"
+                },
+                "downloads": -1,
+                "filename": "deep_eos-0.0.2.post1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ecf82962d2e522d40baaf7247a08b615",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 24104,
+                "upload_time": "2018-11-14T09:37:47",
+                "url": "https://files.pythonhosted.org/packages/4e/8e/fe24f73af76450376bd3a8b17cb2d1f0918f61bf2b8a732e654d3eb84008/deep_eos-0.0.2.post1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d1ee23ae00a1e8a87d6caa7a39dba3b1",
+                    "sha256": "bae49ab786bf34177b3ba570cde4e03576aa3463636dc5bf62b9873d9f3feec8"
+                },
+                "downloads": -1,
+                "filename": "deep-eos-0.0.2.post1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d1ee23ae00a1e8a87d6caa7a39dba3b1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 13383,
+                "upload_time": "2018-11-14T09:37:48",
+                "url": "https://files.pythonhosted.org/packages/c4/2a/9b76ed5195771dfee3eaec8bf558ffd20178b584d084cf41d60d2e9e07f4/deep-eos-0.0.2.post1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ecf82962d2e522d40baaf7247a08b615",
+                "sha256": "cf5a28b78404eaf8393ce95eae90901870e1d4d093dd0945050e9fc8b47a2dee"
+            },
+            "downloads": -1,
+            "filename": "deep_eos-0.0.2.post1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ecf82962d2e522d40baaf7247a08b615",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 24104,
+            "upload_time": "2018-11-14T09:37:47",
+            "url": "https://files.pythonhosted.org/packages/4e/8e/fe24f73af76450376bd3a8b17cb2d1f0918f61bf2b8a732e654d3eb84008/deep_eos-0.0.2.post1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d1ee23ae00a1e8a87d6caa7a39dba3b1",
+                "sha256": "bae49ab786bf34177b3ba570cde4e03576aa3463636dc5bf62b9873d9f3feec8"
+            },
+            "downloads": -1,
+            "filename": "deep-eos-0.0.2.post1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d1ee23ae00a1e8a87d6caa7a39dba3b1",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 13383,
+            "upload_time": "2018-11-14T09:37:48",
+            "url": "https://files.pythonhosted.org/packages/c4/2a/9b76ed5195771dfee3eaec8bf558ffd20178b584d084cf41d60d2e9e07f4/deep-eos-0.0.2.post1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,368 @@
+{
+    "info": {
+        "author": "Orly Schwartz",
+        "author_email": "orly.schwartz@iqoqo.co",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: Other/Proprietary License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python"
+        ],
+        "description": "<div align=\"left\">\n<img alt=\"IQOQO\" src=\"./public/img/IQOQO.png\" width=100/>\n\n# iqoqomp\nIQOQO multi-processing python package\n\nThe iqoqomp is a package that distributes computing jobs using the IQOQO service.\nIt introduces an API similar to the multiprocessing python package.\n\nFor more information about IQOQO itself, please check out the [IQOQO homepage](https://www.iqoqo.co/distributedcompute/)\n\n## Overview\n\n### class iqoqomp.Process(name, target, args=())\nInstantiating the Process class creates a new job with a single task in a 'waiting state' and submits it to iqoqo computing service \n\n##### name\nThe job's name.\nThe name is a string used for identification purposes only. It does not have to be unique.\n\n##### target\nThe target is the callable object to be invoked by the running job.\n\n##### args\nThe args is the argument tuple for the target invocation. By default, no arguments are passed to target.\n\n#### start()\nStart running the job on one of the machines .\n\nThis must be called at most once per process object.\n\n#### join(timeout=None)\n\nJoin blocks the calling thread until the job is done. Upon successful completion of the job, results files are downloaded to a new directory, given the job's name within the working directory.  \n\nCurrently, timeout must always be 'None'.\n\nA process should be joined at most once.\nA job may be already done by the time join was called. However, the results are downloaded only upon calling join.\n\n\n### class iqoqomp.Pool(processes=None)\nInstantiating the Pool class creates an object to be later used to run a job with one or more tasks executed in many machines, by invoking it's map() method.\nThe Pool class does not take any arguments and has a no control on the number of machines used to run the job tasks.\nThe number of machines are determined separately.\n\n#### map(func, iterable, chunksize=None)\n1. Pool.map applies the same function to many sets of arguments.\n2. It creates a job that runs each set of arguments as a separate task on one of the machines in the \"pool\".\n3. It blocks until the result is ready (i.e. all job's tasks are done).\n4. The results are returned back in the original order (corresponding to the order of the arguments).\n5. Job related files (in addition to script, input, config files that were used to run the task) are downloaded automatically when the job is done under a directory named as the function's name, within the working directory.\n6. The function's arguments should be provided an iterable.\n\n#### starmap(func, iterable, chunksize=None)\n1. Pool.starmap is similar to Pool.map but it can apply the same function to many sets of multiple arguments.\n2. The function's arguments should be provided an iterable. Elements of the iterable are expected to be iterables as well that are unpacked as arguments.\nHence an iterable of [(1,2), (3, 4)] results in [func(1,2), func(3,4)].\n\n\n## Installation:\n\n1. Install IQOQO CLI:\n```\n curl https://s3.us-east-2.amazonaws.com/iqoqo.cli/install.sh | sh\n```\n2. Sign-Up in IQOQO dashboard:\n\n   https://app.iqoqo.co/signup\n\n3. Install iqoqomp package:\n```\n pip install iqoqomp\n```\nor \n```\n pip3 install iqoqomp\n```\n\n## Usage:\n\n1. You keep writing your python script as if you were using the multiprocessing package, but instead of importing the process and pool modules from multiprocessing, you import them from iqoqomp.\n2. Setup the environment variables with your IQOQO account's user-name and password (see the examples below).\n\n## Examples:\n\nA trivial example using the Process class:\n```ts\nimport os\nfrom iqoqomp import Process\n\nos.environ['IQOQO_LOGIN_USER'] = 'username@mail.com'\nos.environ['IQOQO_LOGIN_PASSWORD'] = 'password'\n\ndef func(name):\n    print ('Hello', name)\n\np = Process(\n    name='MyFirstJobExample',\n    target=func,\n    args=('Bob',))\n\np.start()\np.join()\n```\n\nOutput:\n<div align=\"left\">\n<img alt=\"Process\" src=\"./public/img/process-example-output.png\" width=900/>\n\n\n\n\n\n\nA basic example using the Pool class:\n```ts\nimport os\nfrom iqoqomp import Pool\n\nos.environ['IQOQO_LOGIN_USER'] = 'username@mail.com'\nos.environ['IQOQO_LOGIN_PASSWORD'] = 'password'\n\ndef pow3(x):\n    print (x**3)\n    return (x**3)\n\np = Pool()\nresults = p.map(pow3, range(10))\nprint(results)\n```\n\nOutput:\n<div align=\"left\">\n<img alt=\"Process\" src=\"./public/img/pool-example-output.png\" width=900/>\n\n\n\n\n\n\n\n### Contact us:\nPlease feel free to contact us in IQOQO for further information  \n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Iqoqo/iqoqomp",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "iqoqomp",
+        "package_url": "https://pypi.org/project/iqoqomp/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/iqoqomp/",
+        "project_urls": {
+            "Homepage": "https://github.com/Iqoqo/iqoqomp"
+        },
+        "release_url": "https://pypi.org/project/iqoqomp/1.4.3/",
+        "requires_dist": [
+            "dill (>=0.2.9)",
+            "analytics-python"
+        ],
+        "requires_python": "",
+        "summary": "IQOQO multi-processing python package",
+        "version": "1.4.3"
+    },
+    "last_serial": 5644969,
+    "releases": {
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca90d5fe9a308a5bee30dc60c7697d6f",
+                    "sha256": "004faebece7873d6003f22910da512983af8848ace141293dc20168923ebfa2b"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-0.3.0-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ca90d5fe9a308a5bee30dc60c7697d6f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 9079,
+                "upload_time": "2019-03-11T09:10:11",
+                "upload_time_iso_8601": "2019-03-11T09:10:11.002312Z",
+                "url": "https://files.pythonhosted.org/packages/97/27/8eac4e385ab4399572c44503fd18cf76099c6d52cbe70d0a1a8b174283bf/iqoqomp-0.3.0-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8d9a536049fc6569a0e8ffb2858d22d9",
+                    "sha256": "d2964b656d6e152fa288a4abd8107528fb971422977fee740d2629303ddd671d"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8d9a536049fc6569a0e8ffb2858d22d9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10416,
+                "upload_time": "2019-03-11T09:10:13",
+                "upload_time_iso_8601": "2019-03-11T09:10:13.088888Z",
+                "url": "https://files.pythonhosted.org/packages/94/0b/386fc62bd5f60762808b853ac0ce8b470ab562e3f17f197a90a97ddc0064/iqoqomp-0.3.0.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8de1dd8cc9340e313b0c95094e75d835",
+                    "sha256": "2c1e09f82ef3b58e25ad989e91e117e2eba6c916b191af58abed6ea954da4854"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-0.4.0-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8de1dd8cc9340e313b0c95094e75d835",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 9077,
+                "upload_time": "2019-03-11T11:10:22",
+                "upload_time_iso_8601": "2019-03-11T11:10:22.550659Z",
+                "url": "https://files.pythonhosted.org/packages/ca/76/a1011410f4c1dac1e253cb22f2ef81ae8730fe7855decb99fac394f6d05d/iqoqomp-0.4.0-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8dbac94185a2558164b589743dc8f9c2",
+                    "sha256": "df845663e3a69896a3a49b0dd178fbeb9494d2c05f2451e34e5fa61c5f8f4b70"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8dbac94185a2558164b589743dc8f9c2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10405,
+                "upload_time": "2019-03-11T11:10:24",
+                "upload_time_iso_8601": "2019-03-11T11:10:24.191593Z",
+                "url": "https://files.pythonhosted.org/packages/58/98/6eb3a1ba19cd5da945ea5f09777004dda24abba66a380f48cdfbbe53c3d9/iqoqomp-0.4.0.tar.gz"
+            }
+        ],
+        "0.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8eebdc3e35353d84a23bb023d67ffb72",
+                    "sha256": "44332921feac97ae919f0d79759d0cdbcf3064b4ab1bf1e049e6069725f13a0c"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-0.5.0-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8eebdc3e35353d84a23bb023d67ffb72",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 13202,
+                "upload_time": "2019-05-01T11:05:16",
+                "upload_time_iso_8601": "2019-05-01T11:05:16.805349Z",
+                "url": "https://files.pythonhosted.org/packages/60/0c/62388c5f8ac2b849507ca39f8651d5f1b55b78a7ea813b79ae40aa7f23ea/iqoqomp-0.5.0-py2-none-any.whl"
+            }
+        ],
+        "1.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b0b3e3931ceecefc4ce72b6e10e1c378",
+                    "sha256": "b52548d1fe5102094cf01b452f856d4e0ee1b5424e5ff42218c1e215eac67c5b"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b0b3e3931ceecefc4ce72b6e10e1c378",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13344,
+                "upload_time": "2019-05-27T08:09:16",
+                "upload_time_iso_8601": "2019-05-27T08:09:16.287382Z",
+                "url": "https://files.pythonhosted.org/packages/df/4e/c1c1a6a43d0f7e2f1f6a7e2d2ce9ada4f16536799c062351e7a1f81eaabe/iqoqomp-1.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bd37cfa4d5e9b1745729f800f49dcc96",
+                    "sha256": "afd07bec7cfcdb692651e654cda1c22fbba72dc12cb8e487740e5f5f9f7397cc"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bd37cfa4d5e9b1745729f800f49dcc96",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9608,
+                "upload_time": "2019-05-27T08:09:17",
+                "upload_time_iso_8601": "2019-05-27T08:09:17.619512Z",
+                "url": "https://files.pythonhosted.org/packages/8a/59/121f2f001d0eacfcda1c632645b68352a3c3b90bb11c13f93bb763bc5b92/iqoqomp-1.2.1.tar.gz"
+            }
+        ],
+        "1.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d05c3f2468841208546941ae720d4d1c",
+                    "sha256": "6716911dcef1f97a854e8e03ad2d8cdb6b56f203ab527ac9de46d5a847f50554"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.2.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d05c3f2468841208546941ae720d4d1c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13415,
+                "upload_time": "2019-06-19T15:43:03",
+                "upload_time_iso_8601": "2019-06-19T15:43:03.533117Z",
+                "url": "https://files.pythonhosted.org/packages/96/8e/fb74387b582d6c03796c73ce2b74bdafb8dd6f6e5a28cf2c48f42ecff44a/iqoqomp-1.2.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "de56af174829a987bce56cbcdc6ba0d1",
+                    "sha256": "e416be357f7c81c0d8186bd4d92feebbd4edfb4719941963dce88511ca290da1"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "de56af174829a987bce56cbcdc6ba0d1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9627,
+                "upload_time": "2019-06-19T15:43:05",
+                "upload_time_iso_8601": "2019-06-19T15:43:05.081604Z",
+                "url": "https://files.pythonhosted.org/packages/e0/56/59e04d0e5ffd628315e902a38e4ebf445ad7d9041cd32bfc0a9201808c9e/iqoqomp-1.2.2.tar.gz"
+            }
+        ],
+        "1.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c790ad5187618e3d5fbc72cad4dcb2d4",
+                    "sha256": "f94776e027e15b4066770befa693a49d1ed7b29a04772ca1df86149de5a5ad9e"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.2.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c790ad5187618e3d5fbc72cad4dcb2d4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13429,
+                "upload_time": "2019-07-21T08:27:33",
+                "upload_time_iso_8601": "2019-07-21T08:27:33.498981Z",
+                "url": "https://files.pythonhosted.org/packages/7b/45/a79c09966bba5b84587ba845a21b42c85493e1176a3cb5b952a76cebbca9/iqoqomp-1.2.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7b8ec1547510db4006542e56b926bac0",
+                    "sha256": "4cee4fb7c2323ffd1bebfbb3cde66247bebe0f93dcc4ed2118aa209fd14feafa"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7b8ec1547510db4006542e56b926bac0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9712,
+                "upload_time": "2019-07-21T08:27:34",
+                "upload_time_iso_8601": "2019-07-21T08:27:34.640477Z",
+                "url": "https://files.pythonhosted.org/packages/52/d9/db819b7fbc3b094cfe801efafd1c68829964ea6bed03323cfb2f3761673c/iqoqomp-1.2.3.tar.gz"
+            }
+        ],
+        "1.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b2778a8cc1906a6e5d3bef90fe2d51cb",
+                    "sha256": "28e58307918e9d9609c2a971186b4689cea41b559d5e5db12ce76596f7532b60"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.4.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b2778a8cc1906a6e5d3bef90fe2d51cb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 14064,
+                "upload_time": "2019-08-07T12:53:54",
+                "upload_time_iso_8601": "2019-08-07T12:53:54.947781Z",
+                "url": "https://files.pythonhosted.org/packages/aa/26/b2d52e9b8203aa2e823d318f107d64dd752b198c6338b523808cd8490cd8/iqoqomp-1.4.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "976a1650ee0e14d80f7072eb1bbfd5af",
+                    "sha256": "be213690e6dc8fc529630959a5ae7db34f324d763c9294e37b7d89dfac0f6ce6"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "976a1650ee0e14d80f7072eb1bbfd5af",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10111,
+                "upload_time": "2019-08-07T12:53:56",
+                "upload_time_iso_8601": "2019-08-07T12:53:56.372659Z",
+                "url": "https://files.pythonhosted.org/packages/12/05/6159685d577ad67f8268b1089e4d885e031258c8a0f0865e4d5c2b481038/iqoqomp-1.4.2.tar.gz"
+            }
+        ],
+        "1.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6d61af2ae2a3d8796867a730636d00ed",
+                    "sha256": "ec645155092144cc42e860aff3c6560fc5470d64c944d1f2b89b69c4a1a0aaef"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.4.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6d61af2ae2a3d8796867a730636d00ed",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 14081,
+                "upload_time": "2019-08-07T13:05:27",
+                "upload_time_iso_8601": "2019-08-07T13:05:27.066259Z",
+                "url": "https://files.pythonhosted.org/packages/6d/aa/c8c1f7d094b6bd99e541abca61e011ab49abc30a780f4cd2fda1b506bc70/iqoqomp-1.4.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6505cd28ca5ce2b29df2bb67cec8531a",
+                    "sha256": "2cac5c450391ac05377c0ab7e8a80cda5851b4b0bae5940b409f5a9b643d8004"
+                },
+                "downloads": -1,
+                "filename": "iqoqomp-1.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6505cd28ca5ce2b29df2bb67cec8531a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10127,
+                "upload_time": "2019-08-07T13:05:28",
+                "upload_time_iso_8601": "2019-08-07T13:05:28.328023Z",
+                "url": "https://files.pythonhosted.org/packages/9d/7c/3fbf39cf8c378aec942da808ba79b98f7ae8f45298bae450c9a6de719c8e/iqoqomp-1.4.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6d61af2ae2a3d8796867a730636d00ed",
+                "sha256": "ec645155092144cc42e860aff3c6560fc5470d64c944d1f2b89b69c4a1a0aaef"
+            },
+            "downloads": -1,
+            "filename": "iqoqomp-1.4.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "6d61af2ae2a3d8796867a730636d00ed",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 14081,
+            "upload_time": "2019-08-07T13:05:27",
+            "upload_time_iso_8601": "2019-08-07T13:05:27.066259Z",
+            "url": "https://files.pythonhosted.org/packages/6d/aa/c8c1f7d094b6bd99e541abca61e011ab49abc30a780f4cd2fda1b506bc70/iqoqomp-1.4.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6505cd28ca5ce2b29df2bb67cec8531a",
+                "sha256": "2cac5c450391ac05377c0ab7e8a80cda5851b4b0bae5940b409f5a9b643d8004"
+            },
+            "downloads": -1,
+            "filename": "iqoqomp-1.4.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "6505cd28ca5ce2b29df2bb67cec8531a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 10127,
+            "upload_time": "2019-08-07T13:05:28",
+            "upload_time_iso_8601": "2019-08-07T13:05:28.328023Z",
+            "url": "https://files.pythonhosted.org/packages/9d/7c/3fbf39cf8c378aec942da808ba79b98f7ae8f45298bae450c9a6de719c8e/iqoqomp-1.4.3.tar.gz"
+        }
+    ]
+}

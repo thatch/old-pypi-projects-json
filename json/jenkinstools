@@ -1,0 +1,139 @@
+{
+    "info": {
+        "author": "AICS",
+        "author_email": "AICS_SW_Team@alleninstitute.org",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# Jenkins-Scripts\nUtility scripts for common jenkins tasks supporting our version control and artifact management.\n\n## Table of contents\n- [Manage Versions](#manage-versions)\n    - [Using the tool](#using-manage-version)\n    - [Develop build helpers](#developing-build-helpers-for-manage-version)\n- [Promote Artifacts](#promote-artifacts)\n\n\n## Manage Versions\n\nThe `manage_version` tools is used to automatically determine the next version of the \napplication/image build and then apply it to the build, and also use it for the \nassociated git tag.\n\n\n### Using manage version\n\nThis is meant to be called in two parts. Note the calls to manage_version are also run from the \nroot directory of the project.\n\n1. First prepare the version to release. This will look up version information from the file and \nthe tags in git to determine the next version to release.\n    - **`manage_version -t <tool> -s prepare`**\n1. Call your build process here, e.g\n    - `./gradlew -i cleanAll dockerPublish`  or\n    - `./gradlew -i clean snapshotPublish`\n1. Now call manage_version again to actually tag and commit the change.\n    - **`manage_version -t <tool> -s tag`**\n\nUse `manage_version -h` to determine supported tools. You can do this on your dev box.\n\n### Developing build helpers for manage version\n\nThe manage version tool depends to `<X>VersionHelper` classes. Currently we have the following hierarchy.\n\n```\nVersionHelperBase\n|-- GradleVersionHelper (basic gradle builds with simple version management)\n|   |-- ...\n|-- DockerImageVersionHelper\n|-- SbtVersionHelper\n|-- NodeVersionHelper\n```\nThe abstract base class `VersionHelperBase` ([source code](jenkinstools/version_helper_base.py)) provides the \nfollowing members and methods, some of which must be implemented in the derived classes.\n\n- `version`: A `Version` or Version like object, e.g. `AICSDockerVersion`. ([Source code](jenkinstools/build_version.py))\n- `get_version()`: Implemented in base\n- `git_tag()`: Implemented in base. This is typically the same as `get_version()`.`\n- `detach_head_and_preserve_branch()`: Implemented in base\n- `restore_branch()`: Implemented in base\n- `read_version()`\n- `determine_new_version()`\n- `write_new_version(new_version)`\n- `lock_dependency_versions()`\n- `post_build_files_to_commit()`\n\nDepending on the stage (in <a href=\"#using-manage-version\">using manage version</a>), the tool calls one \nof following\n- `prepare_version(version_helper: VersionHelperBase)`: This is called before a build, and is typically \n   expected to alter the build files to set the appropriate version info with which to build the artifact.\n   Calling a helper's `get_version` below should return un-altered version, e.g. 1.0.x, 1.0.0-SNAPSHOT, etc.\n- `tag_and_push_version(version_helper: VersionHelperBase)`: This is called after both `prepare_version` has\n   been applied and the build has occurred, in a completely separate process. The helper's `get_version` will \n   return the new version. \n\nThese to functions define the expected pattern of usage/implementation of the version helper classes.\nDepending on the tool chosen, the appropriate class is essentially injected into these functions\n\n\n## Promote Artifacts\n\n**Tool: `promote_artifact`**\n\nThis will be used to promote an artifact in a snapshot location in artifactory to a release location.\n\n- `promote_artifact -t <tool> -g <git_tag>`\n\nThis will find the artifact with the git version. E.g. The docker image tag is used to tag the builds in git, \nso this will find `docker-staging-local.artifactory.corp.alleninstitute.org/<image>:<git_tag>` and promote it\nto the production location `docker-promote-local.artifactory.corp.alleninstitute.org/<image>:<git_tag>`\n\nWith an appropriate jenkins job to list and select the tags, this simplifies the release promote process.\n\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "Allen Institute Software License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "jenkinstools",
+        "package_url": "https://pypi.org/project/jenkinstools/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/jenkinstools/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/jenkinstools/1.2.3/",
+        "requires_dist": [
+            "requests",
+            "docker (>=3.2.1)",
+            "pytest ; extra == 'all'",
+            "pytest-cov ; extra == 'all'",
+            "flake8 ; extra == 'all'",
+            "flake8 ; extra == 'lint_group'",
+            "pytest ; extra == 'test_group'",
+            "pytest-cov ; extra == 'test_group'"
+        ],
+        "requires_python": "",
+        "summary": "Tools to aid the Jenkins build process",
+        "version": "1.2.3"
+    },
+    "last_serial": 4678025,
+    "releases": {
+        "1.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bf570bd0befe075363e446324929685d",
+                    "sha256": "38bfbbfdcd41debc3caf813edf13f8c963e537d09b46a0d8276f3bf5d58bcf0f"
+                },
+                "downloads": -1,
+                "filename": "jenkinstools-1.2.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bf570bd0befe075363e446324929685d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 24624,
+                "upload_time": "2018-12-13T02:01:17",
+                "url": "https://files.pythonhosted.org/packages/bf/a6/0e7b6121ccbacb2527316809a62a68d911cefee447acdd785feac15f1c2f/jenkinstools-1.2.0-py2.py3-none-any.whl"
+            }
+        ],
+        "1.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8ddf1f8632c66fc9e9e403f20d7a638b",
+                    "sha256": "9ce31491bf979022093fbbd9f29df44311e543944d285044f577a697de702f05"
+                },
+                "downloads": -1,
+                "filename": "jenkinstools-1.2.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8ddf1f8632c66fc9e9e403f20d7a638b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 24621,
+                "upload_time": "2018-12-13T21:19:35",
+                "url": "https://files.pythonhosted.org/packages/9f/d2/ff8ce413afecb04f5b97b8e27ad182f847ab62759d69ddbbef98f4a31b99/jenkinstools-1.2.1-py2.py3-none-any.whl"
+            }
+        ],
+        "1.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d60958bf7d77c3da6de83d3c176dcd7c",
+                    "sha256": "61e26dea571f414abfa4ff224c1cb076ecdfc89c23a7f9050d86c17dc4cb200a"
+                },
+                "downloads": -1,
+                "filename": "jenkinstools-1.2.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d60958bf7d77c3da6de83d3c176dcd7c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 24769,
+                "upload_time": "2019-01-09T00:59:36",
+                "url": "https://files.pythonhosted.org/packages/d9/2c/80fc5a1a43fed29ef8ab24e0f3209bddca7fce3c289441c22a00ab3c50b2/jenkinstools-1.2.2-py2.py3-none-any.whl"
+            }
+        ],
+        "1.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "94474a68331f083c13d13b98d2c2e0be",
+                    "sha256": "13301f6628328cab976686035971f893a495960acd3d2681da7684184f1b183d"
+                },
+                "downloads": -1,
+                "filename": "jenkinstools-1.2.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "94474a68331f083c13d13b98d2c2e0be",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 24808,
+                "upload_time": "2019-01-09T18:55:41",
+                "url": "https://files.pythonhosted.org/packages/08/05/247a1bf6cb5719c159242184bda56c1d935092c0f2422d9051621bf58cfe/jenkinstools-1.2.3-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "94474a68331f083c13d13b98d2c2e0be",
+                "sha256": "13301f6628328cab976686035971f893a495960acd3d2681da7684184f1b183d"
+            },
+            "downloads": -1,
+            "filename": "jenkinstools-1.2.3-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "94474a68331f083c13d13b98d2c2e0be",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 24808,
+            "upload_time": "2019-01-09T18:55:41",
+            "url": "https://files.pythonhosted.org/packages/08/05/247a1bf6cb5719c159242184bda56c1d935092c0f2422d9051621bf58cfe/jenkinstools-1.2.3-py2.py3-none-any.whl"
+        }
+    ]
+}

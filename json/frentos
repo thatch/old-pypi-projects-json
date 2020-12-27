@@ -1,0 +1,187 @@
+{
+    "info": {
+        "author": "Nico Schl\u00f6mer",
+        "author_email": "nico.schloemer@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 3",
+            "Topic :: Scientific/Engineering"
+        ],
+        "description": "frentos\n=======\n\n`The mesh maker. <https://youtu.be/JqgqgcE8Zck>`__\n\n|Build Status| |PyPi Version| |GitHub stars|\n\nThis is frentos, a Python frontend to CGAL's 3D mesh generation\ncapabilities. frentos aims to make it easy to create high-quality 3D\nvolume and surface meshes.\n\nBackground\n~~~~~~~~~~\n\nCGAL offers two different approaches for mesh generation:\n\n1. Meshes defined implicitly by level sets of functions.\n2. Meshes defined by a set of bounding planes.\n\nfrentos provides a front-end to the first approach, which has the\nfollowing advantages and disadvantages:\n\n-  All boundary points are guaranteed to be in the level set within any\n   specified residual. This results in smooth curved surfaces.\n-  Sharp intersections of subdomains (e.g., in unions or differences of\n   sets) need to be specified manually (via features edges, see below),\n   which can be tedious.\n\nOn the other hand, the bounding-plane approach (realized by\n`mshr <https://bitbucket.org/fenics-project/mshr>`__), has the following\nproperties:\n\n-  Smooth, curved domains are approximated by a set of bounding planes,\n   resulting in more of less visible edges.\n-  Intersections of domains can be computed automatically, so domain\n   unions etc. have sharp edges where they belong.\n\nOther Python mesh generators are\n`pygmsh <https://github.com/nschloe/pygmsh>`__ (a frontend to\n`gmsh <http://gmsh.info/>`__) and\n`MeshPy <https://github.com/inducer/meshpy>`__.\n`meshzoo <https://github.com/nschloe/meshzoo>`__ features some examples.\n\nExamples\n~~~~~~~~\n\nA simple ball\n^^^^^^^^^^^^^\n\n.. figure:: https://nschloe.github.io/frentos/ball.png\n   :alt: Ball\n\n   Ball\n\n.. code:: python\n\n    import frentos\n\n    s = frentos.Ball([0, 0, 0], 1.0)\n    frentos.generate_mesh(s, 'out.mesh', cell_size=0.2)\n\nCGAL's mesh generator returns Medit-files, which can be processed by,\ne.g., `meshio <https://github.com/nschloe/meshio>`__.\n\n.. code:: python\n\n    import meshio\n    vertices, cells, _, _, _ = meshio.read('out.mesh')\n\nThe mesh generation comes with many more options, described\n`here <http://doc.cgal.org/latest/Mesh_3/>`__. Try, for example,\n\n.. code:: python\n\n    frentos.generate_mesh(\n        s,\n        'out.mesh',\n        cell_size=0.2,\n        edge_size=0.1,\n        odt=True,\n        lloyd=True,\n        verbose=False\n        )\n\nOther primitive shapes\n^^^^^^^^^^^^^^^^^^^^^^\n\n.. figure:: https://nschloe.github.io/frentos/tetra.png\n   :alt: Tetrahedron\n\n   Tetrahedron\n\nfrentos provides out-of-the-box support for balls, cuboids, ellipsoids,\ntori, cones, cylinders, and tetrahedra. Try for example\n\n.. code:: python\n\n    import frentos\n\n    s0 = frentos.Tetrahedron(\n            [0.0, 0.0, 0.0],\n            [1.0, 0.0, 0.0],\n            [0.0, 1.0, 0.0],\n            [0.0, 0.0, 1.0]\n            )\n    frentos.generate_mesh(\n            s0, 'out.mesh', cell_size=0.1, edge_size=0.1\n            )\n\nDomain combinations\n^^^^^^^^^^^^^^^^^^^\n\n.. figure:: https://nschloe.github.io/frentos/ball-difference.png\n   :alt: Balls difference\n\n   Balls difference\n\nSupported are unions, intersections, and differences of all domains. As\nmentioned above, however, the sharp intersections between two domains\nare not automatically handled. Try for example\n\n.. code:: python\n\n    import frentos\n\n    radius = 1.0\n    displacement = 0.5\n    s0 = frentos.Ball([displacement, 0, 0], radius)\n    s1 = frentos.Ball([-displacement, 0, 0], radius)\n    u = frentos.Difference(s0, s1)\n\nTo sharpen the intersection circle, add it as a feature edge polygon\nline, e.g.,\n\n.. code:: python\n\n    a = numpy.sqrt(radius**2 - displacement**2)\n    edge_size = 0.15\n    n = int(2*numpy.pi*a / edge_size)\n    circ = [\n        [\n            0.0,\n            a * numpy.cos(i * 2*numpy.pi / n),\n            a * numpy.sin(i * 2*numpy.pi / n)\n        ] for i in range(n)\n        ]\n    circ.append(circ[0])\n\n    frentos.generate_mesh(\n            u,\n            'out.mesh',\n            feature_edges=[circ],\n            cell_size=0.15,\n            edge_size=edge_size,\n            facet_angle=25,\n            facet_size=0.15,\n            cell_radius_edge_ratio=2.0\n            )\n\nNote that the length of the polygon legs are kept in sync with the\n``edge_size`` of the mesh generation. This makes sure that it fits in\nnicely with the rest of the mesh.\n\nDomain deformations\n^^^^^^^^^^^^^^^^^^^\n\n.. figure:: https://nschloe.github.io/frentos/egg.png\n   :alt: Egg\n\n   Egg\n\nYou can of course translate, rotate, scale, and stretch any domain. Try,\nfor example,\n\n.. code:: python\n\n    import frentos\n\n    s = frentos.Stretch(\n            frentos.Ball([0, 0, 0], 1.0),\n            [1.0, 2.0, 0.0]\n            )\n\n    frentos.generate_mesh(\n            s,\n            'out.mesh',\n            cell_size=0.1\n            )\n\nExtrusion of 2D polygons\n^^^^^^^^^^^^^^^^^^^^^^^^\n\n.. figure:: https://nschloe.github.io/frentos/triangle-rotated.png\n   :alt: triangle rotated\n\n   triangle rotated\n\nfrentos lets you extrude any polygon into a 3D body. It even supports\nrotation alongside!\n\n.. code:: python\n\n    import frentos\n\n    p = frentos.Polygon2D([[-0.5, -0.3], [0.5, -0.3], [0.0, 0.5]])\n    edge_size = 0.1\n    domain = frentos.Extrude(\n            p,\n            [0.0, 0.0, 1.0],\n            0.5 * 3.14159265359,\n            edge_size\n            )\n    frentos.generate_mesh(\n            domain,\n            'out.mesh',\n            cell_size=0.1,\n            edge_size=edge_size,\n            verbose=False\n            )\n\nFeature edges are automatically preserved here, which is why an edge\nlength needs to be given to ``frentos.Extrude``.\n\nRotation bodies\n^^^^^^^^^^^^^^^\n\n.. figure:: https://nschloe.github.io/frentos/circle-rotate-extr.png\n   :alt: triangle ring extruded\n\n   triangle ring extruded\n\nPolygons in the x-z-plane can also be rotated around the z-axis to yield\na rotation body.\n\n.. code:: python\n\n    import frentos\n\n    p = frentos.Polygon2D([[0.5, -0.3], [1.5, -0.3], [1.0, 0.5]])\n    edge_size = 0.1\n    domain = frentos.ring_extrude(p, edge_size)\n    frentos.generate_mesh(\n            domain,\n            'out.mesh',\n            cell_size=0.1,\n            edge_size=edge_size,\n            verbose=False\n            )\n\nYour own custom level set function\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n.. figure:: https://nschloe.github.io/frentos/heart.png\n   :alt: triangle ring extruded\n\n   triangle ring extruded\n\nIf all of the variety is not enough for you, you can define your own\ncustom level set function. You simply need to subclass\n``frentos.DomainBase`` and specify a function, e.g.,\n\n.. code:: python\n\n    import frentos\n    class Heart(frentos.DomainBase):\n        def __init__(self):\n            super(Heart, self).__init__()\n            return\n\n        def eval(self, x):\n            return (x[0]**2 + 9.0/4.0 * x[1]**2 + x[2]**2 - 1)**3 \\\n                - x[0]**2 * x[2]**3 - 9.0/80.0 * x[1]**2 * x[2]**3\n\n        def get_bounding_sphere_squared_radius(self):\n            return 10.0\n\n    d = Heart()\n    frentos.generate_mesh(d, 'out.mesh', cell_size=0.1)\n\nNote that you need to specify the square of a bounding sphere radius,\nused as an input to CGAL's mesh generator.\n\nSurface meshes\n^^^^^^^^^^^^^^\n\nIf you're only after the surface of a body, frentos has\n``generate_surface_mesh`` for you. It offers fewer options (obviously,\n``cell_size`` is gone), but otherwise works the same way:\n\n.. code:: python\n\n    import frentos\n\n    s = frentos.Ball([0, 0, 0], 1.0)\n    frentos.generate_surface_mesh(\n            s,\n            'out.off',\n            angle_bound=30,\n            radius_bound=0.1,\n            distance_bound=0.1\n            )\n\nThe output format is\n`OFF <http://segeval.cs.princeton.edu/public/off_format.html>`__ which\nagain is handled by `meshio <https://github.com/nschloe/meshio>`__.\n\nRefer to `CGAL's\ndocumention <http://doc.cgal.org/latest/Surface_mesher/index.html>`__\nfor the options.\n\nMeshes from OFF files\n^^^^^^^^^^^^^^^^^^^^^\n\n.. figure:: https://nschloe.github.io/frentos/elephant.png\n   :alt: elephant\n\n   elephant\n\nIf you have an OFF file at hand (like\n`elephant.off <https://raw.githubusercontent.com/CGAL/cgal-swig-bindings/master/examples/data/elephant.off>`__\nor\n`these <https://github.com/CGAL/cgal/tree/master/Surface_mesher/demo/Surface_mesher/inputs>`__),\nfrentos generates the mesh via\n\n.. code:: python\n\n    import frentos\n\n    frentos.generate_from_off(\n            'elephant.off',\n            'out.mesh',\n            facet_angle=25.0,\n            facet_size=0.15,\n            facet_distance=0.008,\n            cell_radius_edge_ratio=3.0,\n            verbose=False\n            )\n\nInstallation\n~~~~~~~~~~~~\n\nFor installation, frentos needs `CGAL <http://www.cgal.org/>`__ and\n`Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__\ninstalled on your system. They are typically available on your Linux\ndistribution, e.g., on Ubuntu\n\n::\n\n    sudo apt install libcgal-dev libeigen3-dev\n\n`meshio <https://github.com/nschloe/meshio>`__\n(``sudo -H pip install meshio``) can be helpful in processing the\nmeshes.\n\nPyPi\n^^^^\n\n`frentos <https://pypi.python.org/pypi/frentos>`__ is available via\nPyPi, so with `pip <https://pypi.python.org/pypi/pip>`__ installed\n(``sudo apt install python-pip``) you can simply type\n\n::\n\n    sudo -H pip install -U frentos\n\nto install or upgrade frentos.\n\nManual installation\n^^^^^^^^^^^^^^^^^^^\n\nFor manual installation (if you're a developer or just really keen on\ngetting the bleeding edge version of frentos), there are two\npossibilities:\n\n-  Get the sources, type ``sudo python setup.py install``. This does the\n   trick most the time.\n-  As a fallback, there's a CMake-based installation. Simply go\n   ``cmake    /path/to/sources/`` and ``make``.\n\nTesting\n~~~~~~~\n\nTo run the frentos unit tests, check out this repository and type\n\n::\n\n    pytest\n\nDistribution\n~~~~~~~~~~~~\n\nTo create a new release\n\n1. bump the ``__version__`` number (in ``setup.py`` *and*\n   ``src/frentos.i``)\n\n2. publish to PyPi and GitHub:\n\n   ::\n\n       make publish\n\nLicense\n~~~~~~~\n\nfrentos is published under the `MIT\nlicense <https://en.wikipedia.org/wiki/MIT_License>`__.\n\n.. |Build Status| image:: https://travis-ci.org/nschloe/frentos.svg?branch=master\n   :target: https://travis-ci.org/nschloe/frentos\n.. |PyPi Version| image:: https://img.shields.io/pypi/v/frentos.svg\n   :target: https://pypi.python.org/pypi/frentos\n.. |GitHub stars| image:: https://img.shields.io/github/stars/nschloe/frentos.svg?style=social&label=Stars&maxAge=2592000\n   :target: https://github.com/nschloe/frentos\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "https://pypi.python.org/pypi/frentos",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/nschloe/frentos",
+        "keywords": "",
+        "license": "License :: OSI Approved :: MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "frentos",
+        "package_url": "https://pypi.org/project/frentos/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/frentos/",
+        "project_urls": {
+            "Download": "https://pypi.python.org/pypi/frentos",
+            "Homepage": "https://github.com/nschloe/frentos"
+        },
+        "release_url": "https://pypi.org/project/frentos/0.2.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "3D mesh generation",
+        "version": "0.2.0"
+    },
+    "last_serial": 3040121,
+    "releases": {
+        "0.1.0": [],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "59091436fc139153266c7c396274e3e0",
+                    "sha256": "5c8a7f515d5a7b048215665b7b79ffb2e9de1541e9f5729c3d5b6aab70893aee"
+                },
+                "downloads": -1,
+                "filename": "frentos-0.1.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "59091436fc139153266c7c396274e3e0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13965,
+                "upload_time": "2016-09-09T20:14:25",
+                "upload_time_iso_8601": "2016-09-09T20:14:25.008391Z",
+                "url": "https://files.pythonhosted.org/packages/02/6e/d59afe9933ba6697e88c3b3a10475d1903bd5984b32cd835d28e643d5ebe/frentos-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "045918c114812fcec2723e836fa350be",
+                    "sha256": "1875356aa80e8fc3e07df9aa8aa9793a9f06e3aa17183a87e49117c42a7f5f06"
+                },
+                "downloads": -1,
+                "filename": "frentos-0.1.2.tar.gz",
+                "has_sig": true,
+                "md5_digest": "045918c114812fcec2723e836fa350be",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14062,
+                "upload_time": "2016-09-09T20:34:22",
+                "upload_time_iso_8601": "2016-09-09T20:34:22.471129Z",
+                "url": "https://files.pythonhosted.org/packages/c1/b2/7866f559aa0eaac4856a77b4ef2e8e7139eefdbd33fcdda250ab89286ffe/frentos-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2b35d0e315f4acf379fa2dfb878a1f1c",
+                    "sha256": "26bb1c708b4a9727fa402c51d13078e4471c00ef2307b8b0ec0ab536d5602c99"
+                },
+                "downloads": -1,
+                "filename": "frentos-0.1.3.tar.gz",
+                "has_sig": true,
+                "md5_digest": "2b35d0e315f4acf379fa2dfb878a1f1c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14253,
+                "upload_time": "2016-09-10T10:51:42",
+                "upload_time_iso_8601": "2016-09-10T10:51:42.408693Z",
+                "url": "https://files.pythonhosted.org/packages/61/9f/ba43c4fe7c99ed8363d01d54d5caec47d9f07da334e6d7b6c95df9f2ed00/frentos-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "04c900e58a7949e7eb2325fe5864c639",
+                    "sha256": "a00e292066aca70327a1d1c6ac3b32eefd82f06cc31e306929dcdeb69a88890e"
+                },
+                "downloads": -1,
+                "filename": "frentos-0.1.4.tar.gz",
+                "has_sig": true,
+                "md5_digest": "04c900e58a7949e7eb2325fe5864c639",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19705,
+                "upload_time": "2016-09-10T11:04:27",
+                "upload_time_iso_8601": "2016-09-10T11:04:27.323775Z",
+                "url": "https://files.pythonhosted.org/packages/39/65/5b11673df8d181b982ca94799bd9c79378feaa5eedc5d9eab64eedf36fc8/frentos-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "919f62161532ee8cabbb88653b7433a2",
+                    "sha256": "d57f326a89ca87185fd6edf3cb60b66599267ff06b4b37bcc018630b74aec683"
+                },
+                "downloads": -1,
+                "filename": "frentos-0.1.5.tar.gz",
+                "has_sig": true,
+                "md5_digest": "919f62161532ee8cabbb88653b7433a2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15210,
+                "upload_time": "2017-03-24T12:30:43",
+                "upload_time_iso_8601": "2017-03-24T12:30:43.300992Z",
+                "url": "https://files.pythonhosted.org/packages/8a/07/b2e4dae494f35607e9671c2ac96741e79c9c9828b519bd98d18d86d7e7e2/frentos-0.1.5.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ea6ec74a863c651f2b4741d55a61c72a",
+                    "sha256": "b4b849c2d568fc770b262952ae8d025df1ca897ff06f4ae629b087c614b6dca5"
+                },
+                "downloads": -1,
+                "filename": "frentos-0.2.0.tar.gz",
+                "has_sig": true,
+                "md5_digest": "ea6ec74a863c651f2b4741d55a61c72a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 22454,
+                "upload_time": "2017-07-21T19:12:20",
+                "upload_time_iso_8601": "2017-07-21T19:12:20.701631Z",
+                "url": "https://files.pythonhosted.org/packages/da/da/08774f7fc7b6423e4ddec4fd2c97061893807d47bb5bdbb43e07e572de86/frentos-0.2.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ea6ec74a863c651f2b4741d55a61c72a",
+                "sha256": "b4b849c2d568fc770b262952ae8d025df1ca897ff06f4ae629b087c614b6dca5"
+            },
+            "downloads": -1,
+            "filename": "frentos-0.2.0.tar.gz",
+            "has_sig": true,
+            "md5_digest": "ea6ec74a863c651f2b4741d55a61c72a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 22454,
+            "upload_time": "2017-07-21T19:12:20",
+            "upload_time_iso_8601": "2017-07-21T19:12:20.701631Z",
+            "url": "https://files.pythonhosted.org/packages/da/da/08774f7fc7b6423e4ddec4fd2c97061893807d47bb5bdbb43e07e572de86/frentos-0.2.0.tar.gz"
+        }
+    ]
+}

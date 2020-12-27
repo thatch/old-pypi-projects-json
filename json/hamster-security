@@ -1,0 +1,158 @@
+{
+    "info": {
+        "author": "Matthias Gerstner",
+        "author_email": "matthias.gerstner@suse.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Security"
+        ],
+        "description": "Hamster\n=======\n\nThis is Hamster, a security oriented system scanning utility for Linux\nsystems. It is a terminal program that collects relevant low level\nsystem data from a local machine, remote host or SUSE Cloud instance.\nThe collected data is cached in an application specific format on disk\nand can be analysed and viewed according to command line parameters.\n\nThe purpose of Hamster is to:\n\n-  identify possible security issues by inspecting privileges of running\n   processes, opened file descriptors, files on disk etc.\n-  allow to navigate through large data sets containing information\n   about a running system, for identifying possible interesting\n   interfaces and software parts that are worth further investigation.\n\nHamster allows to look into a running system in a black box fashion.\nThis can be helpful for reviewing large and complex systems where a code\nreview is not feasible.\n\nHamster can highlight certain spots of interest in its different view\nmodes (e.g.\u00a0world readable files, unusual capability settings or\nsimilar). This highlighting is currently done by way of terminal colors.\nThese are just pointers, however. Hamster will not perform an\nautomatical security analysis like other tools do (e.g.\u00a0Lynis). Hamster\nrather provides a large data collection and a means to navigate it that\nallows a security expert to interactively dig deeper and uncover\npossible security issues.\n\nInstallation\n------------\n\nThe additional python module requirements for this project can be found\nin the PIP requirements file ``requirements.txt``. These requirements\nare only for the host system that runs Hamster. The target systems\nscanned by Hamster don\u2019t require any additional Python modules. For them\nthe only requirement is that a fairly recent Python 2 interpreter is\navailable.\n\nStructure\n---------\n\nThe main program is ``bin/hamster``. It\u2019s concerned with two different\ngroups of command line arguments for scanning and viewing. Scanning is\nthe process of collecting data from one or more hosts. Viewing is the\nprocess of extracting relevant bits of data from an existing data\ncollection and displaying them in a human readable manner.\n\nData Collection Approach\n------------------------\n\nHamster collects a snapshot of data from the target host(s). Most of\nthis cannot be done in an atomic way i.e.\u00a0there can be some\ninconsistencies when e.g.\u00a0processes are spawned and ended or files\nappear and disappear. Thus the data collection is by design not a\nperfect information approach. It can make sense to collect snapshots of\ndata when the target system is in different states e.g.\u00a0directly after\nboot, with an active graphical user session or with certain server\nprocesses being active. This depends much on the target system\u2019s purpose\nand the desired coverage.\n\nSecurity Warning\n----------------\n\nBe aware that collecting the low level system information may be a\nsecurity risk in its own right, because sensitive data will be collected\nand made accessible in the context of a regular user account.\n\nThis scanner is targeted towards analysis of test systems, not for\nproduction environments. If you do want to scan a production system then\nyou should make sure that the resulting dumps are stored safely to avoid\nsecurity issues. Also note that the scanning process can hurt the target\nsystem\u2019s performance while it is taking place, because a lot of I/O is\ngenerated and the introspection of kernel data e.g.\u00a0via /proc and /sys\nis bad for caching and locking in the kernel.\n\nAt the moment only scans running as the root user are fully supported.\nBasically it would also possible to scan as a non-privileged user. The\ninformation available to the scanner will be very limited then, however.\n\nUsage\n-----\n\nPlease see the online help output produced by ``./hamster -h``.\n\nHamster scans localhost by default, collecting relevant information that\nwill be cached and subsequently displayed, depending on the provided\ncommand-line arguments.\n\n::\n\n   # Hamster will cache collected data here\n   $ mkdir -p /tmp/my_test_scan/\n\n   # Main view\n   $ hamster --mode ssh --entry root@host -d /tmp/my_test_scan\n\n   # Show open file descriptors\n   $ hamster --mode ssh --entry root@host -d /tmp/my_test_scan --fd\n\n   # Show all files on the filesystem\n   $ hamster --mode ssh --entry root@host -d /tmp/my_test_scan/ --filesystem\n\nFor scanning localhost Hamster will invoke ``sudo`` to gain root\nprivileges. For scanning remote systems ``ssh`` is utilized and either\ninteractive authentication or public key authentication will be required\nto access them, depending on the configuration of the remote SSH server.\n\nThe same data cache directory specified with ``-d`` can be used for\ndifferent hosts at the same time. Each host will be stored and looked up\nin a subdirectory based on its hostname.\n\nTo avoid having to specify the same parameters again and again there\nexists also an environment variable ``HAMSTER_OPTS`` that can be used\nlike this:\n\n::\n\n   $ export HAMSTER_OPTS=\"--mode ssh --entry root@host -d /tmp/my_test_scan\"\n   $ hamster --filesystem\n\nAdvanced Usage\n--------------\n\nShow which processes run with which capabilities:\n\n::\n\n   $ hamster -d /tmp/my_test_scan/ | grep CAP_\n\nShow which files on the filesystem have which capabilities set (usually\ne.g.\u00a0\\ ``/bin/ping``):\n\n::\n\n   $ hamster -d /tmp/my_test_scan/ --filesystem --capabilities\n\nSUSE OpenStack Cloud 7\n----------------------\n\nTo scan many nodes of a SUSE OpenStack Cloud instance interactively,\nuse:\n\n::\n\n   $ hamster -d /tmp/my_test_scan/ -m susecloud -e <ip-of-cloud-admin-node>\n\nBy default, all nodes are scanned, but only the results of the admin\nnode are shown. To show all, you can use:\n\n::\n\n   $ hamster -d /tmp/my_test_scan/ -m susecloud -e <ip-of-cloud-admin-node> -a\n\nFuture Development\n------------------\n\nThis software is not yet feature complete. More security sensitive\ncontexts can be identified, additional relevant data collected and\nespecially a graphical display of the collected data are on the\nwhishlist.\n\nAuthors and Contact\n-------------------\n\nThis software is mainly developed by current and former employees of\nSUSE Linux:\n\n-  Benjamin Deuter\n-  Jannik Main\n-  Matthias Gerstner matthias.gerstner@suse.com (current maintainer)\n-  Sebastian Kaim\n\nFor questions please reach out to the current maintainer. Contributions\nand bug reports should go through the Github issue tracker / pull\nrequest interface.\n\nFor the purpose of secure communication (e.g.\u00a0privately reporting a\nsecurity issue) please contact the maintainer via GPG encrypted mail:\n\n-  matthias.gerstner@suse.com:\n\n   -  GPG Key-ID: 0x14C405C971923553\n   -  Fingerprint ``3559 3A99 9BF6 D633 F287 1370 BD61 7A00 1534 7DC0``\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/mgerstner/hamster",
+        "keywords": "openSUSE security scanner review audit",
+        "license": "GPL2",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "hamster-security",
+        "package_url": "https://pypi.org/project/hamster-security/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/hamster-security/",
+        "project_urls": {
+            "Homepage": "https://github.com/mgerstner/hamster"
+        },
+        "release_url": "https://pypi.org/project/hamster-security/0.5.1/",
+        "requires_dist": [
+            "execnet",
+            "termcolor",
+            "terminaltables"
+        ],
+        "requires_python": "",
+        "summary": "Hamster is a security oriented system scanning utility for Linux",
+        "version": "0.5.1"
+    },
+    "last_serial": 4904406,
+    "releases": {
+        "0.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c7877489b33f3a4b652303813c3a783",
+                    "sha256": "2d90b69bc0f9d6a7ddfd82821214d0cb0116c0229e5dca5652c90c3523c76d73"
+                },
+                "downloads": -1,
+                "filename": "hamster_security-0.5.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5c7877489b33f3a4b652303813c3a783",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "requires_python": null,
+                "size": 79586,
+                "upload_time": "2019-03-06T09:25:10",
+                "upload_time_iso_8601": "2019-03-06T09:25:10.406540Z",
+                "url": "https://files.pythonhosted.org/packages/c9/ba/fc79ae84a565dd630c55472ce0fa6aa6af5cc7babb34dba6087b0cabda8b/hamster_security-0.5.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab60be57a0bde488c335dbcae67c475b",
+                    "sha256": "d9d478443a4b9a473d84adb32dbdf33862ec78ef28d5395fec4f387406982d1c"
+                },
+                "downloads": -1,
+                "filename": "hamster_security-0.5.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ab60be57a0bde488c335dbcae67c475b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 79584,
+                "upload_time": "2019-03-06T09:25:12",
+                "upload_time_iso_8601": "2019-03-06T09:25:12.204724Z",
+                "url": "https://files.pythonhosted.org/packages/40/1a/6be7a6aec77eab46750a0253adf21397cac77f7bb68555d6ab1225aa65c1/hamster_security-0.5.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8aec964d37672690b93cfdd053be7d22",
+                    "sha256": "64dcf0db9e0358e5ae3315bee694cd8bb25746ffedac6f0d15e4221da41a2623"
+                },
+                "downloads": -1,
+                "filename": "hamster-security-0.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8aec964d37672690b93cfdd053be7d22",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 76044,
+                "upload_time": "2019-03-06T09:25:13",
+                "upload_time_iso_8601": "2019-03-06T09:25:13.747285Z",
+                "url": "https://files.pythonhosted.org/packages/26/96/c192b1c8cd1bdc960aad582fc7728890084b176420dccb91eaf7aef7571a/hamster-security-0.5.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5c7877489b33f3a4b652303813c3a783",
+                "sha256": "2d90b69bc0f9d6a7ddfd82821214d0cb0116c0229e5dca5652c90c3523c76d73"
+            },
+            "downloads": -1,
+            "filename": "hamster_security-0.5.1-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "5c7877489b33f3a4b652303813c3a783",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "requires_python": null,
+            "size": 79586,
+            "upload_time": "2019-03-06T09:25:10",
+            "upload_time_iso_8601": "2019-03-06T09:25:10.406540Z",
+            "url": "https://files.pythonhosted.org/packages/c9/ba/fc79ae84a565dd630c55472ce0fa6aa6af5cc7babb34dba6087b0cabda8b/hamster_security-0.5.1-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ab60be57a0bde488c335dbcae67c475b",
+                "sha256": "d9d478443a4b9a473d84adb32dbdf33862ec78ef28d5395fec4f387406982d1c"
+            },
+            "downloads": -1,
+            "filename": "hamster_security-0.5.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ab60be57a0bde488c335dbcae67c475b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 79584,
+            "upload_time": "2019-03-06T09:25:12",
+            "upload_time_iso_8601": "2019-03-06T09:25:12.204724Z",
+            "url": "https://files.pythonhosted.org/packages/40/1a/6be7a6aec77eab46750a0253adf21397cac77f7bb68555d6ab1225aa65c1/hamster_security-0.5.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8aec964d37672690b93cfdd053be7d22",
+                "sha256": "64dcf0db9e0358e5ae3315bee694cd8bb25746ffedac6f0d15e4221da41a2623"
+            },
+            "downloads": -1,
+            "filename": "hamster-security-0.5.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8aec964d37672690b93cfdd053be7d22",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 76044,
+            "upload_time": "2019-03-06T09:25:13",
+            "upload_time_iso_8601": "2019-03-06T09:25:13.747285Z",
+            "url": "https://files.pythonhosted.org/packages/26/96/c192b1c8cd1bdc960aad582fc7728890084b176420dccb91eaf7aef7571a/hamster-security-0.5.1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,426 @@
+{
+    "info": {
+        "author": "Emmanuel Mireku",
+        "author_email": "Emmanuelmireku15@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: Microsoft :: Windows",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Template Matching Research\n\nThe main purpose of this project is to create a lightweight script that can detect browsers on a user's screen. The browsers to be detected are chrome, firefox, edge, and opera. This project will serve as an API to detect the browsers. The project utilizes the [OpenCV library](https://docs.opencv.org/master/) with the help of [Adrian Rosebrock's](https://github.com/jrosebr1) [imutils library](https://github.com/jrosebr1/imutils) and his [template matching optimization](https://www.pyimagesearch.com/2015/01/26/multi-scale-template-matching-using-python-opencv/), [numpy](https://numpy.org/) and [pyautogui](https://pyautogui.readthedocs.io/en/latest/)\n\n## Installation\n\nUse the [pip](https://pip.pypa.io/en/stable/) package manager to install foobar.\n\n```bash\npip install templateMatchingResearch\n```\n\n## Usage\n\n```python\nfrom browsers_detector import *\n\nauto_detect_taskbar() # returns True if a browser is detected\ndetect_desktop(\"chrome\") # moves mouse to location of browser and return True if browser is detected\ndetect_taskbar(\"opera\") # moves mouse to location of browser and return True if browser is detected\n```\n\n## Logging into BlackBoard with browser_detector\n\n```python\n# This automatically detects any browser on the desktop\n# to open it and go to the blackboard link.\nfrom object_detection import *\nimport pyautogui\nfrom time import sleep\ndetection = auto_detect_desktop()\nif detection is False:\n    pyautogui.hotkey(\"win\", \"d\")\n    detection = auto_detect_desktop() \n    if detection is False:\n        print()\n    else:\n        pyautogui.doubleClick()\n        sleep(.5)\n        pyautogui.hotkey(\"win\", \"up\")\n        pyautogui.hotkey(\"ctrl\", \"l\")\n        pyautogui.typewrite(\"brockport.open.suny.edu\")\n        sleep(.5)\n        pyautogui.press(\"enter\")\nelse:\n    pyautogui.doubleClick()\n    sleep(.5)\n    pyautogui.hotkey(\"win\", \"up\")\n    pyautogui.hotkey(\"ctrl\", \"l\")\n    pyautogui.typewrite(\"brockport.open.suny.edu\")\n    sleep(.5)\n    pyautogui.press(\"enter\")\n```\n\n## Updates\nThis is still a continuing project and will be updated most times, unfortunately, this is only tested on windows operating system as of now\n\n## The Functions\n\n### grab_screen(): \n> #### This function takes a screenshot and saves it into the \"data/screenshots\" folder and it is saved as \"screen_shot.JPG\". This will also convert the image into grayscale, detect the edges of the image and return it for detection.\n```python\ngrab_screen() \n# returns image\n```\n\n### load_template(image): \n> *image* = name of any file located in the \"data/templates\" folder\n\n> #### This function takes an image file from the \"templates\" folder, read it as grayscale, detect the edges and return it for detection. If there is an error None is returned.\n```python\nload_template(\"chrome_taskbar.JPG\") \n# returns template or None if there is an error\n```\n\n### start_scaling_match(template, screen_shot, scale, threshold):\n>  *template* = the return value from the load_template() method.\n\n>  *screen_shot* = The return value from the grab_screen() method.\n\n>  *scale* = the default value is \"u\" meaning scale up and it could be changed to \"d\" to scale down. This is used to determine if the main image should be scaled up during the detection process. \n\n>  *threshold* = the threshold determines whether the image is detected or not. The default value is .40\n\n> #### This function takes in the template object, screen_shot object, a scale value, and a threshold. This function adopts a [template matching algorithm](https://www.pyimagesearch.com/2015/01/26/multi-scale-template-matching-using-python-opencv/) which optimize the template-matching function from the [OpenCV library](https://docs.opencv.org/master/). The algorithm is basically scaling either up or down while applying the template-matching function and comparing the value of the match to the threshold until the value is greater than or equal to the threshold then the location or coordinates (x, y) of the match is returned with a boolean(next_image) value of False. If the value is less than the threshold then the location would be (0,0) with a next_image boolean of True. the next_image is used to determine if a different image should be used to detect a browser.\n\n```python\ntemplate = load_template(\"chrome_desktop.JPG\")\nscreen_shot = grab_screen()\nstart_scaling_match(template, screen_shot, \"d\", .75)\n# if image is found returns x, y, next_image=False else return 0, 0, next_image=True\n# or\n# it could be called like:\nstart_scaling_match(load_template(\"chrome_taskbar.JPG\"), grab_screen(), \"d\", .50) \n```\n\n### process(template, scale):\n>  *template* = the return value from the load_template() method.\n\n>  *scale* = the default value is \"u\" meaning scale up and it could be changed to \"d\" to scale down. This is used to determine if the main image should be scaled up during the detection process. \n\n\n> #### This function calls the load_template(), grab_screen(), and start_scaling_match() combine them together to gain the absolute position of the match on the screen and a boolean value. It takes in a template object and a scale value to determine whether the image should be scale up or down during the matching process.\n\n```python\nprocess(\"chrome_taskbar.JPG\", \"u\")\n# returns x, y of match and next_image=False if a match is found.\n```\n\n### auto_detect_taskbar(): \n> #### This function will automatically detect any of the browsers on the Windows taskbar. If a match is found the mouse pointer would be moved to the location of the match and a boolean value of True is returned. If there is no match False is returned.\n```python\nauto_detect_taskbar() \n# returns True if the match is found and False if the match is not found\n```\n\n### auto_detect_desktop(): \n> #### This function will automatically detect any of the browsers on the Windows desktop. If a match is found the mouse pointer would be moved to the location of the match and a boolean value of True is returned. If there is no match False is returned.\n```python\nauto_detect_taskbar() \n# returns True if the match is found and False if the match is not found\n```\n\n### detect_taskbar(browser): \n> *browser* = name of any of the browsers (chrome, opera, edge, firefox)\n\n> #### This function will try to detect the browser on the Windows taskbar and if it is found it will return True and move the mouse pointer to the location of the match. If no match was found it will return False.\n```python\ndetect_taskbar(\"chrome\") \n# returns True if a match is found and False if there were no matches.\n```\n\n### detect_desktop(browser): \n> *browser* = name of any of the browsers (chrome, opera, edge, firefox)\n\n> #### This function will try to detect the browser on the Windows desktop and if it is found it will return True and move the mouse pointer to the location of the match. If no match was found it will return False.\n```python\ndetect_desktop(\"firefox\") \n# returns True if a match is found and False if there were no matches.\n```\n\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/emire1/template_matching_research",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "templateMatchingResearch",
+        "package_url": "https://pypi.org/project/templateMatchingResearch/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/templateMatchingResearch/",
+        "project_urls": {
+            "Homepage": "https://github.com/emire1/template_matching_research"
+        },
+        "release_url": "https://pypi.org/project/templateMatchingResearch/4.0.0/",
+        "requires_dist": [
+            "opencv-python",
+            "pyautogui",
+            "numpy",
+            "imutils"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "Detect chrome, firefox, edge, and opera browsers on a windows OS screen",
+        "version": "4.0.0"
+    },
+    "last_serial": 6170967,
+    "releases": {
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e54a53e3b9d9ffd5b31349ed53303827",
+                    "sha256": "99cf9ab78a05fcce4dee315ba6550430aff680b68f768f21122a7a004f275121"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e54a53e3b9d9ffd5b31349ed53303827",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 6057,
+                "upload_time": "2019-11-20T05:38:22",
+                "upload_time_iso_8601": "2019-11-20T05:38:22.606739Z",
+                "url": "https://files.pythonhosted.org/packages/01/c2/4a587fc0608419686d00dfc028e68bf63ab992514a24809390dff69c65dd/templateMatchingResearch-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6a50f62568a13ebe85e994bbd23401ec",
+                    "sha256": "a6704157363cb93506bdaa2b0386a3c392987b71a165728711edfdcdb8eaeb9a"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6a50f62568a13ebe85e994bbd23401ec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4739,
+                "upload_time": "2019-11-20T05:38:24",
+                "upload_time_iso_8601": "2019-11-20T05:38:24.818014Z",
+                "url": "https://files.pythonhosted.org/packages/fa/47/f5c6394efd8f3d759d603e9a1a0fa0ffad6cd135a4f17f6e41c2d14efc07/templateMatchingResearch-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5864ea4cf5ebae6a1ef2c17697fd0b88",
+                    "sha256": "139151ef23283ebd5fb12dab4400c4512992e15d2a61fb439909e41d31911aa9"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5864ea4cf5ebae6a1ef2c17697fd0b88",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 6054,
+                "upload_time": "2019-11-20T05:54:25",
+                "upload_time_iso_8601": "2019-11-20T05:54:25.348388Z",
+                "url": "https://files.pythonhosted.org/packages/7a/f8/3c50fff7ac1e5880f1dd09517af3c5e7c39607e2ed308a747ac09727dc40/templateMatchingResearch-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "270a0eaa92f9126e4a0ed2eeba436428",
+                    "sha256": "c43df8d1314457142abf995f4627bb0dd5e576c2fcfb5852034f9ae980b4c8b4"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "270a0eaa92f9126e4a0ed2eeba436428",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4740,
+                "upload_time": "2019-11-20T05:54:26",
+                "upload_time_iso_8601": "2019-11-20T05:54:26.837514Z",
+                "url": "https://files.pythonhosted.org/packages/1b/a9/2449a45382ac61d1ac324017cccd4fe7cef331a804efe94d6fefa1b70337/templateMatchingResearch-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "873da37ec8abef0065491bf5aafd3b64",
+                    "sha256": "12509a56764cad642d1370d132ab55aba7ffbab508afe526668e7832c8ff5851"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "873da37ec8abef0065491bf5aafd3b64",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 6079,
+                "upload_time": "2019-11-20T06:04:56",
+                "upload_time_iso_8601": "2019-11-20T06:04:56.106033Z",
+                "url": "https://files.pythonhosted.org/packages/83/ae/a4c216b1e6f2dbe759aae86bda17f6c14eb17f19be38675b83147ae4e018/templateMatchingResearch-1.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ba1e55decaa9cc6c5b6863784db6055a",
+                    "sha256": "6248613a0a440070c3a6c9cf8f72057c47e29ec450d7702bbea58093fb3fda66"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ba1e55decaa9cc6c5b6863784db6055a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4808,
+                "upload_time": "2019-11-20T06:04:57",
+                "upload_time_iso_8601": "2019-11-20T06:04:57.723643Z",
+                "url": "https://files.pythonhosted.org/packages/22/52/62cac77dd6be63ff31612816b8bb0ab29b377d637a9fa17c1a6149f38ec3/templateMatchingResearch-1.0.3.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "946ba53f272a200963ec06c05301ad94",
+                    "sha256": "cdd8bf7ac1a1a67e7052da56aa546b5cac0719933d761f50c1b9a9847fbd4b06"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "946ba53f272a200963ec06c05301ad94",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 6091,
+                "upload_time": "2019-11-20T06:18:44",
+                "upload_time_iso_8601": "2019-11-20T06:18:44.045803Z",
+                "url": "https://files.pythonhosted.org/packages/8e/96/b97ee9df25db2caeab04685d7f702367b2d23ad29336a7114bb571c9168a/templateMatchingResearch-1.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c355242b644bd6afb3e3916d820e98ee",
+                    "sha256": "f2cd3081f0da22f2000000aa154b33bce68903574bdf593c7645e28055fc32e8"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c355242b644bd6afb3e3916d820e98ee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 4812,
+                "upload_time": "2019-11-20T06:18:45",
+                "upload_time_iso_8601": "2019-11-20T06:18:45.637072Z",
+                "url": "https://files.pythonhosted.org/packages/a0/db/1f1d0e9fa38193fee0917954ffd6833ce9a115ff4838c08794015e159f97/templateMatchingResearch-1.0.4.tar.gz"
+            }
+        ],
+        "1.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c06aa0cc72104fcb81ce846a5f863ab2",
+                    "sha256": "313050574c1cf25f80ddb39b80d3de47047bc23706598f8deaaca09d2e66fd04"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c06aa0cc72104fcb81ce846a5f863ab2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 150385,
+                "upload_time": "2019-11-20T16:31:14",
+                "upload_time_iso_8601": "2019-11-20T16:31:14.511011Z",
+                "url": "https://files.pythonhosted.org/packages/1c/02/7b1d66fab88a045b657f5c6a409baf2d1fdaf69632385ffd1c364fef7edc/templateMatchingResearch-1.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c7e403d1f4ddf7f2adf71070016c1f2d",
+                    "sha256": "807d30586e232aeb56b1cba64d5bddbe3f2408a4d3045e7e11f6edd270d45a16"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c7e403d1f4ddf7f2adf71070016c1f2d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 143777,
+                "upload_time": "2019-11-20T16:31:16",
+                "upload_time_iso_8601": "2019-11-20T16:31:16.811003Z",
+                "url": "https://files.pythonhosted.org/packages/ee/0d/5914b712d52d746651c8ef2ed8819f547c670a0cc89c329d71bd3ac42ec1/templateMatchingResearch-1.0.8.tar.gz"
+            }
+        ],
+        "1.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f672fb5fe486a2fbac67c741517c7a52",
+                    "sha256": "ae6563fb95732ac0c1a57d933c266da570fc8678b35205ac7222148fe0465716"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f672fb5fe486a2fbac67c741517c7a52",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 150394,
+                "upload_time": "2019-11-20T16:49:13",
+                "upload_time_iso_8601": "2019-11-20T16:49:13.339920Z",
+                "url": "https://files.pythonhosted.org/packages/ff/9a/7b9540a636a51a81a139ef78ec4bc6033313cca1020e9b73d5fd181b9493/templateMatchingResearch-1.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6b12bdf1e097d47b5751f823b8433647",
+                    "sha256": "e5eab83517c7d7ce9604e0d89704b9893f71f8a812d8f9ddb5f1b669c7361ae5"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6b12bdf1e097d47b5751f823b8433647",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 143792,
+                "upload_time": "2019-11-20T16:49:15",
+                "upload_time_iso_8601": "2019-11-20T16:49:15.234804Z",
+                "url": "https://files.pythonhosted.org/packages/5e/5c/eb97a7c7a8f73b55223c33afd6ea383415c562209b4f759d6984708ec6c1/templateMatchingResearch-1.0.9.tar.gz"
+            }
+        ],
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ce0eeb324d182cdd255cab4bea38ca4a",
+                    "sha256": "9640746b76309398f1ed8e8e0212ec34782bb8003735343dc959073464f9b94b"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ce0eeb324d182cdd255cab4bea38ca4a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 150028,
+                "upload_time": "2019-11-20T18:17:12",
+                "upload_time_iso_8601": "2019-11-20T18:17:12.222780Z",
+                "url": "https://files.pythonhosted.org/packages/2d/94/07465765f7a0f4b07eedd5f603dedd167b11e3981dd5f872d06e348f0393/templateMatchingResearch-1.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a8acd85e1d444422bfee297202d1d7a6",
+                    "sha256": "81e8fa53cf81e70a22ec303188ecc87edd6c7921d909134df2ad7502ed94812a"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a8acd85e1d444422bfee297202d1d7a6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 143292,
+                "upload_time": "2019-11-20T18:17:14",
+                "upload_time_iso_8601": "2019-11-20T18:17:14.257865Z",
+                "url": "https://files.pythonhosted.org/packages/08/2f/f55cce12172ba9b7fc43529cf34f87eb540d7aa2dd1e93c30b642cff36fd/templateMatchingResearch-1.1.0.tar.gz"
+            }
+        ],
+        "2.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "df00fd577968d07e5fcc7ec76a2f6724",
+                    "sha256": "2bc291249a5a4bf7c492001e91a8d035aa295913a099ef37df5071080db6dfe3"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-2.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "df00fd577968d07e5fcc7ec76a2f6724",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 261291,
+                "upload_time": "2019-11-20T18:44:28",
+                "upload_time_iso_8601": "2019-11-20T18:44:28.721286Z",
+                "url": "https://files.pythonhosted.org/packages/25/38/88c37c333cf5617fd3f99d8e308f1b0ee9acf1c065fe21893e2cffa91da3/templateMatchingResearch-2.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "690ccd2e9ac5f59b33a1baeb680b0fb2",
+                    "sha256": "37d640c07da0d22da04b85ce6cb6913e2af929925ae194292e8f756450bfb38d"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-2.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "690ccd2e9ac5f59b33a1baeb680b0fb2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 254847,
+                "upload_time": "2019-11-20T18:44:30",
+                "upload_time_iso_8601": "2019-11-20T18:44:30.374371Z",
+                "url": "https://files.pythonhosted.org/packages/c5/d7/f692ea7af018a2343c3b423f1b3c5d76bdf734288046fa9b67d92d7c3a03/templateMatchingResearch-2.0.0.tar.gz"
+            }
+        ],
+        "4.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "285ddfab2bc1956fc5804f1839522ed8",
+                    "sha256": "22c5298ec3eacd94db9a8b9610181545a9adbcfc48e68b62361f1447117465ab"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-4.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "285ddfab2bc1956fc5804f1839522ed8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 261287,
+                "upload_time": "2019-11-20T18:49:07",
+                "upload_time_iso_8601": "2019-11-20T18:49:07.753664Z",
+                "url": "https://files.pythonhosted.org/packages/03/ab/80fc85b93fd5dceeea53abf0aeb9fd3a42dc99dd0be848ead00b56c3455f/templateMatchingResearch-4.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "69e433db30bc06b5f20a212865462d88",
+                    "sha256": "8c0b7fc5162520879899a46d0414ed7300468892914a95977ac424c17f18a518"
+                },
+                "downloads": -1,
+                "filename": "templateMatchingResearch-4.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "69e433db30bc06b5f20a212865462d88",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 254848,
+                "upload_time": "2019-11-20T18:49:09",
+                "upload_time_iso_8601": "2019-11-20T18:49:09.930484Z",
+                "url": "https://files.pythonhosted.org/packages/cf/f1/20e7ad38b0e804b4365b7b039913db2eba09d347e82dacd4913391dbe6af/templateMatchingResearch-4.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "285ddfab2bc1956fc5804f1839522ed8",
+                "sha256": "22c5298ec3eacd94db9a8b9610181545a9adbcfc48e68b62361f1447117465ab"
+            },
+            "downloads": -1,
+            "filename": "templateMatchingResearch-4.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "285ddfab2bc1956fc5804f1839522ed8",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 261287,
+            "upload_time": "2019-11-20T18:49:07",
+            "upload_time_iso_8601": "2019-11-20T18:49:07.753664Z",
+            "url": "https://files.pythonhosted.org/packages/03/ab/80fc85b93fd5dceeea53abf0aeb9fd3a42dc99dd0be848ead00b56c3455f/templateMatchingResearch-4.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "69e433db30bc06b5f20a212865462d88",
+                "sha256": "8c0b7fc5162520879899a46d0414ed7300468892914a95977ac424c17f18a518"
+            },
+            "downloads": -1,
+            "filename": "templateMatchingResearch-4.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "69e433db30bc06b5f20a212865462d88",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 254848,
+            "upload_time": "2019-11-20T18:49:09",
+            "upload_time_iso_8601": "2019-11-20T18:49:09.930484Z",
+            "url": "https://files.pythonhosted.org/packages/cf/f1/20e7ad38b0e804b4365b7b039913db2eba09d347e82dacd4913391dbe6af/templateMatchingResearch-4.0.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,115 @@
+{
+    "info": {
+        "author": "IntMed Software",
+        "author_email": "contato@intmed.com.br",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Internet :: WWW/HTTP"
+        ],
+        "description": "[![PyPi version](https://img.shields.io/pypi/v/interage_python_sdk.svg)](https://pypi.python.org/pypi/interage_python_sdk)\n\n# Interage Python SDK\nSDK oficialmente mantido pela [IntMed Software](http://intmed.com.br/) para auxiliar no desenvolvimento de aplica\u00e7\u00f5es em Python integradas ao servi\u00e7o de intera\u00e7\u00f5es medicamentosas do sistema [Interage](http://intmed.com.br/interage/). Desenvolvido para ser simples e idiom\u00e1tico para Python, o SDK comunica-se com uma API RESTful via protocolo HTTPS. \n\n## Instala\u00e7\u00e3o\n### PIP\nSe voc\u00ea j\u00e1 tem o [Python](https://www.python.org/) em seu sistema, voc\u00ea pode instalar o Interage Python SDK simplesmente baixando a distribui\u00e7\u00e3o, descompact\u00e1-la e instal\u00e1-la da maneira usual:\n```\npip install interage_python_sdk\n```\n\n## Depend\u00eancias\n- [Requests](https://github.com/kennethreitz/requests) - O Interage Python SDK necessita que o pacote esteja instalado\n\n## Quick Start\nPara come\u00e7ar, instale o Interage Python SDK, crie um objeto `InterageAPI` passando o seu token para o argumento `auth` e invoque seus m\u00e9todos:\n\n```python\nfrom interage.api import InterageAPI\n\napi = InterageAPI(auth = 'your-api-token')\nmedicamentos = api.medicamentos.filter(search = 'acido').objects()\n\nfor m in medicamentos:\n    print(m.nome)\n```\n\nVoc\u00ea tamb\u00e9m pode criar um objeto `InterageAPI` passando as suas credenciais (`username` e `password`) da API na forma de [dicion\u00e1rio](https://docs.python.org/2/tutorial/datastructures.html#dictionaries) para o argumento `auth`:\n```python\nclient = InterageAPI(auth = { 'username': 'your-username', 'password': 'your-password'})\n```\n\nQualquer credencial inv\u00e1lida passada no construtor de `InterageAPI` lan\u00e7ar\u00e1 uma exce\u00e7\u00e3o e o objeto n\u00e3o ser\u00e1 criado.\n\n### Managers\nUm objeto `InterageAPI` cont\u00e9m refer\u00eancias para tr\u00eas objetos do tipo `APIManager`, que s\u00e3o basicamente gerenciadores de recursos mantidos pela API. S\u00e3o eles:\n- `medicamentos` - Gerenciador dos recursos respons\u00e1veis pelos dados de medicamentos. Recurso `/v1/medicamentos/`\n- `principios_ativos` - Gerenciador dos recursos respons\u00e1veis pelos dados de princ\u00edpios ativos. Recurso `/v1/principios-ativos/`\n- `interacoes` - Gerenciador dos recursos respons\u00e1veis pelos dados de intera\u00e7\u00f5es medicamentosas entre princ\u00edpios ativos. Recurso `/v1/interacoes/`\n\nEstes gerenciadores s\u00e3o capazes de recuperar, listar e filtrar dados espec\u00edficos da API:\n\n```python\napi.medicamentos.get(145) # Retorna o medicamento com o identificador (id) 145\napi.principios_ativos.all() # Lista todos os princ\u00edpios ativos do sistema\napi.interacoes.filter(principios_ativos = [17, 443, 648, 1200], gravidade = 'grave')  # Retorna todas as intera\u00e7\u00f5es medicamentosas graves entre os principios ativos com os identificadores 17, 443, 648 e 1200\n```\n\nOs managers `principios_ativos` e `interacoes` cont\u00e9m comportamento extra. O manager `principios_ativos` \u00e9 capaz de recuperar todas as intera\u00e7\u00f5es medicamentosas que um princ\u00edpio ativo espec\u00edfico possua:\n```python\napi.principios_ativos.interacoes(1) # Retorna todas as intera\u00e7\u00f5es encontradas com o princ\u00edpio ativo de identificador (id) igual a 1\n```\nNo manager `interacoes` \u00e9 poss\u00edvel verificar todos os metadados referentes a uma intera\u00e7\u00e3o medicamentosa. O m\u00e9todo retorna um objeto do tipo `InteracaoMetadata`', mas tamb\u00e9m pode retornar o resultado como JSON:\n\n```python\nmetadata = api.interacoes.metadata()\n\nprint(metadata.gravidades) # ['Nada esperado', 'Moderada', 'Leve', 'Grave', 'Gravidade desconhecida']\nprint(metadata.evidencias) # ['Te\u00f3rica', 'Extensa', 'Caso', 'Estudo']\nprint(metadata.acoes) # ['Ajustar', 'Monitorar', 'Informar', 'Nenhuma', 'Evitar']\n```\n\n### Tipos de retorno e pagina\u00e7\u00e3o\nOs m\u00e9todos dos managers que retornam mais de um resultado (`all()` e `filter()`) s\u00e3o encapsulados em um objeto do tipo `APIResult`. Este objeto \u00e9 capaz de retornar os resultados fornecidos pela API como JSON ou como lista de inst\u00e2ncias das classes `PrincipioAtivo`, `Medicamento` ou `Interacao` atrav\u00e9s dos m\u00e9todos, reespectivamente, `json()` e `objects()`:\n\n```python\nresults = api.medicamentos.all()\nmedicamentos = results.objects() # Lista de inst\u00e2ncias da classe Medicamento\nmedicamentos_json = results.json() # JSON com lista de medicamentos\n\nfor m in medicamentos:\n    print(m.nome)\n \nfor m in medicamentos_json:\n    print(m['nome'])\n```\n\nOs m\u00e9todos de managers que retornam resultado \u00fanico retornam por default uma inst\u00e2ncia do modelo referente ao manager. Caso necessite que o objeto seja retornado como JSON, basta passar o valor `True` para o argumento `as_json`:\n```python\nprincipio_ativo = api.principios_ativos.get(5)\nprincipio_ativo_json = api.principios_ativos.get(5, as_json = True)\n\nprint(principio_ativo.nome)\nprint(principio_ativo_json['nome'])\n```\nOs resultados em um `APIResult` s\u00e3o paginados de acordo com os par\u00e2metros passados aos m\u00e9todos dos managers. Atrav\u00e9s dos m\u00e9todos `next()` e `previous()` s\u00e3o retornados uma nova inst\u00e2ncia de `APIResult` referentes a p\u00e1gina posterior e anterior do resultado corrente, reespectivamente. Os m\u00e9todos `has_next()` e `has_previous()` podem ajudar a saber se as refer\u00eancias para estas p\u00e1ginas existem:\n\n```python\nresult = api.principios_ativos.filter(search = 'ra', page_size = 50)\nwhile(result.has_next()):\n    objects = result.objects()\n    for i in range(len(objects)):\n        print(objects[i].nome)\n    result = result.next()\n```\n\n## Configura\u00e7\u00e3o\nTalvez o seu projeto que utilize o Interage Python SDK tenha determinadas particularidades no uso da API do Interage, como uma distribui\u00e7\u00e3o pr\u00f3pria. Neste caso, \u00e9 poss\u00edvel configurar o comportamento do SDK atrav\u00e9s vari\u00e1veis de ambiente. S\u00e3o elas:\n\n| Vari\u00e1vel               | Descri\u00e7\u00e3o                                                                                                                   | Valor padr\u00e3o                         |\n| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |\n| `INTERAGE_API_URL`     | URL de conex\u00e3o onde se encontra uma distribui\u00e7\u00e3o da API do Interage que se deseja utilizar                                  | `https://api.interage.intmed.com.br` |\n| `INTERAGE_API_VERSION` | Vers\u00e3o da API do Interage que se esteja utilizando. Este valor \u00e9 anexado a URL de conex\u00e3o durante as requisi\u00e7\u00f5es para a API | `v1`                                 |\n\n\n## Reportando problemas\nSe voc\u00ea tem sugest\u00f5es, bugs ou outros tipos de problemas com este SDK, esteja livre para reportar [aqui](https://github.com/weynelucas/interage_python_sdk/issues). Ou simplesmente envie um pull request.\n\n## API\nPara mais d\u00favidas sobre os par\u00e2metros, endpoints, cria\u00e7\u00e3o de tokens e outras d\u00favidas sobre a API, consulte a documenta\u00e7\u00e3o oficial da API do Interage [aqui]( https://api.interage.intmed.com.br/docs/).\n\n## Vers\u00e3o\n- 0.1.0 - 27/02/2017 - Primeira release\n- 0.1.1 - 27/02/2017 - Corre\u00e7\u00e3o de erro crash do pacote utils e mudan\u00e7a de protocolo para HTTPS\n- 0.2.0 - 01/03/2017 - Suporte para pagina\u00e7\u00e3o e adi\u00e7\u00e3o do campo `principios_ativos_anvisa` em medicamentos\n- 0.2.1 - 02/03/2017 - Corre\u00e7\u00e3o de instancia\u00e7\u00f5es de managers desnecess\u00e1rias em um mesmo client\n- 0.2.2 - 04/03/2017 - Melhorias de c\u00f3digo e mudan\u00e7a de responsabilidade dos managers para `InterageAPI`\n- 0.2.3 - 09/03/2017 - Melhoria no tratamento de erros HTTP\n- 0.3.0 - 24/04/2017 - Melhoria substancial na convers\u00e3o de JSON em objetos\n- 0.3.1 - 21/09/2017 - Adi\u00e7\u00e3o das propriedades `next_url` e `previous_url` nos objetos do tipo `APIResult`\n- 0.3.2 - 07/12/2017 - Disponibiliza\u00e7\u00e3o e corre\u00e7\u00e3o de erros HTTP\n- 0.4.0 - 04/04/2018 - Permitindo configura\u00e7\u00e3o via vari\u00e1veis de ambiente\n- 0.4.1 - 17/04/2018 - Corrigindo visualiza\u00e7\u00e3o da documenta\u00e7\u00e3o da biblioteca",
+        "docs_url": null,
+        "download_url": "https://github.com/IntMed/interage_python_sdk/archive/0.4.1.tar.gz",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/IntMed/interage_python_sdk",
+        "keywords": "interage intmed api python sdk interage-python-sdk",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "interage-python-sdk-test",
+        "package_url": "https://pypi.org/project/interage-python-sdk-test/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/interage-python-sdk-test/",
+        "release_url": "https://pypi.org/project/interage-python-sdk-test/0.4.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "SDK oficialmente mantido pela IntMed Software para auxiliar no desenvolvimento de aplica\u00e7\u00f5es em Python integradas ao servi\u00e7o de intera\u00e7\u00f5es medicamentosas do sistema Interage",
+        "version": "0.4.3"
+    },
+    "last_serial": 3774035,
+    "releases": {
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ad9ec9dd0b37576a919436a599f3f46b",
+                    "sha256": "46b4fbdb4c169f3b9bb01030c29818486d7e2a1b04ef17f4ffba0e4ca42fcc6a"
+                },
+                "downloads": -1,
+                "filename": "interage_python_sdk_test-0.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ad9ec9dd0b37576a919436a599f3f46b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 10239,
+                "upload_time": "2018-04-17T16:39:56",
+                "url": "https://files.pythonhosted.org/packages/e6/62/7869aa34b3e70dc46a5ce41427d94890bca65e1d3d26e7372c294883ed88/interage_python_sdk_test-0.4.1.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "303876bca4c63298117b9bdf501147e8",
+                    "sha256": "e38707ff3142392db02de9a44184544b43ded77a8db0838255e844479c5dab77"
+                },
+                "downloads": -1,
+                "filename": "interage_python_sdk_test-0.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "303876bca4c63298117b9bdf501147e8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 9904,
+                "upload_time": "2018-04-17T16:55:43",
+                "url": "https://files.pythonhosted.org/packages/0e/74/caaf2fe5b548d37ece7fd64a85bbb1137250c77e7c43484c6fc961769181/interage_python_sdk_test-0.4.2.tar.gz"
+            }
+        ],
+        "0.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2aab4fe8fe05e3d190d93cc15fe71011",
+                    "sha256": "f5836e9694b37f07cdb76d75632529c704a22b4909a00b11d3d0efe384c75eba"
+                },
+                "downloads": -1,
+                "filename": "interage_python_sdk_test-0.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2aab4fe8fe05e3d190d93cc15fe71011",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 9857,
+                "upload_time": "2018-04-17T16:59:21",
+                "url": "https://files.pythonhosted.org/packages/b6/98/c2658d210243c694a19909b556a9c2ee077c668df249638d4f6e2a107462/interage_python_sdk_test-0.4.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "2aab4fe8fe05e3d190d93cc15fe71011",
+                "sha256": "f5836e9694b37f07cdb76d75632529c704a22b4909a00b11d3d0efe384c75eba"
+            },
+            "downloads": -1,
+            "filename": "interage_python_sdk_test-0.4.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "2aab4fe8fe05e3d190d93cc15fe71011",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 9857,
+            "upload_time": "2018-04-17T16:59:21",
+            "url": "https://files.pythonhosted.org/packages/b6/98/c2658d210243c694a19909b556a9c2ee077c668df249638d4f6e2a107462/interage_python_sdk_test-0.4.3.tar.gz"
+        }
+    ]
+}

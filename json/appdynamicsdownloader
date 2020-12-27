@@ -1,0 +1,556 @@
+{
+    "info": {
+        "author": "Todd Radel",
+        "author_email": "tradel@appdynamics.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            "Topic :: System :: Monitoring"
+        ],
+        "description": "==========================\nAppDynamics Download Robot\n==========================\n\nCurrent version: 0.2.2\nReleased: 21-Dec-2015\n\n.. image:: https://img.shields.io/travis/tradel/appd-download-bot.svg\n   :target: https://travis-ci.org/tradel/appd-download-bot/\n\n.. image:: https://img.shields.io/pypi/dm/AppDynamicsDownloader.svg\n   :target: https://pypi.python.org/pypi/AppDynamicsDownloader/\n\n\nSYNOPSIS\n--------\n\n::\n\n    download-appdynamics [options] product_name\n\nDESCRIPTION\n-----------\n\n``download-appdynamics`` is a tool to automate downloading product releases from\nthe AppDynamics web site. It automates the entire process for you:\n\n-  opening a connection to `<http://download.appdynamics.com>`__,\n-  logging into the Single Sign-On (SSO) server,\n-  selecting the product zone (SaaS or on-premise),\n-  selecting the product version,\n-  downloading the product, and\n-  verifying the SHA256 hash to ensure a clean download.\n\nPRODUCT NAMES\n-------------\n\nThe optional arguments must be followed by one or more product names to\ndownload. The script is capable of downloading the following products:\n\n+-------------------------+----------------------------------------------------+\n| Product Name            | Description                                        |\n+=========================+====================================================+\n| ``java-agent``          | App Server Agent for Java (Oracle and JRockit      |\n|                         | JVM's)                                             |\n+-------------------------+----------------------------------------------------+\n| ``ibm-agent``           | App Server Agent for Java (IBM JVM)                |\n+-------------------------+----------------------------------------------------+\n| ``dotnet-agent``        | App Server Agent for .NET                          |\n+-------------------------+----------------------------------------------------+\n| ``php-agent``           | App Server Agent for PHP                           |\n+-------------------------+----------------------------------------------------+\n| ``machine-agent``       | Standalone Machine Agent                           |\n+-------------------------+----------------------------------------------------+\n| ``controller``          | AppDynamics controller                             |\n+-------------------------+----------------------------------------------------+\n| ``euem-processor``      | On-premise EUEM collector                          |\n+-------------------------+----------------------------------------------------+\n| ``geo-server``          | On-premise Geo Server                              |\n+-------------------------+----------------------------------------------------+\n| ``ad4db``               | AppDynamics for Databases server                   |\n+-------------------------+----------------------------------------------------+\n| ``dbagent``             | AppDynamics integrated database agent              |\n+-------------------------+----------------------------------------------------+\n| ``events-service``      | Events service for analytics                       |\n+-------------------------+----------------------------------------------------+\n| ``analytics-processor`` | On-premise analytics processor                     |\n+-------------------------+----------------------------------------------------+\n| ``analytics-agent``     | Analytics agent extension                          |\n+-------------------------+----------------------------------------------------+\n| ``ios-agent``           | SDK for Apple iOS devices                          |\n+-------------------------+----------------------------------------------------+\n| ``android-agent``       | SDK for Android devices                            |\n+-------------------------+----------------------------------------------------+\n\n*NOTE*: The Node.js agent is not included because it is normally\ndownloaded with ``npm``.\n\nOPTIONS\n-------\n\n``-u`` *username*, ``--username`` *username*\n    Account name to be used for AppDynamics Single Sign-On (SSO) authentication.\n\n``-p`` *password*, ``--password`` *password*\n    Password for SSO login.\n\n``-b`` {32,64}, ``--bits`` {32,64}\n    Request 32-bit or 64-bit version of the product. Defaults to 64-bit.\n\n``-s`` {linux,windows}, ``--os`` {linux,windows,mac}\n    Operating system platform.\n\n``-f`` {tar,rpm}, ``--format`` {tar,rpm}\n    Packaging format for Linux downloads. Currently only affects the PHP agent, \n    which is available in tar and rpm formats.\n\n``-z`` {saas,on-premise}, ``--zone`` {saas,on-premise}\n    Specify the download zone. Currently this script only supports the \n    \"saas\" and \"on-premise\" zones.\n\n``-v`` version, ``--version=`` version\n    Product version to download.\n    Default: latest version available.\n\n``-o`` output, ``--output=`` output\n    Path to save downloaded file. If the target is a directory, \n    the original filename will be appended.\n\n``-h``, ``--help``\n    Show this help message and exit\n\n``-q``, ``--quiet``\n    Skip display of progress and status.\n\n``-d``, ``--debug``\n    Display debugging information about HTTP connections, cookies, etc.\n\n``-n``, ``--no-download``\n    Don't download the file, just display the actions to be taken.\n\n\nEXAMPLES\n--------\n\nDownload a copy of the latest version of the Java agent::\n\n    download-appdynamics -u tradel@appdynamics.com -p xxxxxxxx java-agent\n\nDownload version 3.7.17 of the Java agent::\n\n    download-appdynamics -u tradel@appdynamics.com -p xxxxxxxx -v 3.7.17 java-agent\n\nDownload the latest Java agent, and save the file as ``foo.zip``::\n\n    download-appdynamics -u tradel@appdynamics.com -p xxxxxxxx -o foo.zip java-agent\n\nDownload the latest 64-bit PHP agent in RPM package format::\n\n    download-appdynamics -u tradel@appdynamics.com -p xxxxxxxx -b64 -f rpm php-agent\n\nDownload the latest controller for Windows::\n\n    download-appdynamics -u tradel@appdynamics.com -p xxxxxxxx --os=windows controller\n\nDon't download anything, just print the URL where version 3.9.5 of the controller can be found::\n\n    ./download-appdynamics -n -q -u tradel@appdynamics.com -p xxxxxxxx --os=windows controller\n\n\nSAMPLE OUTPUT\n-------------\n\n::\n\n    bash% ./download-appdynamics -u tradel@appdynamics.com -p xxxxxxxx java-agent\n    Checking available product versions . . .\n    Listing available files . . .\n    Downloading file checksums . . .\n    AppServerAgent-3.9.6.0.zip [=========================] 100% |   9.4MB |   326KBps\n    AppServerAgent-3.9.6.0.zip saved to ./AppServerAgent-3.9.6.0.zip\n\n    Done!\n    Saving cookies to /Users/tradel/.cookiejar . . .\n\n\nAUTHENTICATION\n--------------\n\nYou can supply your username and password to the script in any of the following ways. They are\nlisted in the order the script will try them:\n\n#. First, the script looks for the ``-u`` and ``-p`` arguments (or ``--username`` and ``--password``)\n   on the command line.\n#. If credentials are not supplied on the command line, the script will next check for the existence of\n   environment variables named ``APPD_SSO_USERNAME`` and ``APPD_SSO_PASSWORD``.\n#. If the environment variables do not exist, the script will prompt for a username and password to be\n   supplied from the console.\n\n\nREQUIREMENTS\n------------\n\n``download-appdynamics`` requires 2.6 or later. It has been tested with 2.6 and\n2.7. It has not been tested with python3.\n\nThe following modules are required:\n\n-  `Argparse <https://pypi.python.org/pypi/argparse>`__\n-  `BeautifulSoup4 <https://pypi.python.org/pypi/beautifulsoup4>`__\n-  `Mechanize <https://pypi.python.org/pypi/mechanize>`__\n\nThe easiest way to install the prerequisites is with ``pip``:\n\n::\n\n    pip install -r requirements.txt\n\nAUTHORS\n-------\n\nTodd Radel (tradel@appdynamics.com)",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/tradel/appd-download-bot",
+        "keywords": null,
+        "license": "Apache",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "AppDynamicsDownloader",
+        "package_url": "https://pypi.org/project/AppDynamicsDownloader/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/AppDynamicsDownloader/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "https://github.com/tradel/appd-download-bot"
+        },
+        "release_url": "https://pypi.org/project/AppDynamicsDownloader/0.2.2/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "AppDynamics Download Robot",
+        "version": "0.2.2"
+    },
+    "last_serial": 2259926,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e8c09a99a45bff43e6c8fee272c7adf",
+                    "sha256": "7f9b2c45f16533131b23a78d46ecf80f53a8287549f59fd670f19da740f0ead6"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.0-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "0e8c09a99a45bff43e6c8fee272c7adf",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 12168,
+                "upload_time": "2015-06-24T03:00:12",
+                "url": "https://files.pythonhosted.org/packages/1c/1a/2810058ae74f731c1b4f4ee21d1d4382981dc7543bc2d30f499b30ad2566/AppDynamicsDownloader-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "232b96d83b8784aeb0ef3be7d3ca4b0c",
+                    "sha256": "365d148ddf7716bcaab31cbbb481b7b53a2fafea2aa01fb8bd1252165dc47727"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.0.tar.gz",
+                "has_sig": true,
+                "md5_digest": "232b96d83b8784aeb0ef3be7d3ca4b0c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9179,
+                "upload_time": "2015-06-24T03:00:22",
+                "url": "https://files.pythonhosted.org/packages/58/65/423ea4dbb4d7478fb15be98abe80aa36533b0519d095d7e1ea0c06eaffaf/AppDynamicsDownloader-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0f4f4b73f2e5cd89609a0838f0230866",
+                    "sha256": "060991308b8342e251362fc9c9dbe5fe3e39e4baa22aba6a88b70016a5b79c84"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.1-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "0f4f4b73f2e5cd89609a0838f0230866",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 12324,
+                "upload_time": "2015-06-24T03:10:46",
+                "url": "https://files.pythonhosted.org/packages/af/01/122c6cb88089acef95f812d859412c0139ff5391e9c1462f3e9dedfd7bc3/AppDynamicsDownloader-0.1.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2f9b6bb9620addaa4348e3fb64188dba",
+                    "sha256": "8e6d4b4323855c18b12ecdb75cf3faa9f7f7dc2ebf08ac21f0cd2ab08af89949"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "2f9b6bb9620addaa4348e3fb64188dba",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8909,
+                "upload_time": "2015-06-24T03:10:49",
+                "url": "https://files.pythonhosted.org/packages/9c/88/28870bc0f22b363fa3311352b612b7aae47148ea278f12d1657eb5de0c27/AppDynamicsDownloader-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "952fd37157e5b34678e28f04ecb210cf",
+                    "sha256": "1c1cf56308cc8b97f25a9d5a17109c57300acf320b72ad061bc207c801d3652a"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.2-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "952fd37157e5b34678e28f04ecb210cf",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 12324,
+                "upload_time": "2015-06-24T03:12:44",
+                "url": "https://files.pythonhosted.org/packages/eb/fa/e4e43130bb0aa89a067d4fffaeb9a727337ac272e40063f578d057f81dc0/AppDynamicsDownloader-0.1.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e3a3a18b2a624d234ec9633e081aae43",
+                    "sha256": "2822c5e533f4144d72a819d4dd65320056cf8d74317806dffa3ddb7b9dc639e3"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.2.tar.gz",
+                "has_sig": true,
+                "md5_digest": "e3a3a18b2a624d234ec9633e081aae43",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8900,
+                "upload_time": "2015-06-24T03:12:48",
+                "url": "https://files.pythonhosted.org/packages/df/6a/b8ee7c4bc3799728ef9d57b619554341832851990e614848bb9eacb6b52c/AppDynamicsDownloader-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "614233eab5ec737aa1af2d1a25415e9c",
+                    "sha256": "5681d11a9c48561b9cc861c63c436a24d98b4ff70e62bda3e130c3cf53045ee0"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.3-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "614233eab5ec737aa1af2d1a25415e9c",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 12491,
+                "upload_time": "2015-06-24T03:32:35",
+                "url": "https://files.pythonhosted.org/packages/7a/41/a5bcf383158e71fe32c8c89e09348bf3a3f21883c11c0da38297428edc90/AppDynamicsDownloader-0.1.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "319b3aa6ebb7e4ae275186f65645ff9b",
+                    "sha256": "b9c84b08da969e679b206cc8f68a711dd1b1bfaa886479e5dc00b27ea76ed306"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.3.tar.gz",
+                "has_sig": true,
+                "md5_digest": "319b3aa6ebb7e4ae275186f65645ff9b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8936,
+                "upload_time": "2015-06-24T03:32:32",
+                "url": "https://files.pythonhosted.org/packages/e7/d6/a29fbf309c2b48ad0c3c65d16958789571c018f327300854e5926f950563/AppDynamicsDownloader-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7676b4bf201f21b496c44d5e12308371",
+                    "sha256": "bf5fd9a659cfa2c18efd88ed2aefb433d1c3dafc0943f0e45bdfb3b9e1e5f480"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.4-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "7676b4bf201f21b496c44d5e12308371",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 12636,
+                "upload_time": "2015-06-24T03:36:20",
+                "url": "https://files.pythonhosted.org/packages/fa/96/660812e719ea640aa0c3c3352abdf33714ae5f11594e483f7294f79a6a8f/AppDynamicsDownloader-0.1.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3b9a819c7663aacd86c0f01c4013fc3b",
+                    "sha256": "692b64693466a36ea01e6945b6de321c2bbcfcfbad65382be13a8132c3331913"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.4.tar.gz",
+                "has_sig": true,
+                "md5_digest": "3b9a819c7663aacd86c0f01c4013fc3b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9026,
+                "upload_time": "2015-06-24T03:36:17",
+                "url": "https://files.pythonhosted.org/packages/dc/27/fc40a5151e48ee0cdac5f90ec8531c74bd4b7ba499cf4d969650b29deee4/AppDynamicsDownloader-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "54e7ba134c72cf12703e0a763257fb1c",
+                    "sha256": "bd02fe5cf429bfaa0a9c10135c1107c7dc1678d8cafa03dc9877a6a462a06913"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.5-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "54e7ba134c72cf12703e0a763257fb1c",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 12909,
+                "upload_time": "2015-06-24T04:00:57",
+                "url": "https://files.pythonhosted.org/packages/7f/11/bcddbfd59010ce0f1e1e232fcbffe9cc7dd61684bcd04eb08e4e38a766b2/AppDynamicsDownloader-0.1.5-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e09cb7b2d37803894add0c31fa073d23",
+                    "sha256": "f79eb934937080ce45a73657adc553f5274b9b8941390817c7829de030c29d31"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.5.tar.gz",
+                "has_sig": true,
+                "md5_digest": "e09cb7b2d37803894add0c31fa073d23",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9252,
+                "upload_time": "2015-06-24T04:00:53",
+                "url": "https://files.pythonhosted.org/packages/96/85/df4ae63e0cb63be0877a04c1d5da0e6f7f75250b0a23c5db5cb441b67002/AppDynamicsDownloader-0.1.5.tar.gz"
+            }
+        ],
+        "0.1.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5373de3b78df5e56d2f4a1fe52451bf1",
+                    "sha256": "4111324e6876069ce0f3f5a350a316811d3c6f5cb914109290619c7f7eb924ff"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.6-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "5373de3b78df5e56d2f4a1fe52451bf1",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 12918,
+                "upload_time": "2015-06-25T03:57:49",
+                "url": "https://files.pythonhosted.org/packages/cc/3c/bf4f2658c24555432ba7e364e3b29d9d020f8766dae5fd449031f4e502f4/AppDynamicsDownloader-0.1.6-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "769b9f3cb06456f02a641704de947a49",
+                    "sha256": "afb731cf375d38314b2412d826dbde4df13af30dd97a4e148f03ccf83e817f07"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.6.tar.gz",
+                "has_sig": true,
+                "md5_digest": "769b9f3cb06456f02a641704de947a49",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9272,
+                "upload_time": "2015-06-25T03:57:46",
+                "url": "https://files.pythonhosted.org/packages/9f/7e/34d94f9557f3e3b960d1fa0485b0719ef6d67b91f0602f7340e140b67643/AppDynamicsDownloader-0.1.6.tar.gz"
+            }
+        ],
+        "0.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0d0c83d2bd373946f6839d3345936557",
+                    "sha256": "0d91acd00043730df1124263519aaf1cbef9476fe59f8b9bbce83e1c8b7d85bc"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.7-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "0d0c83d2bd373946f6839d3345936557",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 14472,
+                "upload_time": "2015-09-10T16:29:13",
+                "url": "https://files.pythonhosted.org/packages/93/69/f36e01eb34fec52db2e0530b939f9bdee61b9d833d9221c78584e8e67243/AppDynamicsDownloader-0.1.7-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fe2845074a2f7373f3b2abc59d1efaaa",
+                    "sha256": "375a84c38fb0060e4c0f45e8c652b5fa5e74587197f7421ab81e6522e0afe1fa"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.7.tar.gz",
+                "has_sig": true,
+                "md5_digest": "fe2845074a2f7373f3b2abc59d1efaaa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10565,
+                "upload_time": "2015-09-10T16:29:17",
+                "url": "https://files.pythonhosted.org/packages/69/7c/5a82ded3f20e2c6cf724642d3d879e741f4d74a050c95de4277bfab4a834/AppDynamicsDownloader-0.1.7.tar.gz"
+            }
+        ],
+        "0.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac17064936f266dfb493aa392a44c1aa",
+                    "sha256": "e7805f1a25da7224cc30b93574e92debf6e9a1249daafc0eec1b24fd1c528261"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.8-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "ac17064936f266dfb493aa392a44c1aa",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 14481,
+                "upload_time": "2015-10-14T05:25:02",
+                "url": "https://files.pythonhosted.org/packages/c6/d3/c496de6478e3e5b8cd0191ce5e75d13302ccb295cbbc57c581d898c6ccae/AppDynamicsDownloader-0.1.8-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8fc0c672394a9de30c830509cedcb82",
+                    "sha256": "c85db0527a3dc793294c91d95e60a6f1c5386469df9cdf4c4d3ed18e551a666b"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.8.tar.gz",
+                "has_sig": true,
+                "md5_digest": "c8fc0c672394a9de30c830509cedcb82",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10568,
+                "upload_time": "2015-10-14T05:24:58",
+                "url": "https://files.pythonhosted.org/packages/12/5a/f094daf7e935b4be978916b5afce0f862a324306d1d47558a39eb8dd8154/AppDynamicsDownloader-0.1.8.tar.gz"
+            }
+        ],
+        "0.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "613492ab8a822d44671475237a71a152",
+                    "sha256": "a4e02625557b344c76302ecd11b26f1a0db8d4127a5fab54a2feee65940cc6ea"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.9-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "613492ab8a822d44671475237a71a152",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 14496,
+                "upload_time": "2015-10-14T06:07:23",
+                "url": "https://files.pythonhosted.org/packages/53/90/f37f7efcfb469e0e368c60d0d8aaff0a903444e5c0feee3d2f9c1b72cb50/AppDynamicsDownloader-0.1.9-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "123497c4cb42f14ef610ea7f27affaf2",
+                    "sha256": "a9cd73e43ac56067f4106b3692ee0a1631df2b74c7e23b4bfed0f1fc219ee1cf"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.1.9.tar.gz",
+                "has_sig": true,
+                "md5_digest": "123497c4cb42f14ef610ea7f27affaf2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10590,
+                "upload_time": "2015-10-14T06:07:16",
+                "url": "https://files.pythonhosted.org/packages/3b/e7/ea9510d47535a4a7f16df4ba65349d4f77f4d54675540f61863cfd7fc0da/AppDynamicsDownloader-0.1.9.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca9fe8171190c98f8bac136788718ae6",
+                    "sha256": "88adbfe2e0fd650d6a5581fd0d2b5d5c43b9877df20baa05f506f05df232aec6"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.2.0-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "ca9fe8171190c98f8bac136788718ae6",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 14579,
+                "upload_time": "2015-12-21T17:19:21",
+                "url": "https://files.pythonhosted.org/packages/e5/a7/8786277e574443bddb3d3aa50e63d4dff4819ca7245ca95dfff061f80697/AppDynamicsDownloader-0.2.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7e3c4b5c19f7355bf871c84637aede00",
+                    "sha256": "505c22be4b0575cc19d8d052f5a96d359c843b3558dd8c2caa95647c66c5b80c"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.2.0.tar.gz",
+                "has_sig": true,
+                "md5_digest": "7e3c4b5c19f7355bf871c84637aede00",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10840,
+                "upload_time": "2015-12-21T17:19:11",
+                "url": "https://files.pythonhosted.org/packages/2f/eb/3fed04ecd1580f4ffb664d5be032af7d6b0d36e5ff8dd2a0823af1b9eb88/AppDynamicsDownloader-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c5b7b25b843d7408dca3c7eb895d7164",
+                    "sha256": "04e71d53c84f34d0c5d2b80890dbb760ded0187cc82fb3d52d19bd0d2ad5bcde"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.2.1-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "c5b7b25b843d7408dca3c7eb895d7164",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 14711,
+                "upload_time": "2015-12-21T18:03:20",
+                "url": "https://files.pythonhosted.org/packages/cc/b7/746a313a6246e1c6f875336ae839ba53ecb1e44b40f02fe5654651219074/AppDynamicsDownloader-0.2.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f73a614fb2fcc6fb4592b043182551ee",
+                    "sha256": "80016671b0ee8af9be93d23793a57c10bbd1a29410557768a45df0695073e51c"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.2.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "f73a614fb2fcc6fb4592b043182551ee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10964,
+                "upload_time": "2015-12-21T18:03:14",
+                "url": "https://files.pythonhosted.org/packages/e5/33/bde78162977383041599efa56d13be19b06255c0f52220bc78497a8f4307/AppDynamicsDownloader-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c37c4208c2138b3acfcd178691132e9b",
+                    "sha256": "f3535f8ed798d711f9e1932d226e56e182633a818c8c4b2d776829b61b4a5e18"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.2.2-py2.py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "c37c4208c2138b3acfcd178691132e9b",
+                "packagetype": "bdist_wheel",
+                "python_version": "2.7",
+                "requires_python": null,
+                "size": 15211,
+                "upload_time": "2015-12-21T18:10:52",
+                "url": "https://files.pythonhosted.org/packages/f0/4e/05d90bfe3e888dbd76fb23c73ad701c2e601c14959da8a6ecec6865c5316/AppDynamicsDownloader-0.2.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "970579ceff1c0a1465b46f2fe73c17db",
+                    "sha256": "ff4bcc0f3cbffa851ee2160527b012c43c9d0bfdcd1c75caad231a056064bda7"
+                },
+                "downloads": -1,
+                "filename": "AppDynamicsDownloader-0.2.2.tar.gz",
+                "has_sig": true,
+                "md5_digest": "970579ceff1c0a1465b46f2fe73c17db",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11208,
+                "upload_time": "2015-12-21T18:10:44",
+                "url": "https://files.pythonhosted.org/packages/8a/a0/a1cbd7f1e10454473ae814263c4919c6636a9bd2a0991ab4ea1d39801410/AppDynamicsDownloader-0.2.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c37c4208c2138b3acfcd178691132e9b",
+                "sha256": "f3535f8ed798d711f9e1932d226e56e182633a818c8c4b2d776829b61b4a5e18"
+            },
+            "downloads": -1,
+            "filename": "AppDynamicsDownloader-0.2.2-py2.py3-none-any.whl",
+            "has_sig": true,
+            "md5_digest": "c37c4208c2138b3acfcd178691132e9b",
+            "packagetype": "bdist_wheel",
+            "python_version": "2.7",
+            "requires_python": null,
+            "size": 15211,
+            "upload_time": "2015-12-21T18:10:52",
+            "url": "https://files.pythonhosted.org/packages/f0/4e/05d90bfe3e888dbd76fb23c73ad701c2e601c14959da8a6ecec6865c5316/AppDynamicsDownloader-0.2.2-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "970579ceff1c0a1465b46f2fe73c17db",
+                "sha256": "ff4bcc0f3cbffa851ee2160527b012c43c9d0bfdcd1c75caad231a056064bda7"
+            },
+            "downloads": -1,
+            "filename": "AppDynamicsDownloader-0.2.2.tar.gz",
+            "has_sig": true,
+            "md5_digest": "970579ceff1c0a1465b46f2fe73c17db",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11208,
+            "upload_time": "2015-12-21T18:10:44",
+            "url": "https://files.pythonhosted.org/packages/8a/a0/a1cbd7f1e10454473ae814263c4919c6636a9bd2a0991ab4ea1d39801410/AppDynamicsDownloader-0.2.2.tar.gz"
+        }
+    ]
+}

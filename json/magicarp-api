@@ -1,0 +1,792 @@
+{
+    "info": {
+        "author": "Drachenfels",
+        "author_email": "drachenfels@protonmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Software Development :: Version Control :: Git"
+        ],
+        "description": "# magicarp-api\n\n## About project\n\nMagicarp Api is a micro-framework, built on top of Flask and it's blueprints.\nMain goal is remove burden of starting new project and just allow developer to\njump into endpoints creation. This is achieved by providing default setup that\nis easy to use, however at will can be replaced or extended.\n\nMain features are:\n    - routing that is capable of understanding versions\n    - input/output schema (lousily based upon JSON-schema) that enforces very\n      strict and verbose error handling on input/output\n    - self discovery and self documentation\n    - hassle free defaults for cosmological constants like logging, error\n      handling and uses sessions handling\n\n## Installation && Usage\n\n### Install\n\nVia pypi:\n\n    `pip install magicarp-api`\n\nOr from source code:\n\n    `git@github.com:Drachenfels/magicarp-api.git`\n\n### Usage\n\nAfter pip install, create `api/server.py` that will contain following code:\n\n```\n    from magicarp.server_tools import create_app\n\n    app = create_app()\n```\n\nAnd then according to flask documentation, application can be started as:\n\n```\n    #!/usr/bin/env bash\n\n    export FLASK_APP=api.server\n    flask run\n```\n\nOn default magicarp exposes endpoint that maps all urls and ping that reply\nwith pong. The earlier helps with discovery (and debug) the later allows to\nhealth check api server (for CI, tests or debug).\n\nIn order to get new endpoints, you have to register new blueprint(s) that\ndescribes them. It has to be done before server is up, for example good place\nmight be __init__ of main sub-package. Note: in theory it is possible, but in\npractice bad idea to manipulate routing once server is running.\n\n\nIn `api/__init__.py`:\n\n```\n    from magicarp.routes import routing\n\n    from api.routes import v1, non_versioned\n\n    routing.register_version((1,), v1.blueprints)\n    routing.register_version(None, non_versioned.blueprints)\n```\n\nFirst argument is version, if we specify None it means endpoint is not\nversioned (and always available), if version is what we expect, argument\nsupposed to be tuple that is 1 to 3 elements long, each of them as positive\ninteger.\n\nSecond argument is a list of `Blueprints`, magicarp's Blueprints are extension\nof standard Blueprints provided by Flask.\n\nFollowing example that was presented so far your directory tree can be among those lines:\n\n```\n |\n |-> bin/\n        |\n        | -> start_app.sh\n |\n |-> api/\n        |\n        | -> __init__.py\n        | -> server.py\n        |\n        | -> v1\n            |\n            | -> __init__.py\n            | -> user.py\n            | -> product.py\n        |\n        | -> non_versioned\n            |\n            | -> __init__.py\n            | -> postcode.py\n```\n\nIn `api/v1/__init__.py` we need to define list of blueprints, for example:\n\n```\n    from . import user, product\n\n    blueprints = (\n        user.blueprint,\n        product.blueprint,\n    )\n```\n\nIn `api/non_versioned/__init__.py` we need to define list of blueprints, for example:\n\n```\n    from . import postcode\n\n    blueprints = (\n        postcode.blueprint,\n    )\n```\n\nWhere blueprint is defined as follows:\n\nIn `api/v1/user.py`:\n\n```\n    from flask import Blueprint, request, url_for\n\n    from magicarp import router, endpoint, response\n\n    from api import business_logic, schema\n\n\n    class CreateUser(endpoint.BaseEndpoint):\n        # this defines url for endpoint, keep in mind that prefix and namespace\n        # are taken into account automatically, so in our case this particular\n        # url it will be expanded to /1/user/\n        url = '/'\n\n        # name of endpoint, has to be unique, per blueprint, used in case you\n        want to override endpoint from previous version\n        name = 'create_config'\n\n        # optional input schema, all incomming data will be validated and\n        # sanitised against it\n        input_schema = schema.accept.user.User\n\n        # optional output schema, whatever action method returns will be\n        # injected into this schema (and may cause exception if it makes no or\n        # little sense)\n        output_schema = schema.reply.general.ResourceCreated\n\n        # response is handling http response code and general wrapping of\n        response, it's optional\n        response = response.create_response\n\n        # which methods this endpoint serves\n        methods = ['POST']\n\n        # syntactic sugar, when we set input schema, instance of schema\n        # populated with data from request will be passed to method action() as\n        # input_schema, by changing argument_name we can modify it to something\n        # more readable\n        argument_name = 'user_schema'\n\n        # this is where the business logic should live\n        def action(self, user_schema):  # pylint: disable=arguments-differ\n            # assumption here is that our business logic create_user accepts\n            # all fields from user_schema, and returns dictionary\n            dct_user = business_logic.user.create_user(\n                **user_schema.as_dictionary())\n\n            # because blueprint is only extension of flask, we can use it for\n            # functions like url_for and etc\n            details_url = \"{}.{}\".format(request.blueprint, 'get_user_by_uid')\n\n            # add extra fields to dictionary that business logic has returned\n            dct_user.update({\n                \"message\": \"Configuration created.\",\n                \"url\": url_for(details_url, uid=configuration['uid']),\n            })\n\n            # by returning dct_user, we allow our output_schema to retrieve\n            # whatever it needs and fullfill contract on what was promised to\n            # be a reply (or throw exception if unable to do so)\n            return instance\n\n\n    blueprint = router.Blueprint(\n        __name__, namespace='/user', routes=[\n            CreateUser(),\n        ])\n```\n\nThat shortly describes how to add new endpoints. However one may ask question\nwhat is input_schema, output_schema, responses and etc. How to register my own\nerror handlers and etc.\n\nIf you want to learn more, head to api-scaffold that demo's majority of the features available in the framework:\n\n    * https://github.com/Drachenfels/api-scaffold\n\n### Notes on versioning\n\nOne of new additions to Flask's blueprint is idea of namespace, if given namespace is shared on same version, their endpoints are merged together. But if they are occupy different versions, it's when inheritance kicks in.\n\nImagine following structure:\n\n```\n    v1:\n        /user\n            - /U-A\n            - /U-B\n        /product\n            - /P-A\n            - /P-B\n\n    v2:\n        /user\n            - /U-B (override version v1)\n\n    v3:\n        /user\n            - /U-C\n\n        /product\n            - /P-A\n            - /P-C\n```\n\nEndpoints visible for a flask will be:\n\n    * /1/user/U-A\n    * /1/user/U-B\n    * /1/product/P-A\n    * /1/product/P-B\n\n    * /2/user/U-A\n    * /2/user/U-B (override version v1)\n\n    * /3/user/U-A\n    * /3/user/U-B (override version v1)\n    * /3/user/U-C\n    * /3/product/P-A\n    * /3/product/P-C\n\nBecause there is gap in product namespace on v2, inheritance was broken and v3 will behave like it never existed.\n\n## Issues:\n\nTo report feature requests or issues, visit:\n\n    * https://github.com/Drachenfels/magicarp-api/issues\n\n\n## Notes:\n\nProject is still in active development and is not yet production ready, expected timeframe for being feature complete is end of June 2018.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Drachenfels/magicarp-api",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "magicarp-api",
+        "package_url": "https://pypi.org/project/magicarp-api/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/magicarp-api/",
+        "project_urls": {
+            "Homepage": "https://github.com/Drachenfels/magicarp-api"
+        },
+        "release_url": "https://pypi.org/project/magicarp-api/1.7.1/",
+        "requires_dist": [
+            "Flask (>=1.0)",
+            "blinker (>=1.4)",
+            "python-dateutil (>=2.7)",
+            "pytz (>=2018.4)",
+            "simple-settings (>=0.13)",
+            "url2vapi (>=1.2)",
+            "validators (>=0.12)"
+        ],
+        "requires_python": "",
+        "summary": "Magicarp-Api is an extension to flask micro-framework that allows developer to build functional restful-api from get-go",
+        "version": "1.7.1"
+    },
+    "last_serial": 4436139,
+    "releases": {
+        "1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "713ce41ea30b3906e53ba355f9d777ef",
+                    "sha256": "cade3552d5e2804608495d216d4d740c00936ecae482fe7f6026748dde5aa082"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "713ce41ea30b3906e53ba355f9d777ef",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24151,
+                "upload_time": "2018-05-01T14:22:06",
+                "url": "https://files.pythonhosted.org/packages/67/ae/a7327e228e1eab1d427d44b7fb807944111d1cc76bb2209f3d6ec3de788d/magicarp-api-1.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "35d2cd0468abce0ba5409bd704b2a804",
+                    "sha256": "cf84ae3dd3c352aa83df2df605bcdc24d10947240b49539ebdd09c59f05ab44f"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "35d2cd0468abce0ba5409bd704b2a804",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 31794,
+                "upload_time": "2018-05-01T15:25:22",
+                "url": "https://files.pythonhosted.org/packages/a0/7d/d36b1c32e61bb02216ca741afb01a59bf0e1096614fa36d921c5e41e785e/magicarp_api-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c04b6c17c3bbeffa93867410286d194a",
+                    "sha256": "59989b787c6a4e88c4e7177affac1c97ddb8864115d518e2af8ad859ac009b41"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c04b6c17c3bbeffa93867410286d194a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24166,
+                "upload_time": "2018-05-01T15:25:20",
+                "url": "https://files.pythonhosted.org/packages/93/2e/515a3a2f884bc9513a7bf17dfce4fca6a666ad70e41a210d6bca481e2b5e/magicarp-api-1.0.1.tar.gz"
+            }
+        ],
+        "1.0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a792ffd33c7a5dee9201808e2738fd5",
+                    "sha256": "d5d50c8eb46151307ae4d024b24161e5c4700489488cb204256969406def2691"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7a792ffd33c7a5dee9201808e2738fd5",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 33494,
+                "upload_time": "2018-05-09T16:31:03",
+                "url": "https://files.pythonhosted.org/packages/c1/2c/e8feb850bac9febb6e30082e4b51c7fe5d455886aa239f790d20c2642dab/magicarp_api-1.0.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "88679adca852b3b89bf893730127149c",
+                    "sha256": "145664e34a727db8fb6d680f187f7a49c3580f7b0be4f408385e41d7903da70c"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "88679adca852b3b89bf893730127149c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 27977,
+                "upload_time": "2018-05-09T16:31:01",
+                "url": "https://files.pythonhosted.org/packages/b4/5a/af05ece82face1ff3770026a655f010de763d3d32033075b6df11504a417/magicarp-api-1.0.10.tar.gz"
+            }
+        ],
+        "1.0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "339de36283b23e7ca96b66dca3760de4",
+                    "sha256": "16640b1755b82da238af7e3aedeabbe9641f75e373b75d3d2356d8364f3b53fc"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "339de36283b23e7ca96b66dca3760de4",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 33556,
+                "upload_time": "2018-05-11T11:59:52",
+                "url": "https://files.pythonhosted.org/packages/60/a4/8726f6c14e957b435bee1666cee46f371f7ef80303126ca2e316ec6c7d55/magicarp_api-1.0.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "111ed4e4d428689dbb55c29bb9da94dd",
+                    "sha256": "72faf6549521a4547764e980d539df4f3617ebae11a72a86aae9ef928dd6b409"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "111ed4e4d428689dbb55c29bb9da94dd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 28008,
+                "upload_time": "2018-05-11T11:59:49",
+                "url": "https://files.pythonhosted.org/packages/5a/b4/f92a0b95f3c07f2328e5d21f04a1299d57083cbfeaa2f263f809744a6937/magicarp-api-1.0.11.tar.gz"
+            }
+        ],
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "684b06bc499964ce30c195255c89100a",
+                    "sha256": "5906ec95f2189231103bc9b0b3b0516a31a294de88f010dc79170ef592df59a5"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "684b06bc499964ce30c195255c89100a",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 31793,
+                "upload_time": "2018-05-01T15:36:18",
+                "url": "https://files.pythonhosted.org/packages/06/e0/b71e54cbe0581545c7f499b1f3471ec269057c2769f5ee0f3887d3c7fd36/magicarp_api-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c89c34e149e1d93902ccc6686d2800ff",
+                    "sha256": "0174c179a5c83ca0bdd726ef422f27740d3993f9e797b8e86023b3be87fb3bba"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c89c34e149e1d93902ccc6686d2800ff",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24163,
+                "upload_time": "2018-05-01T15:36:16",
+                "url": "https://files.pythonhosted.org/packages/69/dd/78c9b951ef14519702a3efeb7dfe35351dde9053f5bd3042d06055e386fd/magicarp-api-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "62210dfdf47d27a3fe1483dfb5415371",
+                    "sha256": "cbb4fbef78faeed75c614a1eb1045fd856f10a4d4d2379576a105759c9f11934"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "62210dfdf47d27a3fe1483dfb5415371",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 35307,
+                "upload_time": "2018-05-01T16:12:13",
+                "url": "https://files.pythonhosted.org/packages/cf/5a/fe8dc91c8b01500d48613ef8c56ce07553e27e703a9a6ef9f8ff5be6d129/magicarp_api-1.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6174bd4d766ada151dad90f46d3fa06a",
+                    "sha256": "84983799433c53c18d9a070df49308d6ff8ad473628454fedf6fb38c3173fe77"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6174bd4d766ada151dad90f46d3fa06a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24232,
+                "upload_time": "2018-05-01T16:12:11",
+                "url": "https://files.pythonhosted.org/packages/7a/41/672d3e5f0e1741342fb53debf6c8793ded6a9d2deb6c6ef1d9b075d21e75/magicarp-api-1.0.3.tar.gz"
+            }
+        ],
+        "1.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "51d682d8d4dafc7cb5347053654d028a",
+                    "sha256": "ebc489a678f4bbe7fcf7bdfde4fea6e851a3d8261d6f9a4226e88d66343a482d"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "51d682d8d4dafc7cb5347053654d028a",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 35304,
+                "upload_time": "2018-05-01T16:37:45",
+                "url": "https://files.pythonhosted.org/packages/f8/dc/4b52511ee97667f7005a0ea97227a781811f29e82202d41d54e123efb1a3/magicarp_api-1.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "73fe98faf06b0c11d7ac7207e86f280d",
+                    "sha256": "a00171619580eee93230b600fab5f78d0a11999d8a3e30d885bc80b9f51c6444"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "73fe98faf06b0c11d7ac7207e86f280d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24229,
+                "upload_time": "2018-05-01T16:37:43",
+                "url": "https://files.pythonhosted.org/packages/dc/c3/572fd70d5307b2d2f61569db53f7bf596eef237b305bf9a80c5cd86e2356/magicarp-api-1.0.4.tar.gz"
+            }
+        ],
+        "1.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc682361c7da5017b3128d8bc7f31858",
+                    "sha256": "93d9e295a8aeb130695cc732ce68c59f5e5448d8f2dfdf7b4c5de2b24f47f187"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dc682361c7da5017b3128d8bc7f31858",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 37135,
+                "upload_time": "2018-05-01T16:54:02",
+                "url": "https://files.pythonhosted.org/packages/de/5c/277a1e8683247fde85f6cbbfcd6a520cc486d32a046a93b67e8cf59892cb/magicarp_api-1.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac8e1195e4b4e63320e2920995ed7f80",
+                    "sha256": "5262894ff84b0e88ae5d7bccd0432b295e801ff11b418573111a8c91c27ac048"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ac8e1195e4b4e63320e2920995ed7f80",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24031,
+                "upload_time": "2018-05-01T16:54:00",
+                "url": "https://files.pythonhosted.org/packages/e8/9e/e34a9cdeea91f470dca9a546b5319ea92e9117d6b70d38be006dcdafcda4/magicarp-api-1.0.5.tar.gz"
+            }
+        ],
+        "1.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "409ecaa95aaa07d6afc0e00549c87afe",
+                    "sha256": "2115b3e1ddb154885a574b8ba4b36e75bea66583650b5b8cedff83e3083530d2"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "409ecaa95aaa07d6afc0e00549c87afe",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 37134,
+                "upload_time": "2018-05-01T17:19:27",
+                "url": "https://files.pythonhosted.org/packages/b2/43/1444fee0a15fa0d5beec16da36e04d0a93e2a98a0e9b1f61d6cd0c7f900b/magicarp_api-1.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a40eb56030b96eb850f88ace679e27f",
+                    "sha256": "8befa0877cd7ed94e4746f83a2a08c71f46a9a945b3669bd89725b6ee64f5b78"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7a40eb56030b96eb850f88ace679e27f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24028,
+                "upload_time": "2018-05-01T17:19:25",
+                "url": "https://files.pythonhosted.org/packages/2b/00/b91e4177458f28649e8bab724a0592af3f64324e33a91d0881ba918b9aff/magicarp-api-1.0.6.tar.gz"
+            }
+        ],
+        "1.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3c8103a699fb2016faa19b0ac210a996",
+                    "sha256": "cf6cea938f73864f7ddc06d8644029314e6a788d5e0e6818706eae4818620058"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3c8103a699fb2016faa19b0ac210a996",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 31459,
+                "upload_time": "2018-05-01T17:22:05",
+                "url": "https://files.pythonhosted.org/packages/67/ca/ba671f24424eb5a718d7385d9af0fd01d0d485b005e07b6e39ad19a0cd95/magicarp_api-1.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a4ba1b3f8891097448fe983355a9769b",
+                    "sha256": "ac1f49e653cd6e3680580463fe4735bd0b6941a924e5e279ca20db3cae462311"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a4ba1b3f8891097448fe983355a9769b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24023,
+                "upload_time": "2018-05-01T17:22:03",
+                "url": "https://files.pythonhosted.org/packages/5b/28/c5a6671ea79a37a2e50bee051a9fda4cb2f2e87981a5efb795d09a29c579/magicarp-api-1.0.7.tar.gz"
+            }
+        ],
+        "1.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e9e03129212289af12d19359ec9dd3b2",
+                    "sha256": "c9fd15c3b35adfb7b282b653b8654cbec8d56b797124d44d32ca177ae310a5c7"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e9e03129212289af12d19359ec9dd3b2",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 31467,
+                "upload_time": "2018-05-02T13:03:36",
+                "url": "https://files.pythonhosted.org/packages/2b/c1/86583f58b4cd208816734b35eae663499a076652e09641f2fcb8db9cefbb/magicarp_api-1.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a8e1a3d89beb890d2f010793934843df",
+                    "sha256": "d9a869d27a686964116352887a30f4cca88786797a37ad2cebc53451520302e1"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a8e1a3d89beb890d2f010793934843df",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24039,
+                "upload_time": "2018-05-02T13:03:33",
+                "url": "https://files.pythonhosted.org/packages/06/d2/c48e83d106c7bba6adfe1a6f08d68622579a3b39d3b4e1827088fba032b8/magicarp-api-1.0.8.tar.gz"
+            }
+        ],
+        "1.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7682737fc34b9d8ed4e0793030ecc7f9",
+                    "sha256": "31277e19a9e612fb78a52e55127e5ffa38c988af960bb7730f0d318b51bc94eb"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7682737fc34b9d8ed4e0793030ecc7f9",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 31692,
+                "upload_time": "2018-05-04T12:59:22",
+                "url": "https://files.pythonhosted.org/packages/eb/6b/afb0a0a3f5f2f426ea51a9c760fccb532eef01eefcdff8ab27ed7c6863bb/magicarp_api-1.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "84c096ecd50b64f0b91a71cc3c0cf31d",
+                    "sha256": "da0b0d9a1b9852f7096c2f6965a7b2d3fe19ef0859d8ef0f5007de831cc71237"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "84c096ecd50b64f0b91a71cc3c0cf31d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 24260,
+                "upload_time": "2018-05-04T12:59:19",
+                "url": "https://files.pythonhosted.org/packages/6d/cd/1063a6229793f8436431f7b794a887fd5cf66ab9e412efa3bd5d92def893/magicarp-api-1.0.9.tar.gz"
+            }
+        ],
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "950477976626e00189548f08b3af7db1",
+                    "sha256": "49fcf31c2e12be0ca345cd09f8a8db74087aa80abff0de43b457f7881ae0f11f"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "950477976626e00189548f08b3af7db1",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 33602,
+                "upload_time": "2018-05-30T09:05:19",
+                "url": "https://files.pythonhosted.org/packages/d6/ed/f877ac07bfc35cb1c65f599409a439b50b2b1f8dafd4493f94f4330a86b0/magicarp_api-1.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b0756cf4b47705a74f8eaa6c3e49ab69",
+                    "sha256": "7e5b5eada4c9ece6bad0ec097f0bdf2a82c19376446a71e00f226c7ef79325d3"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b0756cf4b47705a74f8eaa6c3e49ab69",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 28059,
+                "upload_time": "2018-05-30T09:05:17",
+                "url": "https://files.pythonhosted.org/packages/b5/6a/c9a0dc923ed6cccfb5560b6a64ff4d795a738e136a849d6d3dddc24eeaa3/magicarp-api-1.1.0.tar.gz"
+            }
+        ],
+        "1.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cf12b69554bcb00566eb34102b3cdcf6",
+                    "sha256": "70220b2ca0c3ba0bb9d0eef6719779d4eb22122b35a532dcb6c75c392754c52e"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "cf12b69554bcb00566eb34102b3cdcf6",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 35088,
+                "upload_time": "2018-06-06T23:39:40",
+                "url": "https://files.pythonhosted.org/packages/89/15/074b9702483f1ab2ae9cb0a6e16f383232035b6765fc463ac0d132a85b66/magicarp_api-1.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5039855a814ac6468eb7794a41a1c890",
+                    "sha256": "8082f39570c0b525997a4a45e278006f7aa8e55e476c15930de6ad5044a7e9cd"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5039855a814ac6468eb7794a41a1c890",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29215,
+                "upload_time": "2018-06-06T23:39:38",
+                "url": "https://files.pythonhosted.org/packages/21/88/a81d8727eb8502c569f99e51b0b00cab476fbe8b0e5f74abb51b6277b0a0/magicarp-api-1.2.0.tar.gz"
+            }
+        ],
+        "1.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5fb2befbb475087ce825ac2dbcaeb15",
+                    "sha256": "16e28b65f0a48c64a7537cc558e0c01e33cc4c62d4e40df59f83fd332aefde39"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a5fb2befbb475087ce825ac2dbcaeb15",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 40553,
+                "upload_time": "2018-06-20T08:54:20",
+                "url": "https://files.pythonhosted.org/packages/40/f3/1016bc67b52b80d003771d31d2e353e6cc51d143e36a280b78488a46e87f/magicarp_api-1.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c5985839ea14cc87c1d54ff7f57551b1",
+                    "sha256": "af0bdf6c14562925c50c574b5ea3bcf51044d77c1251877d2ca86545b7e699c5"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c5985839ea14cc87c1d54ff7f57551b1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 33655,
+                "upload_time": "2018-06-20T08:54:18",
+                "url": "https://files.pythonhosted.org/packages/44/05/0bb3060b436d301692d79ec929392a035f9106fb5348e77aca3aea1fee28/magicarp-api-1.3.0.tar.gz"
+            }
+        ],
+        "1.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1cf44cc3c86820e8150b71f84e049b8c",
+                    "sha256": "02af6d13e544f23907157f3c832dc870a480c0224b2d0da73239dbf427a04782"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.4.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1cf44cc3c86820e8150b71f84e049b8c",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 41063,
+                "upload_time": "2018-07-09T11:43:45",
+                "url": "https://files.pythonhosted.org/packages/63/fc/230f16bf9fa87e85edcf4cbe8efc1fdb9de2f156d04018582491b4bea539/magicarp_api-1.4.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a98ca12a9b7efbed781da4d4eb1b367c",
+                    "sha256": "3a676b355b3ba0e09811d1c22a14f54c729aa7f7a32b1923896ec24c05c3550f"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a98ca12a9b7efbed781da4d4eb1b367c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 34059,
+                "upload_time": "2018-07-09T11:43:43",
+                "url": "https://files.pythonhosted.org/packages/1c/20/8730e45e0b0a9fe95611d314ce9e1048e7b3e50ab6cbd2c2848fb00f4168/magicarp-api-1.4.0.tar.gz"
+            }
+        ],
+        "1.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d29a4397baec38d22e59abff9fcbc7a7",
+                    "sha256": "35214a56c71fc5843464e00e2d5819f66c1dbbd3c36018cb52666aad10b70123"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.4.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d29a4397baec38d22e59abff9fcbc7a7",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 41056,
+                "upload_time": "2018-07-09T12:15:24",
+                "url": "https://files.pythonhosted.org/packages/47/b0/285fcd49f7b5bc6eb28f3d1bb27eff65aa82e5fdbd49194bc17466e47b4e/magicarp_api-1.4.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0510f4dba3447a096b96c202a6d0dc59",
+                    "sha256": "10adf93c28ca1eb9d12b566e8aa140cd1806cecb0ff99841bac80d4de9cc2f4f"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0510f4dba3447a096b96c202a6d0dc59",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 34045,
+                "upload_time": "2018-07-09T12:15:22",
+                "url": "https://files.pythonhosted.org/packages/e1/23/69307bb3f4e0c73d17b93bd448dbfa1a84e7fc064db3b213c45d4e41dfd6/magicarp-api-1.4.1.tar.gz"
+            }
+        ],
+        "1.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc8b60fcd2bf77cfe7a44fd499037b52",
+                    "sha256": "3f03e0ef796cc9208719c4c8dcfe4a3a973527c472816d8ce436ea4278f5c93b"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.5.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dc8b60fcd2bf77cfe7a44fd499037b52",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 41369,
+                "upload_time": "2018-07-18T14:42:59",
+                "url": "https://files.pythonhosted.org/packages/1a/f5/4cc34fdda59726524bf4c410f7b98df2e3b2616ebf776eb3251dcd554797/magicarp_api-1.5.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "98aefb4265b465e9a326eba5ac34752c",
+                    "sha256": "d701f24404b712ae93caa69bf3ef611f89c4df6636ccf28a4a7ac7f83a6dbdd7"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "98aefb4265b465e9a326eba5ac34752c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 34327,
+                "upload_time": "2018-07-18T14:42:57",
+                "url": "https://files.pythonhosted.org/packages/a2/27/6445b6d14b60b801d894ba0e7b848995536ee3e57a7021cdf7d6961966c6/magicarp-api-1.5.0.tar.gz"
+            }
+        ],
+        "1.6.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dba5f352261bb5345f69fc6bebb903c4",
+                    "sha256": "a3c11c150c6a20a3c4eaca6a77fb99c3c7f368144ae8711652af3e133eee2c80"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.6.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dba5f352261bb5345f69fc6bebb903c4",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 38108,
+                "upload_time": "2018-08-20T17:01:10",
+                "url": "https://files.pythonhosted.org/packages/19/be/a21e059e800f944443915daf6d2b1227f4659cbd8b57ccde3a685c83fd92/magicarp_api-1.6.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9b595a4ddbdd0850e615f5ff37aabce4",
+                    "sha256": "4aafb6925921f5106eed1aa456438845919a433ba6051cfc34e368f23a7c3a0e"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.6.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9b595a4ddbdd0850e615f5ff37aabce4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32608,
+                "upload_time": "2018-08-20T17:01:08",
+                "url": "https://files.pythonhosted.org/packages/b7/6a/ee603da3be51a8923722a35f39c6f3ee5d53555ed6b81e3cc4a3fd02ae1c/magicarp-api-1.6.0.tar.gz"
+            }
+        ],
+        "1.7.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af8ad3ad7e343243ac0f51a3b78c7df0",
+                    "sha256": "129bbd440b330b4f2edbc1df016f52f61453cbca38e3683c79d7f9b62079741d"
+                },
+                "downloads": -1,
+                "filename": "magicarp_api-1.7.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "af8ad3ad7e343243ac0f51a3b78c7df0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 43840,
+                "upload_time": "2018-10-31T14:43:46",
+                "url": "https://files.pythonhosted.org/packages/13/ab/120f5807a61039e16fed3a7d020905139d353c2a0b6881ac7886681f98ec/magicarp_api-1.7.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "40e2e22f2377ac7b0aea13ab5361f943",
+                    "sha256": "8cec11f8f33962ab3be13a38115e16d1c48ff743506db09a52d1a3cfbb908abd"
+                },
+                "downloads": -1,
+                "filename": "magicarp-api-1.7.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "40e2e22f2377ac7b0aea13ab5361f943",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 34489,
+                "upload_time": "2018-10-31T14:43:47",
+                "url": "https://files.pythonhosted.org/packages/8c/27/76598809027d6d302d09ebcced8bafa8ef5295eddd15982f9794118397be/magicarp-api-1.7.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "af8ad3ad7e343243ac0f51a3b78c7df0",
+                "sha256": "129bbd440b330b4f2edbc1df016f52f61453cbca38e3683c79d7f9b62079741d"
+            },
+            "downloads": -1,
+            "filename": "magicarp_api-1.7.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "af8ad3ad7e343243ac0f51a3b78c7df0",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 43840,
+            "upload_time": "2018-10-31T14:43:46",
+            "url": "https://files.pythonhosted.org/packages/13/ab/120f5807a61039e16fed3a7d020905139d353c2a0b6881ac7886681f98ec/magicarp_api-1.7.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "40e2e22f2377ac7b0aea13ab5361f943",
+                "sha256": "8cec11f8f33962ab3be13a38115e16d1c48ff743506db09a52d1a3cfbb908abd"
+            },
+            "downloads": -1,
+            "filename": "magicarp-api-1.7.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "40e2e22f2377ac7b0aea13ab5361f943",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 34489,
+            "upload_time": "2018-10-31T14:43:47",
+            "url": "https://files.pythonhosted.org/packages/8c/27/76598809027d6d302d09ebcced8bafa8ef5295eddd15982f9794118397be/magicarp-api-1.7.1.tar.gz"
+        }
+    ]
+}

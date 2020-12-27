@@ -1,0 +1,111 @@
+{
+    "info": {
+        "author": "Yashasvi Sriram",
+        "author_email": "yash.3997@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Alien Effects for Alienware 13 R3\n\n# Introduction\n\nAlienware 13 R3 has 8 configurable light zones as listed in the table below.\n\nAll lights can be controlled via USB protocol.\n\nFor this specific device `vendor Id = 0x187c` and `product Id = 0x0529`\n\nCommands can be passed using control transfers of USB protocol.\n\n# Usage\n\n* python version \n    * 3.6 is recommended\n    * 3.4 may not work\n* `sudo python setup.py install` to install `alieneffects-13r3`\n* `sudo alieneffects-13r3` to open a Textual User Interface where you can select themes\n    * First field is the themes directory\n    * After setting first field a list of files in the selected directory appears below\n    * Going through them, you can see the theme description (if file is a valid theme) on the right\n    * Enter to select a theme\n    * Some themes have stochasticity (randomness) in them, so applying same theme multiple times can lead to different themes\n\n# Control transfer: Write operation parameters\n\n    bmRequestType = 0x21\n        0... .... : Host to Device\n        .01. .... : Request Type = Class\n        ...0 0001 : Recipient = Interface\n    bRequest = 9\n    wValue = 0x0202\n    wIndex = 0\n\n# Control transfer: Read operation parameters\n\n    bmRequestType = 0xa1\n        1... .... : Device to Host\n        .01. .... : Request Type = Class\n        ...0 0001 : Recipient = Interface\n    bRequest = 9\n    wValue = 0x0202\n    wIndex = 0\n\n# Commands\n\n| Command | Packet Structure (bytes) | Desciption | Comment | \n| -- | -- | -- | -- |\n| Reset |  2 7 t 0 0 0 0 0 0 0 0 0 | t : type, t=3 : reset all off and stops the execution of sequences t=4 : reset all on | Should call before every change. This takes some time, and you should wait until the operation ends. Premature commands might fail.  \n| Get status |  2 6 0 0 0 0 0 0 0 0 0 0 | S : Sequence ID, Z : Zone | Can use this to wait until status is ready | \n| Morph |  2 1 S Z Z Z r g b R G B | S : Sequence ID, Z : Zone | Color changes from `r g b` to `R G B` . All bands use 8-bit color encoding. So each value must be between 0-255. | \n| Pulse |  2 2 S Z Z Z r g b 0 0 0 | S : Sequence ID, Z : Zone |  | \n| Simple set |  2 3 S Z Z Z r g b 0 0 0 | S : Sequence ID, Z : Zone |  | \n| Loop |  2 4 0 0 0 0 0 0 0 0 0 0 | S : Sequence ID, Z : Zone | Without this, LEDs will go off after walking through the user-specified   color sequence. TODO: how does this know which sequence is the target? The last one mentioned? What happens if sequences are interleaved?) | \n| Execute |  2 5 0 0 0 0 0 0 0 0 0 0 | S : Sequence ID, Z : Zone | This must be called at the end. Start executing color sequences | \n| Save next command |  2 8 m 0 0 0 0 0 0 0 0 0 | m : mode, m=01: Initial State m=2: Plugged in - Sleep; Only the power-button works in this mode? m=5: Plugged in - Normal m=6: Plugged in - Charging m=7: On Battery - Sleep m=8: On Battery - Normal m=9: On Battery - Low | Save the next command to the specified mode. Must be followed by an Action or Loop | \n| Save all |  2 9 0 0 0 0 0 0 0 0 0 0 |  | Save slots permanently. If this command is not called, data slots will be lost on reboot |\n| Tempo |  2 e t t 0 0 0 0 0 0 0 0 | t: tempo | AlienFX sets this value between 00:1e ~ 03:ae. |\n\n# Zone codes\n\n* A 16 bit code space is to reference each light zone.\n* One hot encoding is used; i.e. address for each zone has 1 at a unique place and 0's elsewhere\n* Multiple zones can be addressed by ORing their codes\n    * For example to address the entire keyboard use 0x1\\|0x2\\|0x4\\|0x8=0xF code\n* A lot more zone codes and command codes might exist, which can do things we dont know about (yet), \n    * For example setting multiple zones to different colors and such stuff\n\n| Zone Alienware 13 R3 | Binary | Hex | \n| -- | -- | -- | \n| Keyboard right | 000 0000 0000 0001 | 0x0001 |\n| Keyboard middle-right | 000 0000 0000 0010 | 0x0002 |\n| Keyboard middle-left | 000 0000 0000 0100 | 0x0004 |\n| Keyboard left | 000 0000 0000 1000 | 0x0008 |\n| unknown/unused | 000 0000 0001 0000 | 0x0010 |\n| Alien head | 000 0000 0010 0000 | 0x0020 |\n| Alienware logo | 000 0000 0100 0000 | 0x0040 |\n| Touch pad | 000 0000 1000 0000 | 0x0080 |\n| Power button | 000 0001 0000 0000 | 0x0100 |\n\n# How it works?\n\n### Simple Set Color example\n* Send a reset command\n* Send a set color effect command (to say touch pad)\n* Send a loop command\n* Send an execute command\n\nThe touch pad color changes and stays put.\nIf the loop command is not issued then the color goes away after a certain time.\n\n### Blink or Morph example\n* Send a reset command\n* Send a tempo command\n* Send a blink effect command (to say touch pad)\n    * Morph effect command needs 2 colors\n* Send a loop command\n* Send an execute command\n\nBlink effect and Morph Effect need an extra tempo command, which determines the rate of blinking or morphing.\n\n### Multiple effects at different zones\n* Send a reset command\n* Send a tempo command\n* Send a blink effect command (to say touch pad)\n* Send a morph effect command (to say logo)\n* Send a loop command\n* Send an execute command\n\nThe blinking happens for sometime and stops.\nThen morphing happens for sometime and stops.\nThis happens because both are set on same sequence.\n\n### Multiple effects at different zones simultaneously\n* Send a reset command\n* Send a tempo command\n* Send a blink effect command on sequence 1 (to say touch pad)\n* Send a morph effect command on sequence 2 (to say logo)\n* Send a loop command\n* Send an execute command\n\nThe blink and morphing happens simulataneously.\nBut the blinking stops after some time.\nThis happens because loop command affects the latest sequence issued before it.\nSo we need to send two loop commands after every set of commands belonging to one sequence\n\n### Multiple effects at different zones simultaneously and continuously\n* Send a reset command\n* Send a tempo command\n* Send a blink effect command on sequence 1 (to say touch pad)\n* Send a loop command\n* Send a morph effect command on sequence 2 (to say logo)\n* Send a loop command\n* Send an execute command\n\nThe blink and morphing happens simulataneously and continously.\nMultiple zones can be referenced at once for an effect as described in Zone codes section\n\n# Misc\n* Some zones (like power button) seems to be only be accessible in some states (like pugged in, on battery, on battery low) only\n* If same zone is addressed in different sequences flashing can happen\n* If you cannot control touch pad, set `Trackpad backlight` to `Enable` in BIOS settings\n\n# Disclaimer\n\n* All the information here is obtained via trail and error reverse engineering, because the alienware lights software doesn't seem to be opensource\n* There is no conclusive evidence that these methods are the best way to go\n* But they do work and did no harm to my system until now\n\n# References\n[Alienfx](https://github.com/trackmastersteve/alienfx) by trackmastersteve\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Yashasvi-Sriram/alieneffects-13r3",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "alieneffects-13r3",
+        "package_url": "https://pypi.org/project/alieneffects-13r3/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/alieneffects-13r3/",
+        "project_urls": {
+            "Homepage": "https://github.com/Yashasvi-Sriram/alieneffects-13r3"
+        },
+        "release_url": "https://pypi.org/project/alieneffects-13r3/0.1.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Backlight LED controller for alienware 13 R3",
+        "version": "0.1.2"
+    },
+    "last_serial": 4620210,
+    "releases": {
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "23f5b2c95d4432a5097cfb07e34e7f5f",
+                    "sha256": "3115a24d0d57d08c8082808f0ffdd858ea9e1a960493d37c5b95086ea6f9a5d0"
+                },
+                "downloads": -1,
+                "filename": "alieneffects_13r3-0.1.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "23f5b2c95d4432a5097cfb07e34e7f5f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 24160,
+                "upload_time": "2018-12-20T09:44:00",
+                "url": "https://files.pythonhosted.org/packages/c0/52/15c68fdb60af7191ecc36166d3df65fbd87351611f299c8ce1e7b95a4ea3/alieneffects_13r3-0.1.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7c798b250a8dda6fabdff3c2008543dc",
+                    "sha256": "6ef475b4aee81e6ba081d12c330f144b51e4584e40886c501a0ed120d8d5c002"
+                },
+                "downloads": -1,
+                "filename": "alieneffects-13r3-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7c798b250a8dda6fabdff3c2008543dc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10451,
+                "upload_time": "2018-12-20T09:44:03",
+                "url": "https://files.pythonhosted.org/packages/58/a4/cfd3568b17083603ed182d61cd99ae31860850a99bd06db8b55905db4943/alieneffects-13r3-0.1.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "23f5b2c95d4432a5097cfb07e34e7f5f",
+                "sha256": "3115a24d0d57d08c8082808f0ffdd858ea9e1a960493d37c5b95086ea6f9a5d0"
+            },
+            "downloads": -1,
+            "filename": "alieneffects_13r3-0.1.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "23f5b2c95d4432a5097cfb07e34e7f5f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 24160,
+            "upload_time": "2018-12-20T09:44:00",
+            "url": "https://files.pythonhosted.org/packages/c0/52/15c68fdb60af7191ecc36166d3df65fbd87351611f299c8ce1e7b95a4ea3/alieneffects_13r3-0.1.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7c798b250a8dda6fabdff3c2008543dc",
+                "sha256": "6ef475b4aee81e6ba081d12c330f144b51e4584e40886c501a0ed120d8d5c002"
+            },
+            "downloads": -1,
+            "filename": "alieneffects-13r3-0.1.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7c798b250a8dda6fabdff3c2008543dc",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 10451,
+            "upload_time": "2018-12-20T09:44:03",
+            "url": "https://files.pythonhosted.org/packages/58/a4/cfd3568b17083603ed182d61cd99ae31860850a99bd06db8b55905db4943/alieneffects-13r3-0.1.2.tar.gz"
+        }
+    ]
+}

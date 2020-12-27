@@ -1,0 +1,85 @@
+{
+    "info": {
+        "author": "Amazon Web Services",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.5"
+        ],
+        "description": "=========================\nSageMaker MXNet Container\n=========================\n\nSageMaker MXNet Container is an open-source library for making Docker images for using MXNet to train models on Amazon SageMaker.\nFor serving images, see `SageMaker MXNet Serving Container <https://github.com/aws/sagemaker-mxnet-serving-container>`__.\nFor information on running MXNet jobs on Amazon SageMaker, please refer to the `SageMaker Python SDK documentation <https://github.com/aws/sagemaker-python-sdk>`__.\n\nThe information in this README is for MXNet versions 1.4.0 and higher.\nFor versions 0.12.0-1.3.0 (including serving images), see `the previous version of this README <https://github.com/aws/sagemaker-mxnet-container/blob/4f4492ba71ab5210bb0594449d3996f0bc3e5807/README.rst>`__.\n\n-----------------\nTable of Contents\n-----------------\n.. contents::\n    :local:\n\nGetting Started\n---------------\n\nPrerequisites\n~~~~~~~~~~~~~\n\nMake sure you have installed all of the following prerequisites on your development machine:\n\n- `Docker <https://www.docker.com/>`__\n- For GPU testing: `nvidia-docker2 <https://github.com/NVIDIA/nvidia-docker>`__\n\nRecommended\n^^^^^^^^^^^\n\n-  A Python environment management tool (e.g. `PyEnv <https://github.com/pyenv/pyenv>`__,\n   `VirtualEnv <https://virtualenv.pypa.io/en/stable/>`__)\n\nBuilding Images\n---------------\n\nThe Dockerfiles in this repository are intended to be used for building Docker images to run training jobs on `Amazon SageMaker <https://aws.amazon.com/documentation/sagemaker/>`__.\n\nThe current master branch of this repository contains Dockerfiles and support code for MXNet versions 1.4.0 and higher.\nFor MXNet version 1.3.0, check out `v2.0.0 of this repository <https://github.com/aws/sagemaker-mxnet-container/releases/tag/v2.0.0>`__.\nFor MXNet versions 0.12.1-1.2.1, check out `v1.0.0 of this repository <https://github.com/aws/sagemaker-mxnet-container/releases/tag/v1.0.0>`__.\n\nFor each supported MXNet version, Dockerfiles can be found for each processor type (i.e. CPU and GPU).\nThey install the SageMaker-specific support code found in this repository.\n\nBefore building these images, you need to have a pip-installable binary of this repository saved locally.\nTo create the SageMaker MXNet Container Python package:\n\n::\n\n    # Create the binary\n    git clone https://github.com/aws/sagemaker-mxnet-container.git\n    cd sagemaker-mxnet-container\n    python setup.py sdist\n\nOnce you have those binaries, you can then build the image.\n\nIf you are building images for Python 3 with MXNet 1.6.0, the Dockerfiles don't require any build arguments.\nYou do need to copy the pip-installable binary from above to ``docker/1.6.0/``.\n\nIf you are building images for Python 2 or Python 3 with MXNet 1.4.0 or lower, the Dockerfiles expect two build arguments:\n\n- ``py_version``: the Python version (i.e. 2 or 3).\n- ``framework_support_installable``: the pip-installable binary created with the command above\n\nThe integration tests expect the Docker images to be tagged as ``preprod-mxnet:<tag>``, where ``<tag>`` looks like <mxnet_version>-<processor>-<python_version> (e.g. 1.6.0-cpu-py3).\n\nExample commands for building images:\n\n::\n\n    # All build instructions assume you're starting from the root directory of this repository\n\n    # MXNet 1.6.0, Python 3, CPU\n    $ cp dist/sagemaker-mxnet-container-*.tar.gz docker/1.6.0/.\n    $ cp -r docker/artifacts/* docker/1.6.0/py3\n    $ cd docker/1.6.0/py3\n    $ docker build -t preprod-mxnet:1.6.0-cpu-py3 -f Dockerfile.cpu .\n\nDon't forget the period at the end of the command!\n\nRunning the tests\n-----------------\n\nRunning the tests requires installation of the SageMaker MXNet Container code and its test dependencies.\n\n::\n\n    git clone https://github.com/aws/sagemaker-mxnet-container.git\n    cd sagemaker-mxnet-container\n    pip install -e .[test]\n\nAlternatively, instead of pip installing the dependencies yourself, you can use `tox <https://tox.readthedocs.io/en/latest>`__.\n\nTests are defined in `test/ <https://github.com/aws/sagemaker-mxnet-containers/tree/master/test>`__ and include unit and integration tests.\nThe integration tests include both running the Docker containers locally and running them on SageMaker.\nThe tests are compatible with only the Docker images built by Dockerfiles in the current branch.\n\nAll test instructions should be run from the top level directory\n\nUnit Tests\n~~~~~~~~~~\n\nTo run unit tests:\n\n::\n\n    tox test/unit\n\nLocal Integration Tests\n~~~~~~~~~~~~~~~~~~~~~~~\n\nRunning local integration tests require `Docker <https://www.docker.com/>`__ and `AWS credentials <https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html>`__,\nas the integration tests make calls to a couple AWS services.\nLocal integration tests on GPU require `nvidia-docker2 <https://github.com/NVIDIA/nvidia-docker>`__.\nYou Docker image must also be built in order to run the tests against it.\n\nLocal integration tests use the following pytest arguments:\n\n- ``docker-base-name``: the Docker image's repository. Defaults to 'preprod-mxnet'.\n- ``framework-version``: the MXNet version. Defaults to the latest supported version.\n- ``py-version``: the Python version. Defaults to '3'.\n- ``processor``: CPU or GPU. Defaults to 'cpu'.\n- ``tag``: the Docker image's tag. Defaults to <mxnet_version>-<processor>-py<py-version>\n\nTo run local integration tests:\n\n::\n\n    tox -- test/integration/local --docker-base-name <your_docker_image> \\\n                                  --tag <your_docker_image_tag> \\\n                                  --py-version <2_or_3> \\\n                                  --framework-version <mxnet_version> \\\n                                  --processor <cpu_or_gpu>\n\n::\n\n    # Example\n    tox -- test/integration/local --docker-base-name preprod-mxnet \\\n                                  --tag 1.6.0-cpu-py3 \\\n                                  --py-version 3 \\\n                                  --framework-version 1.6.0 \\\n                                  --processor cpu\n\nSageMaker Integration Tests\n~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nSageMaker integration tests require your Docker image to be within an `Amazon ECR repository <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_Console_Repositories.html>`__.\nThey also require that you have the setup described under \"Integration Tests\" at https://github.com/aws/sagemaker-python-sdk#running-tests.\n\nSageMaker integration tests use the following pytest arguments:\n\n- ``docker-base-name``: the Docker image's `ECR repository namespace <https://docs.aws.amazon.com/AmazonECR/latest/userguide/Repositories.html>`__.\n- ``framework-version``: the MXNet version. Defaults to the latest supported version.\n- ``py-version``: the Python version. Defaults to '3'.\n- ``processor``: CPU or GPU. Defaults to 'cpu'.\n- ``tag``: the Docker image's tag. Defaults to <mxnet_version>-<processor>-py<py-version>\n- ``aws-id``: your AWS account ID.\n- ``instance-type``: the specified `Amazon SageMaker Instance Type <https://aws.amazon.com/sagemaker/pricing/instance-types/>`__ that the tests will run on.\n  Defaults to 'ml.c4.xlarge' for CPU and 'ml.p2.xlarge' for GPU.\n\nTo run SageMaker integration tests:\n\n::\n\n    tox -- test/integration/sagmaker --aws-id <your_aws_id> \\\n                                     --docker-base-name <your_docker_image> \\\n                                     --instance-type <amazon_sagemaker_instance_type> \\\n                                     --tag <your_docker_image_tag> \\\n\n::\n\n    # Example\n    tox -- test/integration/sagemaker --aws-id 12345678910 \\\n                                      --docker-base-name preprod-mxnet \\\n                                      --instance-type ml.m4.xlarge \\\n                                      --tag 1.6.0-cpu-py3\n\nContributing\n------------\n\nPlease read `CONTRIBUTING.md <https://github.com/aws/sagemaker-mxnet-containers/blob/master/CONTRIBUTING.md>`__\nfor details on our code of conduct, and the process for submitting pull requests to us.\n\nLicense\n-------\n\nSageMaker MXNet Containers is licensed under the Apache 2.0 License.\nIt is copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.\nThe license is available at: http://aws.amazon.com/apache2.0/",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/aws/sagemaker-mxnet-containers",
+        "keywords": "",
+        "license": "Apache License 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sagemaker-mxnet-training-toolkit",
+        "package_url": "https://pypi.org/project/sagemaker-mxnet-training-toolkit/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/sagemaker-mxnet-training-toolkit/",
+        "project_urls": {
+            "Homepage": "https://github.com/aws/sagemaker-mxnet-containers"
+        },
+        "release_url": "https://pypi.org/project/sagemaker-mxnet-training-toolkit/3.9.10/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Open source library for creating MXNet containers to run on Amazon SageMaker.",
+        "version": "3.9.10"
+    },
+    "last_serial": 6498705,
+    "releases": {
+        "3.9.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6d0e3f5f44498f2f03cf9813b81cefeb",
+                    "sha256": "713a5248d1ef48bb75cb7b1e692f276b61d915275549719fe8dbfb1a54171d18"
+                },
+                "downloads": -1,
+                "filename": "sagemaker_mxnet_training_toolkit-3.9.10.tar.gz",
+                "has_sig": true,
+                "md5_digest": "6d0e3f5f44498f2f03cf9813b81cefeb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12448,
+                "upload_time": "2020-01-22T06:57:34",
+                "upload_time_iso_8601": "2020-01-22T06:57:34.579806Z",
+                "url": "https://files.pythonhosted.org/packages/cd/2c/4e86a4e48c7e8b87e4ecaba8fc7598f3adad3d03a54b7d457a5b9e447589/sagemaker_mxnet_training_toolkit-3.9.10.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "6d0e3f5f44498f2f03cf9813b81cefeb",
+                "sha256": "713a5248d1ef48bb75cb7b1e692f276b61d915275549719fe8dbfb1a54171d18"
+            },
+            "downloads": -1,
+            "filename": "sagemaker_mxnet_training_toolkit-3.9.10.tar.gz",
+            "has_sig": true,
+            "md5_digest": "6d0e3f5f44498f2f03cf9813b81cefeb",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 12448,
+            "upload_time": "2020-01-22T06:57:34",
+            "upload_time_iso_8601": "2020-01-22T06:57:34.579806Z",
+            "url": "https://files.pythonhosted.org/packages/cd/2c/4e86a4e48c7e8b87e4ecaba8fc7598f3adad3d03a54b7d457a5b9e447589/sagemaker_mxnet_training_toolkit-3.9.10.tar.gz"
+        }
+    ]
+}

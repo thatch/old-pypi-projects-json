@@ -1,0 +1,706 @@
+{
+    "info": {
+        "author": "Matt VanEseltine",
+        "author_email": "matvan@umich.edu",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: End Users/Desktop",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3 :: Only",
+            "Topic :: Database",
+            "Topic :: Security",
+            "Topic :: Security :: Cryptography",
+            "Topic :: Sociology",
+            "Topic :: Text Processing",
+            "Topic :: Utilities",
+            "Typing :: Typed"
+        ],
+        "description": "\n<h2 align=\"center\"> hmac4csv: conveniently apply HMAC to hash CSV files </h2>\n\n<p align=\"center\">\n  <a href=\"https://www.gnu.org/licenses/agpl-3.0\">\n    <img alt=\"License: MIT\" src=\"https://img.shields.io/pypi/l/hmac4csv?style=flat-square\" />\n  </a>\n  <a href=\"https://pypi.python.org/pypi/hmac4csv\">\n    <img alt=\"Distributed via PyPI\" src=\"https://img.shields.io/pypi/v/hmac4csv?style=flat-square&color=009999\" />\n  </a>\n  <a href=\"https://codeclimate.com/github/iris-umetrics/hmac4csv\">\n    <img alt=\"Maintainability rated at Code Climate\" src=\"https://img.shields.io/codeclimate/maintainability-percentage/iris-umetrics/hmac4csv?style=flat-square\">\n  </a>\n  <a href=\"https://coveralls.io/github/iris-umetrics/hmac4csv\">\n    <img alt=\"Test coverage at Coveralls\" src=\"https://img.shields.io/coveralls/github/iris-umetrics/hmac4csv?style=flat-square\" />\n  </a>\n  <a href=\"https://github.com/iris-umetrics/hmac4csv\">\n    <img alt=\"Latest commit at GitHub\" src=\"https://img.shields.io/github/last-commit/iris-umetrics/hmac4csv?style=flat-square\" />\n  </a>\n</p>\n\n\nThis package applies the Hashed Message Authentication Code (HMAC)\n[Python built-in module](https://docs.python.org/3/library/hmac.html)\nto turn plain text CSV data into hashes,\ncombining a secret key with the SHA-256 hashing algorithm.\n\nThe `hmac4csv` utility provided is a one-line executable to securely hash entire data files.\n\n## Usage\n\n    $ cat ./sample.csv\n    ID,SSN,FNAME,MNAME,LNAME\n    555555,123456789,John,Deer,Doe\n    10101010,111111111,Jane,Cat,Coe\n    346712,999999999,Cynthia,Mouse,Moe\n    987654,444444444,David,Fish,Foe\n    23232323,888888888,Susan,Duck,Hoe\n\n    $ hmac4csv sample.csv --key=\"a-key-shared-only-with-those-who-need-it-for-hashing\" --exclude=ID\n    1 files to hash:\n        sample.csv --> hashed/sample.csv\n    1 hashed files written.\n\n    $ cat ./hashed/sample.csv\n    ID,SSN,FNAME,MNAME,LNAME\n    555555,4714786a9f0ab7ef3ac6bc6faa3ab41b7ab306c386a92bd6adb4d1c24618ef0a,71049a572a1e480fbaea8e1995da39aad40ad6b81f8c0745067da4f19f30b1b1,4192cf14e31eedc899dfad95f37ac5ebbbc4e39cd3927a543bca0ea3cb162010,a59c25e6feac6e8e43ca240c39d9d0ad26c09b4167dadac17c93948df83d5709\n    10101010,58288e804cbf742f6c3d1fdd2df8e86e1434c9eb86f94961692c6dc7fcf589a5,9ff5bf6df33b322fb13b3029918b0d6ab837ff383ca55eb26761e96f8500a90b,d5faef47cf8ac6d4e8adb78e615501ef7d03f21f87935a42b245eda3197e43b5,be6bf5f565e94095d6094595cc96fdce80ab865966fa231ad5e708ad83f21abe\n    346712,71237681882d923c87358e16caafe1a98842e8aab1c9d7c30aa275afad2391a9,4f4e1ec36d273876665ac75003c153a3e010db9f3761fed7d0f04314b55ab61f,2daaab4a7ae793fd1c99a3636adc1d5d529e65a6021baeec9a2d1cff7e409550,aa6a549b8dd83563be4ef2b5de4088b2e5f6ca28648dd9b58a425eec290054ff\n    987654,02578a90ca1c30d130658582c2cb9c0c22817539d382ac21a35f6f3e8b2cb98e,ddaa6b44cf6d157c2a18438e50f7b9673d00073ad993553c28c3cf4b6c39dce6,a6be494f3e918808893e25323fecf765be085d5c98e414fdcd49e925ffc7f96b,91454db4e8550d1dc33113d99464d903d7ab47cde10ee82500f5d7528756b232\n    23232323,dcebe57e6ca62f10cbdd80957df0fcc2e16b7ee28c5938cfa8ffbd5864aac119,14c7b04b45c5cbe49f9bdbfc56580a1bf5f4c43ada2a3cdce5b66cdaf33d16d2,c73fda97afc3738bf000925ca18b81144db34c9c0a5eb6da4ba411fafdddb100,0562a66686e6df6cfd08732c49ac080a327eaade6b36b38ca318fdb844f9f41b\n\nRunning `hmac4csv` later (or any HMAC-SHA-256 implementation)\nusing the same secret key (`a-key-shared-only-with-those-who-need-it-for-hashing`)\nwill yield identical hashes\n(e.g., `Doe` becomes `a59c25e6feac6e8e43ca240c39d9d0ad26c09b4167dadac17c93948df83d5709`).\n\nWithout knowing the secret key, it is functionally impossible to directly encode or decode these values.\n\n### 0. Get some data in CSV\n\nPresumably, if you didn't have data, you wouldn't be looking at `hmac4csv`.\n\n### 1. Create the secret key\n\n`hmac4csv` is designed to allow the user to pass a text passphrase as a key.\n`hmac4csv` will automatically convert any ordinary string into the byte-based key\nfor HMAC. (Specifically, it will first encode the string via utf-8\nand then hash it with SHA-256.)\nIf the key is being shared across parties, a lengthy passphrase* can be useful:\n\n    $ cat secret.ini\n    key = how to recognise different trees from quite a long way away\n\n\\* See https://www.useapassphrase.com/.\n\nIf you'd prefer to separately create the key, pass the hexademical representation.\n`hmac4csv` will decode the hex into bytes to use directly as the HMAC key.\nFor example, you might prefer a different hash function, or you might want to\ngenerate a completely random key separately.\n\n    $ cat secret.ini\n    key = 6083717701d662b94314ea9de278224c2800e854deeef1091a9b99734f46d7f7\n\n### 2. Store the secret key\n\nUsing the `hmac4csv` command line utility, the key may be specified in three ways.\n`hmac4csv` will search for the key in this order:\n\n1. The `--key` option on the command line.\n\n2. An environment variable called `HMAC4CSV_KEY`.\n\n3. `secret.ini` in the current directory.\n    - `hmac4csv` will look for a `key=` line in the first section.\n    - A different file may be specified using the `--config` option.\n\n### 3. Consider excluding columns\n\nIt's often useful to preserve one or a few columns.\nIn the first example above, we preserved the ID column in its original form.\nThat would let us link back to any other information from our data source.\n\nWith the `--exclude` option, pass a comma-separated list of columns that will\nnot be altered in the hashed csv that `hmac4csv` creates.\n\n### 4. Consider a dry run\n\nUsing the `--dry-run` or simply `-n` option, the list of CSVs to be hashed\nand their output filenames will be listed but *no files will be written*.\nFiles that would be overwritten on a full `hmac4csv` run are noted.\n\n### 5. Engage\n\nYou've created your key and considered whether to keep any columns as they are.\nYou've done a dry run to confirm that it's collecting and translating the files you expect.\nYou're ready for a full run of `hmac4csv` to get that information securely hashed.\n\n## Caution\n\nBear in mind that this is a hashing algorithm.\nIt is useful because we can compare exact values without observing any raw values.\n\nWithout the key, you can learn nothing from the hashed data and you cannot\n(reasonably) create comparable hashes.\n\nEven with the key, the original content\ncannot (reasonably) be recovered directly from the hashed value.\nThis is hashing, not encryption.\n\n\n\n## Additional reading\n\nIf you'd like to understand more about HMAC,\nhead over to [Wikipedia](https://en.wikipedia.org/wiki/HMAC):\n\n>In cryptography, an HMAC (sometimes expanded as either keyed-hash message authentication code or hash-based message authentication code) is a specific type of message authentication code (MAC) involving a cryptographic hash function and a secret cryptographic key. It may be used to simultaneously verify both the data integrity and the authenticity of a message, as with any MAC. Any cryptographic hash function, such as SHA-256 or SHA-3, may be used in the calculation of an HMAC; the resulting MAC algorithm is termed HMAC-X, where X is the hash function used (e.g. HMAC-SHA256 or HMAC-SHA3). The cryptographic strength of the HMAC depends upon the cryptographic strength of the underlying hash function, the size of its hash output, and the size and quality of the key.\n\nI also found the following helpful in learning about HMAC:\n\n - https://blog.jcoglan.com/2012/06/09/why-you-should-never-use-hash-functions-for-message-authentication/\n - https://rdist.root.org/2009/10/29/stop-using-unsafe-keyed-hashes-use-hmac/\n - https://crypto.stackexchange.com/questions/39739/selecting-an-appropriate-key-for-hmac\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/iris-umetrics/hmac-for-csv",
+        "keywords": "cryptography,csv,data,encrypt,encryption,hash,hashing,HMAC,PII,secret,secure",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "hmac4csv",
+        "package_url": "https://pypi.org/project/hmac4csv/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/hmac4csv/",
+        "project_urls": {
+            "Homepage": "https://github.com/iris-umetrics/hmac-for-csv",
+            "Issue Tracker": "https://github.com/iris-umetrics/hmac4csv/issues"
+        },
+        "release_url": "https://pypi.org/project/hmac4csv/2019.12.13/",
+        "requires_dist": [
+            "Click (==7.0)"
+        ],
+        "requires_python": "",
+        "summary": "Securely hash CSV data with HMAC keyed authentication.",
+        "version": "2019.12.13"
+    },
+    "last_serial": 6295563,
+    "releases": {
+        "2019.11.22": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ebc46ef8d01f2c31879250731df82d4",
+                    "sha256": "4e170c184febd79708ce94a01cf94dafa50ff6a1e2682bbaebc4cd8cf2f2a07f"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.22-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2ebc46ef8d01f2c31879250731df82d4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8752,
+                "upload_time": "2019-11-23T04:55:48",
+                "upload_time_iso_8601": "2019-11-23T04:55:48.807393Z",
+                "url": "https://files.pythonhosted.org/packages/d3/a1/7f64d70c7d5ea195462f4e065ef045f46328ffd00118c545dcc707737d49/hmac4csv-2019.11.22-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af42c24e0a3c8a6d82ddd0e5e73000cc",
+                    "sha256": "fbcc347f277b53c175fcf8eb519c0d661ec0a1124262a8c66563e6aed5797020"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.22.tar.gz",
+                "has_sig": false,
+                "md5_digest": "af42c24e0a3c8a6d82ddd0e5e73000cc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7435,
+                "upload_time": "2019-11-23T04:55:50",
+                "upload_time_iso_8601": "2019-11-23T04:55:50.310812Z",
+                "url": "https://files.pythonhosted.org/packages/81/fa/5efe7075be1054727088b497b4dfc59ed2ab3293cc92e7e6cc490ec1f3f4/hmac4csv-2019.11.22.tar.gz"
+            }
+        ],
+        "2019.11.22-1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6dc14938a0d7bc7a8545ac6276675e76",
+                    "sha256": "bbbbd895ddff706a9605a771085ba4f34f244881fe1056b4c0bde18aefa5820a"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.22-1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6dc14938a0d7bc7a8545ac6276675e76",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7441,
+                "upload_time": "2019-11-23T05:03:09",
+                "upload_time_iso_8601": "2019-11-23T05:03:09.141320Z",
+                "url": "https://files.pythonhosted.org/packages/c2/34/99fa5a40b2d1ad5aa4d9df82ef6653d08ebfa49085b710f509a74dcedfeb/hmac4csv-2019.11.22-1.tar.gz"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "396e15e52620142699a81a99373cc97e",
+                    "sha256": "e9c083fe0885b55a459d2a76bbf0185087f8e346104bd89e2ef809f15ed66dfb"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.22.post1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "396e15e52620142699a81a99373cc97e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8843,
+                "upload_time": "2019-11-23T05:03:06",
+                "upload_time_iso_8601": "2019-11-23T05:03:06.014963Z",
+                "url": "https://files.pythonhosted.org/packages/2a/30/d0a8382f6909080930478e8faf852c69badf66f90685c6511a3266759409/hmac4csv-2019.11.22.post1-py3-none-any.whl"
+            }
+        ],
+        "2019.11.22.post2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "450d233e328f057c7112b67cad7c90f9",
+                    "sha256": "a21c5a19a9579e70786a4cf883d508a0de62692a0efa03889a2d850e158afe53"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.22.post2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "450d233e328f057c7112b67cad7c90f9",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8847,
+                "upload_time": "2019-11-23T05:08:16",
+                "upload_time_iso_8601": "2019-11-23T05:08:16.767682Z",
+                "url": "https://files.pythonhosted.org/packages/70/92/69871045b91fff6d44a141d7468c1945fc36c1ddc2c12f52e60d4679c898/hmac4csv-2019.11.22.post2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a2862a438844e34981280ea5b37767d9",
+                    "sha256": "4ad5672b13153e4afca9ece11ceb5edcfa9aa7b1a63de6478541f63badf73d30"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.22.post2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a2862a438844e34981280ea5b37767d9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7451,
+                "upload_time": "2019-11-23T05:08:18",
+                "upload_time_iso_8601": "2019-11-23T05:08:18.155721Z",
+                "url": "https://files.pythonhosted.org/packages/98/ab/9bbb511599cc3fd7bf8a7c961026eb4c6b2e483d35dc71d953f23731e270/hmac4csv-2019.11.22.post2.tar.gz"
+            }
+        ],
+        "2019.11.23": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5edf35c25bd2ecda2506f4cbce5256cd",
+                    "sha256": "6b1f351179e705c5e08cc2af9c2a24015e9f47826c1eaa87181c7d499d89ee94"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.23-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5edf35c25bd2ecda2506f4cbce5256cd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8752,
+                "upload_time": "2019-11-23T05:23:15",
+                "upload_time_iso_8601": "2019-11-23T05:23:15.297692Z",
+                "url": "https://files.pythonhosted.org/packages/a9/4a/aabf29ad2565f1766625f61110bc63e8b21b51974610c72e5a5379beb811/hmac4csv-2019.11.23-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "604ff5d9ef7d193e457910b48b0070a9",
+                    "sha256": "9d17b57ef2e6052e44f9c7a1064a6747f528f4fff457938f535a7f5335711b4f"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.23.tar.gz",
+                "has_sig": false,
+                "md5_digest": "604ff5d9ef7d193e457910b48b0070a9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7442,
+                "upload_time": "2019-11-23T05:23:16",
+                "upload_time_iso_8601": "2019-11-23T05:23:16.851240Z",
+                "url": "https://files.pythonhosted.org/packages/e3/5a/0413164de0f29367557b4ea20c7baa273fcf80c8cbad2e44d61a1997a29f/hmac4csv-2019.11.23.tar.gz"
+            }
+        ],
+        "2019.11.23.dev0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "262f635fd1e2c49362327f525e2c86bf",
+                    "sha256": "efcd9670cbac143a5060007fc3d540ee44b038182e5a2fc613b79cb3d8b56b2a"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.23.dev0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "262f635fd1e2c49362327f525e2c86bf",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8833,
+                "upload_time": "2019-11-23T05:14:38",
+                "upload_time_iso_8601": "2019-11-23T05:14:38.598269Z",
+                "url": "https://files.pythonhosted.org/packages/e5/8b/21b65e14234cd5d5fd0579fcecaaf05b7216d0c4d67a9a5ca0cb5b26dd2b/hmac4csv-2019.11.23.dev0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "83dd536b4147c71105f972b106455876",
+                    "sha256": "c289fc1d80c76110576bb451762633fb00fcf871a2bb1e4993bd0e1635c991c6"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.23.dev0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "83dd536b4147c71105f972b106455876",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7448,
+                "upload_time": "2019-11-23T05:14:39",
+                "upload_time_iso_8601": "2019-11-23T05:14:39.938388Z",
+                "url": "https://files.pythonhosted.org/packages/82/a2/05a7cea4f0999d63c8aee959ff4fec2cba368a5e5dafefee913924a7a8a4/hmac4csv-2019.11.23.dev0.tar.gz"
+            }
+        ],
+        "2019.11.23.post0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1944239c45a8299ce4a8dcc73b60abe0",
+                    "sha256": "4333aeecb6a6fd380dcc37c245537735b87e1f0c7e0e0d49f28e5bd90b372e57"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.23.post0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1944239c45a8299ce4a8dcc73b60abe0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8851,
+                "upload_time": "2019-11-23T05:26:00",
+                "upload_time_iso_8601": "2019-11-23T05:26:00.490575Z",
+                "url": "https://files.pythonhosted.org/packages/9f/5b/f22422709ee143e02795af4bbebbf18e4fd8aab4f89c17e94e853d6bccb2/hmac4csv-2019.11.23.post0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2e855d59cd9ef082a36497c01c3b2cf6",
+                    "sha256": "76e9106a502869b1fd15768c76522cc44a06d6b7bb9178f17145da52b4ca3925"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.23.post0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2e855d59cd9ef082a36497c01c3b2cf6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7451,
+                "upload_time": "2019-11-23T05:26:02",
+                "upload_time_iso_8601": "2019-11-23T05:26:02.022269Z",
+                "url": "https://files.pythonhosted.org/packages/6b/11/6a345934987a8cb25bfcc600d5448a9edb101b71c615d3efac130d0451b9/hmac4csv-2019.11.23.post0.tar.gz"
+            }
+        ],
+        "2019.11.23.post1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "40480058a985f24847246bb3daf0975f",
+                    "sha256": "ba5e8ff229f6887b84a07e96e052ae4839a6abecfc8f28e0e0a2c9a19c6ea876"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.23.post1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "40480058a985f24847246bb3daf0975f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9194,
+                "upload_time": "2019-11-24T02:00:31",
+                "upload_time_iso_8601": "2019-11-24T02:00:31.026654Z",
+                "url": "https://files.pythonhosted.org/packages/77/f4/be3492ac31b79c5f90b2acd348dede0aa2e5e3959bc10c5abf052c85b606/hmac4csv-2019.11.23.post1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa5300ff4bb473f1e721ba811b86f781",
+                    "sha256": "27f12fae09dde575acaab257683241b3de5192d2f78ef2659daaf4e91a3e86bd"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.23.post1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aa5300ff4bb473f1e721ba811b86f781",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7735,
+                "upload_time": "2019-11-24T02:00:32",
+                "upload_time_iso_8601": "2019-11-24T02:00:32.556268Z",
+                "url": "https://files.pythonhosted.org/packages/16/9a/f7ee2c3ee8743c0caeedad670c522e708b1b433cb78bb95208bb0aa96bf7/hmac4csv-2019.11.23.post1.tar.gz"
+            }
+        ],
+        "2019.11.25": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0b9156187d5a15c3b07b519da38762f",
+                    "sha256": "06165a61036b62126dbe62c0462d369ee25cf2c976d385b9e7c679ec5afd40d9"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.25-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c0b9156187d5a15c3b07b519da38762f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10471,
+                "upload_time": "2019-11-26T04:20:59",
+                "upload_time_iso_8601": "2019-11-26T04:20:59.838530Z",
+                "url": "https://files.pythonhosted.org/packages/a8/87/cceee0b4aae48bc721ade7f0adde4d18cc3d94c958b53e9be9692b008c45/hmac4csv-2019.11.25-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "109787f8dca1c75eaae37d103ed941b7",
+                    "sha256": "c4cf558c027984999322060cb422ca068de4cac0c0c5c77103f21000d1895573"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.25.tar.gz",
+                "has_sig": false,
+                "md5_digest": "109787f8dca1c75eaae37d103ed941b7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8782,
+                "upload_time": "2019-11-26T04:21:01",
+                "upload_time_iso_8601": "2019-11-26T04:21:01.803672Z",
+                "url": "https://files.pythonhosted.org/packages/12/01/0c517d3a5d5aab7e74b73a9e26ad6ca75bf244134fba01b897a0ece98844/hmac4csv-2019.11.25.tar.gz"
+            }
+        ],
+        "2019.11.26": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c28cd91a3a68de8a83a2009b9541b83f",
+                    "sha256": "c34258995b1d5c07630f78cfcbf05b7d686e12e47d4a37b27db90f2544234cb7"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.26-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c28cd91a3a68de8a83a2009b9541b83f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 6541,
+                "upload_time": "2019-11-26T18:59:35",
+                "upload_time_iso_8601": "2019-11-26T18:59:35.399839Z",
+                "url": "https://files.pythonhosted.org/packages/b5/07/9d2ac62d0e5c8a8466f3323b204ada010425d358dd89e64a06ff6397b74a/hmac4csv-2019.11.26-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e36a0120305cd285cba5da140a3295fe",
+                    "sha256": "b5b32062413035ef7718f79b7c6466f1966d713b0443b449ba06db2f3da8cf66"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.26.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e36a0120305cd285cba5da140a3295fe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9340,
+                "upload_time": "2019-11-26T18:59:36",
+                "upload_time_iso_8601": "2019-11-26T18:59:36.320316Z",
+                "url": "https://files.pythonhosted.org/packages/ef/aa/fdb0f2eb760e29ada5fab4a74bf0334364c80fc5265290f0bdc3ef761aed/hmac4csv-2019.11.26.tar.gz"
+            }
+        ],
+        "2019.11.26.post0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14beb767fd39d61056d1fefde9406cd5",
+                    "sha256": "f383763e050fd979ab482f772d0c0b5a352816af2a1d9ba8ce02999124cecab1"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.26.post0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "14beb767fd39d61056d1fefde9406cd5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9685,
+                "upload_time": "2019-11-26T20:52:19",
+                "upload_time_iso_8601": "2019-11-26T20:52:19.845560Z",
+                "url": "https://files.pythonhosted.org/packages/21/f4/b2468c8ea743aa1c7f8dfb3a6eb159e60a760af6d80aabd60b2becfeec0b/hmac4csv-2019.11.26.post0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9412ad26fbe8a4aeb5c50b552f16fdb",
+                    "sha256": "97c739e4d825093589bf7e79c4ed5cdf1f8b147b663776060d8dc30ce795b1d3"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.26.post0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d9412ad26fbe8a4aeb5c50b552f16fdb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12846,
+                "upload_time": "2019-11-26T20:52:21",
+                "upload_time_iso_8601": "2019-11-26T20:52:21.020037Z",
+                "url": "https://files.pythonhosted.org/packages/f9/11/35d89db3d7ed5784b054f7e55ad5e23ee1fb71ec0447e3d3ebb0e3ef8527/hmac4csv-2019.11.26.post0.tar.gz"
+            }
+        ],
+        "2019.11.26.post1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a2cdffedb001955c0eb5b6be030b6812",
+                    "sha256": "b0974953a8f63b83a8f07b6c857c666196558b24ea18701c2e823306d4891267"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.26.post1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a2cdffedb001955c0eb5b6be030b6812",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 14018,
+                "upload_time": "2019-11-27T04:36:23",
+                "upload_time_iso_8601": "2019-11-27T04:36:23.667850Z",
+                "url": "https://files.pythonhosted.org/packages/22/4c/77d75fc467c60a66379f87a0a4c7d4530191da9689e6d35cb32233a44b26/hmac4csv-2019.11.26.post1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "947f044f9d62c036965693544e715ab2",
+                    "sha256": "c4094e01c5b31f90d04ad7fa1a88adb7503572fa59feb620d9905472db3d46c6"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.26.post1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "947f044f9d62c036965693544e715ab2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13341,
+                "upload_time": "2019-11-27T04:36:25",
+                "upload_time_iso_8601": "2019-11-27T04:36:25.704267Z",
+                "url": "https://files.pythonhosted.org/packages/b2/bc/4d456a3714535d82a13d15055d291b2c65c9312e1d298a4b04a27ddd93a0/hmac4csv-2019.11.26.post1.tar.gz"
+            }
+        ],
+        "2019.11.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "44222dbd23bf19b2877d3d192f95e176",
+                    "sha256": "f3d32c883304ef6ccf0c47c0b00e3005049a6d36ce41cbc5b333e3c616fc902f"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.dev1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "44222dbd23bf19b2877d3d192f95e176",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 8783,
+                "upload_time": "2019-11-23T04:41:13",
+                "upload_time_iso_8601": "2019-11-23T04:41:13.577037Z",
+                "url": "https://files.pythonhosted.org/packages/c4/a3/688af54c95bb0eea4b186d45a8a896eb351da2482429143f76d4e1db8970/hmac4csv-2019.11.dev1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "129d4d0f16bf0d1c2413c9a9cf6c7b69",
+                    "sha256": "3c7a4e5f2452036992baa6ba606808e304ba479357ae312985e23c5df5edea4b"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.11.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "129d4d0f16bf0d1c2413c9a9cf6c7b69",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7445,
+                "upload_time": "2019-11-23T04:41:15",
+                "upload_time_iso_8601": "2019-11-23T04:41:15.759425Z",
+                "url": "https://files.pythonhosted.org/packages/ba/61/4e04587a60ac298b8e8438475ca1c786c44353abc1c9f8b09e3c13d0f874/hmac4csv-2019.11.dev1.tar.gz"
+            }
+        ],
+        "2019.12.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b9d48025a9d6fd9d6bb488fec7eae089",
+                    "sha256": "0a26e46f6914ec695420bb0c5a7be03b5a9bd78f07d8b4272a76533c6e89ab55"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.12.13-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b9d48025a9d6fd9d6bb488fec7eae089",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10590,
+                "upload_time": "2019-12-13T21:26:15",
+                "upload_time_iso_8601": "2019-12-13T21:26:15.555137Z",
+                "url": "https://files.pythonhosted.org/packages/4a/d6/a3d33d4a8baf87cf628d695373e790bf1a2efb4be6d318730b5f7bffdd1c/hmac4csv-2019.12.13-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "37f05d6dda02c4bf0d2ab7694ca84161",
+                    "sha256": "ba47f76f1e06315bb255b8374f2d2824f6e651596a9486b668482a0d69795d8d"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.12.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "37f05d6dda02c4bf0d2ab7694ca84161",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16411,
+                "upload_time": "2019-12-13T21:26:16",
+                "upload_time_iso_8601": "2019-12-13T21:26:16.864155Z",
+                "url": "https://files.pythonhosted.org/packages/df/84/9ce3f40f5bdb48add6b53f931a5c4cc27f60de9a51f4cc941ab531b41b87/hmac4csv-2019.12.13.tar.gz"
+            }
+        ],
+        "2019.12.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3ba018e0b7d32398d7c5982c98face82",
+                    "sha256": "dad927f8ae399d3126d5d33afdca24d02af3295ca4fae31bc285808d4518923d"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.12.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3ba018e0b7d32398d7c5982c98face82",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9797,
+                "upload_time": "2019-12-03T15:27:46",
+                "upload_time_iso_8601": "2019-12-03T15:27:46.198876Z",
+                "url": "https://files.pythonhosted.org/packages/31/2b/8e92057aa996efbba890cbaf2b42109e3a9181e246aa70fb2a78ef058a5e/hmac4csv-2019.12.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "90d430002ddc2fe3d31798445c756922",
+                    "sha256": "1500a95134be2b65616edb3e2e6f42297a54b2f97dbb17e52a4e3107f5f5f01a"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.12.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "90d430002ddc2fe3d31798445c756922",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13774,
+                "upload_time": "2019-12-03T15:27:47",
+                "upload_time_iso_8601": "2019-12-03T15:27:47.163437Z",
+                "url": "https://files.pythonhosted.org/packages/80/af/3ac5add44e5aebecbd40d6a282b8d34c59106ead92ca5d1d7515c2dd0ad9/hmac4csv-2019.12.3.tar.gz"
+            }
+        ],
+        "2019.12.3.post0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2754c14130dbf373a931fd015d60342b",
+                    "sha256": "3f5409c2ada86f8dbfab11cc772a27af060412f7a477c7b57005938164a50bfa"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.12.3.post0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2754c14130dbf373a931fd015d60342b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10369,
+                "upload_time": "2019-12-03T19:11:02",
+                "upload_time_iso_8601": "2019-12-03T19:11:02.629140Z",
+                "url": "https://files.pythonhosted.org/packages/ab/d6/5bbe1681d441262f94d0900c0fad96a79c96b0a8afbb5be4c35223f8ef27/hmac4csv-2019.12.3.post0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3f5cbcbbb6f54f3b81308ccda5656e1",
+                    "sha256": "f5abadc0232616d3c04292e767c451323a334f937500a03ae9e1f3c52890887d"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.12.3.post0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c3f5cbcbbb6f54f3b81308ccda5656e1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15023,
+                "upload_time": "2019-12-03T19:11:04",
+                "upload_time_iso_8601": "2019-12-03T19:11:04.010613Z",
+                "url": "https://files.pythonhosted.org/packages/a8/d3/8dd8c628a00ac934ce8610f95d42829c4d182efef5dd420516a30c4cf540/hmac4csv-2019.12.3.post0.tar.gz"
+            }
+        ],
+        "2019.12.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b57e862efaaa8c7c6c4bf8eb6263f28a",
+                    "sha256": "df440deb2660e9e8848ce52c26b88595e1585c6e707646480ce50233127b22dd"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.12.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b57e862efaaa8c7c6c4bf8eb6263f28a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10581,
+                "upload_time": "2019-12-04T16:35:44",
+                "upload_time_iso_8601": "2019-12-04T16:35:44.666391Z",
+                "url": "https://files.pythonhosted.org/packages/c4/9c/32a74478bc064f9a5d11c8c35171d277b171c24cf5d4756d70bc0b31d7d9/hmac4csv-2019.12.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "975df7702ba10de78cdd58990e0b9d6a",
+                    "sha256": "a9e2de5e51fbe56b53ed62ecc7fd5e44a3cc52fa4da852bc0f373beaa74533d3"
+                },
+                "downloads": -1,
+                "filename": "hmac4csv-2019.12.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "975df7702ba10de78cdd58990e0b9d6a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16413,
+                "upload_time": "2019-12-04T16:35:46",
+                "upload_time_iso_8601": "2019-12-04T16:35:46.061998Z",
+                "url": "https://files.pythonhosted.org/packages/34/a4/835768a91afe6d46a634e47f5794a0293a76fe3be892dedf8fc3f923eb63/hmac4csv-2019.12.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b9d48025a9d6fd9d6bb488fec7eae089",
+                "sha256": "0a26e46f6914ec695420bb0c5a7be03b5a9bd78f07d8b4272a76533c6e89ab55"
+            },
+            "downloads": -1,
+            "filename": "hmac4csv-2019.12.13-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "b9d48025a9d6fd9d6bb488fec7eae089",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 10590,
+            "upload_time": "2019-12-13T21:26:15",
+            "upload_time_iso_8601": "2019-12-13T21:26:15.555137Z",
+            "url": "https://files.pythonhosted.org/packages/4a/d6/a3d33d4a8baf87cf628d695373e790bf1a2efb4be6d318730b5f7bffdd1c/hmac4csv-2019.12.13-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "37f05d6dda02c4bf0d2ab7694ca84161",
+                "sha256": "ba47f76f1e06315bb255b8374f2d2824f6e651596a9486b668482a0d69795d8d"
+            },
+            "downloads": -1,
+            "filename": "hmac4csv-2019.12.13.tar.gz",
+            "has_sig": false,
+            "md5_digest": "37f05d6dda02c4bf0d2ab7694ca84161",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 16411,
+            "upload_time": "2019-12-13T21:26:16",
+            "upload_time_iso_8601": "2019-12-13T21:26:16.864155Z",
+            "url": "https://files.pythonhosted.org/packages/df/84/9ce3f40f5bdb48add6b53f931a5c4cc27f60de9a51f4cc941ab531b41b87/hmac4csv-2019.12.13.tar.gz"
+        }
+    ]
+}

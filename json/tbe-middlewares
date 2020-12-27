@@ -1,0 +1,298 @@
+{
+    "info": {
+        "author": "zhukovgreen",
+        "author_email": "zhukovgreen@ya.ru",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# Rationale\n\nTbe ecosystem contains of a lot of microservices,\nwhich requires unification, reusability.\n\nThis package represents a common set of middlewares\nfor all tbe microservices\n\n# Use\n```python\nimport os\nimport pytest\nfrom aiohttp import web\n\nfrom tbe_middlewares import setup_middlewares\n\n\nasync def previous(request):\n    if request.method == \"POST\":\n        request.app[\"value\"] = (await request.post())[\n            \"value\"\n        ]\n        return web.Response(\n            body=b\"thanks for the data\"\n        )\n    return web.Response(\n        body=\"value: {}\".format(\n            request.app[\"value\"]\n        ).encode(\"utf-8\")\n    )\n\n\nasync def some_error(request):\n    raise ValueError(\n        \"Some_error endpoint raise ValueError\"\n    )\n\n\n@pytest.fixture()\ndef cli(loop, aiohttp_client):\n    os.environ[\"SENTRY_DSN\"] = (\n        \"https://ad22ab36986994034a813562d6765cfb\"\n        \"@sentry.io/1234356\"\n    )  # not existing dsn\n    app = web.Application()\n    app.router.add_get(\"/\", previous)\n    app.router.add_post(\"/\", previous)\n    app.router.add_get(\"/get_only\", previous)\n    app.router.add_get(\"/some_error\", some_error)\n    urls_map = {\n        \"/\": [\"GET\", \"POST\"],\n        \"/get_only\": [\"GET\"],\n        \"/some_error\": [\"GET\"],\n    }\n    setup_middlewares(\n        app=app, urls_map=urls_map, sentry=True\n    )\n    return loop.run_until_complete(\n        aiohttp_client(app)\n    )\n\n\nasync def test_middlewares_shield(cli):\n    await cli.post(\"/\", data={\"value\": \"foo\"})\n    await cli.get(\"/\")\n    await cli.get(\"/get_only\")\n    resp = await cli.post(\n        \"/get_only\", data={\"value\": \"foo\"}\n    )\n    resp = await resp.json()\n    assert resp == {\n        \"error\": \"HTTPMethodNotAllowed:\"\n        \" ('Method Not Allowed',)\"\n    }\n\n    resp = await cli.post(\n        \"/not_exists\", data={\"value\": \"foo\"}\n    )\n    resp = await resp.json()\n    assert resp == {\n        \"error\": \"HTTPNotFound: ('Not Found',)\"\n    }\n\n\nasync def test_middlewares_error(cli):\n    resp = await cli.get(\"/some_error\")\n    resp = await resp.json()\n    assert resp == {\n        \"error\": \"ValueError: ('Some_error endpoint raise ValueError',)\"\n    }\n```\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/remak-dva/tbe-middlewares",
+        "keywords": "",
+        "license": "",
+        "maintainer": "zhukovgreen",
+        "maintainer_email": "zhukovgreen@ya.ru",
+        "name": "tbe-middlewares",
+        "package_url": "https://pypi.org/project/tbe-middlewares/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/tbe-middlewares/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/remak-dva/tbe-middlewares",
+            "Repository": "https://gitlab.com/remak-dva/tbe-middlewares"
+        },
+        "release_url": "https://pypi.org/project/tbe-middlewares/0.1.5/",
+        "requires_dist": [
+            "aiohttp (>=3.4,<4.0)",
+            "aiohttp_sentry (>=0.4.1,<0.5.0)",
+            "aiohttp-middlewares (>=0.1.1,<0.2.0)",
+            "envparse (>=0.2.0,<0.3.0)"
+        ],
+        "requires_python": ">=3.7,<4.0",
+        "summary": "",
+        "version": "0.1.5"
+    },
+    "last_serial": 4729494,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8cc38bc8c1b26b419dabc7064a36e39",
+                    "sha256": "d1963ea9ca98674186ccad211a2bd32a8d3c2821e863ea37e1c6667bb6784bd9"
+                },
+                "downloads": -1,
+                "filename": "tbe_middlewares-0.1.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c8cc38bc8c1b26b419dabc7064a36e39",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 3339,
+                "upload_time": "2018-08-31T16:10:20",
+                "url": "https://files.pythonhosted.org/packages/df/af/9b9b20167ddfcccf366fdc23917ec8f7387a68b33d013d392683e05c5a33/tbe_middlewares-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c04196f6fada209e94bfe2fde73508b6",
+                    "sha256": "35541c33859f9049999f675d490b3671cce5dab476956e7a81d6469b65fca8d5"
+                },
+                "downloads": -1,
+                "filename": "tbe-middlewares-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c04196f6fada209e94bfe2fde73508b6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1571,
+                "upload_time": "2018-08-31T16:10:18",
+                "url": "https://files.pythonhosted.org/packages/3c/a6/5cb99c604ca7a94635ada5f92f150c665b17258213d8f37a2c29b4ba62d6/tbe-middlewares-0.1.0.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "010ea2052fb24f81c1da45a82d2bbca6",
+                    "sha256": "dbb91a314ca8fb5b4ebf8c474b376e5bd18123837d36bde5360645509134eba7"
+                },
+                "downloads": -1,
+                "filename": "tbe_middlewares-0.1.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "010ea2052fb24f81c1da45a82d2bbca6",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 4137,
+                "upload_time": "2018-08-31T16:16:32",
+                "url": "https://files.pythonhosted.org/packages/6f/ad/72f4199e7f32ca19885f66cc5e6f464ca96445347f3ab3418f0bd9156d5b/tbe_middlewares-0.1.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "28725b144776155e972d0edb0a4dfecf",
+                    "sha256": "aef607c8340616193bde70c9356cdcd5093479e70ce9f5691574b04a04cf8178"
+                },
+                "downloads": -1,
+                "filename": "tbe-middlewares-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "28725b144776155e972d0edb0a4dfecf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2668,
+                "upload_time": "2018-08-31T16:16:30",
+                "url": "https://files.pythonhosted.org/packages/fa/f8/dca04065be15f1c3ede43011b7871b11e185701eea29713821334107c537/tbe-middlewares-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a47c512a7b50b46b8fb83d7602c57132",
+                    "sha256": "e36a1334a1054a3687e519a7d6a6c509a3d7c8484508e89916f88d620587eeff"
+                },
+                "downloads": -1,
+                "filename": "tbe_middlewares-0.1.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a47c512a7b50b46b8fb83d7602c57132",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 3687,
+                "upload_time": "2018-09-02T19:37:35",
+                "url": "https://files.pythonhosted.org/packages/b5/41/b09df785c33864984b5aec4a31f95ea917282efd2f5f5bf1ad3d90e6b67d/tbe_middlewares-0.1.2-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5fabbfbd053243ad00b290e12f371482",
+                    "sha256": "f2a6b6ccc7ae19aaa5f602444a4e0643210f4bf9ff50ab7140bf2dd0d565018a"
+                },
+                "downloads": -1,
+                "filename": "tbe-middlewares-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5fabbfbd053243ad00b290e12f371482",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2629,
+                "upload_time": "2018-09-02T19:37:33",
+                "url": "https://files.pythonhosted.org/packages/9d/bb/849f848f0c8d13d888d0373a68b7b5358d0b7e0e36771d4e2aa5e128e650/tbe-middlewares-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "83a4411cf223ce948615fb4ea6834790",
+                    "sha256": "c300c31dde3f86bd69bd47597c1b95373792697600fc41c51c6adedf15b3e3d8"
+                },
+                "downloads": -1,
+                "filename": "tbe_middlewares-0.1.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "83a4411cf223ce948615fb4ea6834790",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 3687,
+                "upload_time": "2018-09-02T19:41:08",
+                "url": "https://files.pythonhosted.org/packages/b0/59/685d64f477ce8deaba605a91fa7188fd6160e479816b427e914e2383d455/tbe_middlewares-0.1.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "50ebb61ca448e69e975d6fb128f227a6",
+                    "sha256": "b88d13dba6406eec97c74010673018dae66806103121c5cb234ea1ad4415df5f"
+                },
+                "downloads": -1,
+                "filename": "tbe-middlewares-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "50ebb61ca448e69e975d6fb128f227a6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2630,
+                "upload_time": "2018-09-02T19:41:07",
+                "url": "https://files.pythonhosted.org/packages/ba/64/4d5cc000ac25fc93837f8a978f3d688d7cde151a4f4cedb737ff8de91ba6/tbe-middlewares-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "352f8b8e44288c0cd04878db8dd09db8",
+                    "sha256": "c3aeca49aac5ae787f136002d0f1fa632a3e193cb7c61578d5210e2ee96fdf00"
+                },
+                "downloads": -1,
+                "filename": "tbe_middlewares-0.1.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "352f8b8e44288c0cd04878db8dd09db8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 3810,
+                "upload_time": "2018-09-05T04:36:14",
+                "url": "https://files.pythonhosted.org/packages/c9/8a/4c97228249286b259afaa47c6885f559a97c6a314d3f55fec7eb652cf33c/tbe_middlewares-0.1.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eb296987e0ea59089a4815ce9feae8be",
+                    "sha256": "a6e1a3382091afb10da966d609b5095a455fb47a7b936d98a4e9066619369a4d"
+                },
+                "downloads": -1,
+                "filename": "tbe-middlewares-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "eb296987e0ea59089a4815ce9feae8be",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2689,
+                "upload_time": "2018-09-05T04:36:13",
+                "url": "https://files.pythonhosted.org/packages/ca/af/9974e97b684f45896087bb33ea2024d0fadc5a3da76891efdc3d5bd6e183/tbe-middlewares-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7588e7ae3aab713e3b95ac7e41994a7d",
+                    "sha256": "4eb3680fe442da5d00d854a51329c5f9587e4e4776fc54ab7cff2e6cd2509f75"
+                },
+                "downloads": -1,
+                "filename": "tbe_middlewares-0.1.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "7588e7ae3aab713e3b95ac7e41994a7d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.7,<4.0",
+                "size": 3822,
+                "upload_time": "2019-01-23T07:27:26",
+                "url": "https://files.pythonhosted.org/packages/9c/f6/8f7bcc5088fb1025077ff085fae658e329a910d8f6579c703770b26a0aea/tbe_middlewares-0.1.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7a696e5b7af627f11b284e0f7183e6c7",
+                    "sha256": "33803131cd2acff4e38f7d3727ecaf54eaf38ac3192e9e130fd3b1d187bd56ae"
+                },
+                "downloads": -1,
+                "filename": "tbe-middlewares-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7a696e5b7af627f11b284e0f7183e6c7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.7,<4.0",
+                "size": 2750,
+                "upload_time": "2019-01-23T07:27:24",
+                "url": "https://files.pythonhosted.org/packages/77/f7/62a244554b2711908cb8d411363886309073ada2497c917c550a0262f05d/tbe-middlewares-0.1.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7588e7ae3aab713e3b95ac7e41994a7d",
+                "sha256": "4eb3680fe442da5d00d854a51329c5f9587e4e4776fc54ab7cff2e6cd2509f75"
+            },
+            "downloads": -1,
+            "filename": "tbe_middlewares-0.1.5-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "7588e7ae3aab713e3b95ac7e41994a7d",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.7,<4.0",
+            "size": 3822,
+            "upload_time": "2019-01-23T07:27:26",
+            "url": "https://files.pythonhosted.org/packages/9c/f6/8f7bcc5088fb1025077ff085fae658e329a910d8f6579c703770b26a0aea/tbe_middlewares-0.1.5-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "7a696e5b7af627f11b284e0f7183e6c7",
+                "sha256": "33803131cd2acff4e38f7d3727ecaf54eaf38ac3192e9e130fd3b1d187bd56ae"
+            },
+            "downloads": -1,
+            "filename": "tbe-middlewares-0.1.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "7a696e5b7af627f11b284e0f7183e6c7",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.7,<4.0",
+            "size": 2750,
+            "upload_time": "2019-01-23T07:27:24",
+            "url": "https://files.pythonhosted.org/packages/77/f7/62a244554b2711908cb8d411363886309073ada2497c917c550a0262f05d/tbe-middlewares-0.1.5.tar.gz"
+        }
+    ]
+}

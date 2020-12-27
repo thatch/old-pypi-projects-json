@@ -1,0 +1,117 @@
+{
+    "info": {
+        "author": "Linlin Jia",
+        "author_email": "linlin.jia@insa-rouen.fr",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# py-graph\n[![Build Status](https://travis-ci.org/jajupmochi/py-graph.svg?branch=ljia)](https://travis-ci.org/jajupmochi/py-graph)\n[![codecov](https://codecov.io/gh/jajupmochi/py-graph/branch/ljia/graph/badge.svg)](https://codecov.io/gh/jajupmochi/py-graph)\n[![Documentation Status](https://readthedocs.org/projects/py-graph/badge/?version=ljia)](https://py-graph.readthedocs.io/en/ljia/?badge=ljia)\n\nA python package for graph kernels.\n\n## Requirements\n\n* python==3.6.5\n* numpy==1.15.2\n* scipy==1.1.0\n* matplotlib==3.0.0\n* networkx==2.2\n* scikit-learn==0.20.0\n* tabulate==0.8.2\n* tqdm==4.26.0\n* control==0.8.0 (for generalized random walk kernels only)\n* slycot==0.3.3 (for generalized random walk kernels only, which requires a fortran compiler, gfortran for example)\n\n## How to use?\n\nSimply clone this repository and voil\u00e0! Then check [`notebooks`](https://github.com/jajupmochi/py-graph/tree/ljia/notebooks) directory for demos:\n* [`notebooks`](https://github.com/jajupmochi/py-graph/tree/ljia/notebooks) directory includes test codes of graph kernels based on linear patterns;\n* [`notebooks/tests`](https://github.com/jajupmochi/py-graph/tree/ljia/notebooks/tests) directory includes codes that test some libraries and functions;\n* [`notebooks/utils`](https://github.com/jajupmochi/py-graph/tree/ljia/notebooks/utils) directory includes some useful tools, such as a Gram matrix checker and a function to get properties of datasets;\n* [`notebooks/else`](https://github.com/jajupmochi/py-graph/tree/ljia/notebooks/else) directory includes other codes that we used for experiments.\n\n## List of graph kernels\n\n* Based on walks\n  * The common walk kernel [1]\n    * Exponential\n    * Geometric\n  * The marginalized kenrel\n    * With tottering [2]\n    * Without tottering [7]\n  * The generalized random walk kernel [3]\n    * Sylvester equation\n    * Conjugate gradient\n    * Fixed-point iterations\n    * Spectral decomposition\n* Based on paths\n  * The shortest path kernel [4]\n  * The structural shortest path kernel [5]\n  * The path kernel up to length h [6]\n    * The Tanimoto kernel\n    * The MinMax kernel\n* Non-linear kernels\n  * The treelet kernel [10]\n  * Weisfeiler-Lehman kernel [11]\n    * Subtree\n\n## Computation optimization methods\n\n* Python\u2019s `multiprocessing.Pool` module is applied to perform **parallelization** on the computations of all kernels as well as the model selection.\n* **The Fast Computation of Shortest Path Kernel (FCSP) method** [8] is implemented in *the random walk kernel*, *the shortest path kernel*, as well as *the structural shortest path kernel* where FCSP is applied on both vertex and edge kernels.\n* **The trie data structure** [9] is employed in *the path kernel up to length h* to store paths in graphs.\n\n## Issues\n\n* This library uses `multiprocessing.Pool.imap_unordered` function to do the parallelization, which may not be able to run correctly under Windows system. For now, Windows users may need to comment the parallel codes and uncomment the codes below them which run serially. We will consider adding a parameter to control serial or parallel computations as needed.\n\n* Some modules (such as `Numpy`, `Scipy`, `sklearn`) apply [`OpenBLAS`](https://www.openblas.net/) to perform parallel computation by default, which causes conflicts with other parallelization modules such as `multiprossing.Pool`, highly increasing the computing time. By setting its thread to 1, `OpenBLAS` is forced to use a single thread/CPU, thus avoids the conflicts. For now, this procedure has to be done manually. Under Linux, type this command in terminal before running the code:\n```\n$ export OPENBLAS_NUM_THREADS=1\n```\nOr add `export OPENBLAS_NUM_THREADS=1` at the end of your `~/.bashrc` file, then run\n```\n$ source ~/.bashrc\n```\nto make this effective permanently.\n\n## Results\n\nCheck this paper for detailed description of graph kernels and experimental results:\n\nLinlin Jia, Benoit Ga\u00fcz\u00e8re, and Paul Honeine. Graph Kernels Based on Linear Patterns: Theoretical and Experimental Comparisons. working paper or preprint, March 2019. URL https://hal-normandie-univ.archives-ouvertes.fr/hal-02053946.\n\n## References\n[1] Thomas G\u00e4rtner, Peter Flach, and Stefan Wrobel. On graph kernels: Hardness results and efficient alternatives. Learning Theory and Kernel Machines, pages 129\u2013143, 2003.\n\n[2] H. Kashima, K. Tsuda, and A. Inokuchi. Marginalized kernels between labeled graphs. In Proceedings of the 20th International Conference on Machine Learning, Washington, DC, United States, 2003.\n\n[3] Vishwanathan, S.V.N., Schraudolph, N.N., Kondor, R., Borgwardt, K.M., 2010. Graph kernels. Journal of Machine Learning Research 11, 1201\u20131242.\n\n[4] K. M. Borgwardt and H.-P. Kriegel. Shortest-path kernels on graphs. In Proceedings of the International Conference on Data Mining, pages 74-81, 2005.\n\n[5] Liva Ralaivola, Sanjay J Swamidass, Hiroto Saigo, and Pierre Baldi. Graph kernels for chemical informatics. Neural networks, 18(8):1093\u20131110, 2005.\n\n[6] Suard F, Rakotomamonjy A, Bensrhair A. Kernel on Bag of Paths For Measuring Similarity of Shapes. InESANN 2007 Apr 25 (pp. 355-360).\n\n[7] Mah\u00e9, P., Ueda, N., Akutsu, T., Perret, J.L., Vert, J.P., 2004. Extensions of marginalized graph kernels, in: Proc. the twenty-first international conference on Machine learning, ACM. p. 70.\n\n[8] Lifan Xu, Wei Wang, M Alvarez, John Cavazos, and Dongping Zhang. Parallelization of shortest path graph kernels on multi-core cpus and gpus. Proceedings of the Programmability Issues for Heterogeneous Multicores (MultiProg), Vienna, Austria, 2014.\n\n[9] Edward Fredkin. Trie memory. Communications of the ACM, 3(9):490\u2013499, 1960.\n\n[10] Ga\u00fczere, B., Brun, L., Villemin, D., 2012. Two new graphs kernels in chemoinformatics. Pattern Recognition Letters 33, 2038\u20132047.\n\n[11] Shervashidze, N., Schweitzer, P., Leeuwen, E.J.v., Mehlhorn, K., Borgwardt, K.M., 2011. Weisfeiler-lehman graph kernels. Journal of Machine Learning Research 12, 2539\u20132561.\n\n## Authors\n\n* [Linlin Jia](https://github.com/jajupmochi), LITIS, INSA Rouen Normandie\n* [Benoit Ga\u00fcz\u00e8re](http://pagesperso.litislab.fr/~bgauzere/#contact_en), LITIS, INSA Rouen Normandie\n* [Paul Honeine](http://honeine.fr/paul/Welcome.html), LITIS, Universit\u00e9 de Rouen Normandie\n\n## Citation\n\nStill waiting...\n\n## Acknowledgments\n\nThis research was supported by CSC (China Scholarship Council) and the French national research agency (ANR) under the grant APi (ANR-18-CE23-0014). The authors would like to thank the CRIANN (Le Centre R\u00e9gional Informatique et d\u2019Applications Num\u00e9riques de Normandie) for providing computational resources.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/jajupmochi/py-graph",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "PyGraML",
+        "package_url": "https://pypi.org/project/PyGraML/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/PyGraML/",
+        "project_urls": {
+            "Homepage": "https://github.com/jajupmochi/py-graph"
+        },
+        "release_url": "https://pypi.org/project/PyGraML/0.1b1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A Python library for graph kernels based on linear patterns",
+        "version": "0.1b1"
+    },
+    "last_serial": 6624990,
+    "releases": {
+        "0.1b1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d9f05ec1392999afdf3b1d2a273d710",
+                    "sha256": "d710a4f23afcd53d0e805958e0e0b4f7a0dc17958d4eff27c6f4aafef66aa9d4"
+                },
+                "downloads": -1,
+                "filename": "PyGraML-0.1b1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4d9f05ec1392999afdf3b1d2a273d710",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 42924,
+                "upload_time": "2020-02-13T17:31:17",
+                "upload_time_iso_8601": "2020-02-13T17:31:17.372827Z",
+                "url": "https://files.pythonhosted.org/packages/45/1a/9d634b0fb0d81cf724fced5f7ada93558371c112f0f0fee44006587730cf/PyGraML-0.1b1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3922bad87e31bc98bd52b9969eb8c968",
+                    "sha256": "ef563193f2af210708f9020a548ef2de82277e33676c2edb36891c623b1daea1"
+                },
+                "downloads": -1,
+                "filename": "PyGraML-0.1b1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3922bad87e31bc98bd52b9969eb8c968",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 29770,
+                "upload_time": "2020-02-13T17:31:25",
+                "upload_time_iso_8601": "2020-02-13T17:31:25.959379Z",
+                "url": "https://files.pythonhosted.org/packages/9e/df/63b2dd5f85ae7958fd554eb26edd0004088a1b27cee675f69a090eb184a3/PyGraML-0.1b1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4d9f05ec1392999afdf3b1d2a273d710",
+                "sha256": "d710a4f23afcd53d0e805958e0e0b4f7a0dc17958d4eff27c6f4aafef66aa9d4"
+            },
+            "downloads": -1,
+            "filename": "PyGraML-0.1b1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "4d9f05ec1392999afdf3b1d2a273d710",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 42924,
+            "upload_time": "2020-02-13T17:31:17",
+            "upload_time_iso_8601": "2020-02-13T17:31:17.372827Z",
+            "url": "https://files.pythonhosted.org/packages/45/1a/9d634b0fb0d81cf724fced5f7ada93558371c112f0f0fee44006587730cf/PyGraML-0.1b1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3922bad87e31bc98bd52b9969eb8c968",
+                "sha256": "ef563193f2af210708f9020a548ef2de82277e33676c2edb36891c623b1daea1"
+            },
+            "downloads": -1,
+            "filename": "PyGraML-0.1b1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3922bad87e31bc98bd52b9969eb8c968",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 29770,
+            "upload_time": "2020-02-13T17:31:25",
+            "upload_time_iso_8601": "2020-02-13T17:31:25.959379Z",
+            "url": "https://files.pythonhosted.org/packages/9e/df/63b2dd5f85ae7958fd554eb26edd0004088a1b27cee675f69a090eb184a3/PyGraML-0.1b1.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,154 @@
+{
+    "info": {
+        "author": "Thomas Duval",
+        "author_email": "thomas.duval@orange.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 1 - Planning",
+            "License :: OSI Approved",
+            "Natural Language :: French",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "================================\nCore module for the Moon project\n================================\n\nThis package contains the main module for the Moon project\nIt is designed to provide the main entry point for the Moon platform.\n\nFor any other information, refer to the parent project:\n\n    https://git.opnfv.org/moon\n\n\nUsage\n=====\n\nGet the code\n------------\n\n    git clone https://git.opnfv.org/moon\n    cd moon\n    MOON_HOME=$(pwd)\n\nCreate an initial docker\n------------------------\n\n    cd /tmp\n    git clone https://github.com/rebirthmonkey/vmspace.git\n    cd docker/ubuntu_python\n    # Check the proxy settings in Dockerfile\n    docker build ubuntu:python .\n\nConfigure the network\n---------------------\n\n    docker network create -d bridge --subnet=172.18.0.0/16 --gateway=172.18.0.1 moon\n    echo \"127.0.0.1 messenger db\" | sudo tee -a /etc/hosts\n\nStart Rabbitmq\n--------------\n\n    docker run -dti --net=moon --hostname messenger --name messenger --link messenger:messenger -e RABBITMQ_DEFAULT_USER=moon -e RABBITMQ_DEFAULT_PASS=password -e RABBITMQ_NODENAME=rabbit@messenger -e RABBITMQ_DEFAULT_VHOST=moon -p 5671:5671 -p 5672:5672 rabbitmq:3-management\n\nStart MySQL server\n------------------\n\n    docker run -dti  --net=moon --hostname db --name db -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mysql:8\n    cd $(MOON_HOME)/moon_orchestrator\n    mysql -h db -uroot -ppassword < bin/init_db.sql\n\nGet python packages for all components\n--------------------------------------\n\n    cd $(MOON_HOME)/moon_orchestrator\n    bash bin/build_all.sh\n    mysql -h db -uroot -ppassword < bin/init_db.sql\n\nStart Orchestrator\n------------------\n\n    cd $(MOON_HOME)/moon_orchestrator\n    pyvenv tests/venv\n    . tests/venv/bin/activate\n    pip install -r ../moon_db/requirements.txt\n    pip install -r ../moon_utilities/requirements.txt\n    pip install -r requirements.txt\n    pip install dist/moon_db-0.1.0.tar.gz\n    pip install dist/moon_utilities-0.1.0.tar.gz\n    pip install .\n    # Check the proxy settings in $(MOON_HOME)/moon_orchestrator/conf/moon.conf\n    moon_orchestrator\n\nGet some logs\n-------------\n\n    docker logs messenger\n    docker logs router\n    docker logs interface\n\nGet the API in PDF\n------------------\n\n    cd $(MOON_HOME)/moon_interface/tools\n    sudo pip install requests\n    sudo apt-get install pandoc\n    /usr/bin/python3 api2rst.py\n    pandoc api.rst -o api.pdf\n    evince api.pdf\n\nHow to hack the Moon platform\n=============================\n\nUpdate the moon_interface\n-------------------------\n\nGo to the directory $(MOON_HOME)/moon_interface and update the code accordingly to your needs,\nthen update the python package.\n\n    python setup.py sdist\n    cp dist/moon_interface_* ../moon_orchestrator/dist\n    # kill moon_orchestrator if needed and restart it\n\nUpdate the moon_secrouter\n-------------------------\n\nGo to the directory $(MOON_HOME)/moon_secrouter and update the code accordingly to your needs,\nthen update the python package.\n\n    python setup.py sdist\n    cp dist/moon_secrouter* ../moon_orchestrator/dist\n    # kill moon_orchestrator if needed and restart it\n\nProblems that may arise\n=======================\n\nIf the moon_orchestrator doesn't want to start\n(with, for example, the following error: `docker.errors.APIError: 409 Client Error: Conflict`),\ncheck if the router and interface containers still exist and kill and delete them:\n\n    docker kill interface\n    docker kill router\n    docker rm interface\n    docker rm router\n\nIf the moon_orchestrator complains that it cannot request the RabbitMQ server,\ncheck if the messenger server is up and running:\n\n    docker ps\n    # you must see the messenger running here\n    # if not, restart it\n    docker run -dti --net=moon --hostname messenger --name messenger --link messenger:messenger -e RABBITMQ_DEFAULT_USER=moon -e RABBITMQ_DEFAULT_PASS=password -e RABBITMQ_NODENAME=rabbit@messenger -e RABBITMQ_DEFAULT_VHOST=moon -p 5671:5671 -p 5672:5672 rabbitmq:3-management\n\n\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://git.opnfv.org/cgit/moon/",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "moon-orchestrator",
+        "package_url": "https://pypi.org/project/moon-orchestrator/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/moon-orchestrator/",
+        "release_url": "https://pypi.org/project/moon-orchestrator/1.0.1/",
+        "requires_dist": [
+            "docker-py",
+            "jinja2",
+            "kombu (!=4.0.0,!=4.0.1)",
+            "oslo.config",
+            "oslo.log",
+            "oslo.messaging (!=5.13.0,!=5.14.0)",
+            "pymysql",
+            "sqlalchemy",
+            "vine",
+            "werkzeug"
+        ],
+        "requires_python": "",
+        "summary": "",
+        "version": "1.0.1"
+    },
+    "last_serial": 3598221,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0b585bba732f583a59562d07ac4c1643",
+                    "sha256": "3380a1044e80701e4a4fc83339cd128a48baa14b5adac6c7348313c6454cf621"
+                },
+                "downloads": -1,
+                "filename": "moon_orchestrator-1.0.0-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "0b585bba732f583a59562d07ac4c1643",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 22440,
+                "upload_time": "2017-07-19T08:07:30",
+                "url": "https://files.pythonhosted.org/packages/63/5c/52e78bf8909087a50789b7bcbdc5f47f3605ce8d106b1002a18d717a57d6/moon_orchestrator-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "698d8a97003f6de939b7dd7a6a7bd846",
+                    "sha256": "3907d151031843738b788449fa5d23af3089d39108915652eb58a2c275f7c456"
+                },
+                "downloads": -1,
+                "filename": "moon_orchestrator-1.0.0.tar.gz",
+                "has_sig": true,
+                "md5_digest": "698d8a97003f6de939b7dd7a6a7bd846",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 23176,
+                "upload_time": "2017-07-19T08:07:57",
+                "url": "https://files.pythonhosted.org/packages/04/a0/26975df4310ab0a672f4ddcfd68b6bab01b0fb671987904017b0b698710a/moon_orchestrator-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c89d923232833616aaa811ce0733595",
+                    "sha256": "09e50ebe5373703c213dd012c03800da79eb984f6cee30ca4eacf412b46c5327"
+                },
+                "downloads": -1,
+                "filename": "moon_orchestrator-1.0.1-py2-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5c89d923232833616aaa811ce0733595",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2",
+                "size": 22457,
+                "upload_time": "2017-07-19T08:16:01",
+                "url": "https://files.pythonhosted.org/packages/ff/80/bf8a30b557cb56e78b1aa957bb9dc97b56e849779baa0e4cd6e710b93b84/moon_orchestrator-1.0.1-py2-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bb75c66dce40c6b4a8cce0f78f4b6a4b",
+                    "sha256": "393b7f654be220c9bc10548ac87a3278afb21d0264b4e165bb4992509597a945"
+                },
+                "downloads": -1,
+                "filename": "moon_orchestrator-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bb75c66dce40c6b4a8cce0f78f4b6a4b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 22050,
+                "upload_time": "2017-07-19T08:16:13",
+                "url": "https://files.pythonhosted.org/packages/94/6a/4978c009ddc27274c0de7367927f4a80306cb46ac1e04f456746703944d1/moon_orchestrator-1.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5c89d923232833616aaa811ce0733595",
+                "sha256": "09e50ebe5373703c213dd012c03800da79eb984f6cee30ca4eacf412b46c5327"
+            },
+            "downloads": -1,
+            "filename": "moon_orchestrator-1.0.1-py2-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "5c89d923232833616aaa811ce0733595",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2",
+            "size": 22457,
+            "upload_time": "2017-07-19T08:16:01",
+            "url": "https://files.pythonhosted.org/packages/ff/80/bf8a30b557cb56e78b1aa957bb9dc97b56e849779baa0e4cd6e710b93b84/moon_orchestrator-1.0.1-py2-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "bb75c66dce40c6b4a8cce0f78f4b6a4b",
+                "sha256": "393b7f654be220c9bc10548ac87a3278afb21d0264b4e165bb4992509597a945"
+            },
+            "downloads": -1,
+            "filename": "moon_orchestrator-1.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "bb75c66dce40c6b4a8cce0f78f4b6a4b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 22050,
+            "upload_time": "2017-07-19T08:16:13",
+            "url": "https://files.pythonhosted.org/packages/94/6a/4978c009ddc27274c0de7367927f4a80306cb46ac1e04f456746703944d1/moon_orchestrator-1.0.1.tar.gz"
+        }
+    ]
+}

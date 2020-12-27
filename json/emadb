@@ -1,0 +1,88 @@
+{
+    "info": {
+        "author": "Rafael Gonzalez",
+        "author_email": "astrorafael@yahoo.es",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Environment :: No Input/Output (Daemon)",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: Microsoft :: Windows :: Windows XP",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: SQL",
+            "Topic :: Scientific/Engineering :: Astronomy",
+            "Topic :: Scientific/Engineering :: Atmospheric Science"
+        ],
+        "description": "# EMADB\n\nLinux service to collect measurements pubished by EMA via MQTT.\nEMA stands for [Cristobal Garcia's EMA Weather Station](http://www.observatorioremoto.com/emav2/meteoen.htm)\n\nThis service is designed to run in cooperation with my [ema Server also available in GitHub](https://github.com/astrorafael/ema).\n\n## Description\n\n**emadb** is a software package that collects measurements from one or several\nEMA wheather stations into a SQLite Database. \n\nDesktop applicatons may query the database to generate reports and graphs\nusing historic data. You can also monitor current station status.\n\nThree data sources are available:\n\n+ Per hour minima and maxima values (historic data)\n+ individual samples (real time, 1 min. aprox)\n+ 5 min. individual samples (historic data) (NOT YET IMPLEMENTED)\n\n**Warning**: Time handled by EMA is UTC, not local time.\n\n## Installation & Configuration\n\n### Requirements\n\nThe following components should be installed first:\n\n * python 2.7.x (tested on Ubunti python 2.7.6 & Windows XP python 2.7.10)\n * [Python PAHO MQTT module](https://pypi.python.org/pypi/paho-mqtt/1.1), downloadable via pip (Linux/Windows)\n * [Python for Windows Extensions](http://sourceforge.net/projects/pywin32/). Must choose python27 builds. (tested on build 219, for python27 windows 32bits)\n\nThe Windows python 2.7 distro comes with the pip utility included. Open a CMD window and type:\n\n    pip install paho-mqtt\n    \n### Linux installation (Debian)\n\nSimply type:\n\n  `sudo ./setup.sh`\n\nAll executables are copied to /usr/local/bin\n\nType `sudo emadb` to start the service in foreground with console output\n\nAn available startup service script for Debian based systems is provided. \n\nType `sudo service emad start` to start it.\nType `sudo update-rc.d emad defaults` to install it at boot time.\n\n### Windows installation\n\nNOT YET AVAILABLE\n\n### EMA Server Configuation\n\nBy default, file `/etc/emadb/config.ini` provides the configuration options needed.\nThis file is self explanatory. In special, the database file name and location is specified in this file.\n\n### Reloadable Parameters\n\nThe emadb service supports on-line reconfiguration on a limited subset of parameters.\nThis means that you will not loose incoming data while changing these parameters.\nThe list is listed below:\n\n    [GENERIC]\n    # If true, the EMADB server will hold incoming MQTT messages instead of \n    # writting them to the SQL database\n    # Useful to perform online database maintenance\n    on_hold = no\n    # component log level (DEBUG, INFO, WARNING, ERROR, CRITICAL, NOTSET)\n    generic_log = INFO\n\n    [DBASE]\n    # Full Database Path File Name\n    dbase_file = emahistory.db\n    # Directory where JSON data is located\n    dbase_json_dir = config\n    # Period for periodic task execution [minutes]\n    dbase_period = 1\n    # Limit years (included) for the Date dimension (from Jan 1 to Dec 12)\n    dbase_year_start = 2015\n    dbase_year_end   = 2025\n    # Auto Purge RealTimeSamples table every day (at midnight UTC)\n    # or let it grow\n    dbase_purge = no\n\n    # component log level (VERBOSE, DEBUG, INFO, WARNING, ERROR, CRITICAL, NOTSET)\n    dbase_log = DEBUG\n\n    [MQTT]\n    # MQTT topics to subscribe\n    # reconfigurable by reload\n    mqtt_topics= EMA/+/history/minmax,EMA/+/current/status\n    # component log level (VERBOSE, DEBUG, INFO, WARNING, ERROR, CRITICAL, NONSET)\n    mqtt_log = INFO\n\n### Logging\n\nLog file is usually placed under `/var/log/emad.log`. \nDefault log level is `INFO`. It generates very litte logging at this level.\nFile is rotated by the application itself. Two strategies are supported:\n\n+ Daily rotations at midnight. Useful if the service runs for a long time.\n+ Size-based rotation. Useful if service is starte/stopped several times during the day.\n\n## Operation\n\n### Service start/stop/restart/reload\n\nIn Linux, this is done using the well-known init.d script with parameters:\n\n    sudo service emadb status\n    sudo service emadb start\n    sudo service emadb restart\n    sudo service emadb reload\n    sudo service emadb stop\n    \nThe `service emadb restart` will stop and start the process, loosing the MQTT & database connections.\n\nThe `service emadb reload` will keep the MQTT connection intact.\n\n### On hold mode\n\nThe service can be set to an *on_hold* mode where incoming messages are enqueued in RAM.\ninstead of being written to the SQLite file. This can be useful to perform various database maintenance activities, whcih can include:\n\n* Data Migration & clean up\n* VACUUM\n* etc.\n\nTo do so, set the `on_hold` flag in the config file to yes and reload.\n\n### Updating the registered stations list ##\n\nemadb will only insert incoming MQTT data if the EMA station is previously registered in the database. While you can update the database itself using SQL commands, the preferred approach is to edit the master dimension JSON files, usually stored in the `/etc/emadb` directory.\n\nEdit the files using your favorite editor. Beware, JSON is picky with the syntax.\n\nTo **append** new data in these files, simply reload or restart the service.\nTo **modify** existing data (i.e. changing longitude, latitude of existing stations), use the emadbload utility.\n\nType `sudo emadbload -h` to see the command line arguments.\n\n### Real Time Data \n\nThe RealTimeSamples table is an aid for possible (more or less) real time monitoring of EMA weather stations.\n\nReal time status messages are stored in this table. If the service runs in the background long enough, this table will be periodically purged approximately at 00:00:00 UTC to delete last days samples. \n\n## Data Model\n\nThe data model follows the [dimensional modelling approach by Ralph Kimball]\n(https://en.wikipedia.org/wiki/Dimensional_modeling).\n\n### Dimension Tables\n\n* `Date` : preloaded for 10 years)\n* `Time` : preloaded, minute resolution)\n* `Station`: registered weather stations where to collect data\n* `Type` : measurement types (`Minima`, `Maxima`, `Samples` )\n* `Units`: an assorted collection of unit labels for reports\n\nThe \u00d9nits` table is what Dr. Kimball denotes as a *junk dimension*.\n\n### Fact Tables\n\n* `MinMaxHistory` : fact table contaning hourly minima and maxima measurements ffrom EMA weather stations.\n\n* `RealTimeSamples` : fact table containing current EMA status messages.\n\n### DDL\n\n            CREATE TABLE IF NOT EXISTS Date\n            (\n            date_id        INTEGER PRIMARY KEY, \n            sql_date       TEXT, \n            date           TEXT,\n            day            INTEGER,\n            day_year       INTEGER,\n            julian_day     REAL,\n            weekday        TEXT,\n            weekday_abbr   TEXT,\n            weekday_num    INTEGER,\n            month_num      INTEGER,\n            month          TEXT,\n            month_abbr     TEXT,\n            year           INTEGER\n            );\n            \n            CREATE TABLE IF NOT EXISTS Time\n            (\n            time_id        INTEGER PRIMARY KEY, \n            time           TEXT,\n            hour           INTEGER,\n            minute         INTEGER,\n            day_fraction   REAL\n            );\n            \n            \n            CREATE TABLE IF NOT EXISTS Station\n            (\n            station_id     INTEGER PRIMARY KEY, \n            mqtt_id        TEXT,\n            name           TEXT,\n            owner          TEXT,\n            location       TEXT,\n            province       TEXT,\n            longitude      REAL,\n            longitude_text TEXT,\n            latitude       REAL,\n            latitude_text  TEXT,\n            elevation      REAL\n            );\n\n\n            CREATE TABLE IF NOT EXISTS Units\n            (\n            units_id           INTEGER PRIMARY KEY, \n            roof_relay         TEXT,\n            aux_relay          TEXT,\n            voltage            TEXT,\n            wet                TEXT,\n            cloudy             TEXT,\n            cal_pressure       TEXT,\n            abs_pressure       TEXT,\n            rain               TEXT,\n            irradiantion       TEXT,\n            visual_magnitude   TEXT,\n            frequency          TEXT,\n            temperature        TEXT,\n            relative_humidity  TEXT,\n            dew_point          TEXT,\n            wind_speed         TEXT,\n            wind_direction     TEXT,\n            lag                TEXT\n            );\n\n  \n           CREATE TABLE IF NOT EXISTS MinMaxHistory\n            (\n            date_id            INTEGER NOT NULL REFERENCES Date(date_id), \n            time_id            INTEGER NOT NULL REFERENCES Time(time_id), \n            station_id         INTEGER NOT NULL REFERENCES Station(station_id),\n            type_id            INTEGER NOT NULL REFERENCES Type(type_id),\n            units_id           INTEGER NOT NULL REFERENCES Units(units_id),\n            voltage            REAL,\n            wet                REAL,\n            cloudy             REAL,\n            cal_pressure       REAL,\n            abs_pressure       REAL,\n            rain               REAL,\n            irradiantion       REAL,\n            visual_magnitude   REAL,\n            frequency          REAL,\n            temperature        REAL,\n            relative_humidity  REAL,\n            dew_point          REAL,\n            wind_speed         REAL,\n            wind_direction     INTEGER,\n            timestamp          TEXT,\n            PRIMARY KEY (date_id, time_id, station_id, type_id)\n            );\n\n\n            CREATE TABLE IF NOT EXISTS RealTimeSamples\n            (\n            date_id            INTEGER NOT NULL REFERENCES Date(date_id), \n            time_id            INTEGER NOT NULL REFERENCES Time(time_id), \n            station_id         INTEGER NOT NULL REFERENCES Station(station_id),\n            units_id           INTEGER NOT NULL REFERENCES Units(units_id),\n            voltage            REAL,\n            wet                REAL,\n            cloudy             REAL,\n            cal_pressure       REAL,\n            abs_pressure       REAL,\n            rain               REAL,\n            irradiantion       REAL,\n            visual_magnitude   REAL,\n            frequency          REAL,\n            temperature        REAL,\n            relative_humidity  REAL,\n            dew_point          REAL,\n            wind_speed         REAL,\n            wind_direction     INTEGER,\n            timestamp          TEXT,\n            lag                INTEGER,\n            PRIMARY KEY (date_id, time_id, station_id)\n            );",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/astrorafael/emadb/",
+        "keywords": "EMA Database Meteorology Astronomy Python RaspberryPi",
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "emadb",
+        "package_url": "https://pypi.org/project/emadb/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/emadb/",
+        "project_urls": {
+            "Download": "UNKNOWN",
+            "Homepage": "http://github.com/astrorafael/emadb/"
+        },
+        "release_url": "https://pypi.org/project/emadb/1.0.9/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "A package to collect measurements published by EMA using MQTT and a SQlite database",
+        "version": "1.0.9"
+    },
+    "last_serial": 1944735,
+    "releases": {
+        "1.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3fdfacd30c7bfcd9a1f3d2b7d446c86b",
+                    "sha256": "028e17b8d6c0450291a879725c07ccc0cc9079d0162bb767757523a5a7601432"
+                },
+                "downloads": -1,
+                "filename": "emadb-1.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3fdfacd30c7bfcd9a1f3d2b7d446c86b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 48820,
+                "upload_time": "2016-01-13T19:05:49",
+                "url": "https://files.pythonhosted.org/packages/0b/b0/7a475ead2f25360954351c1553faba2e968d70084a90c87157045a47f61f/emadb-1.0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "3fdfacd30c7bfcd9a1f3d2b7d446c86b",
+                "sha256": "028e17b8d6c0450291a879725c07ccc0cc9079d0162bb767757523a5a7601432"
+            },
+            "downloads": -1,
+            "filename": "emadb-1.0.9.tar.gz",
+            "has_sig": false,
+            "md5_digest": "3fdfacd30c7bfcd9a1f3d2b7d446c86b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 48820,
+            "upload_time": "2016-01-13T19:05:49",
+            "url": "https://files.pythonhosted.org/packages/0b/b0/7a475ead2f25360954351c1553faba2e968d70084a90c87157045a47f61f/emadb-1.0.9.tar.gz"
+        }
+    ]
+}

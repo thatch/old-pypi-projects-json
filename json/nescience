@@ -1,0 +1,81 @@
+{
+    "info": {
+        "author": "R. A. Garcia Leiva",
+        "author_email": "rgarcialeiva@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Auto machine learning with the Nescience class\n\nIn this tutorial we are going to see how to use the class \"Nescience\", in order to compute the nescience (how much we do not know) of a model and a dataset. Also, we are going to see how to use the individual terms that compose the nescience, that is, miscoding, inaccuracy and surfeit.\n\nFor the details about the theory of nescience and its applications to artificial intelligence you can download the book http://www.mathematicsunknown.com/nescience.pdf for free.\n\n## Installation\n\nDownload the Nescience directory. Make sure you run your script in the same directory where the Nescience subdirectory is located. Alternatively, you can put the Nescience subdirectory in a directory included in your PATH.\n\n## Preliminaries\n\nImport the following packages\n\n```python\nimport numpy  as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nfrom matplotlib.pylab import rcParams\n```\n\nFor the examples we are going to use the breast cancer dataset.\n\n```python\nfrom sklearn.datasets import load_breast_cancer\nfrom sklearn.datasets import load_digits\n\nfrom sklearn.model_selection import train_test_split\n```\n\nWe will apply the nescience class to decision tree classifier models and multilayer perceptron models.\n\n```python\nfrom sklearn.tree import DecisionTreeClassifier\nfrom sklearn.neural_network import MLPClassifier\n```\n\nWe sill use also synthetic datasets to better understand the behaviour of the new metrics.\n\n```python\nfrom sklearn.datasets.samples_generator import make_classification\n```\n\n## Miscoding\n\nMiscoding is a measure of how well a dataset X encodes a response variable y. Miscoding can be used for feature selection (identify the most relevant features) or model evaluation (how well the model is using the dataset).\n\n```python\nfrom Nescience.Nescience import Miscoding\n```\n\n### Feature Selection\n\nFeature miscoding measures the effort required to encode the target y variable assuming the knowledge of an individual feature Xi. The higher this value, the better, since that means the feature contains relevant (and only relevant) information about the target.\n\nWe will use a synthetic dataset to show how this method works. We will randomly generate four clouds of points classified according to ten features among which only four are relevant.\n\n```python\nn_samples     = 1000\nn_features    = 20\nn_informative = 4\nn_classes     = 4\n\nX, y = make_classification(n_samples=n_samples, n_features=n_features, n_informative=n_informative, n_redundant=0, n_repeated=0, n_classes=n_classes, n_clusters_per_class=1, weights=None, flip_y=0, class_sep=1.0, hypercube=True, shift=0.0, scale=1.0, shuffle=True, random_state=1)\n```\n\nWe have to initialize the class Nescience with the dataset we are going to use.\n\n```python\nmiscoding = Miscoding()\nmiscoding.fit(X, y)\n```\n\nLet's get the target conditional complexity with respect to all the features.\n\n```python\nmscd = miscoding.miscoding_features()\n```\n\nAnd plot the results.\n\n```python\nplt.bar(x=np.arange(0, 20), height=mscd, tick_label=np.arange(1, 21))\nplt.xlabel(\"Feature\")\nplt.ylabel(\"Miscoding\")\nplt.title(\"Feature Selection with Miscoding\")\nplt.show()\n```\n\n![Feature Miscoding](img/regular_miscoding.png \"Feature Miscoding\")\n\nThere are clearly four features that have some \"predictive\" power over the target variable. A value close to 1 means more predictive power.\n\nLet's compare with a classical correlation schema.\n\n```python\ndf = pd.DataFrame(X)\ndf['y'] = y\ncorr = df.corr()\n```\n\n```python\nplt.bar(x=np.arange(0, 20), height=abs(corr['y'][:-1].values), tick_label=np.arange(1, 21))\nplt.xlabel(\"Feature\")\nplt.ylabel(\"Correlation\")\nplt.title(\"Feature Miscoding\")\nplt.title(\"Feature Selection with Correlation\")\nplt.show()\n```\n\n![Feature Correlation](img/feature_correlation.png \"Feature Correlation\")\n\nIn this case, there are three clear features correlated with the target variable, however, it is not clear if there is a fourth one.\n\n### Model Miscoding\n\nNow, let's compute the miscoding of a trained model. The miscoding of a model measures the \"relevance\" of the collection of features used in the model to predict the target variable.\n\n```python\ndata = load_breast_cancer()\nX = data.data\ny = data.target\n```\n\n```python\nmiscoding = Miscoding()\nmiscoding.fit(X, y)\n```\n\n```python\ntree = DecisionTreeClassifier(min_samples_leaf=5)\ntree.fit(X, y)\n```\n\nIn order to do that we have to pass the model.\n\n```python\nmsd = miscoding.miscoding_model(tree)\nmsd\n```\n\n0.8566936097053427\n\nIt seeems that the model is not using all the relevant attributes. Let's see which are the attributes in use.\n\n```python\nattr_in_use = np.zeros(X.shape[1], dtype=int)\nfeatures = set(tree.tree_.feature[tree.tree_.feature >= 0])\nfor i in features:\n    attr_in_use[i] = 1\nprint(np.unique(data.feature_names[attr_in_use]))\n```\n\n['mean radius' 'mean texture']\n\n```python\nprint(np.unique(data.feature_names))\n```\n\n['area error' 'compactness error' 'concave points error' 'concavity error'\n 'fractal dimension error' 'mean area' 'mean compactness'\n 'mean concave points' 'mean concavity' 'mean fractal dimension'\n 'mean perimeter' 'mean radius' 'mean smoothness' 'mean symmetry'\n 'mean texture' 'perimeter error' 'radius error' 'smoothness error'\n 'symmetry error' 'texture error' 'worst area' 'worst compactness'\n 'worst concave points' 'worst concavity' 'worst fractal dimension'\n 'worst perimeter' 'worst radius' 'worst smoothness' 'worst symmetry'\n 'worst texture']\n\n## Inaccuracy\n\nThe inaccuracy of a model, according to the theory of nescience, is the effort, measured as the length of a computer program, to fix the errors made by the model.\n\n```python\nfrom Nescience.Nescience import Inaccuracy\n```\n\n```python\ndata = load_digits()\nX = data.data\ny = data.target\n```\n\n```python\ntree = DecisionTreeClassifier(min_samples_leaf=5)\ntree.fit(X, y)\n```\n\n```python\ninacc = Inaccuracy()\ninacc.fit(X, y)\n```\n\n```python\ninacc.inaccuracy_model(tree)\n```\n\n0.17320124237643914\n\nCompare the result with the model score:\n\n```python\n1 - tree.score(X, y)\n```\n\n0.07846410684474125\n\n### Check adding more errors\n\nLet's see what happens if we make one hundred times the same error.\n\n```python\nX2 = X.tolist()\ny2 = y.tolist()\npred = tree.predict(X).tolist()\nfor i in np.arange(100):\n    X2.append(X2[0])\n    y2.append(y2[0])\n    pred.append( (y2[0]+1) % 10 )\n```\n\n```python    \ninacc.fit(X2, y2)\ninacc.inaccuracy_predictions(pred)\n```\n\n0.20663657504275057\n\n```python\n1 - tree.score(X2, y2)\n```\n\n0.07380073800738007\n\nThe theory of nescience states that making one hundred times the same error is not that bad. Let's see what happens if we make one hundred different errors.\n\n```python\nX3 = X.tolist()\ny3 = y.tolist()\npred = tree.predict(X).tolist()\nfor i in np.arange(100):\n    X3.append(X[0])\n    y3.append(y[0])\n    pred.append(np.random.randint(10))\n```\n\n```python    \ninacc.fit(X3, y3)\ninacc.inaccuracy_predictions(pred)\n```\n\n0.24409238288694385\n\n```python\n1 - tree.score(X3, y3)\n```\n\n0.07380073800738007\n\nMaking one hundred different errors is worse than making one hundred times the same error. Classical score does not take that into account.\n\n### Imbalanced dataset\n\nLet's see the behaviour of inaccuracy when fitting a model to a highly unbalanced dataset. We will use a decision tree classifier for which we require to have a minimum size for leafs. Given the amount of data, for high values of the leaf size, the tree will be not able to fit the data.\n\n```python\ndepth = list()\nscore = list()\ninaccuracy = list()\n```\n\n```python\nfor i in np.arange(1, 100):\n\n    my_score = list()\n    my_inaccuracy = list()\n\n    for k in range(100):\n\n        X, y = make_classification(n_samples=1000, n_features=2, n_informative=2, n_redundant=0,\n                                   n_repeated=0, n_classes=2, n_clusters_per_class=2, class_sep=2,\n                                   flip_y=0, weights=[0.95,0.05])\n        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)\n\n        inacc.fit(X_test, y_test)\n\n        tree = DecisionTreeClassifier(min_samples_leaf=i)\n        tree.fit(X_train, y_train)\n\n        my_score.append(1 - tree.score(X_test, y_test))\n        my_inaccuracy.append(inacc.inaccuracy_model(tree))\n\n    depth.append(i)        \n    score.append(np.mean(my_score))\n    inaccuracy.append(np.mean(my_inaccuracy))\n```\n\n```python    \nplt.plot(depth, score, label=\"Score\")\nplt.plot(depth, inaccuracy, label=\"Inaccuracy\")\nplt.title(\"Isotropic Gaussian Blobs\")\nplt.ylabel(\"Error\")\nplt.xlabel(\"Minimum Leaf Size\")\nplt.legend(loc='best')\n```\n\n![Imbalanced Dataset](img/imbalanced_dataset.png \"Imbalanced Dataset\")\n\nAs we can observe, score is not able to detect we have a problem with high values of the minimum leaf size parameter. However, inaccuracy tell us tha the model is wrong in those cases.\n\n## Surfeit\n\nSurfeit tell us how far we are from having the shortest possible model for a dataset. Also, surfeit allow us to compare models with very differnt assumputions and shapes.\n\nLet's compare a decision tree and a neural network.\n\n```python\nfrom Nescience.Nescience import Surfeit\n```\n\n```python\ndata = load_digits()\nX_train, X_test, y_train, y_test = train_test_split(data.data, data.target, test_size=.3)\n```\n\n```python\ntree = DecisionTreeClassifier()\ntree.fit(X_train, y_train)\ntree.score(X_test, y_test)\n```\n\n0.8444444444444444\n\n```python\nnn = MLPClassifier()\nnn.fit(X_train, y_train)\nnn.score(X_test, y_test)\n```\n\n0.987037037037037\n\n```python\nsft = Surfeit()\nsft.fit()\n```\n\n```python\nsft.surfeit_model(tree)\n```\n\n0.9523382805936712\n\n```python\nsft.surfeit_model(nn)\n```\n\n0.6660665113323448\n\nIn this case, neural networks are a much better model to classiffy images than decision trees, not only because the have a higher score, but also, because the models are closer to the optimal one.\n\n## Nescience\n\nNescience is a measure of how much we do not know about the problem at hand given a dataset and a model. Nescience is a function of the quantities we have already seen: miscoding, inaccuracy and surfeit. We are looking for a model that mininize the three components.\n\n```python\nfrom Nescience.Nescience import Nescience, Miscoding, Inaccuracy, Surfeit\n```\n\n### Hyperparameter Optimization\n\nLets see how we can apply the concept of nescience to find an optimal value for one of the hyperparameters of decision trees. Please mind that this approach is different of the approach used in the NescienceDecisionTreeClassifer algorithm of the Nescience package.\n\n```python\ndata = load_breast_cancer()\nX = data.data\ny = data.target\n```\n\n```python\nnescience = Nescience()\nnescience.fit(X, y)\n```\n\n```python\nlmiscoding  = list()\nlinaccuracy = list()\nlredudancy  = list()\nlnescience  = list()\n\nmiscoding = Miscoding()\nmiscoding.fit(X, y)\n\ninaccuracy = Inaccuracy()\ninaccuracy.fit(X, y)\n\nsurfeit = Surfeit()\nsurfeit.fit()\n\nfor i in range(10, 30):\n\n    tree = DecisionTreeClassifier(min_samples_leaf=i)\n    tree.fit(X, y)\n\n    lmiscoding.append(miscoding.miscoding_model(tree))\n    linaccuracy.append(inaccuracy.inaccuracy_model(tree))\n    lredudancy.append(surfeit.surfeit_model(tree))\n\n    lnescience.append(nescience.nescience(tree))\n```\n\n```python\nfig, axs = plt.subplots(4, gridspec_kw={'hspace': 0.4, 'wspace': 0})\naxs[0].plot(np.arange(10, 30), lmiscoding)\naxs[0].set_title('Miscoding')\naxs[1].plot(linaccuracy)\naxs[1].set_title('Inaccuracy')\naxs[2].plot(lredudancy)\naxs[2].set_title('Redudancy')\naxs[3].plot(lnescience)\naxs[3].set_title('Nescience')\n```\n\n![Nescience](img/nescience.png \"Nescience\")\n\nThe minimum nescience achieved is\n\n```python\nnp.min(lnescience)\n```\n\n0.44991785345528007\n\nAnd so, the optimal number of samples at leafs should be\n\n```python\n10 + np.argmin(lnescience)\n```\n\n16\n\nCompare the result with the classical way to do this kind of things.\n\n```python\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)\n```\n\n```python\nlscore  = list()\n\nfor i in np.arange(10, 30):\n\n    tree = DecisionTreeClassifier(min_samples_leaf=i)\n    tree.fit(X_train, y_train)\n\n    score = tree.score(X_test, y_test)\n\n    lscore.append(score)\n```\n\n```python\nplt.plot(np.arange(10, 30), lscore)\n```\n\n![Score](img/score.png \"Score\")\n\n```python\nmax(lscore)\n```\n\n0.9649122807017544\n\n```python\n10 + np.argmin(lnescience)\n```\n\n16\n\nBoth methods provide the same result. The nice point about the class nescience is that we have reached that conclusion without splitting the data in train and test subsets. That is, nescience avoids overfitting by desing.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/nescience/machine_learning",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "nescience",
+        "package_url": "https://pypi.org/project/nescience/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/nescience/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/nescience/machine_learning"
+        },
+        "release_url": "https://pypi.org/project/nescience/0.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Auto machine learning library based on the minimum nescience principle",
+        "version": "0.3"
+    },
+    "last_serial": 6130785,
+    "releases": {
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e141e45e03087ebf0b4867e215a9e266",
+                    "sha256": "ba9fd55980a5b6c26afdb6f32f6be73112f51b537a1c999df8b6547b45363e32"
+                },
+                "downloads": -1,
+                "filename": "nescience-0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e141e45e03087ebf0b4867e215a9e266",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 19895,
+                "upload_time": "2019-11-13T15:09:44",
+                "upload_time_iso_8601": "2019-11-13T15:09:44.562088Z",
+                "url": "https://files.pythonhosted.org/packages/0d/40/eacaa1c72ddc0dced81f93ae393607f4aea53a71909585884fca5ba54a4d/nescience-0.3-py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e141e45e03087ebf0b4867e215a9e266",
+                "sha256": "ba9fd55980a5b6c26afdb6f32f6be73112f51b537a1c999df8b6547b45363e32"
+            },
+            "downloads": -1,
+            "filename": "nescience-0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "e141e45e03087ebf0b4867e215a9e266",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 19895,
+            "upload_time": "2019-11-13T15:09:44",
+            "upload_time_iso_8601": "2019-11-13T15:09:44.562088Z",
+            "url": "https://files.pythonhosted.org/packages/0d/40/eacaa1c72ddc0dced81f93ae393607f4aea53a71909585884fca5ba54a4d/nescience-0.3-py3-none-any.whl"
+        }
+    ]
+}

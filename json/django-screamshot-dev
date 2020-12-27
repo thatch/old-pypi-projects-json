@@ -1,0 +1,118 @@
+{
+    "info": {
+        "author": "Mathieu Leplatre",
+        "author_email": "mathieu.leplatre@makina-corpus.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7"
+        ],
+        "description": "===================\n django-screamshot\n===================\n\n.. image:: https://secure.travis-ci.org/makinacorpus/django-screamshot.svg?branch=master\n    :alt: Build Status\n    :target: http://travis-ci.org/makinacorpus/django-screamshot\n\n.. image:: https://img.shields.io/pypi/v/django-screamshot.svg\n    :alt: Latest PyPI version\n    :target: https://pypi.python.org/pypi/django-screamshot/\n\n.. image:: https://img.shields.io/pypi/dw/django-screamshot.svg\n    :alt: Number of PyPI downloads\n    :target: https://pypi.python.org/pypi/django-screamshot/\n\n.. image:: https://img.shields.io/github/downloads/makinacorpus/django-screamshot/total.svg\n    :alt: Number of Git Hub downloads\n    :target: https://github.com/makinacorpus/django-screamshot/archive/master.zip\n\n.. image:: https://img.shields.io/pypi/format/django-screamshot.svg\n    :alt: Format\n    :target: https://pypi.python.org/pypi/django-screamshot/\n\n.. image:: https://img.shields.io/pypi/l/django-screamshot.svg\n    :alt: License\n    :target: https://raw.githubusercontent.com/makinacorpus/django-screamshot/master/LICENSE\n\n\n*django-screamshot* is a **very naive** implementation of Web pages capture\nwith `CasperJS <http://casperjs.org>`_ (*aaAAaah!*, `phantomjs <http://phantomjs.org>`_:))\n\n(*See the issues pages for more details about what remains to be done.*)\n\nCheckout `screamshotter <https://github.com/makinacorpus/django-screamshot/tree/screamshotter>`_,\nthe simplest Django project powered by *django-screamshot*.\n\n\n=======\nINSTALL\n=======\n\nFirst make sure you have either the ``casperjs`` or ``phantomjs`` command in your ``PATH``, using\nrelated installation instructions:\n * `CasperJS <http://casperjs.org>`_.\n * `PhantomJS <http://phantomjs.org>`_.\n\nThen install the egg :\n\n::\n\n    pip install django-screamshot\n\n\n=====\nUSAGE\n=====\n\n* Add ``screamshot`` to your ``INSTALLED_APPS``\n\n\nAs a screenshot Web API\n-----------------------\n\nAdd it to your project URLs :\n\n::\n\n    urlpatterns = patterns('',\n        ...\n        url(r'^capture/$',  include('screamshot.urls', namespace='screamshot', app_name='screamshot')),\n    )\n\nYou can then obtain a screenshot using the following GET parameters :\n\nurl\n  The website URL to capture. This can be a fully qualified URL, or the\n  name of a URL to be reversed in your Django project. Note: do not forget to\n  encode the url.\n\nselector\n  CSS3 selector. It will restrict the screenshot to the selected element.\n\nmethod\n  HTTP method to be used (*default:* ``GET``)\n\nwidth\n  Viewport width (*default:* ``1400``)\n\nheight\n  Viewport height (*default:* ``900``)\n\ndata\n  HTTP data to be posted (*default:* ``{}``)\n\nwaitfor\n  CSS3 selector. The screenshot will be performed only once this selector is\n  satisfied. Typical usage: if your page contains a heavy javascript processing,\n  you can add a CSS class on an element when the processing is finished to make\n  sure the screenshot will get the page properly rendered.\n\nrender\n  If render=html, it will return an HTML page containing the image and where the\n  print diaplo box will be automatically opened.\n\nsize\n  Resize image (width x height, e.g: ``500x500``), need install ``PIL`` or ``Pillow``.\n\ncrop\n  If ``true``, then resulting image is cropped to match specified size.\n\nFor example : http://server/capture/?url=http://django-fr.org&selector=body&width=1024&height=768&size=500x500\n\n\n\nAs a template tag\n-----------------\n\nYou can include screenshots in your pages using a template tag. It will\nperform the capture and return the base64 version of the resulting image.\n\nThis is very useful if you don't want to expose the capture API publicly.\n\n::\n\n    {% base64capture URL SELECTOR %}\n\n\nFor example, in a SVG template :\n\n::\n\n    {% load screamshot %}\n    ...\n\n    <image\n       y=\"200\"\n       x=\"300\"\n       id=\"imagemap\"\n       xlink:href=\"data:{% base64capture \"company:map\" \"#map\" %}\"\n       width=\"640\" />\n\n\nIf you run the capture server on a different instance, you can specify the \nroot url for reversing (*default is local*) :\n\n::\n\n    SCREAMSHOT_CONFIG = {\n        'CAPTURE_ROOT_URL': 'http://127.0.0.1:8001',\n    }\n\n\nAs a library - render local Django template\n-------------------------------------------\nSometimes, you don't have access to the request object. A typical example would be creating a PDF receipt for a customer and emailing it. Both of these tasks can take a while, so it is natural to push them into some queue (like RabbitMQ). But if your pdf-rendering task get's executed, you don't have access to the request object. Don't worry - you can still use screamshot as a library. Here's how.\n\n::\n\n    from screamshot.utils import render_template\n\n    # you can either render the template to a TemporaryFile:\n\n    with render_template('my-template.html', {'context': 'variables'}) as output:\n        # do anything you want with the output\n        # like attach it to email message, etc.\n        print(output.name)\n\n    # or you can specify a path instead:\n    render_template('my-template.html',\n        {'context': 'variables'},\n        output='/home/you/rendering.png',\n        format='png')\n\n\nPlease note, that in order to load your static files, screamshot will try to replace all STATIC_URL occurence with a local path to your static files (only if they are not hosted via https of course)\n\nCustomizing the page rendering\n------------------------------\n\nThe CasperJS script appends the `screamshot` CSS class on the `body` element.\nYou can easily customize the rendering for printing using this CSS marker in\nyour CSS stylesheet:\n\n::\n\n  .screamshot #navigation {\n    display: none;\n  }\n  .screamshot #main {\n    margin: 2em;\n  }\n\nCapture views with authentication\n---------------------------------\n\nYou can use Basic HTTP authentication in your Django project, create a dedicated\nuser for screenshots and capture the full URL with credentials (``http://user:password@host/page/``).\n\nAlternatively, you can use a specific view decorator.\n\nDefine the authorized IP to capture your pages in your settings :\n\n::\n\n    SCREAMSHOT_CONFIG = {\n        'CAPTURE_ALLOWED_IPS': ('127.0.0.1',),\n    }\n\nAnd use the provided decorator : \n\n::\n\n    from screamshot.decorators import login_required_capturable\n\n\n    @login_required_capturable\n    def your_view(request):\n        ...\n\n\nRenderer command and CLI arguments\n----------------------------------\nYou can specify which renderer you would like to use, by setting the \n``CAPTURE_METHOD`` setting. The default value is 'casperjs'. Possible values\nare 'casperjs' and 'phantomjs'.\n\n::\n\n    SCREAMSHOT_CONFIG = {\n        'CAPTURE_METHOD': 'phantomjs',\n    }\n\n\nBy default, we look for thr CasperJS/PhantomJS binary in the ``PATH``\nenvironment variable (like ``which``), but you can bypass this:\n\n::\n\n    SCREAMSHOT_CONFIG = {\n        'CASPERJS_CMD': '/home/you/Downloads/apps/casperjs',\n        'PHANTOMJS_CMD': '/home/you/Downloads/apps/phantomjs'\n    }\n\n\nPlease note, that the ``CAPTURE_METHOD`` setting specifies which location would\nbe evaluated, i.e. if you set ``CAPTURE_METHOD`` to 'phantomjs', ``PHANTOMJS_CMD``\nwould be evaluated.\n\nYou can also specify PhantomJS/CasperJS extra-args, such as\n ``--disk-cache=true`` with the ``CLI_ARGS`` setting :\n\n::\n\n    SCREAMSHOT_CONFIG = {\n        'CLI_ARGS': ['--disk-cache=true', '--max-disk-cache-size=30000']\n    }\n\nSee related documentation on PhantomJS and CasperJS homepages.\n\n\nYou can also override the capture script. A default implementation uses capture\nscript written for CasperJS. A default capture script for PhantomJS is also provided.\n\nIf you have your own script which you would like to use, specify it in \n``CAPTURE_SCRIPT`` option.\n\n::\n\n    SCREAMSHOT_CONFIG = {\n        'CAPTURE_SCRIPT': '/home/you/scripts/capture.js',\n    }\n\n\nNotes about runserver\n---------------------\n\nIf you want to test it using ``manage.py runserver``, you won't be able\nto capture pages coming from the same instance.\n\nRun it twice (on two ports) and configure ``CAPTURE_ROOT_URL``.\n\n\n=======\nAUTHORS\n=======\n\n    * Mathieu Leplatre <mathieu.leplatre@makina-corpus.com>\n    * mozillag\n    * dynamicguy\n    * Eric Brehault <eric.brehault@makina-corpus.com>\n\n|makinacom|_\n\n.. |makinacom| image:: http://depot.makina-corpus.org/public/logo.gif\n.. _makinacom:  http://www.makina-corpus.com\n\n=======\nLICENSE\n=======\n\n    * Lesser GNU Public License\n\n\n=========\nCHANGELOG\n=========\n\n0.8.3 (unreleased)\n==================\n\n*\n\n\n0.8.2 (2018-07-04)\n==================\n\n* Response errors status code from 400 to 500\n\n\n0.8.1 (2017-06-14)\n==================\n\n* Fix phantom path in PATH\n\n\n0.8.1 (2017-05-05)\n==================\n\n* Fix python 3 support\n* Add support for Django 1.11\n* Drop support for Django <1.8\n\n\n0.7.0 (2017-01-08)\n==================\n\n* Support for rendering PDF\n* Python 3 support\n* Django 1.8 support\n* Add TEST_CAPTURE_SCRIPT setting\n\n\n0.6.0 (2014-11-27)\n==================\n\n* Added support of pure PhantomJS capture, i.e. without CasperJS, without selector (by Mateusz Mikolajczyk)\n* Support for capturing locally rendered templates, without external request (by Mateusz Mikolajczyk)\n\n\n0.5.0 (2014-11-11)\n==================\n\n* Added screenshot model and adminsite support (by Luc Milland)\n* Allows to wait for a given time (milliseconds) before doing the screenshot (by Florent Lebreton)\n* Replace mimetype by content_type in HttpResponse for django1.7 compliance (by Florent Lebreton)\n\n\n0.4.0 (2014-03-19)\n==================\n\n* If URL not provided, use request's host (by Mozillag)\n* Allow to provide a custom PhantomJS command (by mo-mughrabi)\n* Improved logging\n* Added some minimalistic unit tests\n\n\n0.3.1 (2014-01-31)\n==================\n\n* Fix requirement spelling\n\n\n0.3.0 (2013-09-05)\n==================\n\n* Return appropriate HTTP responses on parameter errors (400)\n* Better processing of capture errors, not for remote JS yet. (ref #1)\n* Save temporary file step is specified output for ``casperjs_capture`` is a filepath\n* Add a *screamshotter* orphan branch, as a demo Django project\n* Ability to control image format (other than ``png`` or ``html``)\n\n\n0.2.0 (2013-08-18)\n==================\n\n* CASPERJS_CMD setting to bypass PATH lookup\n* Query ``crop`` parameter to control resize\n* Query ``size`` parameter to control image size\n* Query ``render`` parameter to control output format\n* Remove ``remote.message`` loging\n* Query ``waitFor`` parameter to control capture timing\n* Inject *screamshot* class on *body* to allow capture styling\n* Use capture instead of captureSelector if no selector provided\n* Query parameters to control viewport size\n* Ability to add extra command-line arguments\n* Updated CasperJS CLI status code\n* Detect forwarded IP address in login decorator\n\n\n0.1.1 (2012-04-17)\n==================\n\n* Include package data\n\n\n0.1.0 (2012-04-17)\n==================\n\n* Initial working version\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/makinacorpus/django-screamshot",
+        "keywords": "",
+        "license": "LPGL, see LICENSE file.",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "django-screamshot-dev",
+        "package_url": "https://pypi.org/project/django-screamshot-dev/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/django-screamshot-dev/",
+        "project_urls": {
+            "Homepage": "https://github.com/makinacorpus/django-screamshot"
+        },
+        "release_url": "https://pypi.org/project/django-screamshot-dev/0.8.3/",
+        "requires_dist": [
+            "django-timedeltafield",
+            "Django"
+        ],
+        "requires_python": "",
+        "summary": "Web pages capture using Django & CasperJS",
+        "version": "0.8.3"
+    },
+    "last_serial": 4215042,
+    "releases": {
+        "0.8.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0b5f762995f9195cff85fa2c1de0bf19",
+                    "sha256": "b1dbbb6cfb6f765ee64dfd7707f7bec4793d02b05c42ce943f101dfaaea24fb6"
+                },
+                "downloads": -1,
+                "filename": "django_screamshot_dev-0.8.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0b5f762995f9195cff85fa2c1de0bf19",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18149,
+                "upload_time": "2018-08-28T14:14:52",
+                "url": "https://files.pythonhosted.org/packages/78/b7/78aa58ff5076cb478c7152f251912f4e0c1cea80f7e4eb5aa64bd74fbc2d/django_screamshot_dev-0.8.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0579e5ee4e6d6684fa0a2e379c7b132d",
+                    "sha256": "24bfca3ad11c9c0b94c8434756a86a51221853f969fc400f8f27975a942067c8"
+                },
+                "downloads": -1,
+                "filename": "django-screamshot-dev-0.8.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0579e5ee4e6d6684fa0a2e379c7b132d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20647,
+                "upload_time": "2018-08-28T14:14:54",
+                "url": "https://files.pythonhosted.org/packages/f6/dd/1e2ad74f90e627d79e640031a53337c7b5c774451a3716e3899782d01bf9/django-screamshot-dev-0.8.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0b5f762995f9195cff85fa2c1de0bf19",
+                "sha256": "b1dbbb6cfb6f765ee64dfd7707f7bec4793d02b05c42ce943f101dfaaea24fb6"
+            },
+            "downloads": -1,
+            "filename": "django_screamshot_dev-0.8.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "0b5f762995f9195cff85fa2c1de0bf19",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 18149,
+            "upload_time": "2018-08-28T14:14:52",
+            "url": "https://files.pythonhosted.org/packages/78/b7/78aa58ff5076cb478c7152f251912f4e0c1cea80f7e4eb5aa64bd74fbc2d/django_screamshot_dev-0.8.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0579e5ee4e6d6684fa0a2e379c7b132d",
+                "sha256": "24bfca3ad11c9c0b94c8434756a86a51221853f969fc400f8f27975a942067c8"
+            },
+            "downloads": -1,
+            "filename": "django-screamshot-dev-0.8.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "0579e5ee4e6d6684fa0a2e379c7b132d",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 20647,
+            "upload_time": "2018-08-28T14:14:54",
+            "url": "https://files.pythonhosted.org/packages/f6/dd/1e2ad74f90e627d79e640031a53337c7b5c774451a3716e3899782d01bf9/django-screamshot-dev-0.8.3.tar.gz"
+        }
+    ]
+}

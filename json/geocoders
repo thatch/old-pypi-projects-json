@@ -1,0 +1,95 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 1,
+        "author": "Andy Wei",
+        "author_email": "andyweius@gmail.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: Apache Software License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Internet",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Scientific/Engineering :: GIS",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "# Python Geocoders\n\n[![](https://img.shields.io/pypi/v/geocoder.svg)](https://pypi.python.org/pypi/geocoders)\n\nThis repo was forked from https://github.com/DenisCarriere/geocoder with some enhancements.\n\nSimple and consistent geocoding library written in Python.\n\nMany online providers such as Google & Bing have geocoding services,\nthese providers do not include Python libraries and have different\nJSON responses between each other.\n\nIt can be very difficult sometimes to parse a particular geocoding provider\nsince each one of them have their own JSON schema.\n\nHere is a typical example of retrieving a Lat & Lng from Google using Python,\nthings shouldn't be this hard.\n\n```python\n>>> import requests\n>>> url = 'https://maps.googleapis.com/maps/api/geocode/json'\n>>> params = {'sensor': 'false', 'address': 'Mountain View, CA'}\n>>> r = requests.get(url, params=params)\n>>> results = r.json()['results']\n>>> location = results[0]['geometry']['location']\n>>> location['lat'], location['lng']\n(37.3860517, -122.0838511)\n```\n\nNow lets use Geocoders to do the same task\n\n```python\n>>> import geocoders\n>>> g = geocoders.google('Mountain View, CA')\n>>> g.latlng\n(37.3860517, -122.0838511)\n```\n\nA Work is In Progress to support multiple results\n\n```python\n>>> import geocoders\n>>> g = geocoders.geonames('Mountain View, CA', maxRows=5)\n>>> print(len(g))\n5\n>>> for result in g:\n...   print(result.address, result.latlng)\n...\nMountain View ['37.38605', '-122.08385']\nMountain View Elementary School ['34.0271', '-117.59116']\nBest Western Plus Mountainview Inn and Suites ['51.79516', '-114.62793']\nBest Western Mountainview Inn ['49.3338', '-123.1446']\nMountain View Post Office ['37.393', '-122.07774']\n```\n\nMore details are available in [the documentation](http://geocoders.readthedocs.io/results.html)\n\n## Documentation\n\n[geocoders.readthedocs.org](https://geocoders.readthedocs.org/)\n\n## API Overview\n\nMany properties are available once the geocoders object is created.\n\n### Forward\n\n```python\n>>> import geocoders\n>>> g = geocoders.google('Mountain View, CA')\n>>> g.geojson\n>>> g.json\n>>> g.wkt\n>>> g.osm\n```\n\n> WIP SideNote / multiple results**\n>\n> For the providers currently supporting multiple results (see table below), the `geojson` property called on `g` will not apply to the best match but to all results. See documentation for more details on this.\n\n### Reverse\n\n```python\n>>> g = geocoders.google([45.15, -75.14], method='reverse')\n>>> g.city\n>>> g.state\n>>> g.state_long\n>>> g.country\n>>> g.country_long\n```\n\n### House Addresses\n\n```python\n>>> g = geocoders.google(\"453 Booth Street, Ottawa ON\")\n>>> g.housenumber\n>>> g.postal\n>>> g.street\n>>> g.street_long\n```\n\n### IP Addresses\n\n```python\n>>> g = geocoders.ip('199.7.157.0')\n>>> g = geocoders.ip('me')\n>>> g.latlng\n>>> g.city\n```\n\n### Bounding Box\n\nAccessing the JSON & GeoJSON attributes will be different\n\n```python\n>>> g = geocoders.google(\"Ottawa\")\n>>> g.bbox\n{\"northeast\": [45.53453, -75.2465979], \"southwest\": [44.962733, -76.3539158]}\n\n>>> g.geojson['bbox']\n[-76.3539158, 44.962733, -75.2465979, 45.53453]\n\n>>> g.southwest\n[44.962733, -76.3539158]\n```\n\n## Command Line Interface\n\n```bash\n$ geocode \"Ottawa, ON\"  >> ottawa.geojson\n$ geocode \"Ottawa, ON\" \\\n    --provide google \\\n    --out geojson \\\n    --method geocode\n```\n\n## Providers\n\n| Provider                       | Optimal   | Usage Policy                    | Mutiple results | Reverse | Proximity |\n|:-------------------------------|:----------|:--------------------------------|:----------------|:--------|:----------|\n| [ArcGIS][ArcGIS]               | World     |                                 | yes             | yes     |           |\n| [Baidu][Baidu]                 | China     | API key                         |                 | yes     |           |\n| [Bing][Bing]                   | World     | API key                         | yes             | yes     |           |\n| [CanadaPost][CanadaPost]       | Canada    | API key                         |                 |         |           |\n| [FreeGeoIP][FreeGeoIP]         | World     |                                 |                 |         |           |\n| [Gaode][Gaode]                 | China     | API key                         |                 | yes     |           |\n| [Geocoders.ca][Geocoders.ca]     | CA & US   | Rate Limit                      |                 |         |           |\n| [GeocodeFarm][GeocodeFarm]     | World     | [Policy][GeocodeFarm-Policy]    |                 | yes     |           |\n| [GeoNames][GeoNames]           | World     | Username                        | yes             |         | yes     |\n| [GeoOttawa][GeoOttawa]         | Ottawa    |                                 |                 |         |           |\n| [Google][Google]               | World     | Rate Limit, [Policy][Google-Policy] | yes         | yes     | yes     |\n| [HERE][HERE]                   | World     | API key                         |                 | yes     |           |\n| [IPInfo][IPInfo]               | World     | [Paid Plans][IPinfo-paidPlans]  |                 |       |           |\n| [Mapbox][Mapbox]               | World     | API key                         | yes             | yes     | yes     |\n| [MapQuest][MapQuest]           | World     | API key                         | yes             | yes     |           |\n| [Mapzen][Mapzen]               | World     | API key                         |                 | yes     |           |\n| [MaxMind][MaxMind]             | World     |                                 |                 |         |           |\n| [OpenCage][OpenCage]           | World     | API key                         |                 | yes     |           |\n| [OpenStreetMap][OpenStreetMap] | World     | [Policy][OpenStreetMap-Policy]  | yes             | yes     |           |\n| [Tamu][Tamu]                   | US        | API key                         |                 |         |           |\n| [TomTom][TomTom]               | World     | API key                         |                 |         |           |\n| [What3Words][What3Words]       | World     | API key                         | N.A             | yes     |           |\n| [Yahoo][Yahoo]                 | World     |                                 |                 |         |           |\n| [Yandex][Yandex]               | Russia    |                                 |                 | yes     |           |\n| [TGOS][TGOS]                   | Taiwan    |                                 |                 |         |           |\n\n## Installation\n\n### PyPi Install\n\nTo install Geocoders, simply:\n\n```bash\n$ pip install geocoders\n...\n```\n\n### GitHub Install\n\nInstalling the latest version from Github:\n\n```bash\n$ git clone https://github.com/andywei/geocoders\n...\n$ cd geocoders\n$ python setup.py install\n...\n```\n\n## Feedback\n\nPlease feel free to give any feedback on this module. If you find any bugs or any enhancements to recommend please send some of your comments/suggestions to the [Github Issues Page](https://github.com/andywei/geocoders/issues).\n\n[TGOS]: http://geocoder.readthedocs.org/providers/TGOS.html\n[Mapbox]: http://geocoder.readthedocs.org/providers/Mapbox.html\n[Google]: http://geocoder.readthedocs.org/providers/Google.html\n[Google-Policy]: https://developers.google.com/maps/documentation/geocoding/usage-limits\n[Bing]: http://geocoder.readthedocs.org/providers/Bing.html\n[OpenStreetMap]: http://geocoder.readthedocs.org/providers/OpenStreetMap.html\n[OpenStreetMap-Policy]: https://wiki.openstreetmap.org/wiki/Nominatim_usage_policy\n[HERE]: http://geocoder.readthedocs.org/providers/HERE.html\n[TomTom]: http://geocoder.readthedocs.org/providers/TomTom.html\n[MapQuest]: http://geocoder.readthedocs.org/providers/MapQuest.html\n[OpenCage]: http://geocoder.readthedocs.org/providers/OpenCage.html\n[Yahoo]: http://geocoder.readthedocs.org/providers/Yahoo.html\n[ArcGIS]: http://geocoder.readthedocs.org/providers/ArcGIS.html\n[Yandex]: http://geocoder.readthedocs.org/providers/Yandex.html\n[Geocoders.ca]: http://geocoder.readthedocs.org/providers/Geocoders-ca.html\n[Baidu]: http://geocoder.readthedocs.org/providers/Baidu.html\n[GeoOttawa]: http://geocoder.readthedocs.org/providers/GeoOttawa.html\n[FreeGeoIP]: http://geocoder.readthedocs.org/providers/FreeGeoIP.html\n[MaxMind]: http://geocoder.readthedocs.org/providers/MaxMind.html\n[Mapzen]: http://geocoder.readthedocs.org/providers/Mapzen.html\n[What3Words]: http://geocoder.readthedocs.org/providers/What3Words.html\n[CanadaPost]: http://geocoder.readthedocs.org/providers/CanadaPost.html\n[GeoNames]: http://geocoder.readthedocs.org/providers/GeoNames.html\n[IPInfo]: http://geocoder.readthedocs.org/providers/IPInfo.html\n[Tamu]: http://geoservices.tamu.edu/Services/Geocode/WebService/\n[GeocodeFarm]: https://geocode.farm/\n[GeocodeFarm-Policy]: https://geocode.farm/geocoding/free-api-documentation/\n[Gaode]: http://geocoder.readthedocs.org/providers/Gaode.html\n[IPinfo-paidPlans]: http://ipinfo.io/pricing\n",
+        "docs_url": null,
+        "download_url": "https://github.com/andywei/geocoders/archive/v2.0.0.tar.gz",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/andywei/geocoders",
+        "keywords": "geocoders arcgis tomtom opencage google bing here",
+        "license": "The MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "geocoders",
+        "package_url": "http://pypi.python.org/pypi/geocoders",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/geocoders/2.0.0",
+        "requires_python": "",
+        "summary": "Geocoders is a simple and consistent geocoding library.",
+        "version": "2.0.0"
+    },
+    "releases": {
+        "1.31.0": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "geocoders-1.31.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1714eb35d29cc7c16b74602ca153929a",
+                "packagetype": "sdist",
+                "path": "a3/90/80789f0e4093bd749cfff33f164c3456b0aea54cfa30110b5202c68c9cff/geocoders-1.31.0.tar.gz",
+                "python_version": "source",
+                "size": 54886,
+                "upload_time": "2017-09-07T23:22:22",
+                "url": "https://pypi.python.org/packages/a3/90/80789f0e4093bd749cfff33f164c3456b0aea54cfa30110b5202c68c9cff/geocoders-1.31.0.tar.gz"
+            }
+        ],
+        "2.0.0": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "geocoders-2.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fc867b85f4a1bbc4d227e251947040c0",
+                "packagetype": "sdist",
+                "path": "8b/c1/f2e3f620a0e7dce1d35155c827a491bce1fc14b61d36cf5664a89dd54cc3/geocoders-2.0.0.tar.gz",
+                "python_version": "source",
+                "size": 55268,
+                "upload_time": "2017-09-08T23:55:25",
+                "url": "https://pypi.python.org/packages/8b/c1/f2e3f620a0e7dce1d35155c827a491bce1fc14b61d36cf5664a89dd54cc3/geocoders-2.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 0,
+            "filename": "geocoders-2.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "fc867b85f4a1bbc4d227e251947040c0",
+            "packagetype": "sdist",
+            "path": "8b/c1/f2e3f620a0e7dce1d35155c827a491bce1fc14b61d36cf5664a89dd54cc3/geocoders-2.0.0.tar.gz",
+            "python_version": "source",
+            "size": 55268,
+            "upload_time": "2017-09-08T23:55:25",
+            "url": "https://pypi.python.org/packages/8b/c1/f2e3f620a0e7dce1d35155c827a491bce1fc14b61d36cf5664a89dd54cc3/geocoders-2.0.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,241 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 11,
+        "author": "ironSource.atom",
+        "author_email": "atom@ironsrc.com",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5"
+        ],
+        "description": "# ironSource.atom SDK for Python\n\n[![License][license-image]][license-url]\n[![Docs][docs-image]][docs-url]\n[![Build status][travis-image]][travis-url]\n[![Coverage Status][coverage-image]][coverage-url]\n[![Python supported version][python-support]][python-url]\n[![PyPI version][package-image]][package-url]\n \natom-python is the official [ironSource.atom](http://www.ironsrc.com/data-flow-management) SDK for Python\n\n- [Signup](https://atom.ironsrc.com/#/signup)\n- [Documentation][docs-url]\n- [Installation](#installation)\n- [Usage](#usage)\n- [Change Log](#change-log)\n- [Example](#example)\n\n## Installation\n\n### Installing with pip:\n```bash\n$ pip install --upgrade ironsource-atom\n```\n\n## Usage\n\nYou may use the SDK in two different ways:\n\n1. High level \"Tracker\" - contains in-memory storage and tracks events based on certain parameters.\n2. Low level - contains 2 methods: putEvent() and putEvents() to send 1 event or a batch respectively.\n\n### High Level SDK - \"Tracker\"\n**NOTE:**\nThe tracker is a based on a thread pool which is controlled by BatchEventPool and a backlog (QueueEventStorage)\nBy default the BatchEventPool is configured to use one thread (worker), you can change it when constructing the tracker.  \nThese are the default parameters for both Classes (inside config.py):\n\n```python\n# Tracker Config\nBATCH_SIZE = 256\nBATCH_SIZE_LIMIT = 2000\nBATCH_BYTES_SIZE = 64 * 1024\nBATCH_BYTES_SIZE_LIMIT = 512 * 1024\n# Default flush interval in milliseconds\nFLUSH_INTERVAL = 10000\n\n# Batch Event Pool Config\n# Default Number of workers(threads) for BatchEventPool\nBATCH_WORKER_COUNT = 1\n# Default Number of batch events to hold in BatchEventPool\nBATCH_POOL_SIZE = 1\n\n# EventStorage Config (backlog)\n# Default backlog queue size (per stream)\nBACKLOG_SIZE = 500\n\n# Retry on 500 / Connection error conf\n# Retry max time in seconds\nRETRY_MAX_TIME = 1800\n# Maximum number of retries (set it to 1 in order to disable retry). This value is ignored if RETRY_FOREVER = True\nRETRY_MAX_COUNT = 12\n# Base multiplier for exponential backoff calculation\nRETRY_EXPO_BACKOFF_BASE = 3\n# Should the worker in BatchEventPool retry forever on server error (recommended)\nRETRY_FOREVER = True\n\n# Tracker backlog conf\n# Tracker backlog Queue GET & PUT Block or not.\nBACKLOG_BLOCKING = True\n# Tracker backlog Queue GET & PUT timeout in seconds (ignored if backlog is blocking)\nBACKLOG_TIMEOUT = 1\n\n# HTTP requests lib session GET/POST timeout in seconds (default: 60 seconds)\nREQUEST_TIMEOUT = 60\n\n# Debug file path once debug_to_file is enabled\nDEBUG_FILE_PATH = \"/tmp/\"\n\n# Init a new tracker:\ntracker = IronSourceAtomTracker(batch_worker_count=config.BATCH_WORKER_COUNT,\n                                batch_pool_size=config.BATCH_POOL_SIZE,\n                                event_backlog=None,\n                                backlog_size=config.BACKLOG_SIZE,\n                                flush_interval=config.FLUSH_INTERVAL,\n                                retry_max_time=config.RETRY_MAX_TIME,\n                                retry_max_count=config.RETRY_MAX_COUNT,\n                                batch_size=config.BATCH_SIZE,\n                                batch_bytes_size=config.BATCH_BYTES_SIZE,\n                                is_debug=False,\n                                debug_to_file=False,\n                                debug_file_path=config.DEBUG_FILE_PATH,\n                                endpoint=config.ATOM_ENDPOINT,\n                                auth_key=\"\",\n                                callback=None,\n                                retry_forever=config.RETRY_FOREVER,\n                                is_blocking=config.BACKLOG_BLOCKING,\n                                backlog_timeout=config.BACKLOG_TIMEOUT,\n                                request_timeout=config.REQUEST_TIMEOUT)\n\"\"\"\n:param batch_worker_count: Optional, Number of workers(threads) for BatchEventPool\n:param batch_pool_size:    Optional, Number of events to hold in BatchEventPool\n:param event_backlog:      Optional, Custom EventStorage implementation\n:param backlog_size:       Optional, Backlog queue size (EventStorage ABC implementation)\n:param flush_interval:     Optional, Tracker flush interval in milliseconds (default 10000)\n:param retry_max_time:     Optional, Retry max time in seconds\n:param retry_max_count:    Optional, Maximum number of retries in seconds\n:param batch_size:         Optional, Amount of events in every batch (bulk) (default: 256)\n:param batch_bytes_size:   Optional, Size of each batch (bulk) in bytes (default: 64KB)\n:param is_debug:           Optional, Enable printing of debug information\n:param debug_to_file:      Optional, Should the Tracker write the request and response objects to file\n:param debug_file_path:    Optional, the path to the debug file (debug_to_file must be True) (default: /tmp)\n:param endpoint:           Optional, Atom endpoint\n:param auth_key:           Optional, Default auth key to use (when none is provided in .track)\n:param callback:           Optional, callback to be called on error (Client 400/ Server 500)\n:param retry_forever:      Optional, should the BatchEventPool retry forever on server error (default: True)\n:param is_blocking:        Optional, should the tracker backlog block (default: True)\n:param backlog_timeout:    Optional, tracker backlog block timeout (ignored if is_blocking, default: 1 second)\n:param request_timeout:    Optional, HTTP requests lib session GET/POST timeout in seconds (default: 60 seconds)\n\nThe callback convention is: callback(unix_time, http_code, error_msg, sent_data, stream_name)\nerror_msg = Sdk/server error msg\n\"\"\"\n```\n\nImporting the library and initializing  \n```python\nfrom ironsource.atom.ironsource_atom_tracker import IronSourceAtomTracker\n\n# Note the parameters as described above\ntracker = IronSourceAtomTracker(batch_bytes_size=2048, batch_size=12, flush_interval=2000)\ntracker.set_debug(True) # Optional, Print debug information (You can also set it at the constructor)\n\n# Sending an event\nstream = \"YOUR_STREAM_NAME\"\nauth_key = \"YOUR_HMAC_AUTH_KEY\"\n\n# Example of an event\ndata = {\"id\": 123, \"event_name\": \"PYTHON_SDK_TRACKER_EXAMPLE\"}\ntracker.track(stream=stream, data=data, auth_key=auth_key) # auth_key is optional\n\n# To force flush all events, use:\ntracker.flush()\n\n# To stop the tracker, use:\ntracker.stop()\n```\n### Logging of request/response to file (since version 1.5.4)\n**Note:** this is recommended only if you want to debug the SDK  \nTo enable use: `debug_to_file` parameter at the tracker construction  \nTo specify path use: `debug_file_path` (defaults to /tmp/)  \nThe logging will produce JSON files with request and response objects.  \nEach request-response pair will have a unique id.  \nLogging file name is: atom-raw.{month}-{day}.json  \nThe file will log-rotate at 50MB and save up to 100 files, based on: RotatingFileHandler at Python Logging module.\n\n### Abstract class for storing data at tracker backlog `EventStorage`\nIf you'd like to customize the tracker backlog, implement the following abstract class.\nImplementation must to be synchronized for multi threading use.\n```python\nimport abc\n\nclass EventStorage:\n    \"\"\"\n        Abstract Base Class for providing a generic way of storing events in a backlog before they are sent to Atom.\n    \"\"\"\n    __metaclass__ = abc.ABCMeta\n\n    def __init__(self):\n        pass\n\n    @abc.abstractmethod\n    def add_event(self, event_object):\n        \"\"\"\n        Add event (must to be synchronized)\n\n        :param event_object: event data object\n        :type event_object: Event\n        \"\"\"\n        pass\n\n    @abc.abstractmethod\n    def get_event(self, stream):\n        \"\"\"\n        Get event (must to be synchronized)\n\n        :return: Event object from storage\n        :rtype: Event\n        \"\"\"\n        pass\n\n    @abc.abstractmethod\n    def remove_event(self, stream):\n        \"\"\"\n        Remove event from storage\n        :param stream:\n        :return: None\n        \"\"\"\n        pass\n\n    @abc.abstractmethod\n    def is_empty(self):\n        \"\"\"\n        Check if the storage is empty\n        :return: True is empty, else False\n        \"\"\"\n        pass\n\n\n# Using custom storage implementation:\n\ncustom_event_storage_backlog = MyCustomEventStorage()\ntracker = IronSourceAtomTracker(event_backlog=custom_event_storage_backlog)\n```\n\n### Low Level (Basic) SDK\n\nThe Low Level SDK has 2 methods:  \n- putEvent - Sends a single event to Atom.\n- putEvents - Sends a bulk (batch) of events to Atom.\n\n```python\nfrom ironsource.atom.ironsource_atom import IronSourceAtom\n\nauth = \"DEFAULT_AUTH_KEY\"\napi = IronSourceAtom(is_debug=False, endpoint=config.ATOM_ENDPOINT, auth_key=\"\", request_timeout=60,\n                     debug_to_file=False, debug_file_path=config.DEBUG_FILE_PATH)\n\"\"\"\nAtom class init function\n:param is_debug:            Optional, Enable/Disable debug\n:param endpoint:            Optional, Atom API Endpoint\n:param auth_key:            Optional, Atom auth key\n:param request_timeout:     Optional, request timeout (default: 60)\n:param debug_to_file:       Optional, Should the Tracker write the request and response objects to file (default: False)\n:param debug_file_path:     Optional, the path to the debug file (debug_to_file must be True) (default: /tmp)\n\"\"\"\n# Note: If you don't specify an auth key, then it would use the default (if you set it with set_auth)\n# Else it won't use any.\n\n# Sending an event - should be a string.\nstream = \"YOUR_STREAM_NAME\"\nauth2 = \"YOUR_AUTH_KEY\"\ndata = {\"event_name\": \"PYTHON_SDK_POST_EXAMPLE\"}\napi.put_event(stream=stream, data=data, method=\"post\", auth_key=auth2) # Will send with auth2\napi.put_event(stream=stream, data=data) # Will send with auth\n\n# Sending a bulk of events - should be a list of strings.\nstream = \"YOUR_STREAM_NAME\"\ndata = [{\"strings\": \"data: test 1\"}, {\"strings\": \"data: test 2\"}]\napi.put_events(stream=stream, data=data, auth_key=auth2)\n```\n\n## Change Log\n\n### v1.5.4\n- Added support for logging of all requests and responses to file\n- BugFix: Graceful shutdown did not stop the tracker completely while there are requests in flight and server-error.\n- Added raw 'requests' lib response to the Response class.\n- Added top limits to tracker conf\n\n### v1.5.3\n- Added timeout to GET and POST (default 60 seconds)\n\n### v1.5.2\n- Added retry_forever option for tracker (default now)\n- Added an option to set the tracker backlog queue as non-blocking\n\n### v1.5.1\n- Tracker changes:\n    - BugFix: replaced dequeue with Queue.Queue on Backlog & BatchEventPool.  \n      dequeue caused excessive consumption of memory and cpu.  \n      Note that .track() is now blocking when backlog is full\n    - Changed defaults for Backlog & BatchEventPool\n    - bug fix: fixing a case of negative timer when executing after sleep\n    - bug fix: fixing a bug in the tracker handler when there are no tracked events (busy waiting)\n    \n### v1.5.0\n- Tracker changes:\n    - Added periodical flush function and changed the interval mechanism\n\t- Changed the flush all streams (flush_all) mechanism\n\t- Added max retry (enqueue again after reached)\n\t- Improved graceful shutdown and signal catching\n\t- Added more options to the constructor and removed logger from tracker\n    - Added more verbose logging\n\t- Added callback function to tracker (optional callback on error)\n\t- Added Exponential backoff with full jitter\n\t- Renamed enable_debug -> set_debug (also on Atom class)\n\t- Removed the following (moved them to the constructor):\n\t    - set_bulk_size\n\t    - set_bulk_byte_size\n\t    - set_endpoint\n\t    - set_flush_interval\n    - Improved error handling and input checking\n- BatchEventPool - Added is_empty() func\n- Changed logger (added logger.py)\n- Added config.py for constants\n- EventStorage and QueueEventStorage - Added is_empty() func\n- Requests class - Improved HTTP class, changed error handling and removed useless code\n- Atom Class:\n    - Improved error handling and input checking\n    - Removed the following (moved them to the constructor):\n        - get_endpoint()\n        - set_endpoint()\n        - set_auth()\n- Updated Docs\n\n\n### v1.1.7\n- Added deque limit on QueueEventStorage(backlog)\n- Updated example\n- Changed defaults on BatchEventPool and QueueEventStorage\n- Changed all pop() from deque to popleft()\n\n### v1.1.6\n- Fixed a bug in python3 compatibility\n\n### v1.1.5\n- Updated Docs\n- Updated README\n- Added support for sending data without json.dumps\n- Added Graceful shutdown\n- Fixed a bug in retry mechanism\n- Updated example\n\n### v1.1.2\n- High Level API - Tracker\n- Tracker Class with thread support\n- EventStorage ABC\n- Changing python package to match python convention\n- Upadting readme\n- Fixing auth mechanism\n\n### v1.0.2\n- Added support to send a bulk(batch) of events via the put_events method\n\n### v1.0.1\n- Added Docs\n\n### v1.0.0\n- Basic feature - putEvent\n\n## Example\n\nYou can use our [example][example-url] for sending data to Atom\n\n## License\n[MIT][license-url]\n\n[example-url]: ironsource_example/\n[license-image]: https://img.shields.io/badge/license-MIT-blue.svg\n[license-url]: LICENSE\n[travis-image]: https://img.shields.io/travis/ironSource/atom-python.svg\n[travis-url]: https://travis-ci.org/ironSource/atom-python\n[package-image]: https://badge.fury.io/py/ironsource-atom.svg\n[package-url]: https://badge.fury.io/py/ironsource-atom\n[python-support]:  https://img.shields.io/badge/python-2.7%2C%203.3%2C%203.4%2C%203.5-blue.svg\n[python-url]: https://www.python.org/\n[coverage-image]: https://coveralls.io/repos/github/ironSource/atom-python/badge.svg?branch=master\n[coverage-url]: https://coveralls.io/github/ironSource/atom-python?branch=master\n[docs-image]: https://img.shields.io/badge/docs-latest-blue.svg\n[docs-url]: https://ironsource.github.io/atom-python/\n",
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/ironSource/atom-python",
+        "keywords": null,
+        "license": "MIT",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "ironsource-atom",
+        "package_url": "http://pypi.python.org/pypi/ironsource-atom",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/ironsource-atom/1.5.4",
+        "requires_python": null,
+        "summary": "ironSource.atom Python SDK",
+        "version": "1.5.4"
+    },
+    "releases": {
+        "1.1.0": [
+            {
+                "comment_text": "",
+                "downloads": 87,
+                "filename": "ironsource-atom-1.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "570e9a6d3e1696853b1cd0a3f41b3197",
+                "packagetype": "sdist",
+                "path": "de/84/bcb5e1e05d4943009dd35cb2e9ab0fc2047ace290697aa0a5bdaa34af5f5/ironsource-atom-1.1.0.tar.gz",
+                "python_version": "source",
+                "size": 1473,
+                "upload_time": "2016-09-26T19:59:27",
+                "url": "https://pypi.python.org/packages/de/84/bcb5e1e05d4943009dd35cb2e9ab0fc2047ace290697aa0a5bdaa34af5f5/ironsource-atom-1.1.0.tar.gz"
+            }
+        ],
+        "1.1.1": [
+            {
+                "comment_text": "",
+                "downloads": 143,
+                "filename": "ironsource-atom-1.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "612dc23e9884c6fb78e5ccc1309e70ab",
+                "packagetype": "sdist",
+                "path": "78/84/ed5c928bfa4305a43da15046a7ee1fad36b61cc0d5b65840c8a329cd7973/ironsource-atom-1.1.1.tar.gz",
+                "python_version": "source",
+                "size": 6540,
+                "upload_time": "2016-09-26T20:11:35",
+                "url": "https://pypi.python.org/packages/78/84/ed5c928bfa4305a43da15046a7ee1fad36b61cc0d5b65840c8a329cd7973/ironsource-atom-1.1.1.tar.gz"
+            }
+        ],
+        "1.1.2": [
+            {
+                "comment_text": "",
+                "downloads": 82,
+                "filename": "ironsource-atom-1.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "34e24f414a5cf6955e168a2340688071",
+                "packagetype": "sdist",
+                "path": "c6/dd/b12a88f41d2f4c697c2503b83c94c81cf0e1778fad641686ecaeaa4d09a4/ironsource-atom-1.1.2.tar.gz",
+                "python_version": "source",
+                "size": 6555,
+                "upload_time": "2016-09-26T20:46:24",
+                "url": "https://pypi.python.org/packages/c6/dd/b12a88f41d2f4c697c2503b83c94c81cf0e1778fad641686ecaeaa4d09a4/ironsource-atom-1.1.2.tar.gz"
+            }
+        ],
+        "1.1.3": [
+            {
+                "comment_text": "",
+                "downloads": 82,
+                "filename": "ironsource-atom-1.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "20f69c9596496d8ca202736eebf535ee",
+                "packagetype": "sdist",
+                "path": "5e/a0/2253cd0936e7edf9339c2185381c3247eb86cb753545951090f87e921175/ironsource-atom-1.1.3.tar.gz",
+                "python_version": "source",
+                "size": 6587,
+                "upload_time": "2016-09-27T11:24:47",
+                "url": "https://pypi.python.org/packages/5e/a0/2253cd0936e7edf9339c2185381c3247eb86cb753545951090f87e921175/ironsource-atom-1.1.3.tar.gz"
+            }
+        ],
+        "1.1.5": [
+            {
+                "comment_text": "",
+                "downloads": 88,
+                "filename": "ironsource-atom-1.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0c86a3f75c0e1de9176420e58713ff65",
+                "packagetype": "sdist",
+                "path": "33/cf/635f85fbf92e76e0fffcbe68fae45391e314a269f83ed8c918d21b6ef6ab/ironsource-atom-1.1.5.tar.gz",
+                "python_version": "source",
+                "size": 6788,
+                "upload_time": "2016-09-27T16:36:26",
+                "url": "https://pypi.python.org/packages/33/cf/635f85fbf92e76e0fffcbe68fae45391e314a269f83ed8c918d21b6ef6ab/ironsource-atom-1.1.5.tar.gz"
+            }
+        ],
+        "1.1.6": [
+            {
+                "comment_text": "",
+                "downloads": 85,
+                "filename": "ironsource-atom-1.1.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b9757dd79de425e593e633e2a8a65e52",
+                "packagetype": "sdist",
+                "path": "4c/14/ccd31c445cd3a764babe4b7a9e73e04dd421d58a4948d408b6b5459d4ef1/ironsource-atom-1.1.6.tar.gz",
+                "python_version": "source",
+                "size": 6792,
+                "upload_time": "2016-09-27T16:54:01",
+                "url": "https://pypi.python.org/packages/4c/14/ccd31c445cd3a764babe4b7a9e73e04dd421d58a4948d408b6b5459d4ef1/ironsource-atom-1.1.6.tar.gz"
+            }
+        ],
+        "1.1.7": [
+            {
+                "comment_text": "",
+                "downloads": 281,
+                "filename": "ironsource-atom-1.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a28020b1ad35090d604abdf92cc99b14",
+                "packagetype": "sdist",
+                "path": "31/c5/13db8d75db82cdb3af1b485baa8bb36b65abe35016e5d40a79782065c850/ironsource-atom-1.1.7.tar.gz",
+                "python_version": "source",
+                "size": 6878,
+                "upload_time": "2016-10-05T16:35:04",
+                "url": "https://pypi.python.org/packages/31/c5/13db8d75db82cdb3af1b485baa8bb36b65abe35016e5d40a79782065c850/ironsource-atom-1.1.7.tar.gz"
+            }
+        ],
+        "1.5.0": [
+            {
+                "comment_text": "",
+                "downloads": 275,
+                "filename": "ironsource-atom-1.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3732491b5a6bf01dacc6ccd6f4ceca51",
+                "packagetype": "sdist",
+                "path": "40/ed/89dd3e2e1841b1c1f5bf5ff0ef415bdca27916ccfd2111947fc9855fee63/ironsource-atom-1.5.0.tar.gz",
+                "python_version": "source",
+                "size": 8928,
+                "upload_time": "2016-10-29T11:58:01",
+                "url": "https://pypi.python.org/packages/40/ed/89dd3e2e1841b1c1f5bf5ff0ef415bdca27916ccfd2111947fc9855fee63/ironsource-atom-1.5.0.tar.gz"
+            }
+        ],
+        "1.5.1": [
+            {
+                "comment_text": "",
+                "downloads": 382,
+                "filename": "ironsource-atom-1.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cc81d555af835e8c33c0a40b4fae667c",
+                "packagetype": "sdist",
+                "path": "3c/f3/69767c84f763a3978228775f922e421f70f4d0f2735f64a3aee1aaa0b703/ironsource-atom-1.5.1.tar.gz",
+                "python_version": "source",
+                "size": 9066,
+                "upload_time": "2016-11-02T16:23:03",
+                "url": "https://pypi.python.org/packages/3c/f3/69767c84f763a3978228775f922e421f70f4d0f2735f64a3aee1aaa0b703/ironsource-atom-1.5.1.tar.gz"
+            }
+        ],
+        "1.5.2": [
+            {
+                "comment_text": "",
+                "downloads": 10,
+                "filename": "ironsource-atom-1.5.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ac783cd297418abf63d8a799c411a961",
+                "packagetype": "sdist",
+                "path": "01/04/5efb7f68f574bdbeea5dfb25f53378a42983b77e0bf3d0913bbcb33a40cd/ironsource-atom-1.5.2.tar.gz",
+                "python_version": "source",
+                "size": 13895,
+                "upload_time": "2017-01-13T19:36:39",
+                "url": "https://pypi.python.org/packages/01/04/5efb7f68f574bdbeea5dfb25f53378a42983b77e0bf3d0913bbcb33a40cd/ironsource-atom-1.5.2.tar.gz"
+            }
+        ],
+        "1.5.3": [
+            {
+                "comment_text": "",
+                "downloads": 11,
+                "filename": "ironsource-atom-1.5.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a1a317c713c3fe2bccc541c4a1c3f720",
+                "packagetype": "sdist",
+                "path": "d0/71/7f57ca708a920a93c848cf7412919ccb1135a0cb6941660c71278d41982f/ironsource-atom-1.5.3.tar.gz",
+                "python_version": "source",
+                "size": 14148,
+                "upload_time": "2017-01-27T17:19:15",
+                "url": "https://pypi.python.org/packages/d0/71/7f57ca708a920a93c848cf7412919ccb1135a0cb6941660c71278d41982f/ironsource-atom-1.5.3.tar.gz"
+            }
+        ],
+        "1.5.4": [
+            {
+                "comment_text": "",
+                "downloads": 121,
+                "filename": "ironsource-atom-1.5.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0d5ac0bd9d1d38ad7f4349816c5b0164",
+                "packagetype": "sdist",
+                "path": "46/41/73813aa7f67d20add0cd8917e5f93789f1461d2dd70ae669c60051460a95/ironsource-atom-1.5.4.tar.gz",
+                "python_version": "source",
+                "size": 15922,
+                "upload_time": "2017-02-27T14:33:13",
+                "url": "https://pypi.python.org/packages/46/41/73813aa7f67d20add0cd8917e5f93789f1461d2dd70ae669c60051460a95/ironsource-atom-1.5.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 121,
+            "filename": "ironsource-atom-1.5.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "0d5ac0bd9d1d38ad7f4349816c5b0164",
+            "packagetype": "sdist",
+            "path": "46/41/73813aa7f67d20add0cd8917e5f93789f1461d2dd70ae669c60051460a95/ironsource-atom-1.5.4.tar.gz",
+            "python_version": "source",
+            "size": 15922,
+            "upload_time": "2017-02-27T14:33:13",
+            "url": "https://pypi.python.org/packages/46/41/73813aa7f67d20add0cd8917e5f93789f1461d2dd70ae669c60051460a95/ironsource-atom-1.5.4.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,542 @@
+{
+    "info": {
+        "author": "Marcellus Amadeus",
+        "author_email": "marcellus@nexusedge.co",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: Console",
+            "Operating System :: Unix",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.2",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Topic :: Utilities"
+        ],
+        "description": "Installation\n============\n\n|Build Status|\n\n::\n\n    pip3 install pypostgres\n\n*Not tested in python 2.x*\n\nBasic usage\n===========\n\nJust connect to your db using Postgres class and pass the queries to\n``.query()`` method.\n\nThe ``.query()`` method will return a custom ``Cursor`` class, if you\ndon't want nothing back from the db, you don't need to store it but if\nyou want to fetch any data, you can do it whenever you want because the\n``Cursor`` class will always handle the real connection with the db. In\nother words you will never need to worry about closed cursors or\nconnections because only at the exact time you request data from db the\n``Cursor`` class opens the connection and then it closes it.\n\n.. code:: python\n\n    >>> from pypostgres.postgres import Postgres\n\n    # Database connection\n    # http://initd.org/psycopg/docs/module.html#psycopg2.connect\n    >>> db = Postgres(database='books', user='john')\n    >>> cursor = db.query('SELECT author FROM books;')\n    >>> cursor.one\n    ('George R. R. Martin',)\n    >>> cursor.all\n    [('George R. R. Martin',), ('J. R. R. Tolkien',)]\n\nPostgres class\n==============\n\n1. ``mogrify``:\n   `psycopg2.cursor.mogrify() <http://initd.org/psycopg/docs/cursor.html#cursor.mogrify>`__\n2. ``query``: return ``Cursor`` object for given ``sql`` statements and\n   (optional) ``values``\n3. ``get_columns``: return ``table`` columns\n4. ``get_tables``: return all tables in current db\n5. ``get_databases``: return all dbs in current connectino\n\nCursor class\n============\n\nIf you are *SELECTing* data, the ``Cursor`` object can help you *fetch*\nthat data. You have two options:\n\nProperties\n----------\n\n1. ``Cursor.one``: return one result\n2. ``Cursor.all``: return all results\n3. ``Cursor.many(n)`` (actually a method): return ``n`` results\n\nFetch method\n------------\n\nJust pass how many result you want e.g. ``.fetch(n)``:\n\n1. ``1`` or ``one`` for one\n2. ``0``, ``*`` or ``all`` for all\n3. An *int* for other values\n\nCursor factory\n==============\n\nI consider the task of handling fechted data very important so I gave a\nspecial attention to *cursor factory*.\n\nAll Postgres class methods (except ``.mogrify()``) accept a\n``cursor_factory`` param that handle the desired cursor factory. For\neach type of cursor factory you can pass different things to get the\nsame factory, see below.\n\nNamedtuple\n----------\n\nFor namedtuple results, you can pass:\n\n1. 'NamedTuple', str\n2. 'NamedTupleCursor', str\n3. namedtuple, function from *collections*\n4. psycopg2.extras.NamedTupleCursor, the actual cursor factory\n\nDict\n----\n\nFor dict results, you can pass:\n\n1. 'Dict', str\n2. 'Dictursor', str\n3. dict, type\n4. psycopg2.extras.DictCursor, the actual cursor factory\n\nRealDict\n--------\n\nFor\n`RealDict <http://initd.org/psycopg/docs/extras.html#real-dictionary-cursor>`__\nresults, you can pass:\n\n1. 'RealDict', str\n2. 'RealDictursor', str\n3. psycopg2.extras.RealDictCursor, the actual cursor factory\n\nConnection class as ``contextmanager``\n======================================\n\nThe Connection class handle the entrance and exit of the database\nconnection, opening the communication when you entered it and closing\nthe connection when you are out.\n\n.. code:: python\n\n    >>> from pypostgres.connection import Connection\n    >>> dsn = 'dbname=books user=john'\n    >>> with Connection(dsn=dsn) as conn:\n    >>>     # do whatever you want to do\n    >>>     cursor = conn.cursor()\n    >>>     cursor.execute('SELECT author, book FROM books;')\n    >>>     data = cursor.fetchone()\n    >>> data\n    ('C. S. Lewis', 'The Chronicles of Narnia')\n\n.. |Build Status| image:: https://travis-ci.org/marcelluzs/pypostgres.svg?branch=master\n   :target: https://travis-ci.org/marcelluzs/pypostgres\n",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "https://www.github.com/marcelluzs/pypostgres/archive/v0.8.2.tar.gz",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://www.github.com/marcelluzs/pypostgres",
+        "keywords": "pypostgres postgres wrapper psycopg2 database",
+        "license": "GPL",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pypostgres",
+        "package_url": "https://pypi.org/project/pypostgres/",
+        "platform": "unix",
+        "project_url": "https://pypi.org/project/pypostgres/",
+        "project_urls": {
+            "Download": "https://www.github.com/marcelluzs/pypostgres/archive/v0.8.2.tar.gz",
+            "Homepage": "https://www.github.com/marcelluzs/pypostgres"
+        },
+        "release_url": "https://pypi.org/project/pypostgres/0.8.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A psycopg2 wrapper trying to make your job easier.",
+        "version": "0.8.2"
+    },
+    "last_serial": 2965939,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3a04b9bab72a92b0bba28800ae3a9efa",
+                    "sha256": "eab1fc54793175afdce5293df3c279d9bc809133553f4a71f69b20e763f24d32"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.1-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "3a04b9bab72a92b0bba28800ae3a9efa",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 3736,
+                "upload_time": "2016-05-19T03:45:15",
+                "url": "https://files.pythonhosted.org/packages/1f/33/1e12bffa55bf21b5c3a99c44b51a28e83f407518143966148e18e87129e5/pypostgres-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b706073ea2036048bfb702bf51577e3c",
+                    "sha256": "f17ea1bfc05deaf73da342a1c45e39ab8cf8421741a9a62efc0ee90c739a6e56"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "b706073ea2036048bfb702bf51577e3c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14948,
+                "upload_time": "2016-05-19T03:44:49",
+                "url": "https://files.pythonhosted.org/packages/a7/81/f2c8d2ab32617792af1644dc4a84c8582d76de6c1edeb25e42f7e489f176/pypostgres-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6294ffe9459f240565df487eea8cc40f",
+                    "sha256": "dc188e83ef807e677e016649aed57f169a6d678b53076f7a42b67a73c67ba67d"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.2-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "6294ffe9459f240565df487eea8cc40f",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 4630,
+                "upload_time": "2016-05-19T20:19:22",
+                "url": "https://files.pythonhosted.org/packages/b5/0b/d347a577aa55f01db04dad37453eb8265521213b8bc46b7fa031b55dfc8d/pypostgres-0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "66e18964314b60bfd353efa45bf1f805",
+                    "sha256": "8ce8310c833a8fc4fb9fa9df5446819cedf538a08dabae467d35a862f5a4e356"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.2.tar.gz",
+                "has_sig": true,
+                "md5_digest": "66e18964314b60bfd353efa45bf1f805",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15645,
+                "upload_time": "2016-05-19T20:18:56",
+                "url": "https://files.pythonhosted.org/packages/e9/8e/b6043ab75150385a42d151b9c68508866f08af0f2f5f4d32bb01e9616135/pypostgres-0.2.tar.gz"
+            }
+        ],
+        "0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "08d92d19e4c7fdaed9833c5e1995ab5f",
+                    "sha256": "5df719a4571554af77719f4d1117a4e20241ba47d045faaf22095440e246cb03"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.4-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "08d92d19e4c7fdaed9833c5e1995ab5f",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 5486,
+                "upload_time": "2016-06-14T03:22:40",
+                "url": "https://files.pythonhosted.org/packages/1e/12/6ba0eee01f23ddfee5c9b668a38cc8fe21ce40e853df4c0b3400f72833d3/pypostgres-0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b6ee5a3d4ebc9d11efc2db9bfcc5325a",
+                    "sha256": "cd1cee7c8668e41961fb4fc395bae3ce5bdfa2440c60802dad2712ef21f0d04b"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.4.tar.gz",
+                "has_sig": true,
+                "md5_digest": "b6ee5a3d4ebc9d11efc2db9bfcc5325a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16112,
+                "upload_time": "2016-06-14T03:22:06",
+                "url": "https://files.pythonhosted.org/packages/41/cb/bbab482fe232d0664fff3715dee52364f75e327599a6b599a7eda899def8/pypostgres-0.4.tar.gz"
+            }
+        ],
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1782702dd12e7bf94a9fb02f3b4f44b4",
+                    "sha256": "12dd7c1de02f98d6acbc3f2ee17f326814e1e860da83b44eeda252df5439d0fb"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.4.1-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "1782702dd12e7bf94a9fb02f3b4f44b4",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 5515,
+                "upload_time": "2016-06-14T03:54:01",
+                "url": "https://files.pythonhosted.org/packages/db/78/f1da6e2922c592deef61addce1e6574ebc337fe174be6bdaabcc9f35e886/pypostgres-0.4.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f007b4cb862f5a9ac48e826148f3bc3c",
+                    "sha256": "3e4d6a5c849f1cd1fce1b59e51cb4cf2c6d482f6026edebb4f03b8c73e2e5784"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.4.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "f007b4cb862f5a9ac48e826148f3bc3c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16127,
+                "upload_time": "2016-06-14T03:53:54",
+                "url": "https://files.pythonhosted.org/packages/44/3c/8c49de02925e32f593a75c4f3306988ec694594612367e1af95422f45beb/pypostgres-0.4.1.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "983be52fe16228a080e10d73d06b721b",
+                    "sha256": "8795aca7b6a81ef5d3aa2ae8910226497f9fbb14d85fc07fe2f1f80505c842ec"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.4.2-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "983be52fe16228a080e10d73d06b721b",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 5518,
+                "upload_time": "2016-06-14T04:12:29",
+                "url": "https://files.pythonhosted.org/packages/c4/f4/17dd68cfcc0ae0b2dc3328bc8b44771226c966530b249f20661a31d4eb6f/pypostgres-0.4.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d08c013fbc9b045a9a67b5b895e8d8c5",
+                    "sha256": "a7fe8d16305caea7629fa6e9c55c930102ad0962a9e16771bd121e3729b2e8bd"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.4.2.tar.gz",
+                "has_sig": true,
+                "md5_digest": "d08c013fbc9b045a9a67b5b895e8d8c5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16133,
+                "upload_time": "2016-06-14T04:12:12",
+                "url": "https://files.pythonhosted.org/packages/96/28/cc7e3498e59899d5740e2171870c6c7185df06d0094204a0a1152e1ca7e5/pypostgres-0.4.2.tar.gz"
+            }
+        ],
+        "0.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "09e944f0486e7f50ce441762b0153fcc",
+                    "sha256": "2664fe966042592c37813f686b123aba8da4095258e69cc0556c64c30efcd479"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.4.3.tar.gz",
+                "has_sig": true,
+                "md5_digest": "09e944f0486e7f50ce441762b0153fcc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16122,
+                "upload_time": "2016-06-14T14:57:28",
+                "url": "https://files.pythonhosted.org/packages/67/89/31448a74b0a57c704f5acc8a272f08cf6e6561c73e3dfbb8b6985bd35e74/pypostgres-0.4.3.tar.gz"
+            }
+        ],
+        "0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "34c82dd0ae68cd1b35f61947be4f8414",
+                    "sha256": "c96f2df3ac5ca5a96f84098eb3ccc00760ee3e55de35a3e4af56d6e015d0634b"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.5-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "34c82dd0ae68cd1b35f61947be4f8414",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 6441,
+                "upload_time": "2016-06-17T18:13:47",
+                "url": "https://files.pythonhosted.org/packages/be/5d/46243b8233259fe1bf311531928f76b44527e43863a38807a669538fcba0/pypostgres-0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "eccae56bc3e2ebf0bcbefd9370f5a812",
+                    "sha256": "d3f15d0e996f6f96b9ca43a7bdef8bedcae6c313c34732950fef468df5e01f99"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.5.tar.gz",
+                "has_sig": true,
+                "md5_digest": "eccae56bc3e2ebf0bcbefd9370f5a812",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16764,
+                "upload_time": "2016-06-17T18:13:41",
+                "url": "https://files.pythonhosted.org/packages/7b/19/d7760321d0a1af9a28fd17767e3442625e3083906d7b26edb1c70a480bf8/pypostgres-0.5.tar.gz"
+            }
+        ],
+        "0.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0d4ffc7a4051d25ce753a96f175dad2b",
+                    "sha256": "13f2fb934fe222c58fe189dc0d131dabf615aac22a3a9549c343c5685ee2dab6"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.5.1-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "0d4ffc7a4051d25ce753a96f175dad2b",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 6448,
+                "upload_time": "2016-06-17T21:38:22",
+                "url": "https://files.pythonhosted.org/packages/81/87/3d424853c2e826c460c4066bbdbbcf1d43307c9a559fd013dfc4941be8f8/pypostgres-0.5.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c6fd998e9ffcf4f7d1721181ee708079",
+                    "sha256": "66b2de774c81634853b1fb0eb3fa1fa6b8c3f83f4326b23118382c9d4f6a56a9"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.5.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "c6fd998e9ffcf4f7d1721181ee708079",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16733,
+                "upload_time": "2016-06-17T21:38:16",
+                "url": "https://files.pythonhosted.org/packages/14/2b/26f7adc0ea7dd53b55913ab9bb6c7ee6ad8d2682870034fef40eb4818130/pypostgres-0.5.1.tar.gz"
+            }
+        ],
+        "0.6.0": [],
+        "0.6.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "64c93e7c2a2a2c3ef2b1fba8ac35ba2f",
+                    "sha256": "4c42c64e5e85d67683666eb9b2f94bc7cc98d113b48e963db575df7fa6c67b06"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.6.1-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "64c93e7c2a2a2c3ef2b1fba8ac35ba2f",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 6191,
+                "upload_time": "2016-08-02T21:31:48",
+                "url": "https://files.pythonhosted.org/packages/52/c5/7f9e11f92db65a39e94ea84b8fd39ba45a66ab8de5bf6a304e2915721a19/pypostgres-0.6.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5f3fbe27569592324934eb2989c1cd58",
+                    "sha256": "5f5e14720c329652d2c7f53edb6e5d596e95481b7845ca756f7a310bc63dd410"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.6.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "5f3fbe27569592324934eb2989c1cd58",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 16687,
+                "upload_time": "2016-08-02T21:31:45",
+                "url": "https://files.pythonhosted.org/packages/33/e3/8d68a12c5e8ee92c3d181a2c6e5d4030af514ee0aa57b93507d5fab9dc1c/pypostgres-0.6.1.tar.gz"
+            }
+        ],
+        "0.7.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "da568f7013673b4d19eefbd2b7992d2c",
+                    "sha256": "e52de4dfde884ef7e9548b7248661e85bdfbba5730c6e5a65140ce1e330434a7"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.7.1-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "da568f7013673b4d19eefbd2b7992d2c",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 7840,
+                "upload_time": "2016-11-23T13:32:12",
+                "url": "https://files.pythonhosted.org/packages/f0/19/11deec53d08b432bb77027fcc61ca571011f9deba18952cc0226581182dd/pypostgres-0.7.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9adfe12147c9d67870d11666467a6a8a",
+                    "sha256": "e0f2ead1bcd9e18c49d79d9f9856b6a1419cfa7db593bfad0e01cb64192bf25f"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.7.1.tar.gz",
+                "has_sig": true,
+                "md5_digest": "9adfe12147c9d67870d11666467a6a8a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17540,
+                "upload_time": "2016-11-23T13:32:02",
+                "url": "https://files.pythonhosted.org/packages/b5/0e/83d39684e54f56fe748a3fdaa46a144517a0056d21378d6481b17cd737ee/pypostgres-0.7.1.tar.gz"
+            }
+        ],
+        "0.7.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "158d9a8168f3ed0d69bce668d326cb64",
+                    "sha256": "9bc8915bfb85380516a52baf0d301c3d2d14b4da608ed1d979d00b6f4b858896"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.7.4-py3-none-any.whl",
+                "has_sig": true,
+                "md5_digest": "158d9a8168f3ed0d69bce668d326cb64",
+                "packagetype": "bdist_wheel",
+                "python_version": "3.5",
+                "requires_python": null,
+                "size": 7870,
+                "upload_time": "2016-11-29T15:22:34",
+                "url": "https://files.pythonhosted.org/packages/17/03/018d7e8e0b7428936e9b1bb8a0d9653fd6264875aeeb7e60904d07d6eae1/pypostgres-0.7.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ac7e610a4a6f387ebf16ba12b4b19066",
+                    "sha256": "37d2c7cbd00a18a925ee8cb8149dbab73ac80d6991d09e36e6ae96d7de4baf1e"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.7.4.tar.gz",
+                "has_sig": true,
+                "md5_digest": "ac7e610a4a6f387ebf16ba12b4b19066",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17520,
+                "upload_time": "2016-11-29T15:22:27",
+                "url": "https://files.pythonhosted.org/packages/c0/dd/378e90c2009664e38ab17fd3408d2089c2fa4778ebbae5f5eb16a36cfe27/pypostgres-0.7.4.tar.gz"
+            }
+        ],
+        "0.7.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "92c995285cb345f0940a287a1f9d6dcf",
+                    "sha256": "e2f05328c87cba17d50d0cf95c60fe792bfd2171fbb959e27efbe1d90ad54c9f"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.7.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "92c995285cb345f0940a287a1f9d6dcf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17719,
+                "upload_time": "2017-06-08T22:47:36",
+                "url": "https://files.pythonhosted.org/packages/10/2c/4181095de60673fd9451b5b5bf8155740b66b4ce29d27b482d755e10dbbd/pypostgres-0.7.6.tar.gz"
+            }
+        ],
+        "0.7.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ec9ac494a7163ce335dfccfc10f9797b",
+                    "sha256": "747b1d6b83e97dce8ea8deb9ff9093dd8dcc4dcaa0273017052a84f318df7859"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.7.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ec9ac494a7163ce335dfccfc10f9797b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17729,
+                "upload_time": "2017-06-11T13:41:10",
+                "url": "https://files.pythonhosted.org/packages/55/bc/6f43673a78c6fd4bc2cb590acda21fb1573d2e8c01d846acb31f38176ace/pypostgres-0.7.7.tar.gz"
+            }
+        ],
+        "0.8.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6f2653b4464153da1aa7daa41f1ca816",
+                    "sha256": "28ca044c36a2c7b5226b84f4a516a65246500114b5709d3ce9a8a6aa595000f4"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.8.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6f2653b4464153da1aa7daa41f1ca816",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17632,
+                "upload_time": "2017-06-18T20:41:35",
+                "url": "https://files.pythonhosted.org/packages/17/66/68fa58bc685e3f3f51fce8067f7f1e98c3856c1a91b5df32bc5a6a3b4d22/pypostgres-0.8.0.tar.gz"
+            }
+        ],
+        "0.8.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4b8982201fd82731ae1ea14fa714bfa1",
+                    "sha256": "1b678c2b8889580df45154d971866aee29c63e80bf72278b12d68915dda61c5c"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.8.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4b8982201fd82731ae1ea14fa714bfa1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17675,
+                "upload_time": "2017-06-19T20:26:20",
+                "url": "https://files.pythonhosted.org/packages/af/69/b0e7fe7db1f1a96a5ad8313ab0785765032296b76c2f9d6314293810f708/pypostgres-0.8.1.tar.gz"
+            }
+        ],
+        "0.8.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e6c430b7c9116b3b6903b8c421048a4",
+                    "sha256": "5ea312fd209e1522a13b3eb62cf637bc682067fefc44149c088523b37e5c8624"
+                },
+                "downloads": -1,
+                "filename": "pypostgres-0.8.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8e6c430b7c9116b3b6903b8c421048a4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17688,
+                "upload_time": "2017-06-21T19:52:56",
+                "url": "https://files.pythonhosted.org/packages/c6/c1/a9a9439f22845f74aaa14829a211db6b876ca14edf99c0fbc9117a0de2c0/pypostgres-0.8.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8e6c430b7c9116b3b6903b8c421048a4",
+                "sha256": "5ea312fd209e1522a13b3eb62cf637bc682067fefc44149c088523b37e5c8624"
+            },
+            "downloads": -1,
+            "filename": "pypostgres-0.8.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8e6c430b7c9116b3b6903b8c421048a4",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 17688,
+            "upload_time": "2017-06-21T19:52:56",
+            "url": "https://files.pythonhosted.org/packages/c6/c1/a9a9439f22845f74aaa14829a211db6b876ca14edf99c0fbc9117a0de2c0/pypostgres-0.8.2.tar.gz"
+        }
+    ]
+}

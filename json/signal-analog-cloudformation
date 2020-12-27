@@ -1,0 +1,92 @@
+{
+    "info": {
+        "author": "Tyler Southwick",
+        "author_email": "tyler.southwick@nike.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "Intended Audience :: Developers",
+            "Natural Language :: English",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5"
+        ],
+        "description": "# Signal Analog Cloudformation\n\nPatterns for building common dashboards in SignalFx driven by cloudformation stacks\nusing the [signal\\_analog] and [signal\\_analog\\_patterns] library.\n\n## Features\n\n  - Introspect a cloudformation stack to find all resources with supported dashboards.\n\n### Table of Contents\n\n  - [Quick Start](#quick-start)\n  - [Getting Started](#getting-started)\n  - [Usage](#usage)\n      - [Stack Usage](#stack-usage)\n  - [Project Contributors](#project-contributors)\n      - [Maintainers](#maintainers)\n      - [Trusted Contributors](#trusted-contributors)\n  - [Credits](#credits)\n\n<a name=\"quick-start\"></a>\n## Quick Start\n\nThis quick start assumes familiarity with installing and configuring Python\npackages.\n\nAdd the following to your requirements file:\n\n```\nsignal_analog_cloudformation\n```\n\n`pip install` and you're on your way!\n\n<a name=\"getting-started\"></a>\n## Getting Started\n\n`signal_analog_cloudformation` is distributed via the Python native `pip` tool.\nDependencies are managed via a `requirements.txt` file that represents the\npackages you are interested in installing.\n\nFor a brand new project we suggest storing your infrastructure configuration\nin a separate directory from your project source:\n\n```\n.\n\u251c\u2500\u2500 build\n\u251c\u2500\u2500 conf\n\u251c\u2500\u2500 deploy  # this is where we suggest putting your signal_analog config.\n\u251c\u2500\u2500 gradle\n\u251c\u2500\u2500 legacy-id-mapping-core-code\n\u251c\u2500\u2500 legacy-id-mapping-remote-tests\n\u251c\u2500\u2500 perf-tests\n\u2514\u2500\u2500 project\n```\n\nWe'll now want to create a `requirements.txt` file with the following entries:\n\n```\n--extra-index-url https://maven:ludist@artifactory.nike.com/artifactory/api/pypi/python-virtual/simple\n--trusted-host artifactory.nike.com\nsignal_analog_cloudformation\n```\n\nThe first two entries tell `pip` how to talk to Nike's Artifactory repository\nwhile the following entries list the dependencies we want to install.\n\nPython packages are, by default, installed in a global index. To ensure that\nthese libraries work within the scope of you're project we suggest installing\nthem inside of a virtual environment, or sandbox. To do so first determine\nthe version of Python you're using:\n\n```\npython --version\n```\n\nThen create a virtual environment according to the major version of Python\nyou are using:\n\n```bash\n# For Python 2\nvirtualenv venv\n# For Python 3\npython3 -mvenv venv\n\n# All versions need to execute this command\nsource venv/bin/activate\n\n# Install our requested libraries\npip install -r deploy/requirements.txt\n\n# If you already have a virtual environment, you can upgrade the libraries\n# so that you will get the latest version of the library if a version is not specified  \npip install -U -r deploy/requirements.txt\n```\n\nFinally, make sure that the sandboxed resources are not committed to your\nproject by adding them to your `.gitignore` file.\n\n<a name=\"usage\"></a>\n## Usage\n\n<a name=\"stack-usage\"></a>\n### Cloudformation Stack\n\nThe dashboards provided by this library enable you to monitor the most\ncommon metrics for an API service at Nike.\n\nThe top-level Dashboard Group can be used like so:\n\n```python\n#!/usr/bin/env python\n\n# filename: deploy/monitoring.py\n\nfrom signal_analog_cloudformation.stack import Stack\n\n# By default we'll only monitor production\nstack = Stack('my-stack-name', \"us-west-2\")\n\n# Find all the dashboards for the stack\ndashboards = stack.dashboards()\n\n# If this script is invoked directly we'll run this portion of code.\n# Think of it like a `main` method in other languages.\nif __name__ == '__main__':\n    from signal_analog.cli import CliBuilder\n    cli = CliBuilder().with_resources(*dashboards).build()\n    cli()\n```\n\nWe can run this script like so:\n\n```bash\npython deploy/monitoring.py --api-key \"my-key\" update\n```\n\nFor a more detailed explanation of how the CLI builder works consult the\n[signal\\_analog documentation][sa-docs].\n\n<a name=\"project-contributors\"></a>\n## Project Contributors\n\n<a name=\"maintainers\"></a>\n### Maintainers\n\n  - Tyler Southwick\n\n<a name=\"trusted-contributors\"></a>\n### [Trusted Contributors]\n\n  - Fernando Freire\n\n<a name=\"credits\"></a>\n## Credits\n\n[signal\\_analog]: https://github.com/Nike-Inc/signal_analog\n[sa-docs]: https://github.com/Nike-Inc/signal_analog#cli-builder\n[Trusted Contributors]: ./TRUSTED_COMMITTERS.md\n\n\n# History\n\n## 0.3.0 (2018-11-12)\n\n* Add step function and api gateway resource mappings\n\n## 0.2.0 (2018-11-12)\n\n* Make resource information available to callers\n\n\n## 0.1.0 (2018-11-6)\n\n* Initial release\n\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.nike.com/projects/COPBLUE/repos/signal-analog-cloudformation",
+        "keywords": "signal_analog_cloudformation",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "signal-analog-cloudformation",
+        "package_url": "https://pypi.org/project/signal-analog-cloudformation/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/signal-analog-cloudformation/",
+        "project_urls": {
+            "Homepage": "https://bitbucket.nike.com/projects/COPBLUE/repos/signal-analog-cloudformation"
+        },
+        "release_url": "https://pypi.org/project/signal-analog-cloudformation/0.3.0/",
+        "requires_dist": [
+            "signal-analog",
+            "signal-analog-patterns",
+            "boto3",
+            "pyformance",
+            "click"
+        ],
+        "requires_python": "",
+        "summary": "Automate Cloudformation template dashboards in SignalFX.",
+        "version": "0.3.0"
+    },
+    "last_serial": 4797418,
+    "releases": {
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a2a294fa217aeedc1fd1da0fe0d9322c",
+                    "sha256": "f4de73a536b4d7738126b32f69ea45a05dcf301a87111bbf71854545aa42723e"
+                },
+                "downloads": -1,
+                "filename": "signal_analog_cloudformation-0.3.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a2a294fa217aeedc1fd1da0fe0d9322c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 6462,
+                "upload_time": "2019-02-08T20:51:11",
+                "url": "https://files.pythonhosted.org/packages/f3/2c/4b5f956b4f30ff3e2d8ccd8a2e1be10516be7b23ec1329c96e4b791807f5/signal_analog_cloudformation-0.3.0-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a2a294fa217aeedc1fd1da0fe0d9322c",
+                "sha256": "f4de73a536b4d7738126b32f69ea45a05dcf301a87111bbf71854545aa42723e"
+            },
+            "downloads": -1,
+            "filename": "signal_analog_cloudformation-0.3.0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "a2a294fa217aeedc1fd1da0fe0d9322c",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 6462,
+            "upload_time": "2019-02-08T20:51:11",
+            "url": "https://files.pythonhosted.org/packages/f3/2c/4b5f956b4f30ff3e2d8ccd8a2e1be10516be7b23ec1329c96e4b791807f5/signal_analog_cloudformation-0.3.0-py2.py3-none-any.whl"
+        }
+    ]
+}

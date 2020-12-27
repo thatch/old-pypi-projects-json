@@ -1,0 +1,117 @@
+{
+    "info": {
+        "author": "Xavier Vello",
+        "author_email": "xavier.vello@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3",
+            "Topic :: System :: Archiving :: Backup"
+        ],
+        "description": "# tugboat: Integrate containers in your backup workflow\n\n[![Build Status](https://travis-ci.org/xvello/tugboat-backups.svg?branch=master)](https://travis-ci.org/xvello/tugboat-backups)\n\nWhen running a docker mono-node, it is non-trivial to reliably backup the datastores runing in containers:\n\n- there is no `cron` running in the containers to create regular snapshots\n- if container names are non-deterministic, running `docker exec` from a cronjob is error-prone\n- backup scripts must be maintained alongside the container specs\n\n`tugboat` resolves this by allowing you to define backup commands in your container labels. `tugboat` will execute these commands inside your containers, and capture their standard output to files in a given backup folder.\n\n## Obligatory cute tugboat picture\n\n[![](https://www.publicdomainpictures.net/pictures/240000/velka/tugboat-two.jpg)](https://www.publicdomainpictures.net/en/view-image.php?image=234452&picture=tugboat-two)\n\n## Setup\n\nCreate the following labels on your containers:\n\n- `tugboat.bkp_command`: the command to run to get a backup\n- `tugboat.filename`: the file name to store the backup in (relative to the backup folder)\n- `tugboat.pre_command`: (optional) command to run before bkp\n- `tugboat.post_command`: (optional) command to run after bkp\n\nThen run `tugboat` with the destination folder as an argument:\n\n```\n$ tugboat /var/backups/tugboat/\nFound 3 containers to backup\n  Running backup for postgres-bc5c7cd5-1543-829b-7090-92c21c55ea62... OK\n  Running backup for redis-f6aec815-ea31-1f8a-a5ec-715cb5bdf48e... OK\n  Running backup for consul-1cebf3d3-47f1-999a-605f-c1f079f930a3... OK\n```\n\nFor safety reasons, file path will not be allowed to escape the specified folder. Use of `../` and symlinks will be detected and blocked.\n\n## Label examples\n\n### PostgreSQL\n\n```\n\"tugboat.pre_command\" = \"vacuumdb --all --analyze\"\n\"tugboat.bkp_command\" = \"sh -c 'pg_dumpall | gzip'\"\n\"tugboat.filename\" = \"psql.dump.gz\"\n```\n\n### Consul\n\n```\n\"tugboat.bkp_command\" = \"sh -c 'consul kv export | gzip'\"\n\"tugboat.filename\" = \"consul.dump.gz\"\n```\n\n### Redis\n\n```\n\"tugboat.pre_command\" = \"redis-cli save\"\n\"tugboat.bkp_command\" = \"gzip -c dump.rdb\"\n\"tugboat.post_command\" = \"rm --force dump.rdb\"\n\"tugboat.filename\" = \"redis-rspamd.dump.gz\"\n```\n\nOn a very low traffic redis server (rspamd persistence), the synchronous `save` can be used. For production databases, the asynchronous `bgsave` command should be used instead.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/xvello/tugboat-backups",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "tugboat-backups",
+        "package_url": "https://pypi.org/project/tugboat-backups/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/tugboat-backups/",
+        "project_urls": {
+            "Homepage": "https://github.com/xvello/tugboat-backups"
+        },
+        "release_url": "https://pypi.org/project/tugboat-backups/0.2.0/",
+        "requires_dist": [
+            "Click (==7.0)",
+            "docker (==3.7.2)"
+        ],
+        "requires_python": "",
+        "summary": "Integrate containers in your backup workflow",
+        "version": "0.2.0"
+    },
+    "last_serial": 5111162,
+    "releases": {
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ced34775be29523fa771919f1cdc9410",
+                    "sha256": "128181435f19fd97b5bc7961f9f1c232bbae749cd733f49103eafa223ec70a79"
+                },
+                "downloads": -1,
+                "filename": "tugboat_backups-0.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ced34775be29523fa771919f1cdc9410",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 19452,
+                "upload_time": "2019-04-07T22:10:55",
+                "url": "https://files.pythonhosted.org/packages/ea/2f/5d8a5c0b7ae7822472865df55aeb7b362ee85310b1894979047f5006828a/tugboat_backups-0.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5ec0e09ba5faed898ac1dde6f28d739a",
+                    "sha256": "efcc4c2a6f909e8f56e589920e1a7790911a6ec431ca083139a57294f6407560"
+                },
+                "downloads": -1,
+                "filename": "tugboat-backups-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5ec0e09ba5faed898ac1dde6f28d739a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5344,
+                "upload_time": "2019-04-07T22:10:57",
+                "url": "https://files.pythonhosted.org/packages/1f/44/78d09e9bbb1a91c8a0e65b704dbac270cacd0e6327f09dbbab6c1e0ac1c8/tugboat-backups-0.2.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ced34775be29523fa771919f1cdc9410",
+                "sha256": "128181435f19fd97b5bc7961f9f1c232bbae749cd733f49103eafa223ec70a79"
+            },
+            "downloads": -1,
+            "filename": "tugboat_backups-0.2.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ced34775be29523fa771919f1cdc9410",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 19452,
+            "upload_time": "2019-04-07T22:10:55",
+            "url": "https://files.pythonhosted.org/packages/ea/2f/5d8a5c0b7ae7822472865df55aeb7b362ee85310b1894979047f5006828a/tugboat_backups-0.2.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "5ec0e09ba5faed898ac1dde6f28d739a",
+                "sha256": "efcc4c2a6f909e8f56e589920e1a7790911a6ec431ca083139a57294f6407560"
+            },
+            "downloads": -1,
+            "filename": "tugboat-backups-0.2.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "5ec0e09ba5faed898ac1dde6f28d739a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5344,
+            "upload_time": "2019-04-07T22:10:57",
+            "url": "https://files.pythonhosted.org/packages/1f/44/78d09e9bbb1a91c8a0e65b704dbac270cacd0e6327f09dbbab6c1e0ac1c8/tugboat-backups-0.2.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,79 @@
+{
+    "info": {
+        "author": "Matej Ramuta",
+        "author_email": "matej.ramuta@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Tifimo ODM\n\n## About\n\nTifimo is a simple ODM tool which helps you **switch** between these NoSQL database systems: **TinyDB**, **Firestore**, **MongoDB** and **Cosmos DB** (via MongoDB API). The name Tifimo is made out of the first two letters of each of these databases: **Ti**nydb, **Fi**restore, **Mo**ngo).\n\nTinyDB is used for localhost development. The advantage is that it saves you time configuring a Firestore or Cosmos emulator on localhost.\n\nWhen you deploy your web app to Google App Engine, Heroku or Azure App Service, the ODM figures out the new environment (through env variables) and switches the database accordingly.\n\nBear in mind that this is a simple ODM meant to be used at the [SmartNinja courses](https://www.smartninja.org) for learning purposes. So not all\nfeatures of these NoSQL databases are covered, only the basic ones.\n\n## Installation\n\nInstall Tifimo via pip:\n\n\tpip install tifimo\n\nUpgrade it like this:\n\n\tpip install tifimo --upgrade\n\nAnd uninstall it like this:\n\n\tpip uninstall tifimo\n\n## Dependencies\n\nTifimo has two mandatory dependencies: `tinydb` and `tinydb_serialization`. These two help Tifimo use a TinyDB database for localhost development.\n\nTo use Firestore on Google App Engine, MongoDB on Heroku or Cosmos DB on Azure App Service, you'll need to add the following libraries into your `requirements.txt` file:\n\n    firebase-admin\n    google-cloud-firestore\n    \n    pymongo\n\nNote that `pymongo` is used as an API for the Cosmos DB database. If you won't use Azure, you don't need to include it. If you'll use Azure only, you can include only `pymongo` in the `requirements.txt` file (besides `tifimo` of course).\n\n### Heroku\n\nIf you'll use MongoDB on Heroku, make sure to choose the **mLab MongoDB** add-on.\n\n### Environment variables\n\nThe environment variables should already be automatically created, but still make sure they (still) have the correct names.\n\nHeroku:\n\n- **MONGODB_URI** (shows up when you add the mLab MongoDB add-on)\n- **DYNO** (standard Heroku env var, not visible on the dashboard)\n\nAzure:\n\n- **APPSETTING_WEBSITE_SITE_NAME** (env vars that start with \"APPSETTING_\" are Azure's standard env vars. Not visible on the dashboard)\n- **APPSETTING_MONGOURL** (shows up when you enable Cosmos DB with the Mongo API)\n\nGoogle Cloud:\n\n- **GAE_APPLICATION** (standard GAE env var)\n\n## Usage\n\n### Creating classes\n\nThis is the simplest way to create classes that use Tifimo:\n\n```python3\nfrom tifimo.tifimo import Model\n\n\nclass User(Model):\n    pass\n\n```\n\nWhen you initialize a new object, you can add as many attributes as you want (no need to define them in the User model):\n\n```python3\nuser = User(first_name=\"Matt\", last_name=\"Ramuta\", age=31, human=True)\n\n```\n\nBut usually you'd want to specify at least some mandatory fields in a class:\n\n```python3\nclass User(Model):\n    def __init__(self, first_name, last_name, age, human=True, **kwargs):\n        self.first_name = first_name\n        self.last_name = last_name\n        self.age = age\n        self.human = human\n        self.created = datetime.datetime.now()\n\n        super().__init__(**kwargs)\n\n```\n\nAs you can see, `first_name`, `last_name` and `age` are mandatory fields, while `human` is optional and has a default value of `True`.\n\nThe `created` field is automatically assigned a value of `datetime.datetime.now()`.\n\n**Important**: The `super().__init__(**kwargs)` line must be the last one in the `__init__` method!\n\n### Custom class methods\n\nYour classes will inherit the following methods from the Model class:\n\n- `create()`\n- `edit()`\n- `get_collection()`\n- `delete()`\n- `get()`\n- `fetch()`\n\nBut you can of course create your own custom methods. Example:\n\n```python3\nclass User(Model):\n    def __init__(self, first_name, last_name, age, human=True, **kwargs):\n        self.first_name = first_name\n        self.last_name = last_name\n        self.age = age\n        self.human = human\n        self.created = datetime.datetime.now()\n\n        super().__init__(**kwargs)\n    \n    def get_full_name(self):\n        return \"{0} {1}\".format(self.first_name, self.last_name)\n\n```\n\n### Creating new objects\n\n```python3\nuser = User(first_name=\"Matt\", last_name=\"Ramuta\", age=31)\nuser.create()\n\n```\n\nAs you can see, creating an object needs two things: initializing an object and saving it into a database with the `create()` method. If you don't call this method, the object will not be saved into a database.\n\nThe `create()` method returns back an object with all its properties, including the `id` which is **automatically** created by the database.\n\n### Get one object from the database\n\nYou can get an object out of the database if you know its `id`:\n\n```python3\n# Add new object to the database:\nuser = User(first_name=\"Matt\", last_name=\"Ramuta\", age=31)\nuser.create()\n\n# Get the User object from the database\nnew_obj = User.get(obj_id=user.id)\n\n```\n\n### Edit an object\n\nYou need to pass the object id and the fields you want to edit:\n\n```python3\nUser.edit(obj_id=user_id, first_name=\"John\", age=25)\n\n```\n\n### Delete an object\n\nCall the `delete()` method and pass the object id:\n\n```python3\nUser.delete(obj_id=user_id)\n\n```\n\n### Query the database and fetch objects that match the query\n\nYou can specify **one query**:\n\n```python3\nquery = [\"first_name\", \"==\", \"Matt\"]\nusers = User.fetch(query=query)\n\nprint(users[0].first_name)\nprint(users[0].id)\n\n```\n\nWhat you'll get is a list of objects that match the query.\n\nYou can also have **multiple queries**:\n\n```python3\nquery_age = [\"age\", \">\", 30]\nquery_human = [\"human\", \"==\", True]\n\nusers = User.fetch(query_age=query_age, query_human=query_human)\n\n```\n\nBut be aware, that some databases (like Firestore) might require that you create an index for these composite queries.\n\n**Important:**\n\n- This query structure must be followed (as shown in examples): `[\"field\", \"operator\", value]`. So the **field name** and \nthe **operator** must be written in quotes.\n- The \"not equal\" queries (\"!=\") are not allowed, because Firestore does not support them (although TinyDB and Cosmos \nDB do).\n\n## How the right database is determined\n\nTifimo automatically determines which database to use. If the environment has the `GAE_APPLICATION` variable, then \nthe selected database is **Firestore**. If Tifimo finds a `APPSETTING_WEBSITE_SITE_NAME` it assumes the environment is \n**Azure**, so the selected database is **Cosmos DB**. But if **none** of these two environment variables is found, the \nselected database is **TinyDB**.\n\n## TODO\n\n- Tests\n- Continuous integration",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/smartninja/tifimo",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "tifimo",
+        "package_url": "https://pypi.org/project/tifimo/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/tifimo/",
+        "project_urls": {
+            "Homepage": "https://github.com/smartninja/tifimo"
+        },
+        "release_url": "https://pypi.org/project/tifimo/0.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Tifimo - a simple ODM for NoSQL databases: TinyDB, Firestore, MongoDB and Cosmos DB.",
+        "version": "0.3"
+    },
+    "last_serial": 4648985,
+    "releases": {
+        "0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "be6c887d45001372a649e42bae0b42f1",
+                    "sha256": "744602840ba1f4ace8b153d8325cb84da8402472dcb2d61093e85e722092a0b3"
+                },
+                "downloads": -1,
+                "filename": "tifimo-0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "be6c887d45001372a649e42bae0b42f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7762,
+                "upload_time": "2018-12-31T21:24:22",
+                "url": "https://files.pythonhosted.org/packages/25/db/20e22ca0fa0a9b6a270b8c3471e9ea7a6be8a00e7723765a1aa215004d3f/tifimo-0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "be6c887d45001372a649e42bae0b42f1",
+                "sha256": "744602840ba1f4ace8b153d8325cb84da8402472dcb2d61093e85e722092a0b3"
+            },
+            "downloads": -1,
+            "filename": "tifimo-0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "be6c887d45001372a649e42bae0b42f1",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 7762,
+            "upload_time": "2018-12-31T21:24:22",
+            "url": "https://files.pythonhosted.org/packages/25/db/20e22ca0fa0a9b6a270b8c3471e9ea7a6be8a00e7723765a1aa215004d3f/tifimo-0.3.tar.gz"
+        }
+    ]
+}

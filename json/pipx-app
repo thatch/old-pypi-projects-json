@@ -1,0 +1,553 @@
+{
+    "info": {
+        "author": "Chad Smith",
+        "author_email": "grassfedcode@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3 :: Only"
+        ],
+        "description": "<p align=\"center\">\n<img align=\"center\" src=\"https://github.com/pipxproject/pipx/raw/master/logo.png\"/>\n</p>\n\n# pipx: execute binaries from Python packages in isolated environments\n\n<p align=\"center\">\n<a href=\"https://github.com/pipxproject/pipx/raw/master/pipx_demo.gif\">\n<img src=\"https://github.com/pipxproject/pipx/raw/master/pipx_demo.gif\"/>\n</a>\n</p>\n\n<p align=\"center\">\n<a href=\"https://travis-ci.org/pipxproject/pipx\"><img src=\"https://travis-ci.org/pipxproject/pipx.svg?branch=master\" /></a>\n\n<a href=\"https://pypi.python.org/pypi/pipx/\">\n<img src=\"https://img.shields.io/badge/pypi-0.12.0.4-blue.svg\" /></a>\n<a href=\"https://github.com/ambv/black\"><img alt=\"Code style: black\" src=\"https://img.shields.io/badge/code%20style-black-000000.svg\"></a>\n</p>\n\n*For comparison to pipsi, see [how does this compare to pipsi?](#how-does-this-compare-to-pipsi) and [migrating to pipx from pipsi](#migrating-to-pipx-from-pipsi).*\n\n*pipx uses the word \"binary\" to describe a CLI application that can be run directly from the command line. These files are located in the `bin` directory of a Python installation, alongside other executables. Despite the name, they do not necessarily contain binary data.*\n\n## Overview\n* Safely install packages to isolated virtual environments, while globally exposing their CLI applications so you can run them from anywhere\n* Easily list, upgrade, and uninstall packages that were installed with pipx\n* Run the latest version of a CLI application from a package in a temporary virtual environment, leaving your system untouched after it finishes\n* Runs with regular user permissions, never calling `sudo pip install ...` (you aren't doing that, are you? \ud83d\ude04).\n\npipx combines the features of JavaScript's [npx](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b) - which ships with npm - and Python's [pipsi](https://github.com/mitsuhiko/pipsi). pipx does not ship with pip but it is an important part of bootstrapping your system.\n\n### Safely installing to isolated environments\nYou can globally install a CLI application by running\n```\npipx install PACKAGE\n```\n\nThis automatically creates a virtual environment, installs the package, and symlinks the package's CLI binaries to a location on your `PATH`. For example, `pipx install cowsay` makes the `cowsay` command available globally, but sandboxes the cowsay package in its own virtual environment. **pipx never needs to run as sudo to do this.**\n\nExample:\n```\n>> pipx install cowsay\n  installed package cowsay 2.0, Python 3.6.7\n  These binaries are now globally available\n    - cowsay\ndone! \u2728 \ud83c\udf1f \u2728\n\n>> cowsay moooo\n  _____\n< moooo >\n  =====\n          \\\n           \\\n             ^__^\n             (oo)\\_______\n             (__)\\       )\\/       ||----w |\n                 ||     ||\n```\n\n### Running in one-time ephemeral environments\npipx makes running the latest version of a program in a one-time environment as easy as\n```\npipx run BINARY [ARGS...]\n```\nThis will install the package in a temporary directory, invoke the binary, then clean up after itself, leaving your system untouched. Try it!\n\n```\npipx run cowsay moo\n```\n\nNotice that you **don't need to execute any install commands to run the binary**.\n\nYou can run .py files directly, too.\n```\npipx run https://gist.githubusercontent.com/cs01/fa721a17a326e551ede048c5088f9e0f/raw/6bdfbb6e9c1132b1c38fdd2f195d4a24c540c324/pipx-demo.py\npipx is working!\n```\n\n## Testimonials\n\n\"Just the \u201cpipx upgrade-all\u201d command is already a huge win over pipsi\"\n\u2014 [Stefane Fermigier](https://twitter.com/sfermigier/status/1093073303521116160)\n\n\"This tool filled in the gap that was missing with pipenv and virtualenvwrapper.\"\n\u2014 [Mason Egger](https://medium.com/homeaway-tech-blog/simplify-your-python-developer-environment-aba90f32dddb)\n\n\"Thank you! Great tool btw. I already use it instead of pipsi :)\"\n\u2014 @tkossak\n\n\n### System Requirements\npython 3.6+ is required to install pipx. pipx can run binaries from packages with Python 3.3+. Don't have Python 3.6 or later? See [Python 3 Installation & Setup Guide](https://realpython.com/installing-python/).\n\npipx works on macOS, linux, and Windows.\n\n## Install `pipx`\n```\npip install --user pipx\npipx ensurepath\n```\n\nto be sure you are using python3 you can run\n\n```\npython3 -m pip install --user pipx\npipx ensurepath\n```\n\n## Usage\n\n```\npipx {install,inject,upgrade,upgrade-all,uninstall,uninstall-all,reinstall-all,list,run}\n```\n\nYou can run `pipx COMMAND --help` for details on each command.\n\n### Install a Package\nThe install command is the preferred way to globally install binaries from python packages on your system. It creates an isolated virtual environment for the package, then in a folder on your PATH creates symlinks to all the binaries provided by the installed package. It does not link to the package's dependencies.\n\nThe result: binaries you can run from anywhere, located in packages you can **cleanly** upgrade or uninstall. Guaranteed to not have dependency version conflicts or interfere with your OS's python packages. All **without** running `sudo`.\n```\npipx install PACKAGE\npipx install --python PYTHON PACKAGE\npipx install --spec VCS_URL PACKAGE\npipx install --spec ZIP_FILE PACKAGE\npipx install --spec TAR_GZ_FILE PACKAGE\n```\n\nThe argument to `--spec` is passed directly to `pip install`.\n\nThe default virtual environment location is `~/.local/pipx/venvs` and can be overridden by setting the environment variable `PIPX_HOME`.\n\nThe default binary location is `~/.local/bin` and can be overridden by setting the environment variable `PIPX_BIN_DIR`.\n\n#### Package Installation Examples\n```\npipx install cowsay\npipx install --python python3.6 cowsay\npipx install --python python3.7 cowsay\npipx install --spec git+https://github.com/ambv/black black\npipx --spec git+https://github.com/ambv/black.git@branch-name black\npipx --spec git+https://github.com/ambv/black.git@git-hash black\npipx install --spec https://github.com/ambv/black/archive/18.9b0.zip black\npipx install --spec black[d] black\n```\n\n### `upgrade`\nUpgrades a package within its virtual environments by running `pip install --upgrade PACKAGE`.\n\n```\npipx upgrade PACKAGE\n```\n\n### `upgrade-all`\nUpgrades all packages within their virtual environments by running `pip install --upgrade PACKAGE`.\n```\npipx upgrade-all\n```\n\n### `inject`\nAdds packages to an existing pipx-managed virtual environment.\n\n```\npipx inject PACKAGE DEPENDENCIES\n```\n\n#### Inject Example\n\nOne use of the inject command is setting up a REPL with some useful extra packages.\n\n```\npipx install ptpython\npipx inject ptpython requests pendulum\n```\n\nAfter running the above commands, you will be able to import and use the `requests` and `pendulum` packages inside a `ptpython` repl.\n\n### `uninstall`\nUninstalls a package by deleting its virtual environment and any symlinks that point to its binaries.\n```\npipx uninstall PACKAGE\n```\n### `uninstall-all`\nUninstalls all packages (including pipx)\n```\npipx uninstall-all\n```\n\n### `reinstall-all`\nReinstalls all packages using a different version of Python.\n```\npipx reinstall-all PYTHON\n```\nSpecify a version of Python to associate all installed packages with. Packages are uninstalled, then installed with `pip install PACKAGE`. This is useful if you upgraded to a new version of Python and want all your packages to use the latest as well.\n\nIf you originally installed a package from a source other than PyPI, this command may behave in unexpected ways since it will reinstall from PyPI.\n\n### `list`\nLists installed packages/binaries\n```\npipx list\n```\nresults in something like\n```\nvenvs are in /Users/user/.local/pipx/venvs\nsymlinks to binaries are in /Users/user/.local/bin\n   package black 18.9b0, Python 3.7.0\n    - black\n    - blackd\n   package pipx 0.10.0, Python 3.7.0\n    - pipx\n```\n### `run`\nRun a binary from the latest version of its package in a temporary, ephemeral environment.\n```\npipx run BINARY\npipx [--python PYTHON] [--spec SPEC] BINARY [ARGS...]\n```\n\n#### `pipx run` Examples\npipx enables you to test various combinations of Python versions and package versions in ephemeral environments:\n```\npipx run BINARY  # latest version of binary is run with python3\npipx --spec PACKAGE==2.0.0 run BINARY  # specific version of package is run\npipx --python 3.4 run BINARY  # Installed and invoked with specific Python version\npipx --python 3.7 --spec PACKAGE=1.7.3 run BINARY\npipx --spec git+https://url.git run BINARY  # latest version on master is run\npipx --spec git+https://url.git@branch run BINARY\npipx --spec git+https://url.git@hash run BINARY\npipx run cowsay moo\npipx --version  # prints pipx version\npipx run cowsay  --version  # prints cowsay version\npipx --python pythonX cowsay\npipx --spec cowsay==2.0 cowsay --version\npipx --spec git+https://github.com/ambv/black.git black\npipx --spec git+https://github.com/ambv/black.git@branch-name black\npipx --spec git+https://github.com/ambv/black.git@git-hash black\npipx --spec https://github.com/ambv/black/archive/18.9b0.zip black --help\npipx https://gist.githubusercontent.com/cs01/fa721a17a326e551ede048c5088f9e0f/raw/6bdfbb6e9c1132b1c38fdd2f195d4a24c540c324/pipx-demo.py\n```\n\n## Walkthrough\nI'll use the python package `black` as an example. The `black` package ships with a binary called black. You can run it with pipx just like this.\n```\npipx run black --help\nUsage: black [OPTIONS] [SRC]...\n\n  The uncompromising code formatter.\n  ...\n```\nBlack just ran, but you didn't have to run `venv` or install commands. How easy was that!?\n\npipx makes safely installing the program to globally accessible, isolated environment as easy as\n```\npipx install black\n```\nso now `black` will be available globally, wherever you want to use it, but **not mixed in with your OS's Python packages**.\n```\nblack --help  # now available globally\nUsage: black [OPTIONS] [SRC]...\n\n  The uncompromising code formatter.\n  ...\n```\n\n> Aside: I just want to take a second to note how different this is from using `sudo pip install ...` (which you should NEVER do). Using `sudo pip install ...` will mix Python packages installed and required by your OS with whatever you just installed. This can result in very bad things happening. And since all the dependencies were installed along with it (and you have no idea what they were), you can't easily uninstall them -- you have to know every single one and run `sudo pip uninstall ...` for them!\n\nYou can uninstall packages with\n```\npipx uninstall black\n```\nThis uninstalls the black package **and all of its dependencies**, but doesn't affect any other packages or binaries.\n\n## Programs to try with pipx\nHere are some programs you can try out with no obligation. If you've never used the program before, make sure you add the `--help` flag so it doesn't do something you don't expect. If you decide you want to install, you can run `pipx install PACKAGE` instead.\n```\npipx install ansible  # IT automation\npipx run asciinema  # Record and share your terminal sessions, the right way.\npipx run black  # uncompromising Python code formatter\npipx --spec babel run pybabel  # internationalizing and localizing Python applications\npipx --spec chardet run chardetect  # detect file encoding\npipx run cookiecutter  # creates projects from project templates\npipx run create-python-package  # easily create and publish new Python packages\npipx run flake8  # tool for style guide enforcement\npipx run gdbgui  # browser-based gdb debugger\npipx run hexsticker  # create hexagon stickers automatically\npipx run ipython  # powerful interactive Python shell\npipx run pipenv  # python dependency/environment management\npipx run poetry  # python dependency/environment/packaging management\npipx run pylint  # source code analyzer\npipx run pyinstaller  # bundles a Python application and all its dependencies into a single package\npipx run pyxtermjs  # fully functional terminal in the browser \u00a0\npipx install shell-functools  # Functional programming tools for the shell\n```\n\n## How it Works\nWhen running a binary (`pipx run BINARY`), pipx will\n* create a temporary directory\n* create a virtualenv inside it with `python -m venv`\n* update pip to the latest version\n* install the desired package in the virtualenv\n* invoke the binary\n* erase the temporary directory leaving your system untouched\n\nWhen installing a package and its binaries (`pipx install package`) pipx will\n* create directory ~/.local/pipx/venvs/PACKAGE\n* create a virtualenv in ~/.local/pipx/venvs/PACKAGE\n* update pip to the latest version\n* install the desired package in the virtualenv\n* create symlinks in ~/.local/bin that point to new binaries in ~/.local/pipx/venvs/PACKAGE/bin (such as ~/.local/bin/black -> ~/.local/pipx/venvs/black/bin/black)\n* As long as `~/.local/bin/` is on your PATH, you can now invoke the new binaries globally\n\nThese are all things you can do yourself, but pipx automates them for you. If you are curious as to what pipx is doing behind the scenes, you can always use `pipx --verbose ...`.\n\n## Contributing\nTo develop `pipx` first clone the repository, then create and activate a virtual environment.\n```\npython3 -m venv pipxvenv\nsource pipxvenv/bin/activate\n```\nNext install pipx in \"editable mode\".\n```\npip install -e .\n```\nNow make your changes and run `pipx` as you normally would. Your changes will be used as soon as they are saved.\n\nMake sure your changes pass tests by installing development dependencies\n```\npip install -e .[dev]\n```\nthen running tests\n```\npython test.py\n```\n\nWhen finished, you can exit the virtual environment by running `deactivate` and remove the virtual environment with `rm -r pipxvenv`.\n\n## How does this compare to pipsi?\n* pipx is under active development. pipsi is no longer maintained.\n* pipx and pipsi both install packages in a similar way\n* pipx always makes sure you're using the latest version of pip\n* pipx has the ability to run a binary in one line, leaving your system unchanged after it finishes (`pipx run BINARY`) where pipsi does not\n* pipx adds more useful information to its output\n* pipx has more CLI options such as upgrade-all, reinstall-all, uninstall-all\n* pipx is more modern. It uses Python 3.6+, and venv instead of virtualenv.\n* pipx works with Python homebrew installations while pipsi does not (at least on my machine)\n* pipx defaults to less verbose output\n* pipx allows you to see each command it runs by passing the --verbose flag\n* pipx prints emojies \ud83d\ude00\n\n## Migrating to pipx from pipsi\nAlthough `pipx` does not provide an automatic migration command,\nit is pretty easy to do it from the command-line:\n\n```bash\n# install pipx with the recommended method\npip install --user pipx\npipx ensurepath\n# you may have to open a new terminal here for pipx to be on your PATH\n\n# migrate from pipsi to pipx\npipsi list | grep 'Package ' | cut -d\\\" -f2 | \\\n  while read -r p; do\n    pipsi uninstall --yes \"$p\"\n    # reinstall everything with python 3.6\n    pipx install --python python3.6 \"$p\"\n  done\n\n# clean up\nrm -rf ~/.local/pipsi\nrm ~/.local/bin/pipsi\n```\n\nIf you want to do this manually, you will have to remove pipsi's directory completely then reinstall everything with pipx.\n\nFirst remove pipsi's directory (this is its default)\n```\nrm -r ~/.local/pipsi\n```\n\nThere will still be symlinks in `~/.local/bin` that point to `~/.local/pipsi/venvs`. If you reinstall the same packages with `pipx`, the symlinks will be overwritten with valid symlinks that point to the new pipx directory in `~/.local/pipx/venvs`. You may also want to remove files in `~/.local/bin`, but be sure the files you delete there were created by pipsi.\n\n## How does this compare with `pip-run`?\n[run with this](https://github.com/jaraco/pip-run) is focused on running **arbitrary Python code in ephemeral environments** while pipx is focused on running **Python binaries in ephemeral and non-ephemeral environments**.\n\nFor example these two commands both install poetry to an ephemeral environment and invoke poetry with `--help`.\n```\npipx run poetry --help\npip-run poetry -- -m poetry --help\n```\n\n## [Changelog](https://github.com/pipxproject/pipx/blob/master/CHANGELOG.md)\n\n## Credits\npipx was inspired by [pipsi](https://github.com/mitsuhiko/pipsi) and [npx](https://github.com/zkat/npx).\n\n## Authors\npipx was created and is maintained by [Chad Smith](https://github.com/cs01/).\n\nContributions and feedback from\n* [Bjorn Neergaard](https://github.com/neersighted)\n* [Diego Fernandez](https://github.com/aiguofer)\n* [Shawn Hensley](https://github.com/sahensley)\n* [tkossak](https://github.com/tkossak)\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/pipxproject/pipx",
+        "keywords": "pip,install,cli,virtualenv,workflow,bootstrap",
+        "license": "License :: OSI Approved :: MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pipx-app",
+        "package_url": "https://pypi.org/project/pipx-app/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pipx-app/",
+        "project_urls": {
+            "Homepage": "https://github.com/pipxproject/pipx"
+        },
+        "release_url": "https://pypi.org/project/pipx-app/0.12.0.4/",
+        "requires_dist": [
+            "black ; extra == 'dev'",
+            "flake8 ; extra == 'dev'",
+            "mypy ; extra == 'dev'"
+        ],
+        "requires_python": ">=3.6",
+        "summary": "DEPRECATED - pipx-app has been renamed to pipx",
+        "version": "0.12.0.4"
+    },
+    "last_serial": 4800020,
+    "releases": {
+        "0.10.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3eeeb457bae6f86e1da4b38ed0965a3f",
+                    "sha256": "a6c7ddcfe77f5e31d770306168e12a85522b1b3408654d47d59918b21cc4042f"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.10.2.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3eeeb457bae6f86e1da4b38ed0965a3f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 17156,
+                "upload_time": "2018-11-26T05:45:34",
+                "url": "https://files.pythonhosted.org/packages/91/f1/a65649faceb0b05f8817602b28751a9bb70745aa894c166676a6668a13f8/pipx_app-0.10.2.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f0514130f5b0c5a5ab54f43959e1c79",
+                    "sha256": "4e0b23f74ac75535085e6821efc406388b492326dd212d038300e57f1b2f6dcb"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.10.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3f0514130f5b0c5a5ab54f43959e1c79",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 23089,
+                "upload_time": "2018-11-26T05:45:36",
+                "url": "https://files.pythonhosted.org/packages/4e/76/b769ccad32a9b79fba028b24f030f2656f75c1681bdd6b5fea2cb129e428/pipx-app-0.10.2.0.tar.gz"
+            }
+        ],
+        "0.10.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "195febb96fe5a283649961d6bba4d2d2",
+                    "sha256": "4dc2bfa697f60ca37ea4b8aef7a3e3df29b9f7ad37d598ebc5b23429dfeccdf4"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.10.2.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "195febb96fe5a283649961d6bba4d2d2",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 17271,
+                "upload_time": "2018-11-26T17:06:05",
+                "url": "https://files.pythonhosted.org/packages/91/83/d45a6b9dcb828cdf57b53354eb38a470f1bb7a292d64c43503664f91af42/pipx_app-0.10.2.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "517db621d068cb6f494897b45bc09368",
+                    "sha256": "1726a4c8ab2c416322a6e6f8fbc111c290d415e16dcc4c213172894e1e2e8a8d"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.10.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "517db621d068cb6f494897b45bc09368",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 23240,
+                "upload_time": "2018-11-26T17:06:07",
+                "url": "https://files.pythonhosted.org/packages/2a/c7/4057825e383227ffd2e0c08171ffa57ef5e4f237d12afebf9d92ac702b7a/pipx-app-0.10.2.1.tar.gz"
+            }
+        ],
+        "0.10.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "234e2f28fc81dcc8312101edfa81a841",
+                    "sha256": "eded481cf368bc37fe73bf61897aa63115024bce17893bd3ff508ca3c988537f"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.10.3.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "234e2f28fc81dcc8312101edfa81a841",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 17837,
+                "upload_time": "2018-11-28T16:58:09",
+                "url": "https://files.pythonhosted.org/packages/47/d7/2faf94b4bd934153aab0f16bbee2518f7cc42c0d0989fad15783add33972/pipx_app-0.10.3.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d63ae547adbf41a252be8d15c8a1e3e4",
+                    "sha256": "29887699f6120b61e7baabf29c45257838860228286d1560e2ee724bbf231aca"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.10.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d63ae547adbf41a252be8d15c8a1e3e4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 24120,
+                "upload_time": "2018-11-28T16:58:10",
+                "url": "https://files.pythonhosted.org/packages/1a/38/08d0bd4c96cbfcb67213670580c0a4c795fd0a7f78002412e68b5bbc2409/pipx-app-0.10.3.0.tar.gz"
+            }
+        ],
+        "0.10.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5f66850d30468879d4dbebfb540924d1",
+                    "sha256": "740d40c1de1e056a6f21255e15e1158e277b2740e91a42937c3385abd232f0d2"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.10.4.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "5f66850d30468879d4dbebfb540924d1",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 21906,
+                "upload_time": "2018-12-16T19:12:29",
+                "url": "https://files.pythonhosted.org/packages/9d/8d/0e23a1aabe91c73ffd96fa9d70e1c1f27dbf4690aba53d822bb9f878d874/pipx_app-0.10.4.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "86c679c5918b285a79911d70003ff75b",
+                    "sha256": "c44430ecef564dd6405ed0c61e3066d86b16f9404facf8804ef343fb981c767c"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.10.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "86c679c5918b285a79911d70003ff75b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 26104,
+                "upload_time": "2018-12-16T19:12:31",
+                "url": "https://files.pythonhosted.org/packages/83/bf/143ccc2920ba9c5972e4b1b0164a9a33c3660280a457035c4992b1ca1f21/pipx-app-0.10.4.0.tar.gz"
+            }
+        ],
+        "0.10.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3f4875afce74a9871c96cb8486ad21e7",
+                    "sha256": "bc75474e6ab106d7a80d234d03ec6fe27881553d0edec41a5e20d1996396e18a"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.10.4.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3f4875afce74a9871c96cb8486ad21e7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 21905,
+                "upload_time": "2018-12-17T16:34:36",
+                "url": "https://files.pythonhosted.org/packages/4f/52/5dca8770dab74e68110757faa42317d0cf6e9651f7aaa8f8bbbde9172b78/pipx_app-0.10.4.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d5eb6a567fb96d6c46d143a526a17546",
+                    "sha256": "e4d1cf0f52cb0c893081e37a8908b1aa4124c1fba6a29b35b1bb202cee006f23"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.10.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d5eb6a567fb96d6c46d143a526a17546",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 26100,
+                "upload_time": "2018-12-17T16:34:38",
+                "url": "https://files.pythonhosted.org/packages/dc/52/126f5a9fd5093e033842ac341a9165599976e1d19ae36c459bfe6dc1f770/pipx-app-0.10.4.1.tar.gz"
+            }
+        ],
+        "0.11.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c670b9f737ccd5603a8ab005caff0e2b",
+                    "sha256": "899b24a2154c4049df3be22a90457dc8386a6531f465ea304535ec683bdeb95b"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.11.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c670b9f737ccd5603a8ab005caff0e2b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 17415,
+                "upload_time": "2019-01-28T05:18:40",
+                "url": "https://files.pythonhosted.org/packages/ba/21/e4424e97665c9a4679466ebe8ea008ac1f0ff1f195f8424d482a607b7734/pipx_app-0.11.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "409ea78850b2610ae981ef5996e0f218",
+                    "sha256": "86ad0445ff6d55672865ac9cb349e40063e0917e68cae4397784d6347c67a502"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.11.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "409ea78850b2610ae981ef5996e0f218",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 29865,
+                "upload_time": "2019-01-28T05:18:42",
+                "url": "https://files.pythonhosted.org/packages/d0/a7/68efd86d774d7a710382be5c6afe13c21e22b3eaf08a2105aa20d35b50dc/pipx-app-0.11.0.0.tar.gz"
+            }
+        ],
+        "0.11.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a6e733f91e5f5cb5d3ddb5a5b1e1ddee",
+                    "sha256": "c057741c7aab210b5af23d6fc916aef24a65ef631b0fba029d521e23eea8802c"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.11.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "a6e733f91e5f5cb5d3ddb5a5b1e1ddee",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 17548,
+                "upload_time": "2019-01-28T05:52:08",
+                "url": "https://files.pythonhosted.org/packages/47/ad/9bd3690777866ad50555811081be84d259057680b5a391e2c38f2c412a6d/pipx_app-0.11.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3d8b0c2f67a2fa5990f6a8fb72e927b6",
+                    "sha256": "55204d0ca82eaf0ee92a70f3ee34f63835510fd524552f9803bb0ccbf851fdbb"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.11.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3d8b0c2f67a2fa5990f6a8fb72e927b6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 30177,
+                "upload_time": "2019-01-28T05:52:09",
+                "url": "https://files.pythonhosted.org/packages/f9/a3/2decab0989b932fe753558f75f854df2ae00f90cf919d12c40995dab38b8/pipx-app-0.11.0.1.tar.gz"
+            }
+        ],
+        "0.11.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c30e601f9d969d805b0d024f3178143b",
+                    "sha256": "0224ac7108cec7c9d95635fe5729ea50727bc8568620ea4973d8c3d94879e1df"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.11.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c30e601f9d969d805b0d024f3178143b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 21963,
+                "upload_time": "2019-01-29T02:01:36",
+                "url": "https://files.pythonhosted.org/packages/d6/c2/e00acbab6c1ab2dd5acc0ffca31e7cd622a4863930d9af7f26dd170aecb0/pipx_app-0.11.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c5d91a1d1c132840539c85d4946f3a2",
+                    "sha256": "76fb24d1510a8e1f08b1e9ef70f38bb69f942580e5d6082d461a59b2e9b18eb8"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.11.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5c5d91a1d1c132840539c85d4946f3a2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 26802,
+                "upload_time": "2019-01-29T02:01:38",
+                "url": "https://files.pythonhosted.org/packages/e1/14/f74b8472b3444d0566fe7895fce006165643635df05b0dc97dd7a901ffde/pipx-app-0.11.0.2.tar.gz"
+            }
+        ],
+        "0.11.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fea55c78f66480e480d311b397cb750e",
+                    "sha256": "703689b608c12a527d94fcc28613d25742f3e1fa7c33181beed86176e560b6e7"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.11.1.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fea55c78f66480e480d311b397cb750e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 18964,
+                "upload_time": "2019-02-06T05:30:49",
+                "url": "https://files.pythonhosted.org/packages/b4/2a/66f5d8b4f7fe068af8a8a5a939cf8b27d0e16a9e7195149b0c84d2019c3b/pipx_app-0.11.1.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "17210657a5acde6432be674943f63dd3",
+                    "sha256": "92b5ef5cd61b26f2fb518ec1c1dc6b5de867952008940a79f9638e4a7dfad417"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.11.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "17210657a5acde6432be674943f63dd3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 30626,
+                "upload_time": "2019-02-06T05:30:50",
+                "url": "https://files.pythonhosted.org/packages/51/0a/eecdb354f8b0f1688972ce82dfc55054be32d60fbb8cc26e2bf287ede4c3/pipx-app-0.11.1.0.tar.gz"
+            }
+        ],
+        "0.11.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "81c522f79ad4128d6e41e00439a24cce",
+                    "sha256": "ab7aa6cb151a875ea66934a03df6f054b7910a9c568877647027fe231fbf8076"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.11.1.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "81c522f79ad4128d6e41e00439a24cce",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 19051,
+                "upload_time": "2019-02-06T05:33:05",
+                "url": "https://files.pythonhosted.org/packages/b4/d8/929214e21810306a3d654c0ca250c2de9eda1e5a2027b2e778057a1a951a/pipx_app-0.11.1.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d51902044fbd9b6a9accccc9c9da9ba4",
+                    "sha256": "440d07bf4befce54f84c1cf25a932eb878a0cfd53177c032cb39d190fc81edcb"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.11.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d51902044fbd9b6a9accccc9c9da9ba4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 30817,
+                "upload_time": "2019-02-06T05:33:07",
+                "url": "https://files.pythonhosted.org/packages/7b/5d/82690958b4a99035d10793782e26cd6bfcc70773cf6cffba513f86de6f29/pipx-app-0.11.1.1.tar.gz"
+            }
+        ],
+        "0.12.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "492ceb0316c8b2b6988df24f4bd2e18a",
+                    "sha256": "5bafa55154a25b23b01e768f6fadb181125428f9741fcb38c1c6916bd8fbbb7d"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.12.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "492ceb0316c8b2b6988df24f4bd2e18a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 19150,
+                "upload_time": "2019-02-09T18:52:42",
+                "url": "https://files.pythonhosted.org/packages/ba/29/69ea251637e0fa5837e2748048e2191713eb37b70b916db7db68e44f543b/pipx_app-0.12.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "65a47d75f0f2f67e3d486a53d43cb61b",
+                    "sha256": "5821ba06ba0f97b64d300ad62ff873b365e1f0c505aa5c07ed0f22ceacd61ec0"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.12.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "65a47d75f0f2f67e3d486a53d43cb61b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 23597,
+                "upload_time": "2019-02-09T18:52:43",
+                "url": "https://files.pythonhosted.org/packages/11/33/17dd428675e369f72ba1a955c71611f955b3aff080c0f638ca11bf59fada/pipx-app-0.12.0.4.tar.gz"
+            }
+        ],
+        "0.9.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3014996299767adf831f7bf21520747e",
+                    "sha256": "95d3b8a90b98aa38811a03f6ac7ba8540fb2da7aeca054460b77be463e0e128b"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.9.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "3014996299767adf831f7bf21520747e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 16925,
+                "upload_time": "2018-11-19T07:28:12",
+                "url": "https://files.pythonhosted.org/packages/79/3d/b2ca45b0f58ae33728dc82360ef81b35016b3bdc0dd2ea593629c2faee7d/pipx_app-0.9.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fa03f15e03fa2ccaaef8911c7cbe0bdb",
+                    "sha256": "ce3879dc9e7f82f3e3f12bf3638c137f75103d95f3c270171416cd3d13f23d55"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.9.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fa03f15e03fa2ccaaef8911c7cbe0bdb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 22713,
+                "upload_time": "2018-11-19T07:28:14",
+                "url": "https://files.pythonhosted.org/packages/8e/7c/39384882142b2413013ede9856767c0405c26cdfafb2db08d6614b362429/pipx-app-0.9.1.tar.gz"
+            }
+        ],
+        "0.9.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "89f530c1f6697c1e26f236419a62e68b",
+                    "sha256": "ba0b9f0a453b506accd028948768b22196556498ee369306def1fbbfc8f606a1"
+                },
+                "downloads": -1,
+                "filename": "pipx_app-0.9.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "89f530c1f6697c1e26f236419a62e68b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 16981,
+                "upload_time": "2018-11-19T07:54:26",
+                "url": "https://files.pythonhosted.org/packages/9c/60/987183aaf1835771d5562e2951be7bcf58c791755b05c5187c86e29077f7/pipx_app-0.9.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "89801823484db79cdd52c4cf946fc6c6",
+                    "sha256": "f536deaad28e524167c6c34771e871f1548b4b7aab61a73f4b71342363c0b7b3"
+                },
+                "downloads": -1,
+                "filename": "pipx-app-0.9.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "89801823484db79cdd52c4cf946fc6c6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 22876,
+                "upload_time": "2018-11-19T07:54:27",
+                "url": "https://files.pythonhosted.org/packages/91/78/43d465ad56eafeeecae4531438221b597444cadd55db71e7dcd4e3026f39/pipx-app-0.9.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "492ceb0316c8b2b6988df24f4bd2e18a",
+                "sha256": "5bafa55154a25b23b01e768f6fadb181125428f9741fcb38c1c6916bd8fbbb7d"
+            },
+            "downloads": -1,
+            "filename": "pipx_app-0.12.0.4-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "492ceb0316c8b2b6988df24f4bd2e18a",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 19150,
+            "upload_time": "2019-02-09T18:52:42",
+            "url": "https://files.pythonhosted.org/packages/ba/29/69ea251637e0fa5837e2748048e2191713eb37b70b916db7db68e44f543b/pipx_app-0.12.0.4-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "65a47d75f0f2f67e3d486a53d43cb61b",
+                "sha256": "5821ba06ba0f97b64d300ad62ff873b365e1f0c505aa5c07ed0f22ceacd61ec0"
+            },
+            "downloads": -1,
+            "filename": "pipx-app-0.12.0.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "65a47d75f0f2f67e3d486a53d43cb61b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 23597,
+            "upload_time": "2019-02-09T18:52:43",
+            "url": "https://files.pythonhosted.org/packages/11/33/17dd428675e369f72ba1a955c71611f955b3aff080c0f638ca11bf59fada/pipx-app-0.12.0.4.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,129 @@
+{
+    "info": {
+        "author": "Will Rubel",
+        "author_email": "willrubel@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "cfn_nagger\n=========================\n\n\nFeatures\n--------\ncfn_nagger provides type checking and other base functionality out of the box and\nis designed to be non-blocking and easily extensible, allowing for custom\nvalidation. It has no dependencies and is thoroughly tested under Python 2.7, Python 3.3, Python 3.4,\nPython 3.5, Python 3.6.\n\nFunding\n-------\ncfn_nagger is a open source, collaboratively funded project. If you run\na business and are using cfn_nagger in a revenue-generating product, it would\nmake business sense to sponsor its development: it ensures the project that\nyour product relies on stays healthy and actively maintained. Individual users\nare also welcome to make a recurring pledge or a one time donation if cfn-nagger\nhas helped you in your work or personal projects.\n\nEvery single sign-up makes a significant impact towards making cfn_nagger possible.\n\nWant Custom Rules and Support For Your Application\n---------------------------------------------------\nSubmit an issue on my github page if you would like additional custom rules and I will try and\nget them added as soon as possible.\n\nI you would like other functionality, just submit an issue and I will see what I can do to get\nit added.\n\nInstallation\n------------\n\ncfn_nagger is on PyPI so all you need is:\n\n.. code-block:: console\n\n    $ pip install cfn-nagger\n\nTesting\n-------\n\nJust run:\n\n.. code-block:: console\n\n    $ python setup.py test\n\nOr you can use tox to run the tests under all supported Python versions. Make\nsure the required python versions are installed and run:\n\n.. code-block:: console\n\n    $ pip install tox  # first time only\n    $ tox\n\nListing Rules\n---------------\n\n.. code-block:: console\n\n    $ cfn-nagger dump_rules\n    ##################################\n    ########## WARNINGS ##############\n    ##################################\n    {'id': 'F4', 'type': 'VIOLATION::WARNING', 'message': 'IAM policy should not allow * action'}\n    {'id': 'W1', 'type': 'VIOLATION::WARNING', 'message': 'Specifying credentials in the template itself is probably not the safest thing'}\n    ...\n\nExample\n---------\n\nGetting help\n\n.. code-block:: console\n\n    $ cfn-nagger validate --help\n    Usage: cfn-nagger validate [OPTIONS]\n\n      primary function for validating a template :param template_path: :param\n      template_file: :param debug: :param rules_directory: :param profile_path:\n      :param allow_suppression: :param print_suppression: :param\n      parameter_values_path: :param isolate_custom_rule_exceptions: :param\n      version: :return:\n\n    Options:\n      -s, --suppress-errors           Whether to suppress misc errors to get hash only\n      -t, --template-path TEXT        base directory to search for templates\n      -f, --template-file TEXT        single_template_file\n      --debug                         Turn on debugging\n      -r, --rules-directory TEXT      Extra rule directory\n      -o, --profile-path TEXT         Path to a profile file\n      --allow-suppression / --no-allow-suppression\n                                      Allow using Metadata to suppress violations\n      -p, --print-suppression         Emit suppressions to stderr\n      -m, --parameter-values-path TEXT\n                                      Path to a JSON file to pull Parameter values\n                                      from\n      -i, --isolate-custom-rule-exceptions\n                                      Isolate custom rule exceptions - just emit\n                                      the exception without stack trace and keep\n                                      chugging\n      -v, --version                   Print version and exit\n      --help                          Show this message and exit.\n\n\nValidate a file\n\n.. code-block:: console\n\n    $cfn-nagger validate -f cloudfront_distribution_without_logging.json\n\n    Evaluating: cloudfront_distribution_without_logging.json\n    [\n        {\n            'failure_count': '0',\n            'filename': 'cloudfront_distribution_without_logging.json',\n            'file_results': [\n                {\n                    'id': 'W10',\n                    'type': 'VIOLATION::WARNING',\n                    'message': 'CloudFront Distribution should enable access logging',\n                    'logical_resource_ids': [\n                        'rDistribution2'\n                    ]\n                }\n            ]\n        }\n    ]\n\nValidate all files in a path\n\n.. code-block:: console\n\n    $cfn-nagger validate -f /projects\n    ...\n\n\nProgrammatically call cfn-nagger to analyze a file\n\n.. code-block:: console\n\n    from cfn_nagger.ValidateUtility import ValidateUtility\n\n    config_dict = {}\n    config_dict['template_file'] = '/tmp/template.json'\n    validator = ValidateUtility(config_dict)\n    real_result =  validator.validate()\n    print(real_result)\n\n    [\n        {\n            'failure_count': '0',\n            'filename': '/tmp/template.json',\n            'file_results': [\n                {\n                    'id': 'W1',\n                    'type': 'VIOLATION::WARNING',\n                    'message': 'Specifying credentials in the template itself is probably not the safest thing',\n                    'logical_resource_ids': [\n                        'EC2I4LBA1'\n                    ]\n                }\n            ]\n        }\n    ]\n\nI you get some errors and warnings in your out put, you can pass-in the flag to suppress all errors\n\n.. code-block:: console\n\n    from cfn_nagger.ValidateUtility import ValidateUtility\n\n    config_dict = {}\n    config_dict['suppress_errors'] = True\n    config_dict['template_file'] = '/tmp/template.json'\n    validator = ValidateUtility(config_dict)\n    real_result =  validator.validate()\n    print(real_result)\n\n    [\n        {\n            'failure_count': '0',\n            'filename': '/tmp/template.json',\n            'file_results': [\n                {\n                    'id': 'W1',\n                    'type': 'VIOLATION::WARNING',\n                    'message': 'Specifying credentials in the template itself is probably not the safest thing',\n                    'logical_resource_ids': [\n                        'EC2I4LBA1'\n                    ]\n                }\n            ]\n        }\n    ]\n\nWriting your own rules\n\n    * Utilize the format for existing rules in the /cfn_nagger/custom_rules directory\n    * Places the files in a new directory\n    * The __init__, rule_text, rule_type and rule_id methods should be amount the same, just change of the rule, the text for a failure, and the type to either 'VIOLATION::FAILING_VIOLATION' or VIOLATION::WARNNING'\n    * Set the id to 'W' for warnings, and 'F' for failure.  Pick a number not utilized elsewhere...\n    * NOTE:  Currently working on functionality for controlling and listing rules\n    * For the audit_impl function - portion with will test the resource objects, you will need to review the object model for the resource to see what objects are available, and then review the parser for the resource.  Also, look at other similar rules for the resource, and model after them.  The basic concept of the function is to identify resources which apply, iterate over the selected resources, and identify specific aspects to evaluate in the rule\n    * pass in the --rules-directory /directory in the command line, and the extra rules directory will get added to the existing rules\n\n\n.. code-block:: console\n\n    def audit_impl(self):\n\n      violating_rules = []\n\n      # This defines which type of resource we are going to test\n      resources = self.cfn_model.resources_by_type('AWS::SQS::QueuePolicy')\n\n      if len(resources)>0:\n        for resource in resources:\n            if hasattr(resource, 'policy_document'):\n              if resource.policy_document:\n                if resource.policy_document.wildcard_allowed_actions():\n                  violating_rules.append(resource.logical_resource_id)\n\n      return violating_rules\n\nUnit Testing\n------------------------\nRun unit tests\n\n.. code-block:: console\n\n    (python3) => pytest\n    ================================================ test session starts =================================================\n    collected 22 items\n\n    test/test_cloudfront_distribution.py .                                                                         [  4%]\n    test/test_ec2_instance.py .                                                                                    [  9%]\n    test/test_ec2_volume.py ..                                                                                     [ 18%]\n    test/test_elasticloadbalancing_loadbalancer.py .                                                               [ 22%]\n    test/test_iam_user.py .                                                                                        [ 27%]\n    test/test_lambda_permission.py .                                                                               [ 31%]\n    test/test_rds_instance.py ...                                                                                  [ 45%]\n    test/test_s3_bucket.py .                                                                                       [ 50%]\n    test/test_s3_bucket_policy.py .                                                                                [ 54%]\n    test/test_security_group.py ........                                                                           [ 90%]\n    test/test_sns_policy.py .                                                                                      [ 95%]\n    test/test_sqs_policy.py .                                                                                      [100%]\n\n\nSource\n---------\n\nI am just getting started on this, so any suggestions would be welcome.\n<https://github.com/rubelw/cfn-nagger>\n\n\nCopyright\n---------\n\ncfn_nagger is an open source project by Will Rubel <https://www.linkedin.com/in/will-rubel-03205b2a/>,\nthat was ported from a ruby project by Stelligent.\nSee the original LICENSE information <https://github.com/stelligent/cfn_nag/blob/master/LICENSE.md>.\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/rubelw/cfn-nagger",
+        "keywords": "validation,schema,dictionaries,aws,cloudformation,python,rules,linter",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "cfn-nagger",
+        "package_url": "https://pypi.org/project/cfn-nagger/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/cfn-nagger/",
+        "release_url": "https://pypi.org/project/cfn-nagger/0.2.26/",
+        "requires_dist": [
+            "schema",
+            "pykwalify",
+            "dill",
+            "jinja2",
+            "configparser",
+            "tabulate (>=0.8)",
+            "pymongo (>=3.4.0)",
+            "PyYAML (>=3.12)",
+            "Click (>=6.7)",
+            "requests (>=2.18)",
+            "boto3 (>=1.4.3)"
+        ],
+        "requires_python": "",
+        "summary": "Lightweight, extensible schema and data validation tool for Cloudformation Templates.",
+        "version": "0.2.26"
+    },
+    "last_serial": 4064152,
+    "releases": {
+        "0.2.26": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12df52e57b756027814377855d18ddf8",
+                    "sha256": "c5f5f15dfbbf68b29a912b4e2f15c59510d8122a772e6fa97171e2deb6ec68fa"
+                },
+                "downloads": -1,
+                "filename": "cfn_nagger-0.2.26-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "12df52e57b756027814377855d18ddf8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "size": 175315,
+                "upload_time": "2018-07-16T01:05:28",
+                "url": "https://files.pythonhosted.org/packages/75/8f/71b1f4e252b97e75bac5b58e8a78b10f85b9d7d92a60e7d16143c7bb843d/cfn_nagger-0.2.26-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a666604ecfb23c908577134a9655b7a8",
+                    "sha256": "c267c0ca301198c50bb6b30e377772d06c8cd897994f874734bda841ca3e9cbc"
+                },
+                "downloads": -1,
+                "filename": "cfn_nagger-0.2.26.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a666604ecfb23c908577134a9655b7a8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 69230,
+                "upload_time": "2018-07-16T01:05:30",
+                "url": "https://files.pythonhosted.org/packages/96/1e/63df947a21a526f360d5500e567bdd19cca974f595506320c3a43a4f0320/cfn_nagger-0.2.26.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "12df52e57b756027814377855d18ddf8",
+                "sha256": "c5f5f15dfbbf68b29a912b4e2f15c59510d8122a772e6fa97171e2deb6ec68fa"
+            },
+            "downloads": -1,
+            "filename": "cfn_nagger-0.2.26-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "12df52e57b756027814377855d18ddf8",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "size": 175315,
+            "upload_time": "2018-07-16T01:05:28",
+            "url": "https://files.pythonhosted.org/packages/75/8f/71b1f4e252b97e75bac5b58e8a78b10f85b9d7d92a60e7d16143c7bb843d/cfn_nagger-0.2.26-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a666604ecfb23c908577134a9655b7a8",
+                "sha256": "c267c0ca301198c50bb6b30e377772d06c8cd897994f874734bda841ca3e9cbc"
+            },
+            "downloads": -1,
+            "filename": "cfn_nagger-0.2.26.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a666604ecfb23c908577134a9655b7a8",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 69230,
+            "upload_time": "2018-07-16T01:05:30",
+            "url": "https://files.pythonhosted.org/packages/96/1e/63df947a21a526f360d5500e567bdd19cca974f595506320c3a43a4f0320/cfn_nagger-0.2.26.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,160 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 4,
+        "author": "Victor Stinner",
+        "author_email": "UNKNOWN",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: GNU General Public License (GPL)",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "Fusil is a Python library used to write fuzzing programs. It helps to start\nprocess with a prepared environment (limit memory, environment variables,\nredirect stdout, etc.), start network client or server, and create mangled\nfiles. Fusil has many probes to detect program crash: watch process exit code,\nwatch process stdout and syslog for text patterns (eg. \"segmentation fault\"),\nwatch session duration, watch cpu usage (process and system load), etc.\n\nFusil is based on a multi-agent system architecture. It computes a session\nscore used to guess fuzzing parameters like number of injected errors to input\nfiles.\n\nAvailable fuzzing projects: ClamAV, Firefox (contains an HTTP server),\ngettext, gstreamer, identify, libc_env, libc_printf, libexif, linux_syscall,\nmplayer, php, poppler, vim, xterm.\n\nWebsite: http://bitbucket.org/haypo/fusil/wiki/Home\n\n\nUsage\n=====\n\nFusil is a library and a set of fuzzers called \"fusil-...\". To run a fuzzer,\ncall it by its name. Example: ::\n\n    $ fusil-gettext\n    Fusil version 0.9.1 -- GNU GPL v2\n    http://bitbucket.org/haypo/fusil/wiki/Home\n    (...)\n    [0][session 13] Start session\n    [0][session 13] ------------------------------------------------------------\n    [0][session 13] PID: 16989\n    [0][session 13] Signal: SIGSEGV\n    [0][session 13] Invalid read from 0x0c1086e0\n    [0][session 13] - instruction: CMP EDX, [EAX]\n    [0][session 13] - mapping: 0x0c1086e0 is not mapped in memory\n    [0][session 13] - register eax=0x0c1086e0\n    [0][session 13] - register edx=0x00000019\n    [0][session 13] ------------------------------------------------------------\n    [0][session 13] End of session: score=100.0%, duration=3.806 second\n    (...)\n    Success 1/1!\n    Project done: 13 sessions in 5.4 seconds (414.5 ms per session), total 5.9 seconds, aggresssivity: 19.0%\n    Total: 1 success\n    Keep non-empty directory: /home/haypo/prog/SVN/fusil/trunk/run-3\n\n\nFeatures\n========\n\nWhy using Fusil instead your own hand made C script?\n\n * Fusil limits child process environment: limit memory, use timeout, make\n   sure that process is killed on session end\n * Fusil waits until system load is load before starting a fuzzing session\n * Fusil creates a session directory used as the process current working\n   directory and Fusil only creates files in this directory (and not in /tmp)\n * Fusil stores all actions in fusil.log but also session.log for all\n   actions related of a session\n * Fusil has multiple available probes to compute session score: guess if\n   a sessions is a succes or not\n * Fusil redirects process output to a file and searchs bug text patterns\n   in the stdout/stderr (Fusil contains many text patterns to detect crashes\n   and problems)\n\n\nInstallation\n============\n\nRead INSTALL documentation file.\n\n\nDocumentation\n=============\n\nRead doc/index.rst: documentation index.\n\nChangelog\n=========\n\nFusil 1.5 (2013-03-05)\n----------------------\n\n * experimental Python 3.3 support with the same code base; python 2.5 is no\n   more supported\n * fusil-python: generate buffer objects and Unicode strings with surrogate\n   characters\n * Change the default process memory limit from 100 MB to 500 MB\n\nFusil 1.4 (2011-02-16)\n----------------------\n\n * Python 3 support\n * fusil-python:\n\n   - improve function listing all Python modules: use sys.builtin_module_names\n     and pkgutil.iter_modules()\n   - blacklist more modules, classes and functions\n\nFusil 1.3.2 (2010-01-09)\n------------------------\n\n * replay.py: set sys.path to ease the usage of Fusil without installing it\n * Fix fusil-gettext: ignore strace errors in locateMO()\n * fusil-python:\n\n   - hide Python warnings\n   - listAllModules() includes builtin modules\n   - new option --only-c to test only modules written in C\n   - fix memory leak: unload tested modules\n   - fix getFunctions(): use also isclass() to detect classes\n\n * Disable Fusil process maximum memory limit\n\nFusil 1.3.1 (2009-11-09)\n------------------------\n\n * fusil-python: autodiscover all modules instead of using a static list of\n   modules, catch any exception when loading a module, only fuzz public\n   functions (use module.__all__)\n * FileWatch: ignore duplicate parts on session rename\n * Remove session name parts duplicate (eg. \"pickle-error-error\" =>\n   \"picke-error\")\n * replay.py: don't redirect stdin to /dev/null if --ptrace is used\n * CPU probe: set max duration from 3 to 10 seconds (and rename the session on\n   success)\n\nFusil 1.3 (2009-09-18)\n----------------------\n\n * Create fusil-gimp\n * Remove charset from WriteCode: use builtin open() instead codecs.open()\n   because files created by open() are much faster\n * Optimize FileWatch: don't recompile patterns at each session\n * fusil now depends on python-ptrace 0.6\n * Don't use close_fds argument of subprocess.Popen() on Windows\n * Fix configuration reader: normal_calm_load, normal_calm_sleep,\n   slow_calm_load, slow_calm_sleep keys global options are float, not integer\n * Project website moved to http://bitbucket.org/haypo/fusil/wiki/Home\n * FileWatch uses the pattern to rename the session\n\nFusil 1.2.1 (2009-02-06)\n------------------------\n\n * Fix mangle agent of the Image Magick fuzzer\n * Fix AttachProcessPID() probe: stop the probe at process exit\n\nFusil 1.2 (2009-02-04)\n----------------------\n\nUser visible changes:\n\n * Fusil now requires Python 2.5\n * Documentation: write an index (index.rst) and an user guide (usage.rst)\n * Replay script: copy HOME environment for GDB and catch setuid() error\n * fusil-firefox: support more file formats (bmp, gif, ico, png, svg), create\n   --test command line option, write the HTML page into index.html file\n * fusil-python: write errors to stderr (instead of stdout) to avoid unicode\n   error (especially with Python3)\n * FileWatch: rename the session with \"long_output\" if the program wrote more\n   than max_nbline lines\n * fusil-python: blacklist posix.fork() to avoid false positive\n * If the process is killed by a signal, rename the session using the\n   signal name (already worked if the debugger was disabled)\n\nDeveloper changes:\n\n * MangleAgent supports multiple input files\n * Create DummyMangle: agent with MangleFile API but don't touch file content\n   to test the fuzzer\n * Network: close() method of NetworkClient and ServerClient use\n   shutdown(SHUT_RDWR)\n * NetworkServer uses a backlog of 5 clients for socket.listen() (instead of 1)\n\nBugfixes:\n\n * Fix Directory.rmtree() and replay script for Python 3.0\n * Fix ServerClient.sendBytes(): use socket.send() result to get the next\n   data offset\n\nFusil 1.1 (2008-10-22)\n----------------------\n\nUser visible changes:\n * replay.py: ask confirmation if the fuzzer will not be running under a\n   different user or as root\n * Even with --force-unsafe, show safety warning if the fuzzer is\n   running as the root user\n * Close files for child processes (close_fds=True)\n * Fix directory.rmtree() for Python 3.0 final\n\nDeveloper changes:\n * Create IntegerRangeGenerator in fusil.unicode_generator\n * Create EnvVarIntegerRange in fusil.process.env\n * Create fusil-wizzard fuzzer\n * Write timestamp in session.log\n * Add session() method to ProjectAgent\n * Add NAME attribute to a fuzzer, reused to choose the project directory name\n\nBugfixes:\n * Fix Debugger.processSignal(): use the process agent to send the message\n   (session_rename) since the debugger agent may be disabled\n * Fix replay.py: quote gdb arguments escape quote and antislash characters\n   (eg. \"text=\\\"Hello\\\\n\\\".\")\n * replay.py uses /dev/null for stdin as Fusil does\n * FileWatch: open file in binary mode to use bytes in Python3\n\nFusil 1.0 final (2008-09-13)\n----------------------------\n\nVisible changes:\n\n * Create fusil-zzuf fuzzer (use the zzuf library)\n * Create fusil-vlc fuzzer (VLC media player)\n * For each session, generate a Python script (replay.py) to replay the\n   session. The script can run the target in gdb, valgrind or gdb.py\n   (python-ptrace debugger), with many options (--user, --limit, etc.)\n * Create --force-unsafe option, like --unsafe without the confirmation\n * CreateProcess is now a probe (with a score): if the debugger catchs a\n   fatal signal, the session stops\n * Always use a null device as stdin for child processes to avoid blocking the\n   fuzzer if the process reads stdin (eg. call getchar())\n * Write the created process identifier in the logs\n\nDeveloper:\n\n * Create EnvVarIntegerRange: environment variable with an integer value\n   in a fixed range\n * Changes to get a minimal Windows support: disable \"change user/group\"\n   feature on Windows; remove log file before removing the project directory;\n   use \":NUL\" instead of /dev/null for null input/output\n * On setupProject() error, make sure that the project is cleaned\n * Close stdout files (input and output) at process exit (fix needed\n   by Windows)\n * Rename long2raw() to uint2bytes(), and bytes2long() to bytes2uint()\n * Normalize score that make sure that a probe score is in range [-1; +1]\n   and so that score*weight is in range[-weight; +weight]\n * CodeC: remove method lines(), writeCode() is renamed writeIntoFile(),\n   use unicode strings (instead of byte strings)\n * Remove StdoutFile class, code merged in CreateProcess",
+        "docs_url": null,
+        "download_url": "http://bitbucket.org/haypo/fusil/wiki/Home",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "http://bitbucket.org/haypo/fusil/wiki/Home",
+        "keywords": null,
+        "license": "GNU GPL v2",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "fusil",
+        "package_url": "http://pypi.python.org/pypi/fusil",
+        "platform": "UNKNOWN",
+        "release_url": "http://pypi.python.org/pypi/fusil/1.5",
+        "requires_python": null,
+        "summary": "Fuzzing framework",
+        "version": "1.5"
+    },
+    "releases": {
+        "1.3": [
+            {
+                "comment_text": "",
+                "downloads": 2847,
+                "filename": "fusil-1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ac52ad7ce54791a147332348671fa19a",
+                "packagetype": "sdist",
+                "path": "ab/59/52f5a25d4500ce4cb4d3472069d0ba021f0885d3e8d34f9a23c6d29b28a1/fusil-1.3.tar.gz",
+                "python_version": "source",
+                "size": 134006,
+                "upload_time": "2009-09-18T01:36:04",
+                "url": "https://pypi.python.org/packages/ab/59/52f5a25d4500ce4cb4d3472069d0ba021f0885d3e8d34f9a23c6d29b28a1/fusil-1.3.tar.gz"
+            }
+        ],
+        "1.3.1": [
+            {
+                "comment_text": "",
+                "downloads": 2964,
+                "filename": "fusil-1.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6badc04394fe3e81ccd1b4d14a688b97",
+                "packagetype": "sdist",
+                "path": "1a/ca/0add70444c6a3580c3977260c8c46927bb5a9caf20651471f79b42f87338/fusil-1.3.1.tar.gz",
+                "python_version": "source",
+                "size": 133895,
+                "upload_time": "2009-11-09T01:52:39",
+                "url": "https://pypi.python.org/packages/1a/ca/0add70444c6a3580c3977260c8c46927bb5a9caf20651471f79b42f87338/fusil-1.3.1.tar.gz"
+            }
+        ],
+        "1.3.2": [
+            {
+                "comment_text": "",
+                "downloads": 3466,
+                "filename": "fusil-1.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "01d47b2f350ea97309456a42fbef6a3e",
+                "packagetype": "sdist",
+                "path": "53/3e/676b101e201dfa83425318df649a64f3c2e0b7c9b5570b9e4494ed33ff3a/fusil-1.3.2.tar.gz",
+                "python_version": "source",
+                "size": 134684,
+                "upload_time": "2010-01-09T20:06:15",
+                "url": "https://pypi.python.org/packages/53/3e/676b101e201dfa83425318df649a64f3c2e0b7c9b5570b9e4494ed33ff3a/fusil-1.3.2.tar.gz"
+            }
+        ],
+        "1.4": [
+            {
+                "comment_text": "",
+                "downloads": 4366,
+                "filename": "fusil-1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "04c3844a112f788b34bde5f2ab6ee114",
+                "packagetype": "sdist",
+                "path": "d7/43/a14ef558cea594f94603b1e59fb5d7f28a91d8ce28819a820db1a170db8d/fusil-1.4.tar.gz",
+                "python_version": "source",
+                "size": 133188,
+                "upload_time": "2011-02-16T23:46:11",
+                "url": "https://pypi.python.org/packages/d7/43/a14ef558cea594f94603b1e59fb5d7f28a91d8ce28819a820db1a170db8d/fusil-1.4.tar.gz"
+            }
+        ],
+        "1.5": [
+            {
+                "comment_text": "",
+                "downloads": 1959,
+                "filename": "fusil-1.5-py27-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "2ec49a69043ea4b9d9f3c4ff408d5bb3",
+                "packagetype": "bdist_wheel",
+                "path": "12/f9/18c9b178292a059e84e5f02f7a2f1a3ab137efa9c90f07a2038969964ccb/fusil-1.5-py27-none-any.whl",
+                "python_version": "2.7",
+                "size": 126101,
+                "upload_time": "2014-03-05T13:54:02",
+                "url": "https://pypi.python.org/packages/12/f9/18c9b178292a059e84e5f02f7a2f1a3ab137efa9c90f07a2038969964ccb/fusil-1.5-py27-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "downloads": 2236,
+                "filename": "fusil-1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "14a7fbe29c91117ea50f8a6223fc9ea9",
+                "packagetype": "sdist",
+                "path": "a1/81/ba5f0e9db788573b431b976409c9032f6b225ff87243e683f2367928d9bd/fusil-1.5.tar.gz",
+                "python_version": "source",
+                "size": 138910,
+                "upload_time": "2014-03-05T13:53:59",
+                "url": "https://pypi.python.org/packages/a1/81/ba5f0e9db788573b431b976409c9032f6b225ff87243e683f2367928d9bd/fusil-1.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 1959,
+            "filename": "fusil-1.5-py27-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "2ec49a69043ea4b9d9f3c4ff408d5bb3",
+            "packagetype": "bdist_wheel",
+            "path": "12/f9/18c9b178292a059e84e5f02f7a2f1a3ab137efa9c90f07a2038969964ccb/fusil-1.5-py27-none-any.whl",
+            "python_version": "2.7",
+            "size": 126101,
+            "upload_time": "2014-03-05T13:54:02",
+            "url": "https://pypi.python.org/packages/12/f9/18c9b178292a059e84e5f02f7a2f1a3ab137efa9c90f07a2038969964ccb/fusil-1.5-py27-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "downloads": 2236,
+            "filename": "fusil-1.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "14a7fbe29c91117ea50f8a6223fc9ea9",
+            "packagetype": "sdist",
+            "path": "a1/81/ba5f0e9db788573b431b976409c9032f6b225ff87243e683f2367928d9bd/fusil-1.5.tar.gz",
+            "python_version": "source",
+            "size": 138910,
+            "upload_time": "2014-03-05T13:53:59",
+            "url": "https://pypi.python.org/packages/a1/81/ba5f0e9db788573b431b976409c9032f6b225ff87243e683f2367928d9bd/fusil-1.5.tar.gz"
+        }
+    ]
+}

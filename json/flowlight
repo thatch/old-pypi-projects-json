@@ -1,0 +1,75 @@
+{
+    "info": {
+        "author": "Wentao Liang",
+        "author_email": "tonnie17@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# flowlight\n[![Build Status](https://travis-ci.org/tonnie17/flowlight.svg?branch=master)](https://travis-ci.org/tonnie17/flowlight)\n\na tool make remote operations easier\n\n## Install\n\n```\npip3 install git+git://github.com/tonnie17/flowlight.git@master\n```\n\n## RPC Worker Mode\n\nlauch flowlight workers.\n\n```\n$flowlight worker start\n```\n\nor take it easy in your codes.\n\n```python\nmanager = Manager(('127.0.0.1', 3600), log_path='./log')\nmanager.settings['WHITE_HOST_LIST'].add('127.0.0.1')\nmanager.run(daemon=False)\n```\n\ndo some works on remote workers.\n\n```python\nfrom flowlight import Machine\n\ndef compute(*args, **kwargs):\n    return sum(args)\n\nm = Machine('127.0.0.1')\nprint (m.run_remote_callable(compute, 1, 2, 3))\n# 6\n```\n\nstop workers.\n\n```\n$flowlight worker stop\n```\n\nshow workers status\n\n```\n$flowlight worker status\n```\n\n## API Mode\n\n```\n$flowlight api\nFlowLight API serve on 3601...\n Usage:: http://127.0.0.1:3601/<machines>/<command>\n```\n\nRun command via URL.\n\n```\nhttp -f GET \"http://127.0.0.1:3601/127.0.0.1/whoami\"\n```\n\noutput:\n\n```json\n[\n    {\n        \"host\": \"127.0.0.1\",\n        \"result\": \"tonnie\\n\"\n    }\n]\n```\n\nmultiple executions.\n\n```\nhttp -f GET \"http://127.0.0.1:3601/host1,host2/ps aux|wc -l\"\n```\n\noutput:\n\n```json\n[\n    {\n        \"host\": \"host1\",\n        \"result\": \"     284\\n\"\n    },\n    {\n        \"host\": \"host2\",\n        \"result\": \"     284\\n\"\n    }\n]\n```\n\n## Usage\n\nRun task via ssh on remote machines.\n\n```python\nfrom flowlight import Cluster, Group, task\n\ncluster = Cluster(['host1', Group(['host2', 'host3'])])\ncluster.set_connection(password='password')\n\n@task\ndef create_file(task, cluster):\n    responses = cluster.run('''\n    echo {value} > /tmp/test;\n        '''.format(value=task.value)\n    )\n    task.value += 1\n\n@create_file.on_start\ndef before_create_file(task):\n    task.value = 1\n\n@create_file.on_complete\ndef after_create_file(task):\n    print(task.value)\n\n@create_file.on_error\ndef error_when_create_file(exception):\n    print(exception)\n    import traceback\n    traceback.print_exc()\n\ncluster.run_task(create_file)\n```\n\noutput:\n\n```\n2\n```\n\nUse `run_after` to set order of tasks.\n\n```python\n@task(run_after=create_file)\ndef show_file(meta, cluster):\n    responses = cluster.run('''\n        cat /tmp/test;            \n    ''')\n    for res in responses:\n        print(res)\n\ncluster.run_task(show_file)\n```\n\nUse trigger in multi-threading.\n\n```python\nimport threading\nfrom time import sleep\nafter = threading.Thread(target=lambda: cluster.run_task(show_file))\nbefore = threading.Thread(target=lambda: cluster.run_task(create_file))\nafter.start()\nprint('sleep a while...')\nsleep(2)\nbefore.start()\nbefore.join()\nafter.join()\n```\n\noutput:\n\n```\nsleep a while...\n2\n1\n\n1\n\n1\n```\n\nUse `run_only` for task running pre-check.\n\n```python\n@task(run_only=lambda: 1 > 2)\ndef fail_task(self):\n    print('condition is passed')\n\nerr, status = cluster.run_task(fail_task)\n```\n\nAsync tasks supported.\n\n```python\nasync def async_task(machine):\n    response = await machine.run_async(\"ls\")\n    return response\n\nm = Machine('host1', connect=True)\nm2 = Machine('host2', connect=True)\n\nev_loop = asyncio.get_event_loop()\nev_loop.run_until_complete(asyncio.gather(\n    async_task(m), async_task(m2)\n))\nev_loop.close()\n```\n\nFile upload & download\n\n```python\nm = Machine('host1', connect=True)\nm.put('/tmp/remote_file', '/tmp/local_file') # upload\nm.get('/tmp/local_file', '/tmp/remote_file') # download\n```\n\nJump host\n\n```python\njs = Machine('47.88.174.112', port=22, connect=True)\nwith js.jump_to('127.0.0.1', 32768, password='root') as rs:\n    print(rs.run('ifconfig'))\n```",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/tonnie17/flowlight/",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "flowlight",
+        "package_url": "https://pypi.org/project/flowlight/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/flowlight/",
+        "project_urls": {
+            "Homepage": "http://github.com/tonnie17/flowlight/"
+        },
+        "release_url": "https://pypi.org/project/flowlight/0.1.5/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "a tool make remote operations easier",
+        "version": "0.1.5"
+    },
+    "last_serial": 3259286,
+    "releases": {
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b3bc984469bf3d462884c7762aa29d86",
+                    "sha256": "504b3c2eb0313447b82d0abfece8fe50c5049a52b9c461619a8a9b2954e1b98e"
+                },
+                "downloads": -1,
+                "filename": "flowlight-0.1.5-py3.6.egg",
+                "has_sig": false,
+                "md5_digest": "b3bc984469bf3d462884c7762aa29d86",
+                "packagetype": "bdist_egg",
+                "python_version": "3.6",
+                "requires_python": null,
+                "size": 47057,
+                "upload_time": "2017-10-18T09:47:18",
+                "url": "https://files.pythonhosted.org/packages/d7/28/72f2f001482cd8320b6b6f2e3dbe481bb81d74bbc5427ce4687d72f69310/flowlight-0.1.5-py3.6.egg"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b3bc984469bf3d462884c7762aa29d86",
+                "sha256": "504b3c2eb0313447b82d0abfece8fe50c5049a52b9c461619a8a9b2954e1b98e"
+            },
+            "downloads": -1,
+            "filename": "flowlight-0.1.5-py3.6.egg",
+            "has_sig": false,
+            "md5_digest": "b3bc984469bf3d462884c7762aa29d86",
+            "packagetype": "bdist_egg",
+            "python_version": "3.6",
+            "requires_python": null,
+            "size": 47057,
+            "upload_time": "2017-10-18T09:47:18",
+            "url": "https://files.pythonhosted.org/packages/d7/28/72f2f001482cd8320b6b6f2e3dbe481bb81d74bbc5427ce4687d72f69310/flowlight-0.1.5-py3.6.egg"
+        }
+    ]
+}

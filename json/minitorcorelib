@@ -1,0 +1,994 @@
+{
+    "info": {
+        "author": "Vincent Schouten",
+        "author_email": "inquiry@intoreflection.co",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "===============\nminitor/corelib\n===============\n\nThis package contains building blocks to make an encrypted and anonymous connection possible.\nMoreover, this package also contains a module named Agent which is transferred to each server.\nThe building block system provide easy scalability.\nUse the package **minitorcli** to interact with this library.\n\nTerminology\n============\n* **Tunnel** is an established connection.\n* **Machine** is any server to which these *Tunnels* connect to. *Machines* use these tunnels to send data and instructions to *Agents*.\n* **Agent** is a component running on servers. It performs various functions like gluing the *Tunnels*.\n\n\nHow it works\n============\n\nThe first connection from the client to a *Machine* will be established via SSH, and subsequently binds a port on local side (e.g. 11200), which is used to provide connection forwarding.\nAt this moment, the *Tunnel* is laid down.\n\n.. image:: ../img/illustration_how_it_works_1.png\n\nData encapsulated in SOCKS and offered to this local port will emerge on the *Machine* where the SOCKS server is listening, retrieving the destination IP address from the incoming SOCKS connection.\n\n.. image:: ../img/illustration_how_it_works_2.png\n\nTo create the second *Tunnel*, the second instantiation of SSH on the client needs to be encapsulated in SOCKS to be forwarded through the first *Tunnel*.\nThis is done with the help of the proxyfier proxychains-ng: any call the SSH makes will be intercepted, encapsulated in SOCKS and offered to this local port.\nWhen this encapsulated second *Tunnel* emerges on the *Machine* and connects to the SOCKS server, the SSH connection will really start the journey as if the connection is established on the Machine instead of the client for the first time.\n\n.. image:: ../img/illustration_how_it_works_3.png\n\nThis *Tunnel* connects to the SSH server on the second *Machine* and subsequently binds a port on local side, which is used to provide connection forwarding.\nAnd this process can be repeated multiple times.\n\n.. image:: ../img/illustration_how_it_works_4.png\n\n\nThe building blocks at minimal for FOR(warding) mode:\n\n * FirstTunnel()\n * FirstMachine()\n * ForTunnel()\n * ForMachine()\n\n.. image:: ../img/illustration_forwarding.png\n\n\nThe building blocks at minimal for TOR mode:\n\n * FirstTunnel()\n * FirstMachine()\n * TorTunnel()\n * TorMachine()\n\n.. image:: ../img/illustration_tor.png\n\n\nThe building blocks at minimal for SHELL mode:\n- FirstTunnel()\n- FirstMachine()\n- ShellTunnel()\n- ShellMachine()\n\n.. image:: ../img/illustration_command.png\n\n\nWhen deploying more than 1 proxy server, use the set of classes below for extending the tunnel:\n\n * IntermediateTunnel()\n * IntermediateMachine()\n\n.. image:: ../img/illustration_nth_proxy_machines.png\n\n\nDevelopment Workflow\n====================\n\nThe workflow supports the following steps\n\n * lint\n * test\n * build\n * document\n * upload\n * graph\n\nThese actions are supported out of the box by the corresponding scripts under _CI/scripts directory with sane defaults based on best practices.\nSourcing setup_aliases.ps1 for windows powershell or setup_aliases.sh in bash on Mac or Linux will provide with handy aliases for the shell of all those commands prepended with an underscore.\n\nThe bootstrap script creates a .venv directory inside the project directory hosting the virtual environment. It uses pipenv for that.\nIt is called by all other scripts before they do anything. So one could simple start by calling _lint and that would set up everything before it tried to actually lint the project\n\nOnce the code is ready to be delivered the _tag script should be called accepting one of three arguments, patch, minor, major following the semantic versioning scheme.\nSo for the initial delivery one would call\n\n    $ _tag --minor\n\nwhich would bump the version of the project to 0.1.0 tag it in git and do a push and also ask for the change and automagically update HISTORY.rst with the version and the change provided.\n\n\nSo the full workflow after git is initialized is:\n\n * repeat as necessary (of course it could be test - code - lint :) )\n   * code\n   * lint\n   * test\n * commit and push\n * develop more through the code-lint-test cycle\n * tag (with the appropriate argument)\n * build\n * upload (if you want to host your package in pypi)\n * document (of course this could be run at any point)\n\n\nImportant Information\n=====================\n\nThis template is based on pipenv. In order to be compatible with requirements.txt so the actual created package can be used by any part of the existing python ecosystem some hacks were needed.\nSo when building a package out of this **do not** simple call\n\n    $ python setup.py sdist bdist_egg\n\n**as this will produce an unusable artifact with files missing.**\nInstead use the provided build and upload scripts that create all the necessary files in the artifact.\n\n\nDocumentation\n=============\n\n* Documentation: https://minitorcli.readthedocs.org/en/latest\n\n\nContributing\n============\n\nPlease read `CONTRIBUTING.md <https://gist.github.com/PurpleBooth/b24679402957c63ec426>`_ for details on our code of conduct, and the process for submitting pull requests to us.\n\n\nAuthors\n=======\n\n* **Vincent Schouten** - *Initial work* - `LINK <https://github.com/minitorcli>`_\n\nSee also the list of `contributors <https://github.com/your/project/contributors>`_ who participated in this project.\n\n\nLicense\n=======\n\nThis project is licensed under the MIT License - see the `LICENSE.md <LICENSE.md>`_ file for details\n\n\nAcknowledgments\n===============\n\n* rofl0r (developer of proxychains-ng)\n* Costas Tyfoxylos\n\n\n\n\n\nHistory\n-------\n\n0.0.1 (06-04-2019)\n---------------------\n\n* First code creation\n\n\n0.0.1 (04-05-2019)\n------------------\n\n* Fixed bug with a case in wget logging\n\n\n0.0.2 (04-05-2019)\n------------------\n\n* showcasing the usability\n\n\n1.0.0 (23-05-2019)\n------------------\n\n* factory class \"TunnelFactory\" added and stop_program() in Machine modified (bug\n\n\n2.0.1 (25-05-2019)\n------------------\n\n* linting error in TunnelFactory() fixed\n\n\n2.0.2 (30-05-2019)\n------------------\n\n* exception handling has been extended for bugfixing\n\n\n3.0.0 (01-06-2019)\n------------------\n\n* factory class MachineFactory added and TunnelFactory() modified\n\n\n3.1.0 (05-06-2019)\n------------------\n\n* new FirstMachine() extends ProxyMachine()\n\n\n3.1.1 (15-06-2019)\n------------------\n\n* logger suffix set to hardcoded values for Machine- and TunnelFactory\n\n\n4.0.0 (16-06-2019)\n------------------\n\n* new method for Machine created + factory classes refactored\n\n\n4.0.1 (20-06-2019)\n------------------\n\n* start_application() modified to redirect stdout/stderr\n\n\n4.0.2 (23-06-2019)\n------------------\n\n* hardcoded readlines replaced by pexpect.expect() for stability\n\n\n4.0.3 (11-07-2019)\n------------------\n\n* the method _is_program_running has been rewritten to be less error prone\n\n\n4.0.4 (01-08-2019)\n------------------\n\n* linting errors fixed\n\n\n4.0.5 (21-09-2019)\n------------------\n\n* classes renamed and new class introduced\n\n\n5.0.0 (21-09-2019)\n------------------\n\n* classes renamed and new class introduced\n\n\n5.0.1 (23-09-2019)\n------------------\n\n* ShellMachine made more monkey-proof\n\n\n6.0.0 (20-10-2019)\n------------------\n\n* package completely refactored + includes an agent\n\n\n6.0.1 (20-10-2019)\n------------------\n\n* added accidentally deleted file\n\n\n6.0.2 (22-10-2019)\n------------------\n\n* logging messages rewritten for urllib methods\n\n\n7.0.0 (02-11-2019)\n------------------\n\n* core module splitted into smaller mods + docs edited\n\n\n7.1.0 (04-11-2019)\n------------------\n\n* agent implemented daemon code\n\n\n8.0.0 (23-01-2020)\n------------------\n\n* class BootstrapAgent and module miscellaneous.py added\n\n\n8.0.1 (23-01-2020)\n------------------\n\n* start() of BootstrapAgent refactored\n\n\n8.0.2 (25-01-2020)\n------------------\n\n* start() of BootstrapAgent refactored",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/yutanicorp/minitorcorelib",
+        "keywords": "minitorcorelib",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "minitorcorelib",
+        "package_url": "https://pypi.org/project/minitorcorelib/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/minitorcorelib/",
+        "project_urls": {
+            "Homepage": "https://github.com/yutanicorp/minitorcorelib"
+        },
+        "release_url": "https://pypi.org/project/minitorcorelib/8.0.2/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "a library that is responsible of modeling objects that implement a TOR like network",
+        "version": "8.0.2"
+    },
+    "last_serial": 6520090,
+    "releases": {
+        "0.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c207e42de536254e5301b803d7d6be29",
+                    "sha256": "47f89b74fb0e9ab6db5219d951059e13c120f8cf4b3008b005f47d09cebc0dbb"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-0.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "c207e42de536254e5301b803d7d6be29",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 33585,
+                "upload_time": "2019-05-04T12:16:16",
+                "upload_time_iso_8601": "2019-05-04T12:16:16.563060Z",
+                "url": "https://files.pythonhosted.org/packages/ed/f9/2b35672e671e48f2e68c817dab5ac898172a9162a5971cc9c09d90a5696f/minitorcorelib-0.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "22b0786cec5b7bcb636d77da36f22888",
+                    "sha256": "1a0b4f779f9cc2f7af3019bdf3eb3132f2363cdc9105871777a4cce5e4f33f04"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-0.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "22b0786cec5b7bcb636d77da36f22888",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 48320,
+                "upload_time": "2019-05-04T12:16:19",
+                "upload_time_iso_8601": "2019-05-04T12:16:19.080662Z",
+                "url": "https://files.pythonhosted.org/packages/8e/d4/0d593488cf7651409d0fe42c58676bb026390e244e8d37a17e958ce0cfea/minitorcorelib-0.0.0.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "611bc6d3d3224976f1e762e95c405b6c",
+                    "sha256": "9e13bd8f4ac5c2cc0b1cf35c8d24ec8202cb3b57ea9839cf9451de4183466e77"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-0.0.2-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "611bc6d3d3224976f1e762e95c405b6c",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 33704,
+                "upload_time": "2019-05-04T14:05:52",
+                "upload_time_iso_8601": "2019-05-04T14:05:52.384233Z",
+                "url": "https://files.pythonhosted.org/packages/da/2c/301fe768352b5a671242d78a84a71df094abebbfc4bcda20a71c044935bc/minitorcorelib-0.0.2-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d7def712df72881514d94704cc782765",
+                    "sha256": "e5a736b13434329787b2f4a42ea4811bcd1c599e5e879709748993171acba9d1"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d7def712df72881514d94704cc782765",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 48519,
+                "upload_time": "2019-05-04T14:05:54",
+                "upload_time_iso_8601": "2019-05-04T14:05:54.037597Z",
+                "url": "https://files.pythonhosted.org/packages/15/3a/7302ba0672a172b406386461cc357beb06b0d732d48038384b8b416a1f96/minitorcorelib-0.0.2.tar.gz"
+            }
+        ],
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a3e1e799a6a564b1537cb3d4ab87497c",
+                    "sha256": "7e9310897936565f60857a28c1d4f2a56278ed3f4882f53f7f7a7bd4a79505cf"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-1.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "a3e1e799a6a564b1537cb3d4ab87497c",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 35202,
+                "upload_time": "2019-05-23T20:26:53",
+                "upload_time_iso_8601": "2019-05-23T20:26:53.770786Z",
+                "url": "https://files.pythonhosted.org/packages/b1/c0/ea9f54a7fb72d446f1ae334cfb49af29befa131f6bdc98c1dbe5dca962f7/minitorcorelib-1.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "217b3762cc773bde680797af8bcef2eb",
+                    "sha256": "e9167dbec63a382ff25ebb041fdd478dcabb9998395af0083ef8d420751c7793"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "217b3762cc773bde680797af8bcef2eb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 50847,
+                "upload_time": "2019-05-23T20:26:51",
+                "upload_time_iso_8601": "2019-05-23T20:26:51.563025Z",
+                "url": "https://files.pythonhosted.org/packages/06/d3/874af0a51a520fd9172a02a29fd230a1155981cc8932ba59b01d0a6b9662/minitorcorelib-1.0.0.tar.gz"
+            }
+        ],
+        "2.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8061b4a2e666182f4b6bc5502e0e061a",
+                    "sha256": "74b5253fc97bbd1e22e3af048a7eccdd05c7924b148416fd649a2036596427f3"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-2.0.1-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "8061b4a2e666182f4b6bc5502e0e061a",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 35272,
+                "upload_time": "2019-05-25T13:38:33",
+                "upload_time_iso_8601": "2019-05-25T13:38:33.449646Z",
+                "url": "https://files.pythonhosted.org/packages/6c/cb/a41fa9fdd61c7791bb031659d040b750c54995dbc301e09822e4bcc2713d/minitorcorelib-2.0.1-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e2ed29035e80519bc7e3ebf0680ced95",
+                    "sha256": "dcaaf579e10b3b4c9f5f76afd72e104802e533424b6f505ee7519cbd5f1ee50a"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-2.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e2ed29035e80519bc7e3ebf0680ced95",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 50957,
+                "upload_time": "2019-05-25T13:38:35",
+                "upload_time_iso_8601": "2019-05-25T13:38:35.644784Z",
+                "url": "https://files.pythonhosted.org/packages/db/cf/1032a1f3794a051924698846741c8220b34390abbec5c9ff02d65a7f2dd8/minitorcorelib-2.0.1.tar.gz"
+            }
+        ],
+        "2.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8fe8a4cd1eeacecff5f2b7dd95a89ff8",
+                    "sha256": "19ac5587014429322025e8a6e8414b697e5bddfe54ae63aff256d86dee8a1b57"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-2.0.2-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "8fe8a4cd1eeacecff5f2b7dd95a89ff8",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 35486,
+                "upload_time": "2019-05-30T17:50:01",
+                "upload_time_iso_8601": "2019-05-30T17:50:01.577230Z",
+                "url": "https://files.pythonhosted.org/packages/51/c3/b7a5e18eab1bee975c46f204f5011a8759cd89fce68994166639e06e3b2e/minitorcorelib-2.0.2-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "20476607218922b9abfb660a582242d1",
+                    "sha256": "013cb4389056b01d2f8de191e62ed2e92181b5fc658b46389f6805711edb579d"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-2.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "20476607218922b9abfb660a582242d1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 51414,
+                "upload_time": "2019-05-30T17:49:58",
+                "upload_time_iso_8601": "2019-05-30T17:49:58.820571Z",
+                "url": "https://files.pythonhosted.org/packages/6b/10/03c193e1d20f88fd229ed91a73063792260826b7b260008a2b492f88f312/minitorcorelib-2.0.2.tar.gz"
+            }
+        ],
+        "3.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "09b6769da726488db1bf9149b50fb870",
+                    "sha256": "2be85ec9b96784c56c4bc258c53404dcd087a3ec6b655ad6547e3fd464999a2c"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-3.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "09b6769da726488db1bf9149b50fb870",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 35724,
+                "upload_time": "2019-06-01T15:27:22",
+                "upload_time_iso_8601": "2019-06-01T15:27:22.878790Z",
+                "url": "https://files.pythonhosted.org/packages/6e/29/eff447c5c1a899dc3c228dedb8397e1b3f9260f524560491b74378a565ef/minitorcorelib-3.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6f8f305688828a6879c0ce70024c7f93",
+                    "sha256": "792135e841c39b3e67fad59911b2cbea7d652d65a5396da1250e387d3f973c23"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-3.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6f8f305688828a6879c0ce70024c7f93",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 51656,
+                "upload_time": "2019-06-01T15:27:20",
+                "upload_time_iso_8601": "2019-06-01T15:27:20.732980Z",
+                "url": "https://files.pythonhosted.org/packages/57/8d/838f760e89cd559d668bb7ee363fd6b4c2f56841af802309c6f586df9d73/minitorcorelib-3.0.0.tar.gz"
+            }
+        ],
+        "3.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8b6b6f4285cbf7650500285a7146867a",
+                    "sha256": "bcb234f1b89b45b51aa106485e2c11a8648643b18420534db12a65b37d413604"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-3.1.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "8b6b6f4285cbf7650500285a7146867a",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 35811,
+                "upload_time": "2019-06-05T04:59:48",
+                "upload_time_iso_8601": "2019-06-05T04:59:48.494403Z",
+                "url": "https://files.pythonhosted.org/packages/aa/49/dca26a5162217079642f21310be2971db6cf90d89560411dfc29a01c69ec/minitorcorelib-3.1.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c7ca1c13f7bb2edbcbac2751de28aaaf",
+                    "sha256": "a3b8c47e9f0a0b8400f2602c4580aa88e3a8b4f36835dac27562c8d439881a8e"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-3.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c7ca1c13f7bb2edbcbac2751de28aaaf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 51775,
+                "upload_time": "2019-06-05T04:59:50",
+                "upload_time_iso_8601": "2019-06-05T04:59:50.323806Z",
+                "url": "https://files.pythonhosted.org/packages/be/3e/7dac86e71889b99ce4820f2a236df4fa0f8e1cfb93991911d54348a7c8ba/minitorcorelib-3.1.0.tar.gz"
+            }
+        ],
+        "3.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "252947a25eddc0b5340963b693e0c5b3",
+                    "sha256": "f66515a3478a51b5b35a5b4515b7dcc8cb2420753df28aa3f197c9d2b3aadbd8"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-3.1.1-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "252947a25eddc0b5340963b693e0c5b3",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 36579,
+                "upload_time": "2019-06-14T22:08:15",
+                "upload_time_iso_8601": "2019-06-14T22:08:15.270191Z",
+                "url": "https://files.pythonhosted.org/packages/19/ab/e6586adf01e7666fdce87e4a90cc33e41db52899ddb34b3efd255e26027f/minitorcorelib-3.1.1-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a746920aabff81f707b27d3dd6d62382",
+                    "sha256": "a99ea472ac52f16aae7aab39f3303e0faa6aab88f753899a8323157fed3a3179"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-3.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a746920aabff81f707b27d3dd6d62382",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 53342,
+                "upload_time": "2019-06-14T22:08:13",
+                "upload_time_iso_8601": "2019-06-14T22:08:13.167685Z",
+                "url": "https://files.pythonhosted.org/packages/a6/c5/522c4f8f8f43fee27fb8c8390192e5b017c19e361a15a9c47e5054d2731a/minitorcorelib-3.1.1.tar.gz"
+            }
+        ],
+        "4.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "53ffa7f60a95330ce24f3a764de869b7",
+                    "sha256": "4615b88c08cf03d9cdcd7465b7368ee13baa21077473a604e82c1ba9b9cc5c0d"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "53ffa7f60a95330ce24f3a764de869b7",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 36266,
+                "upload_time": "2019-06-16T19:26:34",
+                "upload_time_iso_8601": "2019-06-16T19:26:34.103062Z",
+                "url": "https://files.pythonhosted.org/packages/2e/2b/c7e9228b2b202201ac7671fbfca92e2d6c41ee30684afa303a136c2b5bb8/minitorcorelib-4.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b9de28faa34c4840db51608c725deea5",
+                    "sha256": "b244c51ad1112d1723c11a9440dfeae8b528bf9d1857c2ab4638a64c59a74dfc"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b9de28faa34c4840db51608c725deea5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 52340,
+                "upload_time": "2019-06-16T19:26:35",
+                "upload_time_iso_8601": "2019-06-16T19:26:35.868520Z",
+                "url": "https://files.pythonhosted.org/packages/dd/51/d644eacea0b7186e6a0d5b957aa85d3e8b824c5cfb9441be644e2b9d79a8/minitorcorelib-4.0.0.tar.gz"
+            }
+        ],
+        "4.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9caa63d98094870723c7cdeb833903df",
+                    "sha256": "b7cff071e3e81a2e7faa43f155c4ff05934e62b9e725de59092d2e1b1cf8f105"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.1-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "9caa63d98094870723c7cdeb833903df",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 36396,
+                "upload_time": "2019-06-20T04:48:23",
+                "upload_time_iso_8601": "2019-06-20T04:48:23.683290Z",
+                "url": "https://files.pythonhosted.org/packages/79/b1/343b5ac7d757e22184219afbac662ac119d549c3f12d0095b171a58ae697/minitorcorelib-4.0.1-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "59107bf19426649e11f00ef65279997d",
+                    "sha256": "776fa834ba8723120137d3bc6702ca4c48fb2a81e02cb0e7279b736581ba49d6"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "59107bf19426649e11f00ef65279997d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 52582,
+                "upload_time": "2019-06-20T04:48:21",
+                "upload_time_iso_8601": "2019-06-20T04:48:21.445572Z",
+                "url": "https://files.pythonhosted.org/packages/7c/2e/950b90ac8624fceea6fbc087255f959db5110f08f598192a8dea34da2531/minitorcorelib-4.0.1.tar.gz"
+            }
+        ],
+        "4.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "74a862462ec3ec6837c9d2e1e42bc0fa",
+                    "sha256": "83a684961d941b37ad8407069a2f75ec694f684d384d054401a3041a031fea3c"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.2-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "74a862462ec3ec6837c9d2e1e42bc0fa",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 36517,
+                "upload_time": "2019-06-23T20:25:03",
+                "upload_time_iso_8601": "2019-06-23T20:25:03.152647Z",
+                "url": "https://files.pythonhosted.org/packages/22/3f/2c63160a154e493a2f6fe7a6dd42fb77dcfbc2b55d86ad529e0cce094cd4/minitorcorelib-4.0.2-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ff0d4cf6a02f71873a441f96073b7325",
+                    "sha256": "158619435155f77bd430640b460faade22161cf6a0da74df1e152827a02d6fcd"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ff0d4cf6a02f71873a441f96073b7325",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 52724,
+                "upload_time": "2019-06-23T20:25:05",
+                "upload_time_iso_8601": "2019-06-23T20:25:05.511314Z",
+                "url": "https://files.pythonhosted.org/packages/7c/d4/e43c6a8bdd8a2411486c2e7d5615f8cb63835f2b7b9e58caf7e421701edc/minitorcorelib-4.0.2.tar.gz"
+            }
+        ],
+        "4.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "303b9241830ae35d425a869bd61a4776",
+                    "sha256": "160fff2e85a2f2f24fffe30185dd508ea77d7a01233c7811b9a6116a8f535906"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.3-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "303b9241830ae35d425a869bd61a4776",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 36552,
+                "upload_time": "2019-07-11T18:14:09",
+                "upload_time_iso_8601": "2019-07-11T18:14:09.038821Z",
+                "url": "https://files.pythonhosted.org/packages/cd/5f/18ce610e33c825e663d7a0b3e4d7b3ebaf61b6c7670cdcdeec287d864080/minitorcorelib-4.0.3-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "edc762668d4e7bbf8d3ace7753bb7d08",
+                    "sha256": "a5da2b24244033d55ea5b062591b6bc320d126adf0e7e2210b6d2d9ebe5ec3a7"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "edc762668d4e7bbf8d3ace7753bb7d08",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 52701,
+                "upload_time": "2019-07-11T18:14:06",
+                "upload_time_iso_8601": "2019-07-11T18:14:06.553305Z",
+                "url": "https://files.pythonhosted.org/packages/5b/5f/e85da6fbe75098208bc5958d815aa58a1c6765c7e80595143a14fdb38cd9/minitorcorelib-4.0.3.tar.gz"
+            }
+        ],
+        "4.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "703f8ec73d16e40358cdc8853d22ea8e",
+                    "sha256": "30fb63655b5cc7198f3e065febc8d625782db99064e937eb4bd60b0e34daa14b"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.4-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "703f8ec73d16e40358cdc8853d22ea8e",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 29076,
+                "upload_time": "2019-08-01T15:50:11",
+                "upload_time_iso_8601": "2019-08-01T15:50:11.802002Z",
+                "url": "https://files.pythonhosted.org/packages/e2/e8/2a47c61bb8517ac1c8dd63a3b0736d92f99bbd0cbbad8f2dc56789b1ac10/minitorcorelib-4.0.4-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2d64243b96de44d57ab6eff8660b5042",
+                    "sha256": "8d61a84f7b9e4eee785495d8a37e66b9f962a2342f22f4848e2d6e6a4ab1cb80"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2d64243b96de44d57ab6eff8660b5042",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 47968,
+                "upload_time": "2019-08-01T15:50:13",
+                "upload_time_iso_8601": "2019-08-01T15:50:13.892088Z",
+                "url": "https://files.pythonhosted.org/packages/28/46/9df14fd345f7507573bf1dd4540ea42adb4337e2465dd0cfd6f0b091035f/minitorcorelib-4.0.4.tar.gz"
+            }
+        ],
+        "4.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fb97f0289471bb71ad2a63e176cc8731",
+                    "sha256": "0951f74daf937eb57fee33be371cd0b8fd441e16e4d85a59f74b5e11fa2059c0"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.5-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "fb97f0289471bb71ad2a63e176cc8731",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 29933,
+                "upload_time": "2019-09-20T22:02:14",
+                "upload_time_iso_8601": "2019-09-20T22:02:14.474342Z",
+                "url": "https://files.pythonhosted.org/packages/03/52/44bdfe820fae25c52d77e77545694ec0383ed8c9a85c79f7781d118bedb8/minitorcorelib-4.0.5-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dc6c9e118778b6ba7853dee02af46ec5",
+                    "sha256": "cb301bcf9c1ff5668d439e4ebc48e5a9cbd60a19d0bf1af98159e95f6bbc7317"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-4.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dc6c9e118778b6ba7853dee02af46ec5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 49117,
+                "upload_time": "2019-09-20T22:02:12",
+                "upload_time_iso_8601": "2019-09-20T22:02:12.167090Z",
+                "url": "https://files.pythonhosted.org/packages/b2/c2/d47a2001baea734eee3212fea1b8029e65ad0662eef31ca04adc755bc972/minitorcorelib-4.0.5.tar.gz"
+            }
+        ],
+        "5.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "016a176e7458ac0492b21d6c2cbafe65",
+                    "sha256": "c936ca4320a5c043f56706c0a5e465a6c0f4d55eda944d428a6965a4bd28c85b"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-5.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "016a176e7458ac0492b21d6c2cbafe65",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 29947,
+                "upload_time": "2019-09-21T08:01:30",
+                "upload_time_iso_8601": "2019-09-21T08:01:30.191352Z",
+                "url": "https://files.pythonhosted.org/packages/fb/c6/a23995a3f69172feaae4e5400754c1d3685a75853134a00fb896c265d66a/minitorcorelib-5.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8ba5fe474bcef5074e943239ab4ddd5",
+                    "sha256": "c0b51d4604e7d0bb096b18d0286525b109633bae4fce640b4981f040ad6ee870"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-5.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c8ba5fe474bcef5074e943239ab4ddd5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 49132,
+                "upload_time": "2019-09-21T08:01:32",
+                "upload_time_iso_8601": "2019-09-21T08:01:32.289446Z",
+                "url": "https://files.pythonhosted.org/packages/76/b1/0f968ccc61390a7966a7501bcea942d7f4a20cd78083f190b1b39f1c3949/minitorcorelib-5.0.0.tar.gz"
+            }
+        ],
+        "5.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ecb6f9a788062804def8a07474ccf9d5",
+                    "sha256": "ff9af8b7c5efa29bb9f716999f7cd6c8ab8e158dd86ce24587a83efff2547ee3"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-5.0.1-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "ecb6f9a788062804def8a07474ccf9d5",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 30046,
+                "upload_time": "2019-09-23T14:31:09",
+                "upload_time_iso_8601": "2019-09-23T14:31:09.326780Z",
+                "url": "https://files.pythonhosted.org/packages/5c/9e/ddfa625b48eab43a1dbac3e23e5ac27d9dd849cc27d18de44a0c25356457/minitorcorelib-5.0.1-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "80b276c166b95bb831d9806730e89b26",
+                    "sha256": "d3a8d60d92bf797f0f1474271b70f7062d418a57cff4c54b53d81110c606e4b0"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-5.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "80b276c166b95bb831d9806730e89b26",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 49328,
+                "upload_time": "2019-09-23T14:31:06",
+                "upload_time_iso_8601": "2019-09-23T14:31:06.807599Z",
+                "url": "https://files.pythonhosted.org/packages/1b/42/79bd6303ee963c3dff7c7d1ada1a2631184ffd4cf1de5cf18ba10888c4f4/minitorcorelib-5.0.1.tar.gz"
+            }
+        ],
+        "6.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ea4a8b386dff1c79487bede44e266082",
+                    "sha256": "0d6fb52f0b069b9093f14e357f3784d1716d35c20dd9f5d39a963c451a965e43"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-6.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "ea4a8b386dff1c79487bede44e266082",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 42886,
+                "upload_time": "2019-10-20T10:53:34",
+                "upload_time_iso_8601": "2019-10-20T10:53:34.083361Z",
+                "url": "https://files.pythonhosted.org/packages/ea/c0/3c9c7edd0812da40bff0aaaa07479e616a53980c9913688d51f851868892/minitorcorelib-6.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ece68f93dfc4f135a6a197c7cdda35ff",
+                    "sha256": "23175dfc3784b943c85c5acb547ee0c9ee37d2430449d24143ce374d8732a6ea"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-6.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ece68f93dfc4f135a6a197c7cdda35ff",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 61274,
+                "upload_time": "2019-10-20T10:53:36",
+                "upload_time_iso_8601": "2019-10-20T10:53:36.850956Z",
+                "url": "https://files.pythonhosted.org/packages/c8/5d/da245e9ff610d08ab5bb04e2206730ccf4d42604b24d729d0f7c44bd45e5/minitorcorelib-6.0.0.tar.gz"
+            }
+        ],
+        "6.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7fe2dfddfb260c2a6a89af4eac5f0aaa",
+                    "sha256": "f73d23ba23ce340f9fa205f468ba94b5f4929967252343eb2ffd01ad4ff2d114"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-6.0.1-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "7fe2dfddfb260c2a6a89af4eac5f0aaa",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 43100,
+                "upload_time": "2019-10-20T11:30:32",
+                "upload_time_iso_8601": "2019-10-20T11:30:32.607932Z",
+                "url": "https://files.pythonhosted.org/packages/a9/f5/d544f9572c48716ea24ae2b97844b717d47fab2d0718bbf36ede85abc0f6/minitorcorelib-6.0.1-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0c6f5602cf5aabed27cb82b7fbf87728",
+                    "sha256": "8469d30070826790c809c6f44abf9f423989708fdf31ea4e222e3ed4c75a9a06"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-6.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0c6f5602cf5aabed27cb82b7fbf87728",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 61386,
+                "upload_time": "2019-10-20T11:30:30",
+                "upload_time_iso_8601": "2019-10-20T11:30:30.286799Z",
+                "url": "https://files.pythonhosted.org/packages/e5/36/199e90a411cf3f92163dace75686b13a350dbbcc1573c64b9e71742165ba/minitorcorelib-6.0.1.tar.gz"
+            }
+        ],
+        "6.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca37d09b84e6a302aea6af36dfe862d0",
+                    "sha256": "6000c1b8b210e270adf0bbd662098090e5920521298f5f53339197f1524e3f07"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-6.0.2-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "ca37d09b84e6a302aea6af36dfe862d0",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 45022,
+                "upload_time": "2019-10-22T17:02:05",
+                "upload_time_iso_8601": "2019-10-22T17:02:05.715047Z",
+                "url": "https://files.pythonhosted.org/packages/6b/bf/7e42ac346880e9f8b73d0bcc3b16b0f7ef4479c65df1145e7348d0285ba2/minitorcorelib-6.0.2-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9f0a7bc0cc594087b137469286b9fd1d",
+                    "sha256": "48e72bb37a8b0d642375e374b47325e244e3f08399e680a29abfa8af9f91e4ee"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-6.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9f0a7bc0cc594087b137469286b9fd1d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 61769,
+                "upload_time": "2019-10-22T17:02:08",
+                "upload_time_iso_8601": "2019-10-22T17:02:08.476012Z",
+                "url": "https://files.pythonhosted.org/packages/64/75/8915c76bcd270dc15adc8767477e5ff02a3ef031b07eeec8155eb2804f4d/minitorcorelib-6.0.2.tar.gz"
+            }
+        ],
+        "7.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8caaaed30789e10ac3d5e64b96f9201b",
+                    "sha256": "b60f6ee822bfac46577d3c2c93950d92486fba923914ef8672ad12f72771ee12"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-7.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "8caaaed30789e10ac3d5e64b96f9201b",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 48934,
+                "upload_time": "2019-11-02T11:08:32",
+                "upload_time_iso_8601": "2019-11-02T11:08:32.611358Z",
+                "url": "https://files.pythonhosted.org/packages/a4/87/f68ebb7adf093bc4574fa6fff199a216dc84d490e45579b55a2cc0884e53/minitorcorelib-7.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "53a82788bcc3881c2224d32afcd7e5e3",
+                    "sha256": "a83184ff034cfe8018199a18a5804928d68066936b9348ae82cfeb2675f1378f"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-7.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "53a82788bcc3881c2224d32afcd7e5e3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 64766,
+                "upload_time": "2019-11-02T11:08:34",
+                "upload_time_iso_8601": "2019-11-02T11:08:34.959042Z",
+                "url": "https://files.pythonhosted.org/packages/1a/f3/157c128a88700f768da0df4a33921671f861a39d1f3f6ff483f861485162/minitorcorelib-7.0.0.tar.gz"
+            }
+        ],
+        "7.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "220b82d1f1bf8c73b60670e2407903bd",
+                    "sha256": "bcb76ffa122487493ce7f4d894847fe6526cd8cb70660b0f2a7a251b2e4060aa"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-7.1.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "220b82d1f1bf8c73b60670e2407903bd",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 50422,
+                "upload_time": "2019-11-04T15:42:24",
+                "upload_time_iso_8601": "2019-11-04T15:42:24.120584Z",
+                "url": "https://files.pythonhosted.org/packages/94/c3/01be8b69958a23cc1386a11d9a2a0090b0bc47ae15e6e0ff8ef470fe8dd8/minitorcorelib-7.1.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0026c372af36dcdced55d54b4c5ec476",
+                    "sha256": "0c2d91a4aa586649525c3982fcbf3d82c0184520a6bfa3834389a4b61cdc140e"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-7.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0026c372af36dcdced55d54b4c5ec476",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 66279,
+                "upload_time": "2019-11-04T15:42:21",
+                "upload_time_iso_8601": "2019-11-04T15:42:21.901395Z",
+                "url": "https://files.pythonhosted.org/packages/f6/42/4459597833743177fd903c8e6297f8e956c0e6dc504dee3633787ae32c70/minitorcorelib-7.1.0.tar.gz"
+            }
+        ],
+        "8.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "60b780f1963caf4db2997fde6eb9f68d",
+                    "sha256": "5f01d8e3b5302a1f564608b6fdb1670fbc84110e04eb078edd8d6ccefce2cfbe"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-8.0.0-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "60b780f1963caf4db2997fde6eb9f68d",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 56966,
+                "upload_time": "2020-01-23T06:32:06",
+                "upload_time_iso_8601": "2020-01-23T06:32:06.737964Z",
+                "url": "https://files.pythonhosted.org/packages/c5/cd/0971c467d5a1b94621f2ab73705fb5175036a07e6c520f561c38048da044/minitorcorelib-8.0.0-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7f76becabad71d5f20f4e39c7e449aa6",
+                    "sha256": "a8923f657cc4aed2b8a4c0153eb04a34bad217bdaccaff50e89cfd29b577b2f9"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-8.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7f76becabad71d5f20f4e39c7e449aa6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 69046,
+                "upload_time": "2020-01-23T06:32:09",
+                "upload_time_iso_8601": "2020-01-23T06:32:09.006948Z",
+                "url": "https://files.pythonhosted.org/packages/fc/ba/93afa99a375f7c62f3628fcfb2614b033c52184e0bb4319228cc43321c1f/minitorcorelib-8.0.0.tar.gz"
+            }
+        ],
+        "8.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a21d6fef3e8fc296156195324c8bf24b",
+                    "sha256": "30f21895428b768e8a49a8ace67d73dd4d0322df7c4c8a66bc69d779d26355f4"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-8.0.1-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "a21d6fef3e8fc296156195324c8bf24b",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 57007,
+                "upload_time": "2020-01-23T21:51:24",
+                "upload_time_iso_8601": "2020-01-23T21:51:24.575296Z",
+                "url": "https://files.pythonhosted.org/packages/6d/e3/fd364c37c3e86bc44476c4ab8bac75a91b303bc94baf769b8c19b27e6ab8/minitorcorelib-8.0.1-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a959b7b82a9d79a9c4628c05bc76e322",
+                    "sha256": "b8af9360576e260fcdf2516c7f70ba21b43f4eee3474afbc2494d4f794b6c743"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-8.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a959b7b82a9d79a9c4628c05bc76e322",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 69137,
+                "upload_time": "2020-01-23T21:51:26",
+                "upload_time_iso_8601": "2020-01-23T21:51:26.778248Z",
+                "url": "https://files.pythonhosted.org/packages/d6/66/1325c5029886eca3d360b90614516273a9ef2d50f9cd42504c8f5bf24e4d/minitorcorelib-8.0.1.tar.gz"
+            }
+        ],
+        "8.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8e9af832f849e2e9e31fae2360f71d8c",
+                    "sha256": "7b8d63839bdbc985a3c15169320e4a09cbf4949c9ac2e6a82f8e54d929c5480e"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-8.0.2-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "8e9af832f849e2e9e31fae2360f71d8c",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 56965,
+                "upload_time": "2020-01-25T21:46:50",
+                "upload_time_iso_8601": "2020-01-25T21:46:50.123470Z",
+                "url": "https://files.pythonhosted.org/packages/e2/66/ee3a2c84a2389a9badc25c2c84a79fc1836a97aa014ddffa25f8a40761c7/minitorcorelib-8.0.2-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b9126e093185cf8daf12749c1fad2cb4",
+                    "sha256": "b61c5b1e6aa0b01c49b299211da57a6bcb3595039074b728738491ddca4a14ad"
+                },
+                "downloads": -1,
+                "filename": "minitorcorelib-8.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b9126e093185cf8daf12749c1fad2cb4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 69026,
+                "upload_time": "2020-01-25T21:46:52",
+                "upload_time_iso_8601": "2020-01-25T21:46:52.523553Z",
+                "url": "https://files.pythonhosted.org/packages/f8/0c/e6b96ac05c9784b09d4c8318bc01b20ff45df5bb964a6021e5674f80d4b7/minitorcorelib-8.0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8e9af832f849e2e9e31fae2360f71d8c",
+                "sha256": "7b8d63839bdbc985a3c15169320e4a09cbf4949c9ac2e6a82f8e54d929c5480e"
+            },
+            "downloads": -1,
+            "filename": "minitorcorelib-8.0.2-py3.7.egg",
+            "has_sig": false,
+            "md5_digest": "8e9af832f849e2e9e31fae2360f71d8c",
+            "packagetype": "bdist_egg",
+            "python_version": "3.7",
+            "requires_python": null,
+            "size": 56965,
+            "upload_time": "2020-01-25T21:46:50",
+            "upload_time_iso_8601": "2020-01-25T21:46:50.123470Z",
+            "url": "https://files.pythonhosted.org/packages/e2/66/ee3a2c84a2389a9badc25c2c84a79fc1836a97aa014ddffa25f8a40761c7/minitorcorelib-8.0.2-py3.7.egg"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b9126e093185cf8daf12749c1fad2cb4",
+                "sha256": "b61c5b1e6aa0b01c49b299211da57a6bcb3595039074b728738491ddca4a14ad"
+            },
+            "downloads": -1,
+            "filename": "minitorcorelib-8.0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "b9126e093185cf8daf12749c1fad2cb4",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 69026,
+            "upload_time": "2020-01-25T21:46:52",
+            "upload_time_iso_8601": "2020-01-25T21:46:52.523553Z",
+            "url": "https://files.pythonhosted.org/packages/f8/0c/e6b96ac05c9784b09d4c8318bc01b20ff45df5bb964a6021e5674f80d4b7/minitorcorelib-8.0.2.tar.gz"
+        }
+    ]
+}

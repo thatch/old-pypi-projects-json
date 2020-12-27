@@ -1,0 +1,654 @@
+{
+    "info": {
+        "author": "Arkanister",
+        "author_email": "arkanister.dev@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Environment :: Web Environment",
+            "Framework :: Django",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Topic :: Multimedia :: Graphics"
+        ],
+        "description": ".. image:: https://badge.fury.io/py/django-flickr-gallery.svg\n   :target: https://pypi.python.org/pypi/django-flickr-gallery\n\n.. image:: https://badge.waffle.io/arkanister/django-flickr-gallery.svg?label=ready&title=Ready\n   :target: https://waffle.io/arkanister/django-flickr-gallery\n   :alt: 'Stories in Ready' \n\n\nDjango Flickr Gallery\n=====================\n\nAn app to integrate django with flickr and put together a photo gallery based on flickr albums.\n\nInstallation\n------------\n\n1. Install with pip or easy install (All dependencies will be installed automatically)::\n\n    pip install django-flickr-gallery\n\n2. Add ``django_flickr_gallery`` to your INSTALLED_APPS and all the plugins you want, setting like this::\n\n    INSTALLED_APPS = (\n        ...\n\n        'django_flickr_gallery',\n    )\n\n3. Define ``FLICKR_API_KEY``, ``FLICKR_SECRET`` to Django settings. To get an api\n   key and secret visit `Flickr Docs <https://www.flickr.com/services/api/>`_\n\n4. Define ``FLICKR_USER_ID`` to Django settings. To get flickr user\n   id visit `idGettr <http://idgettr.com/>`_.\n\n5. Add ``django_flickr_gallery.urls`` to your urls::\n\n    urlpatterns = patterns('',\n        ...\n\n        (r'^gallery/', include('django_flickr_gallery.urls'),\n    )\n\n6. Run ``python manage.py syncdb`` or ``python manage.py migrate``.\n\n7. Create an album into django admin in the section ``Flickr Gallery/Albums``\n\n8. Be Happy :)\n\nTemplates\n---------\n\nYou can override the templates albums and photos, but the default template\nextends the ``base.html`` template.\n\nUse ``FLICKR_PHOTOSETS_LIST_TEMPLATE`` and ``FLICKR_PHOTOS_LIST_TEMPLATE`` in django settings\nto change the templates that will be rendered.::\n\n    FLICKR_PHOTOSETS_LIST_TEMPLATE = 'my_custom_albums_template.html'\n    FLICKR_PHOTOS_LIST_TEMPLATE = 'my_custom_photos_template.html'\n\nPhotosets Pagination\n--------------------\n\nThe application allows a setting for the paging of photos, so you can set how many\nphotos will be displayed per page.\n\nSet ``FLICKR_PHOTOSETS_PER_PAGE`` in django settings to change the number of photos per page.::\n\n    FLICKR_PHOTOSETS_PER_PAGE = NEW_VALUE (default=10)\n\nSet ``FLICKR_PHOTOSETS_PER_PAGE`` as None to disable pagination.\n\nPhoto Pagination\n----------------\n\nThe application allows a setting for the paging of photos, so you can set how many\nphotos will be displayed per page.\n\nSet ``FLICKR_PHOTOS_PER_PAGE`` in django settings to change the number of photos per page.::\n\n    FLICKR_PHOTOS_PER_PAGE = NEW_VALUE (default=10)\n\nSet ``FLICKR_PHOTOS_PER_PAGE`` as None to disable pagination.\n\n\nTemplate Tags\n-------------\n\nAvailable tags\n\n*get_photos_by_photoset*\n\nThe photoset tag is one way to render only an album at a time. It is useful to show pictures to a specific page.\n\nTo use it you need to know what the photoset id, to identify you go to `How to get photoset id <http://support.averta.net/envato/knowledgebase/find-id-photoset-flickr/>`_.::\n\n    home.html\n    {% extends 'base.html' %}\n\n    {% load flickr_tags %}\n\n    {% block content %}\n        {% get_photos_by_photoset 'FLICKR_PHOTOSET_ID' template_name=\"gallery/flickr/mytemplate.html\" %}\n    {% endblock content %}\n\n\n*get_featured_photosets*\n\nCan show some photosets with some pictures to display, like as summary of the each photoset::\n\n    home.html\n    {% extends 'base.html' %}\n\n    {% load flickr_tags %}\n\n    {% block content %}\n        {% get_featured_photosets count=3 count_photos=10 template_name=\"gallery/flickr/mytemplate.html\" %}\n    {% endblock content %}\n\n*paginator*\n\nRender the paginator of photosets or photos, required ``page_obj``::\n\n    home.html\n    {% extends 'base.html' %}\n\n    {% load flickr_tags %}\n\n    {% block content %}\n        {% paginator page_obj %}\n    {% endblock content %}\n\nCKEDITOR plugin\n---------------\n\nThe ``flickr_ckeditor`` is a ckeditor plugin to get flickr photos in django ckeditor.\n\nUsage\n\n1. Add ``flickr_ckeditor`` to your INSTALLED_APPS and all the plugins you want, setting like this::\n\n    INSTALLED_APPS = (\n        ...\n\n        'flickr_ckeditor',\n    )\n\n2. Add url setting in ``urls.py``, it needs to be just that way::\n\n    urlpatterns = patterns(''\n        ...\n        url(r'^ckeditor/flickr/', include('flickr_ckeditor.urls')),\n        ...\n    )\n\n3. Add plugin in ckeditor, in ``extraPlugins`` and ``Flickr`` in toolbar::\n\n    CKEDITOR_CONFIGS = {\n        'default': {\n            'toolbar_MyToolbar': [\n                ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord'],\n                ['Undo', 'Redo'],\n                ['Scayt'],\n                ['Link', 'Unlink', 'Anchor'],\n                ['Image', 'Flickr', 'Table', 'HorizontalRule', 'SpecialChar'],\n                ['Source'],\n                ['Maximize', 'ReadMore'],\n                '/',\n                ['Bold', 'Italic', 'Underline', 'Strike',\n                 'Subscript', 'Superscript', '-', 'RemoveFormat'],\n                ['NumberedList', 'BulletedList', '-',\n                 'Outdent', 'Indent', '-', 'Blockquote'],\n                ['Styles', 'Format'],\n            ],\n            'extraPlugins': 'flickr',\n            'toolbar': 'MyToolbar',\n        },\n    }\n\n4. Be Happy :)\n\nNote that the precision configuration variables are set correctly in django settings.\n\nContributors\n------------\n\n`arkanister <https://github.com/arkanister/>`_\n\n`sikmir <https://github.com/sikmir/>`_",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/arkanister/django-flickr-gallery",
+        "keywords": "django flickr gallery flickr-gallery",
+        "license": "BSD",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "django-flickr-gallery",
+        "package_url": "https://pypi.org/project/django-flickr-gallery/",
+        "platform": "UNKNOWN",
+        "project_url": "https://pypi.org/project/django-flickr-gallery/",
+        "release_url": "https://pypi.org/project/django-flickr-gallery/0.4.7/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "Django Gallery with flickr integration",
+        "version": "0.4.7"
+    },
+    "last_serial": 2518849,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "96f3d9aa27280be1ff923677f2cb5e1e",
+                    "sha256": "aa28b1d763f0012a1b180c469be91b384d64a170425169a0094944de66ebd253"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "96f3d9aa27280be1ff923677f2cb5e1e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 8436,
+                "upload_time": "2015-04-17T12:19:10",
+                "url": "https://files.pythonhosted.org/packages/1d/53/f5bb1b04243cace24254e1875e0fc953470217de8af771f64c81e3b05e88/django-flickr-gallery-0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c2cff0fefcd3bfb930d482948a1302cc",
+                    "sha256": "ba4e9cef4c68a388c0c65da2a1f66f161a57c20965ea8630cf9df8dae78aa0b6"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c2cff0fefcd3bfb930d482948a1302cc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 9868,
+                "upload_time": "2015-05-11T12:19:50",
+                "url": "https://files.pythonhosted.org/packages/75/69/a759b54beae3f38bd9b224d9d9f68d999cf2a524440f0c02c5d7e3adb760/django-flickr-gallery-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c5ecc55fc2b598e0e3b2fda5b671099c",
+                    "sha256": "dc2d9150d7ff3fa6170a0e5cf4bdf58927ffcf434606d6cfe9aa82c78c502014"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c5ecc55fc2b598e0e3b2fda5b671099c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13315,
+                "upload_time": "2015-06-10T19:31:51",
+                "url": "https://files.pythonhosted.org/packages/9c/18/9e3cad0c134c9ff4d9ba7b42ca2cb8c18cda38aee88001fcf8c0032e0f9a/django-flickr-gallery-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "63ffbc7c6cd25b98841cd4181608d642",
+                    "sha256": "a53ad9ee82eae69785723bc20d35dbb303277b08a72d7b74ce866670e924e7a3"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "63ffbc7c6cd25b98841cd4181608d642",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13300,
+                "upload_time": "2015-06-10T19:55:10",
+                "url": "https://files.pythonhosted.org/packages/c2/f2/67b5180a2916d00e250f3c8eba2d66deb8f42928e944eb6e84e4f0fa81f1/django-flickr-gallery-0.1.3.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cda216f97b32524ec7e4c386bede81fa",
+                    "sha256": "697796e9b3f39ec6b7ceeb0e5406696c1fda0aadc6daca1128954fb01aedf9ad"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cda216f97b32524ec7e4c386bede81fa",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13291,
+                "upload_time": "2015-06-30T14:35:08",
+                "url": "https://files.pythonhosted.org/packages/28/5b/62007e6f55f0ecae263a32fb39b94fb2e980b7fb039ae7001291f75e9a25/django-flickr-gallery-0.2.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "10acb0864b2340a7f2d9ab10f332eb5a",
+                    "sha256": "daa6db9943e9de5a46cf8a25b0f6204f23e366f1424eba8c141e799a908f7047"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "10acb0864b2340a7f2d9ab10f332eb5a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13293,
+                "upload_time": "2015-07-01T19:47:39",
+                "url": "https://files.pythonhosted.org/packages/93/7d/6919f5ff54c2cf5bd6217a15d0861d179db8e274c2bfb67f9c4c462414d4/django-flickr-gallery-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "52517d8e88bfd3b56047a3c40603f125",
+                    "sha256": "d7cf5de9b2f821ffaac2275fb537b9a83067d6bf5b40065694e25f0d1d38b47b"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "52517d8e88bfd3b56047a3c40603f125",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 18310,
+                "upload_time": "2015-11-19T10:34:59",
+                "url": "https://files.pythonhosted.org/packages/6c/f7/f700ed0b939d7dc8edaad617cb2b502654047ecee40b7c2311bc2b3c8e41/django-flickr-gallery-0.2.10.tar.gz"
+            }
+        ],
+        "0.2.11a0.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1cb16ab1e1ae89a4b9e93ce28f29f014",
+                    "sha256": "adeb1a72b776cb89a95f58c5e6169bdb1304c87a92b35615f56858a90eedadf8"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.11a0.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1cb16ab1e1ae89a4b9e93ce28f29f014",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 20225,
+                "upload_time": "2015-11-23T19:22:23",
+                "url": "https://files.pythonhosted.org/packages/49/fc/31b594efabb04ed8389e2e5557f7c5de07058c38f6c1b7b5a3e72b13cf09/django-flickr-gallery-0.2.11a0.dev1.tar.gz"
+            }
+        ],
+        "0.2.11a0.dev2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2179def2e6aabe072b6aed75bd5f5e69",
+                    "sha256": "09c1c6b9ec16bb4d5016f22d2d2e49e326c71d2c3f5dded593b30f52c29f4a24"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.11a0.dev2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2179def2e6aabe072b6aed75bd5f5e69",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 25894,
+                "upload_time": "2015-11-24T12:28:54",
+                "url": "https://files.pythonhosted.org/packages/71/b8/8bac9ad727dfe24c1c1b2562a6c667aa1c5acde408d2b74cdb4b8f328ff9/django-flickr-gallery-0.2.11a0.dev2.tar.gz"
+            }
+        ],
+        "0.2.11a0.dev3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cb90f259b970b87624cdd7985f99aa12",
+                    "sha256": "8f8f2ad177f749cc1eb25e6a6d61447663d87a5d63227a531e926a0cc19e89eb"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.11a0.dev3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cb90f259b970b87624cdd7985f99aa12",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 31954,
+                "upload_time": "2015-11-24T12:30:53",
+                "url": "https://files.pythonhosted.org/packages/2f/d0/c2b446765e5c6c9d3e1f68cc21c954e5fb68948246e25f95b549961547a2/django-flickr-gallery-0.2.11a0.dev3.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "599ecb3fc86626c12b406bb26a02006b",
+                    "sha256": "847b35a91eee149165a05f9c709e0cd1fee816857f849bb15464e2793f135e3f"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "599ecb3fc86626c12b406bb26a02006b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13029,
+                "upload_time": "2015-08-06T14:02:19",
+                "url": "https://files.pythonhosted.org/packages/42/14/abcb7474ab4a4280b9e0790c4f3a5b31492cd94907363d210a1070a34556/django-flickr-gallery-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9e09a650ef6d79125542883cafe44ed5",
+                    "sha256": "de082c21d8dd78bd3aebaf5e04d12b2a4b18fa30ed664fe0d6a7430825304f1c"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9e09a650ef6d79125542883cafe44ed5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 13024,
+                "upload_time": "2015-08-06T14:14:51",
+                "url": "https://files.pythonhosted.org/packages/a9/4a/373aa6afc195d28531db51585d21566fefb254739cc0bd57ae16b3f30f0d/django-flickr-gallery-0.2.3.tar.gz"
+            }
+        ],
+        "0.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "af21464d9b513ad7aeaab2010e516305",
+                    "sha256": "0fa74036a8b5dfbcd22dbae801335f202072e1baebaad4f113571e28324e4868"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "af21464d9b513ad7aeaab2010e516305",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 16181,
+                "upload_time": "2015-09-22T14:24:59",
+                "url": "https://files.pythonhosted.org/packages/fe/52/fc8a9c96a2ab33c437069a22c0094ffd5f12b016e796e0c9f1df91d0aa06/django-flickr-gallery-0.2.4.tar.gz"
+            }
+        ],
+        "0.2.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6bfc2718b15d9dd92eda53e44eb215a6",
+                    "sha256": "d995dfab3f0ee6cdc109f98b3929c27dc10823d8e50ed41d60de478483b07e8a"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6bfc2718b15d9dd92eda53e44eb215a6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 15949,
+                "upload_time": "2015-09-22T19:41:15",
+                "url": "https://files.pythonhosted.org/packages/66/84/8f953291bdff24d554026bfddba52181babb4fa25a3bb737fe6d4c6cc41c/django-flickr-gallery-0.2.5.tar.gz"
+            }
+        ],
+        "0.2.5a.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cacccbf1b0a61693d14a0b903d78c186",
+                    "sha256": "62f010e4edd999755cfe686698a27170687b4335a87e6f64f18cbedf1597a5e3"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.5a.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cacccbf1b0a61693d14a0b903d78c186",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 15961,
+                "upload_time": "2015-09-22T19:15:22",
+                "url": "https://files.pythonhosted.org/packages/d5/26/53c440a43dda98e697a873c3e34c96b22a66b58b714c6f2e4bae3edfe671/django-flickr-gallery-0.2.5a.dev1.tar.gz"
+            }
+        ],
+        "0.2.5a.dev2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6e77e80c39f05ed1a822db8edb43044b",
+                    "sha256": "472a9513a0dda22f1b6d0407b95bacdf6f6fb649b7437668e642425299ba49a8"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.5a.dev2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6e77e80c39f05ed1a822db8edb43044b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 15962,
+                "upload_time": "2015-09-22T19:32:25",
+                "url": "https://files.pythonhosted.org/packages/cc/05/c3fd06df5e1de9225ad71b3de0d2c41747c521b536547d1246e0d99d4588/django-flickr-gallery-0.2.5a.dev2.tar.gz"
+            }
+        ],
+        "0.2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d17a25c18d137e7cc294e7f98e99f3bf",
+                    "sha256": "f513e2acadce5a9be91c6e72b9f88c08d945bc42fa8b974ffff070a5f28ba64e"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d17a25c18d137e7cc294e7f98e99f3bf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 16286,
+                "upload_time": "2015-09-22T19:46:23",
+                "url": "https://files.pythonhosted.org/packages/da/7c/2240fe5f2d663baa4435f6a853aed691fab318ab07441d5fd5363e55cd5e/django-flickr-gallery-0.2.6.tar.gz"
+            }
+        ],
+        "0.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a894585f1c937bcef65abdf44dea7bec",
+                    "sha256": "c63048b87a143587fab50efa3181756fef2a3c2537509e93620d33f3be0b9cb7"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a894585f1c937bcef65abdf44dea7bec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 17720,
+                "upload_time": "2015-10-30T18:34:23",
+                "url": "https://files.pythonhosted.org/packages/a6/a5/580b2644a3212f9b3b4d72ff5fb8ccb46c45f5d0b134f845f02f1ea546da/django-flickr-gallery-0.2.8.tar.gz"
+            }
+        ],
+        "0.2.8a.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8483abdae93e0191bd9dcf9f14b39c93",
+                    "sha256": "d4f3ad9dec18630105fd325b2b84fc80c33232bf288c1b96630998e31ad9cb16"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.8a.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8483abdae93e0191bd9dcf9f14b39c93",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 17816,
+                "upload_time": "2015-10-13T19:31:49",
+                "url": "https://files.pythonhosted.org/packages/0b/c1/ebf54796cbab6f1f6fa36215adc067638ad3d9cea0289a3b2619458b2595/django-flickr-gallery-0.2.8a.dev1.tar.gz"
+            }
+        ],
+        "0.2.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78da7ba81f76b9e0e2d4eb8c7b0fa160",
+                    "sha256": "a02420e6356bbdecaaf1b3b2697a4f04711ffc0af0cf08d2814f39ef2ca19544"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "78da7ba81f76b9e0e2d4eb8c7b0fa160",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 17937,
+                "upload_time": "2015-11-13T12:02:50",
+                "url": "https://files.pythonhosted.org/packages/74/b9/ace3670776487c17a709a9507fa838707f444f24f6ae083ad2b09304bcaf/django-flickr-gallery-0.2.9.tar.gz"
+            }
+        ],
+        "0.2.9a.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d3e346e51d73061de2f479db6e56037b",
+                    "sha256": "e71c1f9d90cfd349f0c938128e6d9fd8386a8c002f480f9a6c931a4f8859cfb2"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.2.9a.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d3e346e51d73061de2f479db6e56037b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 17974,
+                "upload_time": "2015-11-12T13:28:01",
+                "url": "https://files.pythonhosted.org/packages/90/17/9f2cd4154ff7e87154858db843ba894fdc5f2be380c46b816552d3e11006/django-flickr-gallery-0.2.9a.dev1.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "afa9f782ca6c6c915b92bf20d8fac1c0",
+                    "sha256": "54ac124bbb3edd6f8bc1068b17a4035262b1f3ac63c7c9d9dd6202e9b90f4764"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "afa9f782ca6c6c915b92bf20d8fac1c0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 31819,
+                "upload_time": "2015-11-24T12:42:59",
+                "url": "https://files.pythonhosted.org/packages/ef/af/f73cc966e3696b1090ec61e73684844957a73749b604d8713d055655e1e8/django-flickr-gallery-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "49795d28902af5d7769c54a77328175b",
+                    "sha256": "d9e52c41c92d2c42dc75258eb8b77446078d29796970a82bb98274c2753ef454"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "49795d28902af5d7769c54a77328175b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32348,
+                "upload_time": "2015-11-27T13:09:51",
+                "url": "https://files.pythonhosted.org/packages/ea/45/42775d5a200ec44312753494406ccb84d0caf397774899f8123918d65b9e/django-flickr-gallery-0.3.1.tar.gz"
+            }
+        ],
+        "0.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cfb88ec25f844d4318066c133c925b1c",
+                    "sha256": "de5bc3408dd4431975617378b87a857140b3d56954c500d32764f669e2ccbdc8"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cfb88ec25f844d4318066c133c925b1c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32411,
+                "upload_time": "2015-12-11T17:59:14",
+                "url": "https://files.pythonhosted.org/packages/c6/5e/79a28531e0dc08b54a94c55b92012530b319aa8b8cb7153b37e50fd10053/django-flickr-gallery-0.3.2.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2c7cd6cb35714adb7604e34f70bbf748",
+                    "sha256": "a50bf95ec909282d40d5cfbe59a5a7fa1b468f9101f48a2127df1da071e81e1a"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2c7cd6cb35714adb7604e34f70bbf748",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32466,
+                "upload_time": "2016-02-24T20:18:46",
+                "url": "https://files.pythonhosted.org/packages/18/64/272b758acd0dbf30b6ffeab595b96ff97e3269cff09dc021a84c7dfc8904/django-flickr-gallery-0.4.0.tar.gz"
+            }
+        ],
+        "0.4.0a.dev1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e9046102780434515a8c06ab3de9522e",
+                    "sha256": "b179fd38f38cefa2d6b4628c1810d2e223ecfb4a76e877aa1fdb3e28219ac381"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.0a.dev1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e9046102780434515a8c06ab3de9522e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32537,
+                "upload_time": "2016-02-24T19:34:36",
+                "url": "https://files.pythonhosted.org/packages/26/b9/7b81f14bd69ba7fab9529ad486160ced4999e47a4effae08482c37ec8f38/django-flickr-gallery-0.4.0a.dev1.tar.gz"
+            }
+        ],
+        "0.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8ae29e3a636546e0b1b016616202918b",
+                    "sha256": "86068fdcd5a34fb56729b2b7946c39a4a590364a5acffb0fb9e79e535a6c7fa5"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8ae29e3a636546e0b1b016616202918b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32333,
+                "upload_time": "2016-02-25T13:56:38",
+                "url": "https://files.pythonhosted.org/packages/66/cb/bc781fb8aba8a93392692d0c6f3429fb831efd4c7ca8a3b00b876f478bda/django-flickr-gallery-0.4.1.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9f6fc553591aeed641d06033af148fdc",
+                    "sha256": "eb2bdb4adf151c856c547dabc68667a9411a8926921deee152733db232f8149b"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9f6fc553591aeed641d06033af148fdc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 31956,
+                "upload_time": "2016-03-17T14:35:01",
+                "url": "https://files.pythonhosted.org/packages/e4/3c/e06229da5adc07542f39fddfd46fa32b53e07dde27d71429965f92ce05f4/django-flickr-gallery-0.4.2.tar.gz"
+            }
+        ],
+        "0.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e1a01f612c1e566315d0352bc08db757",
+                    "sha256": "542bafc1e3d9bdf4d5f39c6250328c095c287035319e4995106cced85da451cf"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e1a01f612c1e566315d0352bc08db757",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 31978,
+                "upload_time": "2016-03-17T14:54:58",
+                "url": "https://files.pythonhosted.org/packages/30/66/ca40f0b5f9dbd54993443054afef9687d611b9ab4edb47bdd77fffc63384/django-flickr-gallery-0.4.3.tar.gz"
+            }
+        ],
+        "0.4.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2d338dd3aeb3165656c599dbb3cf67f",
+                    "sha256": "d4beb821f85da3ac78b60868eb59a1e1faef79de61aafceeae8d10f6d0397b81"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f2d338dd3aeb3165656c599dbb3cf67f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 31954,
+                "upload_time": "2016-05-13T20:42:14",
+                "url": "https://files.pythonhosted.org/packages/35/a7/d9c527cb7d760fde1e617999060ab7cfd2b6e4081bb54ab8db68a3242bed/django-flickr-gallery-0.4.4.tar.gz"
+            }
+        ],
+        "0.4.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "14a21bfa5cd40e0e7a456bb178105ebb",
+                    "sha256": "2b5c3c55a9c6abde5f53f45a87761af749e42a171fad9c3fe5817af995a24e53"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "14a21bfa5cd40e0e7a456bb178105ebb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32172,
+                "upload_time": "2016-06-27T18:46:55",
+                "url": "https://files.pythonhosted.org/packages/eb/eb/c174a9fdb2f23e78c9da1290bc184bdda4d9999cad0f0dc454d788aaf75b/django-flickr-gallery-0.4.5.tar.gz"
+            }
+        ],
+        "0.4.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d7144156f70189445a7b6125c47f3cbf",
+                    "sha256": "b8627343bcd710a0b01869ce67c13ba50d69e0f13404c7b426f25cc4f1dcdd88"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d7144156f70189445a7b6125c47f3cbf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32957,
+                "upload_time": "2016-07-13T20:57:43",
+                "url": "https://files.pythonhosted.org/packages/75/6b/e22c9d499c96bc97ee4c238122066b25538fbc6fd7d2316e9482ac986ec7/django-flickr-gallery-0.4.6.tar.gz"
+            }
+        ],
+        "0.4.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a6c61b81eaeba74fd4d3becd69ec150a",
+                    "sha256": "65744ba1588c8230701ee8fd0b4fd08b9f7852057c1900462fbf49c340dffd6a"
+                },
+                "downloads": -1,
+                "filename": "django-flickr-gallery-0.4.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a6c61b81eaeba74fd4d3becd69ec150a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 32395,
+                "upload_time": "2016-12-14T14:07:33",
+                "url": "https://files.pythonhosted.org/packages/61/fe/7e5dd211e74fb0c2063307064ba7d8bd32f18b596080b64d4418d412c9f7/django-flickr-gallery-0.4.7.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a6c61b81eaeba74fd4d3becd69ec150a",
+                "sha256": "65744ba1588c8230701ee8fd0b4fd08b9f7852057c1900462fbf49c340dffd6a"
+            },
+            "downloads": -1,
+            "filename": "django-flickr-gallery-0.4.7.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a6c61b81eaeba74fd4d3becd69ec150a",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 32395,
+            "upload_time": "2016-12-14T14:07:33",
+            "url": "https://files.pythonhosted.org/packages/61/fe/7e5dd211e74fb0c2063307064ba7d8bd32f18b596080b64d4418d412c9f7/django-flickr-gallery-0.4.7.tar.gz"
+        }
+    ]
+}

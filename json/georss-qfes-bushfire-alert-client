@@ -1,0 +1,152 @@
+{
+    "info": {
+        "author": "Malte Franken",
+        "author_email": "coding@subspace.de",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7"
+        ],
+        "description": "# python-georss-qfes-bushfire-alert-client\n\n[![Build Status](https://travis-ci.org/exxamalte/python-georss-qfes-bushfire-alert-client.svg)](https://travis-ci.org/exxamalte/python-georss-qfes-bushfire-alert-client)\n[![Coverage Status](https://coveralls.io/repos/github/exxamalte/python-georss-qfes-bushfire-alert-client/badge.svg?branch=master)](https://coveralls.io/github/exxamalte/python-georss-qfes-bushfire-alert-client?branch=master)\n[![PyPi](https://img.shields.io/pypi/v/georss-qfes-bushfire-alert-client.svg)](https://pypi.python.org/pypi/georss-qfes-bushfire-alert-client)\n[![Version](https://img.shields.io/pypi/pyversions/georss-qfes-bushfire-alert-client.svg)](https://pypi.python.org/pypi/georss-qfes-bushfire-alert-client)\n\nThis library provides convenient access to the [Queensland Fire and Emergency Services (QFES) Bushfire Alert Feed](https://www.ruralfire.qld.gov.au/map/Pages/default.aspx).\n\n## Installation\n`pip install georss-qfes-bushfire-alert-client`\n\n## Usage\nSee below for an example of how this library can be used. After instantiating \nthe feed class and supplying the required parameters, you can call `update` to \nretrieve the feed data. The return value will be a tuple of a status code and \nthe actual data in the form of a list of specific feed entries.\n\n**Status Codes**\n* _UPDATE_OK_: Update went fine and data was retrieved. The library may still return empty data, for example because no entries fulfilled the filter criteria.\n* _UPDATE_OK_NO_DATA_: Update went fine but no data was retrieved, for example because the server indicated that there was not update since the last request.\n* _UPDATE_ERROR_: Something went wrong during the update\n\n\n**Supported Filters**\n\n| Filter     |                     | Description |\n|------------|---------------------|-------------|\n| Radius     | `filter_radius`     | Radius in kilometers around the home coordinates in which events from the feed are included. |\n| Categories | `filter_categories` | Array of category names. Only events with a category matching any of these are included. |\n\n**Example**\n```python\nfrom georss_qfes_bushfire_alert_client import QfesBushfireAlertFeed\n# Home Coordinates: Latitude: -27.5, Longitude: 153.0\n# Filter radius: 50 km\n# Filter categories: 'Advice'\nfeed = QfesBushfireAlertFeed((-27.5, 153.0), \n                             filter_radius=50, \n                             filter_categories=['Advice'])\nstatus, entries = feed.update()\n```\n\n## Feed entry properties\nEach feed entry is populated with the following properties - subject to \navailability in GeoRSS feed:\n\n| Name             | Description                                               |\n|------------------|-----------------------------------------------------------|\n| geometry         | All geometry details of this entry.                       |\n| coordinates      | Best coordinates (latitude, longitude) of this entry.     |\n| external_id      | External id of this entry.                                |\n| title            | Title of this entry with textual description of location. |\n| category         | Category of this entry.                                   |\n| attribution      | Attribution from feed.                                    |\n| distance_to_home | Distance in km of this entry to the home coordinates.     |\n| description      | Full content of this entry.                               |\n| published        | Published date of this entry.                             |\n| updated          | Updated date of this entry.                               |\n| status           | Status of alert, e.g. \"Patrolled\", \"Going\", \"Contained\"   |\n\n## Feed Manager\nThe Feed Manager helps managing feed updates over time, by notifying the \nconsumer of the feed about new feed entries, updates and removed entries \ncompared to the last feed update.\n\n* If the current feed update is the first one, then all feed entries will be \n  reported as new. The feed manager will keep track of all feed entries' \n  external IDs that it has successfully processed.\n* If the current feed update is not the first one, then the feed manager will \n  produce three sets:\n  * Feed entries that were not in the previous feed update but are in the \n    current feed update will be reported as new.\n  * Feed entries that were in the previous feed update and are still in the \n    current feed update will be reported as to be updated.\n  * Feed entries that were in the previous feed update but are not in the \n    current feed update will be reported to be removed.\n* If the current update fails, then all feed entries processed in the previous\n  feed update will be reported to be removed.\n\nAfter a successful update from the feed, the feed manager will provide two\ndifferent dates:\n\n* `last_update` will be the timestamp of the last successful update from the\n  feed. This date may be useful if the consumer of this library wants to\n  treat intermittent errors from feed updates differently.\n* `last_timestamp` will be the latest timestamp extracted from the feed data. \n  This requires that the underlying feed data actually contains a suitable \n  date. This date may be useful if the consumer of this library wants to \n  process feed entries differently if they haven't actually been updated.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/exxamalte/python-georss-qfes-bushfire-alert-client",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "georss-qfes-bushfire-alert-client",
+        "package_url": "https://pypi.org/project/georss-qfes-bushfire-alert-client/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/georss-qfes-bushfire-alert-client/",
+        "project_urls": {
+            "Homepage": "https://github.com/exxamalte/python-georss-qfes-bushfire-alert-client"
+        },
+        "release_url": "https://pypi.org/project/georss-qfes-bushfire-alert-client/0.2/",
+        "requires_dist": [
+            "georss-client (>=0.9)"
+        ],
+        "requires_python": "",
+        "summary": "A GeoRSS client library for the Queensland Fire and Emergency Services (QFES) Bushfire Alert feed.",
+        "version": "0.2"
+    },
+    "last_serial": 5144213,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1cf3c8370ec1b3a20e6d704b60a297fe",
+                    "sha256": "db9ceb4d3223a2959f5cffc18dd9480d0249e08b61656e050d3b31a53a366923"
+                },
+                "downloads": -1,
+                "filename": "georss_qfes_bushfire_alert_client-0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "1cf3c8370ec1b3a20e6d704b60a297fe",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9717,
+                "upload_time": "2019-03-27T07:20:14",
+                "url": "https://files.pythonhosted.org/packages/52/74/7f5eced9eea1d425f586ad6d41dc717d4d0c32fb3412da4703e557956ce9/georss_qfes_bushfire_alert_client-0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "41d3a5d9a01e97b51c1fb0315413992f",
+                    "sha256": "568268f27fb2b369d036383071b9d9443a9f118a5fcc18294f745c45c7f35490"
+                },
+                "downloads": -1,
+                "filename": "georss_qfes_bushfire_alert_client-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "41d3a5d9a01e97b51c1fb0315413992f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4708,
+                "upload_time": "2019-03-27T07:20:16",
+                "url": "https://files.pythonhosted.org/packages/f6/93/71167e33c5457c5b2769de97b66544b0ec39ac69981c4dbabe817fea2cd0/georss_qfes_bushfire_alert_client-0.1.tar.gz"
+            }
+        ],
+        "0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9cc63e914e48608547c07022e95fcc8",
+                    "sha256": "2521457f2f04664d396639a666d4d63a92254dbd11862689545d8e06fedfb938"
+                },
+                "downloads": -1,
+                "filename": "georss_qfes_bushfire_alert_client-0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d9cc63e914e48608547c07022e95fcc8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 10039,
+                "upload_time": "2019-04-15T11:18:03",
+                "url": "https://files.pythonhosted.org/packages/c9/a5/682f98e217559da358f145a2701e9e2881ee65561aad1b293433e5af7328/georss_qfes_bushfire_alert_client-0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d9f93b269ac15036aeaf7504d7620fc1",
+                    "sha256": "33a6881faa692013a2abc6324140fb3a04d7dcb48e068a3421ec0c3a75fa1882"
+                },
+                "downloads": -1,
+                "filename": "georss_qfes_bushfire_alert_client-0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d9f93b269ac15036aeaf7504d7620fc1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5118,
+                "upload_time": "2019-04-15T11:18:05",
+                "url": "https://files.pythonhosted.org/packages/dc/82/dddf20529fabed8a991e2c1d854cd036aa0b8c09edb6cf248d5e29a09e4c/georss_qfes_bushfire_alert_client-0.2.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d9cc63e914e48608547c07022e95fcc8",
+                "sha256": "2521457f2f04664d396639a666d4d63a92254dbd11862689545d8e06fedfb938"
+            },
+            "downloads": -1,
+            "filename": "georss_qfes_bushfire_alert_client-0.2-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "d9cc63e914e48608547c07022e95fcc8",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 10039,
+            "upload_time": "2019-04-15T11:18:03",
+            "url": "https://files.pythonhosted.org/packages/c9/a5/682f98e217559da358f145a2701e9e2881ee65561aad1b293433e5af7328/georss_qfes_bushfire_alert_client-0.2-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "d9f93b269ac15036aeaf7504d7620fc1",
+                "sha256": "33a6881faa692013a2abc6324140fb3a04d7dcb48e068a3421ec0c3a75fa1882"
+            },
+            "downloads": -1,
+            "filename": "georss_qfes_bushfire_alert_client-0.2.tar.gz",
+            "has_sig": false,
+            "md5_digest": "d9f93b269ac15036aeaf7504d7620fc1",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 5118,
+            "upload_time": "2019-04-15T11:18:05",
+            "url": "https://files.pythonhosted.org/packages/dc/82/dddf20529fabed8a991e2c1d854cd036aa0b8c09edb6cf248d5e29a09e4c/georss_qfes_bushfire_alert_client-0.2.tar.gz"
+        }
+    ]
+}

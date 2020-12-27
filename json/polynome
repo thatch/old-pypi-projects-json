@@ -1,0 +1,160 @@
+{
+    "info": {
+        "author": "Yasha Bubnov",
+        "author_email": "girokompass@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License"
+        ],
+        "description": "# Polynome\n\n[![Build Status][BuildStatus]](https://travis-ci.org/netrack/polynome)\n\nThe Polynome is a HTTP server that serves [Keras](https://github.com/keras-team/keras)\nmodels using TensorFlow runtime.\n\nThis server solves such problems as:\n\n* Versioning of models.\n* Warehousing of models.\n* Enabling CI/CD for machine-learning models.\n\n## Installation\n\nInstall latest version from pypi repository.\n```bash\npip install polynome\n```\n\n## Using polynome\n\n### Keras Requirements\n\nCurrently, `polynome` supports only models in the TensorFlow Saved Model, therefore\nin order to publish Keras model, it must be saved as Saved Model at first.\n\nConsidering the following Keras model:\n```py\nfrom tensorflow import keras\nfrom tensorflow.keras import layers\n\ninputs = keras.Input(shape=(8,), name='digits')\nx = layers.Dense(4, activation='relu', name='dense_1')(inputs)\nx = layers.Dense(4, activation='relu', name='dense_2')(x)\noutputs = layers.Dense(2, activation='softmax', name='predictions')(x)\n\nmodel = keras.Model(inputs=inputs, outputs=outputs, name='3_layer_mlp')\n```\n\nSave it using the `export_saved_model` function from the 2.0 TensorFlow API:\n```py\nkeras.experimental.export_saved_model(model, \"3_layer_mlp\")\n```\n\n### Starting Server\n\nTo start server run `server` command:\n```sh\nsudo polynome server\n```\n\nBy default it starts listening _unsecured_ port on localhost at `http://localhost:5678`.\n\nDefault configuration saves models to `/var/lib/polynome` directory. Apart of\nthat server requires access to `/var/run` directory in order to save pid file\nthere.\n\n### Pushing New Model\n\nOnce model saved in directory, pack it using `tar` utility. For instance, this\nis how it will look like for `3_layer_mlp` model from the previous example:\n```sh\ntar -cf 3_layer_mlp.tar 3_layer_mlp\n```\n\nNow the model packed into the archive can be pushed to the server under the\narbitrary tag:\n```sh\npolynome push --name 3_layer_mlp --tag 0.0.1 3_layer_mlp.tar\n```\n\n### Listing Available Models\n\nYou can list all available models on the server using the following command:\n```sh\npolynome list\n```\n\nAfter the execution of `list` command you'll see to available models:\n```sh\n3_layer_mlp:0.0.1\n3_layer_mlp:latest\n```\n\nThis is the features of `polynome` server, each published model name results in\ncreation of _model group_. Each model group has it's `latest` tag, that references\nthe _latest pushed model_.\n\n### Removing Model\n\nRemove of the unused model can be performed in using `remove` command:\n```sh\npolynome remove --name 3_layer_mlp --tag 0.0.1\n```\n\nExecution of `remove` commands results in the remove of the model itself, and\nthe model group, when is is the last model in the group.\n\n### Using Model\n\nIn order to use the pushed model, `polynome` exposes REST API. An example query\nto the server looks like this:\n```sh\ncurl -X POST https://localhost:5678/models/3_layer_mlp/0.0.1/predict -d \\\n    '{\"x\": [[1.0, 2.1, 1.43, 4.43, 12.1, 3.2, 1.44, 2.3]]}'\n```\n\n# License\n\nThe code and docs are released under the [Apache 2.0 license](LICENSE).\n\n[BuildStatus]:   https://travis-ci.org/netrack/polynome.svg?branch=master\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/netrack/polynome",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "polynome",
+        "package_url": "https://pypi.org/project/polynome/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/polynome/",
+        "project_urls": {
+            "Homepage": "https://github.com/netrack/polynome"
+        },
+        "release_url": "https://pypi.org/project/polynome/0.0.1b0/",
+        "requires_dist": [
+            "aiojobs (>=0.2.2)",
+            "aiofiles (>=0.4.0)",
+            "aiorwlock (>=0.6.0)",
+            "aiohttp (>=3.5.4)",
+            "humanize (>=0.5.1)",
+            "numpy (>=1.16.3)",
+            "pid (>=2.2.3)",
+            "pyyaml (>=5.1.1)",
+            "semver (>=2.8.1)",
+            "tensorflow (>=2.0.0a0)",
+            "tinydb (>=3.13.0)"
+        ],
+        "requires_python": "",
+        "summary": "Polynome is a server for Keras models.",
+        "version": "0.0.1b0"
+    },
+    "last_serial": 5500824,
+    "releases": {
+        "0.0.1a0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "04a2b5bbf99234799e4a6d408529e1ed",
+                    "sha256": "f97788bbd61cc35857fd657944a0e468ceaea86a2f44c57c6db66844adc33297"
+                },
+                "downloads": -1,
+                "filename": "polynome-0.0.1a0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "04a2b5bbf99234799e4a6d408529e1ed",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 20117,
+                "upload_time": "2019-06-25T08:01:27",
+                "url": "https://files.pythonhosted.org/packages/9c/0e/9fb8e03590cbec7678ca44c330c71784294274853e5f0855cbbfb15852c1/polynome-0.0.1a0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "07d0ee0a4ba239094d31aea66f172d59",
+                    "sha256": "7b0f8e006b1845bdae3e777d0583c9517bb0418bb73ebf94bce29f970e31f3dc"
+                },
+                "downloads": -1,
+                "filename": "polynome-0.0.1a0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "07d0ee0a4ba239094d31aea66f172d59",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12077,
+                "upload_time": "2019-06-25T08:01:29",
+                "url": "https://files.pythonhosted.org/packages/45/07/ade2f64528d4528a641eb6d46d60c59e425c1b11484db62c0c5ae5807a0b/polynome-0.0.1a0.tar.gz"
+            }
+        ],
+        "0.0.1b0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ed181084152f5f2936f4d3ada9f9b3c7",
+                    "sha256": "de916a083e6b3604921e1d561aa247b2d2492c937fd6394b0ff6f97a8983a347"
+                },
+                "downloads": -1,
+                "filename": "polynome-0.0.1b0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ed181084152f5f2936f4d3ada9f9b3c7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 25931,
+                "upload_time": "2019-07-08T13:39:35",
+                "url": "https://files.pythonhosted.org/packages/5c/3c/bb263646fe89c04a56d291dc7b3a06062fa4909e99d6709e007505c1e8ee/polynome-0.0.1b0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f2d724b499b43b3d618687ffe8a85630",
+                    "sha256": "457500c6a76e46f5cbffc5780442c425267c643fce40456f136d69b7405efb98"
+                },
+                "downloads": -1,
+                "filename": "polynome-0.0.1b0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f2d724b499b43b3d618687ffe8a85630",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17760,
+                "upload_time": "2019-07-08T13:39:37",
+                "url": "https://files.pythonhosted.org/packages/78/d7/6898c031b374b891b275e3c3243de3874af183f8ee26e1c1615a718fa928/polynome-0.0.1b0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "ed181084152f5f2936f4d3ada9f9b3c7",
+                "sha256": "de916a083e6b3604921e1d561aa247b2d2492c937fd6394b0ff6f97a8983a347"
+            },
+            "downloads": -1,
+            "filename": "polynome-0.0.1b0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "ed181084152f5f2936f4d3ada9f9b3c7",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 25931,
+            "upload_time": "2019-07-08T13:39:35",
+            "url": "https://files.pythonhosted.org/packages/5c/3c/bb263646fe89c04a56d291dc7b3a06062fa4909e99d6709e007505c1e8ee/polynome-0.0.1b0-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f2d724b499b43b3d618687ffe8a85630",
+                "sha256": "457500c6a76e46f5cbffc5780442c425267c643fce40456f136d69b7405efb98"
+            },
+            "downloads": -1,
+            "filename": "polynome-0.0.1b0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f2d724b499b43b3d618687ffe8a85630",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 17760,
+            "upload_time": "2019-07-08T13:39:37",
+            "url": "https://files.pythonhosted.org/packages/78/d7/6898c031b374b891b275e3c3243de3874af183f8ee26e1c1615a718fa928/polynome-0.0.1b0.tar.gz"
+        }
+    ]
+}

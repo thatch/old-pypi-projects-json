@@ -1,0 +1,118 @@
+{
+    "info": {
+        "author": "Yoga",
+        "author_email": "yoga.yu.169@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 2 - Pre-Alpha",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# python-sketch-api\nPython API to access and modify files from the \"Sketch\" software (https://www.sketchapp.com/), based on a Python object structure with typing hints.\nAllows reading binary \"plists\", and consequently allows you to query information about text layers!\n\nIncludes all relevant data, even metadata and saving information.\n\n\n# Examples\n\n## Writing\n\n    main_file = SketchFile.from_file('Icons.sketch')\n\n    symbol_hello = main_file.search_symbols_by_name('HALLO')[0]\n    symbol_comp = main_file.search_symbols_by_name('Comp')[0]\n    symbol_add = main_file.search_symbols_by_name('Add')[0]\n\n    for s in [symbol_hello, symbol_comp, symbol_add]:\n        print(s.name, s.do_objectID, s.symbolID, s.originalObjectID)\n\n    target_page = main_file.sketch_pages[1]\n\n    if main_file.has_page('Test2'):\n        main_file.remove_page('Test2')\n\n    test_page = main_file.add_page('Test2')\n\n    test_artboard = sketch_types.SJArtboardLayer.create('Artboard 123424525245', 500, 500)\n    test_page.add_artboard(test_artboard)\n\n    rect = sketch_types.SJShapeRectangleLayer.create('Rect ABC', 10, 10, 100, 100)\n    test_artboard.add_layer(rect)\n\n    l = sketch_types.SJSymbolInstanceLayer.create(symbol_hello, 50, 50)\n    l.add_symbol_override(symbol_hello.get_layer_by_type('symbolInstance')[0].do_objectID, symbol_add)\n    l.add_text_override(symbol_hello.get_layer_by_type('text')[0].do_objectID, 'FUCKYEAH')\n\n    l3 = sketch_types.SJSymbolInstanceLayer.create(symbol_hello, 80, 80)\n    l3.add_symbol_override(symbol_hello.get_layer_by_type('symbolInstance')[0].do_objectID, symbol_add)\n    l3.add_text_override(symbol_hello.get_layer_by_type('text')[0].do_objectID, 'FUCKYEAH2')\n\n    l_group = sketch_types.SJGroupLayer.create('Group Me', [l, l3])\n\n    test_artboard.add_layer(l_group)\n\n    pts = [sketch_types.Point(300, 200), sketch_types.Point(500,200), sketch_types.Point(50,23)]\n    l_path = sketch_types.SJShapePathLayer.create('Test Path', pts)\n\n    test_artboard.add_layer(l_path)\n\n    # source_str = sketch_io.PyToSketch.write(test_page)\n\n    print()\n\n    main_file.save_to('created.sketch')\n\n## Reading\n\n\n    file = SketchFile.from_file('MyFile.sketch')\n\n\n    file.sketch_pages\n\n    [<sketch_types.SketchPage at 0x10d64f908>,\n     <sketch_types.SketchPage at 0x10d64fb70>,\n     <sketch_types.SketchPage at 0x10d658e80>,\n     <sketch_types.SketchPage at 0x10d656128>,\n     <sketch_types.SketchPage at 0x10f03a4e0>,\n     <sketch_types.SketchPage at 0x10f09f470>,\n     <sketch_types.SketchPage at 0x10f0b07b8>,\n     <sketch_types.SketchPage at 0x10d6560f0>,\n     <sketch_types.SketchPage at 0x10f167da0>,\n     <sketch_types.SketchPage at 0x10f239ba8>,\n     <sketch_types.SketchPage at 0x10f31eeb8>,\n     <sketch_types.SketchPage at 0x10f525748>,\n     <sketch_types.SketchPage at 0x10f52a278>]\n\n    file.sketch_pages[0].layers[1]\n    Out[4]: <sketch_types.SJTextLayer at 0x10d64fdd8>\n\n    file.sketch_pages[0].layers[1].attributedString.get_font_family()\n    Out[5]: 'OpenSans-Bold'\n\n    file.sketch_document.userInfo\n    Out[7]: {'com.invisionlabs.sync': {'metadata': '{\"hasSynced\":0,\"hasProjectIdChanged\":0,\"projectId\":10489170,\"publicLink\":\"\",\"resolution\":2,\"syncAll\":false}'}}\n\n    file.sketch_document.assets.colors\n    Out[8]: \n    [<sketch_types.SJColor at 0x10d6bc2e8>,\n     <sketch_types.SJColor at 0x10d6bc358>,\n     <sketch_types.SJColor at 0x10d6bc390>,\n     <sketch_types.SJColor at 0x10d6bc4e0>]\n\n    file.sketch_meta.pagesAndArtboards[file.sketch_pages[0].do_objectID].name\n    Out[13]: '- Introduction v0.3.0'\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/yo-ga/SketchAppPy",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "sketch-app",
+        "package_url": "https://pypi.org/project/sketch-app/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/sketch-app/",
+        "project_urls": {
+            "Homepage": "https://github.com/yo-ga/SketchAppPy"
+        },
+        "release_url": "https://pypi.org/project/sketch-app/0.5.0/",
+        "requires_dist": [
+            "numpy",
+            "Pillow",
+            "biplist"
+        ],
+        "requires_python": "",
+        "summary": "Python API for the \"Sketch\" software",
+        "version": "0.5.0"
+    },
+    "last_serial": 4112970,
+    "releases": {
+        "0.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12f230f17d893f57ce9cb3cb56bed9ae",
+                    "sha256": "bb23aefe573309a85fe80ecf8ffe3c627532ed9a0a58455ee0118f185627d77d"
+                },
+                "downloads": -1,
+                "filename": "sketch_app-0.5.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "12f230f17d893f57ce9cb3cb56bed9ae",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18862,
+                "upload_time": "2018-07-29T04:33:21",
+                "url": "https://files.pythonhosted.org/packages/76/06/a24c3412895dfbedec31a9b8585ce6c1cad80abded673f99f775fb6aacef/sketch_app-0.5.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a5d225f67d4c2fa62700bee73547f559",
+                    "sha256": "a176018f0ce915c8be50773e6e0e18476a6f743ba5e394cfd66abb6034b97cc2"
+                },
+                "downloads": -1,
+                "filename": "sketch_app-0.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a5d225f67d4c2fa62700bee73547f559",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19061,
+                "upload_time": "2018-07-29T04:33:22",
+                "url": "https://files.pythonhosted.org/packages/f1/ca/ef1f2a6a52c5bf86dc514bb938b5de0a7c1afdb274f5ff9fa631eb3ca11e/sketch_app-0.5.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "12f230f17d893f57ce9cb3cb56bed9ae",
+                "sha256": "bb23aefe573309a85fe80ecf8ffe3c627532ed9a0a58455ee0118f185627d77d"
+            },
+            "downloads": -1,
+            "filename": "sketch_app-0.5.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "12f230f17d893f57ce9cb3cb56bed9ae",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 18862,
+            "upload_time": "2018-07-29T04:33:21",
+            "url": "https://files.pythonhosted.org/packages/76/06/a24c3412895dfbedec31a9b8585ce6c1cad80abded673f99f775fb6aacef/sketch_app-0.5.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a5d225f67d4c2fa62700bee73547f559",
+                "sha256": "a176018f0ce915c8be50773e6e0e18476a6f743ba5e394cfd66abb6034b97cc2"
+            },
+            "downloads": -1,
+            "filename": "sketch_app-0.5.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a5d225f67d4c2fa62700bee73547f559",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 19061,
+            "upload_time": "2018-07-29T04:33:22",
+            "url": "https://files.pythonhosted.org/packages/f1/ca/ef1f2a6a52c5bf86dc514bb938b5de0a7c1afdb274f5ff9fa631eb3ca11e/sketch_app-0.5.0.tar.gz"
+        }
+    ]
+}

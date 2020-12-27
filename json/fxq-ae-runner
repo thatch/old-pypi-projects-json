@@ -1,0 +1,547 @@
+{
+    "info": {
+        "author": "Jonathan Turnock",
+        "author_email": "jonathan.turnock@fxquants.net",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "# FX Quants Analytics Engine Runner\n\nThe Analytics engine runner is a Flask application which is designed to run on a docker host.\nIts purpose is to take a request from a Strategy Scheduler and run it using the following technique:   \n1. Receive GIT URL    \n2. Clone GIT repo   \n3. Parse GIT repo YML   \n4. Extract Image   \n5. Create Image and keep it alive   \n4. Execute commands in container and capture STDOUT   \n5. Stream STDOUT to the Callback (back to the scheduler)   \n6. Stop container when all commands are finished and all processes stopped.   \n7. Delete the container.   \n\nIt has a single API endpoint ```/api/request``` which takes a POST. The JSON body must contain a url which is a git repo.\nThis git repo will be checked out, executed and the created container will be removed once done.\n\nTo enable the callback functionality to update a persistent store with the results of the pipeline define the following endpoints as environment variables.\nAll URL's must be Fully Qualified API endpoints built to digest the JSON.\n```\nPIPELINE_CALLBACK_URL - Takes a main pipeline json object \nSTEP_CALLBACK_URL - Takes a step json object\nCMD_CALLBACK_URL - Takes a cmd json object\n```\nYou can take, the top level (pipelines) and only update on major changes.   \nThe mid level (pipeline & step) and only update on step changes.\nThe lowest level (pipeline, step & cmd) and update as each and every output is received.\n\nAll models above contain the models below. So you can always get all of the detail, just less frequently, \ni.e. if you dont need the results until the step, or even entire pipeline is finished dont make a cmd/step endpoint.\n```\n{\n  'run_id': '459d6f9d-bf79-4bcf-b840-f7c3c4fe9362',\n  'name': 'fxquants-aep-hello-world',\n  'status': 'SUCCESSFUL',\n  'commit_changes': False,\n  'steps': [\n    {\n      'step_id': 'd51cb24e-e993-4eb3-8c2d-00f55d87b9f0',\n      'run_id': '459d6f9d-bf79-4bcf-b840-f7c3c4fe9362',\n      'step_no': 1,\n      'name': 'Hello World With Bash',\n      'image': 'alpine',\n      'status': 'SUCCESSFUL',\n      'commit_changes': False,\n      'script': [\n        {\n          'cmd_id': '05a8964d-b8c8-4614-84a2-78490cca5eef',\n          'step_id': 'd51cb24e-e993-4eb3-8c2d-00f55d87b9f0',\n          'cmd_no': 1,\n          'instruction': 'echo Hello World',\n          'output': [\n            'Hello World\\r\\n'\n          ]\n        }\n      ]\n    }\n  ]\n}\n```\n\n## Getting Started\nThe first thing that is needed is a Git repository with an fxq-pipeline.yml file present.\nSee the following example [hello world](https://bitbucket.org/fxquants/aep-hello-world)\n\n## Installing\nI highly recommend using the official docker image for this and running the container with the Docker socket\npassed into it.\n\nWhen running the image a gunicorn config with defaults is loaded by the gunicorn cli, its pulled from ```/etc/fxq/ae-runner/gunnicorn.py```\n simply replace this file at runtime to provide custom config.\nSee Gunicorn Documentation for further information on these Variables:   \nhttp://docs.gunicorn.org/en/stable/settings.html\n```\ndocker run -p 5000:5000 -v /var/run/docker.sock:/var/run/docker.sock --name ae-runner fxquants/ae-runner:latest\n``` \nAlternatively it can be run as a standalone application on the host itself.\nI Highly recommend using PIPX to install the FXQuants Runner if installed locally to ensure you do not run into issues \nwith other environments and CLI apps installed using PIP \nhttps://packaging.python.org/guides/installing-stand-alone-command-line-tools/\n\n```\npipx install fxq-ae-runner\n```\n\nThe standard CLI version is only a development server. I would't use this in production but it may also be fine for\nmost people. The Docker image version runs the application using Gunicorn and is the only supported production mode.\nTo run it yourself using Gunicorn perform the following once installed using pip.   \nNOTE: It goes without saying if you use pipx to install the fxq-ae-runner, that install is in an isolated venv so you need to get gunicorn installed into that environment.\n```\npip install gunicorn\ngunicorn --bind 0.0.0.0:5000 fxq.ae.runner.wsgi --log-level info\n```\n\n## Usage\nSimply post a request to the endpoint with the URL in the post body, you will see the request be carried out by the runner.\n```\nRequest:\ncurl -d '{\"url\":\"https://bitbucket.org/fxquants/aep-hello-world.git\"}' -H \"Content-Type: application/json\" -X POST http://localhost:5000/api/request\n\nResponse:\n{\"commit_changes\":false,\"name\":\"fxquants-aep-hello-world\",\"run_id\":\"d011cb4f-40e5-4ce3-9ccd-bd23cca3ba23\",\"status\":\"IN_PROGRESS\",\"steps\":[{\"commit_changes\":false,\"image\":\"alpine\",\"name\":\"Hello World With Bash\",\"script\":[{\"instruction\":\"echo Hello World\",\"output\":[]}],\"status\":\"PENDING\"}]}\n```\n\nMake sure to use Https for open repos so that you dont need to add authentication.\n\nAlternatively with private repos you can provide an ssh based url but this will take additional setup.\nExec into the container using SSH, Generate an SSH Key and Exchange Keys with your Git service provider.\n\n```\ncurl -d '{\"url\":\"git@bitbucket.org:fxquants/aep-hello-world.git\"}' -H \"Content-Type: application/json\" -X POST http://localhost:5000/api/request\n```\n\n## Contributing\n\nContributions are most welcome to the project, please raise issues first and contribute in response to the issue with a pull request.\n\n## Versioning\n\nWe use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://bitbucket.org/fxquants/fxq-ioc-core/downloads/?tab=tags). \n\n## Authors\n\n* **Jonathan Turnock** - *Initial work* - [fxquants - profile](https://fxquants.atlassian.net/people/5c4e3005043b4f5d172a732a)\n\n## License\n\nThis project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://bitbucket.org/fxquants/ae-runner/",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "fxq-ae-runner",
+        "package_url": "https://pypi.org/project/fxq-ae-runner/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/fxq-ae-runner/",
+        "project_urls": {
+            "Homepage": "https://bitbucket.org/fxquants/ae-runner/"
+        },
+        "release_url": "https://pypi.org/project/fxq-ae-runner/0.0.13/",
+        "requires_dist": [
+            "docker",
+            "flask",
+            "fxq-core",
+            "gitpython",
+            "pyyaml"
+        ],
+        "requires_python": "",
+        "summary": "Analytics Engine Runner Client, Provisions and executes docker pipelines from git repo yml",
+        "version": "0.0.13"
+    },
+    "last_serial": 5524861,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa24a046c8ac001530470aaaf7ad98dc",
+                    "sha256": "0de5629009a229cd0ccf73b11440fb632e45f8e0633165495b45564b9fdbbb54"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "aa24a046c8ac001530470aaaf7ad98dc",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 9532,
+                "upload_time": "2019-06-08T13:14:28",
+                "url": "https://files.pythonhosted.org/packages/d3/33/6c5c6ddc3eea60b3b4c2a548262616c3b465e9dd5c330059057aabe8def5/fxq_ae_runner-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c1a0ffee5caca54006acf41c0dc31f82",
+                    "sha256": "04a5b058527fb819c227a95dd00255a314da505a3ef99a343afc2c31a5d96972"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c1a0ffee5caca54006acf41c0dc31f82",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5316,
+                "upload_time": "2019-06-08T13:14:30",
+                "url": "https://files.pythonhosted.org/packages/82/4c/27e64d7b832451b1e89c790cc7d4e077ecc72106a99fb0c9fdec70567640/fxq-ae-runner-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "20e0bb961bd7f7e87fb4490c861864ff",
+                    "sha256": "8dc81146750036be8a00e44a2f92693ffea4e5bab0195d639f6d897c9958a5b5"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "20e0bb961bd7f7e87fb4490c861864ff",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12481,
+                "upload_time": "2019-06-11T23:00:46",
+                "url": "https://files.pythonhosted.org/packages/99/44/194d0915d31dacdf4fc1493d0be07b9e2add77addc70aa5e4635ea116994/fxq_ae_runner-0.0.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3049151e3c0ddb8f2a612696e9c7cd31",
+                    "sha256": "90d5eb844636c701f04425f08f87f1f3cfaf9774791dc3ee58aa422fc4238f1a"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3049151e3c0ddb8f2a612696e9c7cd31",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9876,
+                "upload_time": "2019-06-11T23:00:47",
+                "url": "https://files.pythonhosted.org/packages/b1/92/98d1800171e355ee6fba4a97522740c5a512896345ded83598f3750d3027/fxq-ae-runner-0.0.10.tar.gz"
+            }
+        ],
+        "0.0.11": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c6cd7c78bad2f33896d97d899a532b06",
+                    "sha256": "a9f09b734877c1e7c156681df926603205708ebdc303d04431f9d26344928c51"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.11-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c6cd7c78bad2f33896d97d899a532b06",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 13761,
+                "upload_time": "2019-06-12T18:44:53",
+                "url": "https://files.pythonhosted.org/packages/52/31/bdfbb74400c19ef9aa33d486ded4840e0c0a128a2bc83bb8b2fa2b15228f/fxq_ae_runner-0.0.11-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e678b15a61712605a7e6c9e4cd4c8e16",
+                    "sha256": "abc32535a22c8bb20d83ec0c6fda355ad50e4e2e39847dcc534dfc9c00baf2a6"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.11.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e678b15a61712605a7e6c9e4cd4c8e16",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11041,
+                "upload_time": "2019-06-12T18:44:54",
+                "url": "https://files.pythonhosted.org/packages/6b/16/08cc6fef14045ceb06de6b4ca77c9e33f29e05fac23c34e69275a8ae3c28/fxq-ae-runner-0.0.11.tar.gz"
+            }
+        ],
+        "0.0.12": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e07b7bd48ac3b84e6903dd6398a4f4d0",
+                    "sha256": "a9de675cbdd1fd681a4e68c12129b628e81a18df784840ae5be6cd60d7dbd8f1"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.12-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e07b7bd48ac3b84e6903dd6398a4f4d0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12926,
+                "upload_time": "2019-07-06T11:14:42",
+                "url": "https://files.pythonhosted.org/packages/56/d3/b83d57046f4e88baf96504679ead1002bcca4081833cd966862b104124db/fxq_ae_runner-0.0.12-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cc37b708252d277ddf12c62aef335d43",
+                    "sha256": "880c0dfdac9ca31cd3f91d3f12575c40e6dcbd5e2e5d14020d2a0d23d6976cef"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.12.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cc37b708252d277ddf12c62aef335d43",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11589,
+                "upload_time": "2019-07-06T11:14:44",
+                "url": "https://files.pythonhosted.org/packages/70/1a/81b9ecaff7fc3b868318544372cd3fca14cc99b09563a4424b0c7fd85bee/fxq-ae-runner-0.0.12.tar.gz"
+            }
+        ],
+        "0.0.13": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c4a5aecd3399dccde5ee1eeafc221060",
+                    "sha256": "30817f1437d1be9a42fa3454051da4e74471c581a8decfe7309ca56c87d44fec"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.13-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c4a5aecd3399dccde5ee1eeafc221060",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12893,
+                "upload_time": "2019-07-12T20:32:29",
+                "url": "https://files.pythonhosted.org/packages/b3/2a/77dfcc132b0e8c40fab0652fc59353f46eeeed2578063209425eb876dd4d/fxq_ae_runner-0.0.13-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aae0bc24a1211e456b2b4824638f3f7c",
+                    "sha256": "c0c31190d81aa4dfb903df05c5a2fd0a585a15a221130ca9a3140b91efbb16db"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.13.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aae0bc24a1211e456b2b4824638f3f7c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11560,
+                "upload_time": "2019-07-12T20:32:30",
+                "url": "https://files.pythonhosted.org/packages/d3/9c/184a337e277a6eced26ce6309e900107ae2c8e23c7874ec1faa895aa175b/fxq-ae-runner-0.0.13.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d41e19a6aab571e2ec1f8dfc5bc11b62",
+                    "sha256": "a5657976000d80f70a170d6b8e11a54c47d033e104d18bc0895a80b5d6329d13"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d41e19a6aab571e2ec1f8dfc5bc11b62",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12268,
+                "upload_time": "2019-06-09T15:03:28",
+                "url": "https://files.pythonhosted.org/packages/d2/84/d490b87ef4d657877c9e39479c8b7b158dc364efbcdc54e0ecf59420f4f4/fxq_ae_runner-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6e54180bf38041b0e001cebc4f8baef4",
+                    "sha256": "049ba013d353d99777c4920ecd2d2b1ead09a59513d10059874f3abd50a4c8e7"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6e54180bf38041b0e001cebc4f8baef4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7033,
+                "upload_time": "2019-06-09T15:03:29",
+                "url": "https://files.pythonhosted.org/packages/dd/71/4ce386c420dcbb6c0572d5b27842389836ad8b77b1a8a0cc2bbb1a604d19/fxq-ae-runner-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0fd34a5f04fb8c0b469cc6d90008a154",
+                    "sha256": "13ee2cd374e7ae4faadbea891b9e5d87190e7c81604810f64a2d9728dd816d8d"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0fd34a5f04fb8c0b469cc6d90008a154",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12514,
+                "upload_time": "2019-06-09T15:32:30",
+                "url": "https://files.pythonhosted.org/packages/ba/6a/92c09cb9878272a7cda960131e8feb65b49d109841fe207ca9aa3757c70a/fxq_ae_runner-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "65ab330fe63751732996a0b256fd3444",
+                    "sha256": "0bb15c762767d08aadc7683f539a05e2a0cf6753cda0cc64e85495b6379c88d0"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "65ab330fe63751732996a0b256fd3444",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7204,
+                "upload_time": "2019-06-09T15:32:31",
+                "url": "https://files.pythonhosted.org/packages/bc/3e/a56776b38e665be9fd1da4d01e2ee1e6b278d4a7a6ce2a1d07d4d3253182/fxq-ae-runner-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e4e7f9a6b368d0168dbb4502ae4a2c8",
+                    "sha256": "67ffd4082527792d90b121f6cbdd6c282356c2f6341d37cbc6280dcc00ee4729"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0e4e7f9a6b368d0168dbb4502ae4a2c8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12542,
+                "upload_time": "2019-06-09T15:52:39",
+                "url": "https://files.pythonhosted.org/packages/c7/03/f54a6f979e8d2f71275a28d5bc7c691fa293c59f51cf08e49cd23cb12268/fxq_ae_runner-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "220dcbb23c584860d13ed528baf49101",
+                    "sha256": "ce5554ea1ebf64f6badb855bcc2eff63e70325a9705435bec3463eb857156e91"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "220dcbb23c584860d13ed528baf49101",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7225,
+                "upload_time": "2019-06-09T15:52:40",
+                "url": "https://files.pythonhosted.org/packages/5b/b6/822755756f411b72d8645a9ae10dbce4a09cd2b47e444dd627ebb92695b6/fxq-ae-runner-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21d55e1e0a44c9f7447c9768ae0059b8",
+                    "sha256": "62a387306aa1c8795be2d5983d383631ad5ebcea48078b87514a945a26d90952"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "21d55e1e0a44c9f7447c9768ae0059b8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12569,
+                "upload_time": "2019-06-09T16:36:49",
+                "url": "https://files.pythonhosted.org/packages/60/cd/dd390ab124da3476a14677fd8aebfba3d5c946c3398add833f6efd0d2391/fxq_ae_runner-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c3aebfffec2277d55f2494c8aee651d",
+                    "sha256": "4de0ae730bea98b0850d74e6fc6868952b873a9cabec1fff0908c5fbb01782e1"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5c3aebfffec2277d55f2494c8aee651d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7251,
+                "upload_time": "2019-06-09T16:36:50",
+                "url": "https://files.pythonhosted.org/packages/36/02/99680a5455f611dc8ee9342a47f4abdfc13630f9ce1e12f0af3e0796b44c/fxq-ae-runner-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dcc0215b50ddbf3806d96519f1fc713a",
+                    "sha256": "ac7916357bf2bb95fb5ca3a266ac82dcdb7b4e0a83017811cf4224844b8021f8"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "dcc0215b50ddbf3806d96519f1fc713a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 11279,
+                "upload_time": "2019-06-10T21:28:17",
+                "url": "https://files.pythonhosted.org/packages/87/0f/76eebfc8ca07f5c7dd0d23aa06e8f16bfbbc11660961c4ace48920c94460/fxq_ae_runner-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ff103fb8f95b1db26b87b3540a8290b9",
+                    "sha256": "c0374601144a8e48e0adfb194459815ba03f5c9eb3acc8eb1e5a0d5351ba1bf9"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ff103fb8f95b1db26b87b3540a8290b9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 7964,
+                "upload_time": "2019-06-10T21:28:19",
+                "url": "https://files.pythonhosted.org/packages/34/e1/cc71ab4c002a273bbf3aab591cad069ef03911fa1e9c4e07e5754684a73b/fxq-ae-runner-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c0c25fb08ca26bd98f1e4433e187e5f5",
+                    "sha256": "dd7972c61f8bdda81a70e80392e13315d54bf7b0685f8659d3638b9bb9005ee3"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c0c25fb08ca26bd98f1e4433e187e5f5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12316,
+                "upload_time": "2019-06-11T19:40:00",
+                "url": "https://files.pythonhosted.org/packages/d3/13/3ae700560717d4cfcd209fa573e5bb6d5f392cd2fc7ad661c17fcad698b9/fxq_ae_runner-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3e54f6f12f819d71fd6b11d034cc50c5",
+                    "sha256": "535eb7045056fd32df8ee692ca6f969ff29f66dfd83ac32b708b03dc65ab9276"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3e54f6f12f819d71fd6b11d034cc50c5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9566,
+                "upload_time": "2019-06-11T19:40:01",
+                "url": "https://files.pythonhosted.org/packages/52/72/cf371a38b04e06606bae5d82528f3d32c3829fb8dc5c6a34c71dbca30b9a/fxq-ae-runner-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "74b4b6c06e3d92de0a463dd4c046d87c",
+                    "sha256": "c24d1d7f86bec26efb84c51a5956bf62d0b2a048a0a8623d7fa038055b16dac5"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "74b4b6c06e3d92de0a463dd4c046d87c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12315,
+                "upload_time": "2019-06-11T19:47:07",
+                "url": "https://files.pythonhosted.org/packages/0c/d2/e65197582057ccf32170e83d4215058ca649de390edc155509d03d88bade/fxq_ae_runner-0.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "779119e26383d61eed3337bdcca0e62b",
+                    "sha256": "e6fd03941530c28556e96c43879ab12344971710e41bbe5bbc30fc915cbe68e5"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "779119e26383d61eed3337bdcca0e62b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9568,
+                "upload_time": "2019-06-11T19:47:08",
+                "url": "https://files.pythonhosted.org/packages/3d/f6/681da67bfd92ea5384b926ce37d43fe1463c80ed2c5906a2a366b378d0f5/fxq-ae-runner-0.0.8.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "579f64a333cd1136571f5d44700ccefe",
+                    "sha256": "06ba2d0bfb4206f2466b4ed6533633fe1c7a5f6d4f24a1ec604ed76e414f03f5"
+                },
+                "downloads": -1,
+                "filename": "fxq_ae_runner-0.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "579f64a333cd1136571f5d44700ccefe",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 12522,
+                "upload_time": "2019-06-11T20:31:06",
+                "url": "https://files.pythonhosted.org/packages/61/eb/25c2c5ad7a86cf05092d9222f64032cd2bd201fc4392c64726d933a4cfa0/fxq_ae_runner-0.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9f7200741c7eb82dc01d7c382407a862",
+                    "sha256": "d1de19b3c830d6562970bcb8b098fa0787090694497a6a545f07e71c48bdc42a"
+                },
+                "downloads": -1,
+                "filename": "fxq-ae-runner-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9f7200741c7eb82dc01d7c382407a862",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9984,
+                "upload_time": "2019-06-11T20:31:07",
+                "url": "https://files.pythonhosted.org/packages/15/4e/ce2211a32b7b874dc9fe5a6fe72a6548f281e77e356a7ecd998858592992/fxq-ae-runner-0.0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c4a5aecd3399dccde5ee1eeafc221060",
+                "sha256": "30817f1437d1be9a42fa3454051da4e74471c581a8decfe7309ca56c87d44fec"
+            },
+            "downloads": -1,
+            "filename": "fxq_ae_runner-0.0.13-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c4a5aecd3399dccde5ee1eeafc221060",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 12893,
+            "upload_time": "2019-07-12T20:32:29",
+            "url": "https://files.pythonhosted.org/packages/b3/2a/77dfcc132b0e8c40fab0652fc59353f46eeeed2578063209425eb876dd4d/fxq_ae_runner-0.0.13-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "aae0bc24a1211e456b2b4824638f3f7c",
+                "sha256": "c0c31190d81aa4dfb903df05c5a2fd0a585a15a221130ca9a3140b91efbb16db"
+            },
+            "downloads": -1,
+            "filename": "fxq-ae-runner-0.0.13.tar.gz",
+            "has_sig": false,
+            "md5_digest": "aae0bc24a1211e456b2b4824638f3f7c",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 11560,
+            "upload_time": "2019-07-12T20:32:30",
+            "url": "https://files.pythonhosted.org/packages/d3/9c/184a337e277a6eced26ce6309e900107ae2c8e23c7874ec1faa895aa175b/fxq-ae-runner-0.0.13.tar.gz"
+        }
+    ]
+}

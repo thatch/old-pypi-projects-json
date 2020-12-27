@@ -1,0 +1,83 @@
+{
+    "info": {
+        "_pypi_hidden": false,
+        "_pypi_ordering": 1,
+        "author": "",
+        "author_email": "",
+        "bugtrack_url": null,
+        "cheesecake_code_kwalitee_id": null,
+        "cheesecake_documentation_id": null,
+        "cheesecake_installability_id": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Multimedia",
+            "Topic :: Multimedia :: Sound/Audio",
+            "Topic :: Multimedia :: Sound/Audio :: Analysis",
+            "Topic :: Multimedia :: Video",
+            "Topic :: Multimedia :: Video :: Capture",
+            "Topic :: Multimedia :: Video :: Conversion"
+        ],
+        "description": "MoviePy\n=======\n\n.. image:: https://badge.fury.io/py/moviepy.svg\n    :target: PyPI_\n    :alt: MoviePy page on the Python Package Index\n.. image:: https://badges.gitter.im/movie-py/gitter.png\n    :target: Gitter_\n    :alt: Discuss MoviePy on Gitter\n.. image:: https://travis-ci.org/Zulko/moviepy.svg?branch=master\n    :target: https://travis-ci.org/Zulko/moviepy\n    :alt: Build status on travis-ci\n\nMoviePy (full documentation_) is a Python library for video editing: cutting, concatenations, title insertions, video compositing (a.k.a. non-linear editing), video processing, and creation of custom effects. See the gallery_ for some examples of use.\n\nMoviePy can read and write all the most common audio and video formats, including GIF, and runs on Windows/Mac/Linux, with Python 2.7+ and 3. Here it is in action in an IPython notebook:\n\n.. image:: https://raw.githubusercontent.com/Zulko/moviepy/master/docs/demo_preview.jpeg\n    :alt: [logo]\n    :align: center\n\nExample\n-------\n\nIn this example we open a video file, select the subclip between t=50s and t=60s, add a title at the center of the screen, and write the result to a new file:\n\n.. code:: python\n\n    from moviepy.editor import *\n\n    video = VideoFileClip(\"myHolidays.mp4\").subclip(50,60)\n\n    # Make the text. Many more options are available.\n    txt_clip = ( TextClip(\"My Holidays 2013\",fontsize=70,color='white')\n                 .set_position('center')\n                 .set_duration(10) )\n\n    result = CompositeVideoClip([video, txt_clip]) # Overlay text on video\n    result.write_videofile(\"myHolidays_edited.webm\",fps=25) # Many options...\n\n\nInstallation\n------------\n\nMoviePy depends on the Python modules Numpy_, imageio_, Decorator_, and tqdm_, which will be automatically installed during MoviePy's installation. The software FFMPEG should be automatically downloaded/installed (by imageio) during your first use of MoviePy (installation will take a few seconds). If you want to use a specific version of FFMPEG, follow the instructions in ``config_defaults.py``. In case of trouble, provide feedback.\n\n**Installation by hand:** download the sources, either from PyPI_ or, if you want the development version, from GitHub_, unzip everything into one folder, open a terminal and type: ::\n\n    $ (sudo) python setup.py install\n\n**Installation with pip:** if you have ``pip`` installed, just type this in a terminal: ::\n\n    $ (sudo) pip install moviepy\n\nIf you have neither ``setuptools`` nor ``ez_setup`` installed, the command above will fail. In this case type this before installing: ::\n\n    $ (sudo) pip install ez_setup\n\n\nOptional but useful dependencies\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nYou can install ``moviepy`` with all dependencies via:\n\n    $ (sudo) pip install moviepy[optional]\n\nImageMagick_ is not strictly required, but needed if you want to incorporate texts. It can also be used as a backend for GIFs, though you can also create GIFs with MoviePy without ImageMagick.\n\nOnce you have installed ImageMagick, it will be automatically detected by MoviePy, **except on Windows!** Windows users, before installing MoviePy by hand, need to edit ``moviepy/config_defaults.py`` to provide the path to the ImageMagick binary, which is called `convert`. It should look like this ::\n\n    IMAGEMAGICK_BINARY = \"C:\\\\Program Files\\\\ImageMagick_VERSION\\\\convert.exe\"\n\nPyGame_ is needed for video and sound previews (not relevant if you intend to work with MoviePy on a server but essential for advanced video editing by hand).\n\nFor advanced image processing, you will need one or several of the following packages:\n\n- The Python Imaging Library (PIL) or, even better, its branch Pillow_.\n- Scipy_ (for tracking, segmenting, etc.) can be used to resize video clips if PIL and OpenCV are not installed.\n- `Scikit Image`_ may be needed for some advanced image manipulation.\n- `OpenCV 2.4.6`_ or a more recent version (one that provides the package ``cv2``) may be needed for some advanced image manipulation.\n- `Matplotlib`_\n\nOnce you have installed it, ImageMagick will be automatically detected by MoviePy, (except for windows users and Ubuntu 16.04LTS users).\n\nFor Windows users, before installing MoviePy by hand, go into the ``moviepy/config_defaults.py`` file and provide the path to the ImageMagick binary called `convert`. It should look like this ::\n\n    IMAGEMAGICK_BINARY = \"C:\\\\Program Files\\\\ImageMagick_VERSION\\\\convert.exe\"\n\nFor Ubuntu 16.04LTS users, after installing MoviePy on the terminal, IMAGEMAGICK will not be detected by moviepy. This bug can be fixed. Modify the file in this directory: /etc/ImageMagick-6/policy.xml, comment out the statement <!-- <policy domain=\"path\" rights=\"none\" pattern=\"@*\" /> -->.\n\nPyGame_ is needed for video and sound previews (useless if you intend to work with MoviePy on a server but really essential for advanced video editing *by hand*).\n\nFor instance, using the method ``clip.resize`` requires that at least one of Scipy, PIL, Pillow or OpenCV is installed.\n\n\nDocumentation\n-------------\n\nRunning `build_docs` has additional dependencies that require installation.\n\n    $ (sudo) pip install moviepy[docs]\n\nThe documentation can be generated and viewed via:\n\n    $ python setup.py build_docs\n\nYou can pass additional arguments to the documentation build, such as clean build:\n\n    $ python setup.py build_docs -E\n\nMore information is available from the `Sphinx`_ documentation.\n\n\nRunning Tests\n-------------\n\nThe testing suite can be executed via:\n\n    $ python setup.py test\n\nRunning the test suite in this manner will install the testing dependencies.\nIf you opt to run the test suite manually, you can install the dependencies via:\n\n    $ (sudo) pip install moviepy[test]\n\n\nContribute\n----------\n\nMoviePy is open-source software originally written by Zulko_ and released under the MIT licence. The project is hosted on GitHub_, where everyone is welcome to contribute, ask for help or simply give feedback.\n\nYou can also discuss the project on Reddit_ (preferred over GitHub issues for usage/examples), Gitter_ or the mailing list moviepy@librelist.com.\n\n\nMaintainers\n-----------\n\n- Zulko_ (owner)\n\n- `@tburrows13`_\n- `@earney`_\n- Kay `@kerstin`_\n- `@mbeacom`_\n\n\n.. MoviePy links\n.. _gallery: http://zulko.github.io/moviepy/gallery.html\n.. _documentation: http://zulko.github.io/moviepy/\n.. _`download MoviePy`: https://github.com/Zulko/moviepy\n\n.. Websites, Platforms\n.. _Reddit: http://www.reddit.com/r/moviepy/\n.. _PyPI: https://pypi.python.org/pypi/moviepy\n.. _GitHub: https://github.com/Zulko/moviepy\n.. _Gitter: https://gitter.im/movie-py/Lobby\n\n.. Software, Tools, Libraries\n.. _Pillow: http://pillow.readthedocs.org/en/latest/\n.. _Scipy: http://www.scipy.org/\n.. _`OpenCV 2.4.6`: http://sourceforge.net/projects/opencvlibrary/files/\n.. _Pygame: http://www.pygame.org/download.shtml\n.. _Numpy: http://www.scipy.org/install.html\n.. _imageio: http://imageio.github.io/\n.. _`Scikit Image`: http://scikit-image.org/download.html\n.. _Decorator: https://pypi.python.org/pypi/decorator\n.. _tqdm: https://github.com/noamraph/tqdm\n.. _ffmpeg: http://www.ffmpeg.org/download.html\n.. _ImageMagick: http://www.imagemagick.org/script/index.php\n.. _`Matplotlib`: https://matplotlib.org/\n.. _`Sphinx`: http://www.sphinx-doc.org/en/master/setuptools.html\n\n.. People\n.. _Zulko: https://github.com/Zulko\n.. _`@tburrows13`: https://github.com/tburrows13\n.. _`@earney`: https://github.com/earney\n.. _`@kerstin`: https://github.com/kerstin\n.. _`@mbeacom`: https://github.com/mbeacom",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": 0,
+            "last_month": 0,
+            "last_week": 0
+        },
+        "home_page": "https://github.com/ampervue/moviepy.git",
+        "keywords": "video editing audio compositing ffmpeg",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "moviepy-AV",
+        "package_url": "http://pypi.python.org/pypi/moviepy-AV",
+        "platform": "",
+        "release_url": "http://pypi.python.org/pypi/moviepy-AV/0.2.3.4",
+        "requires_python": "",
+        "summary": "Video editing with Python-AmperVue",
+        "version": "0.2.3.4"
+    },
+    "releases": {
+        "0.2.3.4": [
+            {
+                "comment_text": "",
+                "downloads": 0,
+                "filename": "moviepy-AV-0.2.3.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "45d15550a59880884579e837ac9c8d2c",
+                "packagetype": "sdist",
+                "path": "97/35/a8fae950bc847f385b8a038722279ac5976dc33fd2003fab432e6ff0dac4/moviepy-AV-0.2.3.4.tar.gz",
+                "python_version": "source",
+                "size": 372995,
+                "upload_time": "2017-09-22T23:23:56",
+                "url": "https://pypi.python.org/packages/97/35/a8fae950bc847f385b8a038722279ac5976dc33fd2003fab432e6ff0dac4/moviepy-AV-0.2.3.4.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "downloads": 0,
+            "filename": "moviepy-AV-0.2.3.4.tar.gz",
+            "has_sig": false,
+            "md5_digest": "45d15550a59880884579e837ac9c8d2c",
+            "packagetype": "sdist",
+            "path": "97/35/a8fae950bc847f385b8a038722279ac5976dc33fd2003fab432e6ff0dac4/moviepy-AV-0.2.3.4.tar.gz",
+            "python_version": "source",
+            "size": 372995,
+            "upload_time": "2017-09-22T23:23:56",
+            "url": "https://pypi.python.org/packages/97/35/a8fae950bc847f385b8a038722279ac5976dc33fd2003fab432e6ff0dac4/moviepy-AV-0.2.3.4.tar.gz"
+        }
+    ]
+}

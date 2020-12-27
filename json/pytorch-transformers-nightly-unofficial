@@ -1,0 +1,302 @@
+{
+    "info": {
+        "author": "Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Google AI Language Team Authors, Open AI team Authors",
+        "author_email": "thomas@huggingface.co",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python :: 3",
+            "Topic :: Scientific/Engineering :: Artificial Intelligence"
+        ],
+        "description": "# \ud83d\udc7e PyTorch-Transformers\n\n[![CircleCI](https://circleci.com/gh/huggingface/pytorch-transformers.svg?style=svg)](https://circleci.com/gh/huggingface/pytorch-transformers)\n\nPyTorch-Transformers (formerly known as `pytorch-pretrained-bert`) is a library of state-of-the-art pre-trained models for Natural Language Processing (NLP).\n\nThe library currently contains PyTorch implementations, pre-trained model weights, usage scripts and conversion utilities for the following models:\n\n1. **[BERT](https://github.com/google-research/bert)** (from Google) released with the paper [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805) by Jacob Devlin, Ming-Wei Chang, Kenton Lee and Kristina Toutanova.\n2. **[GPT](https://github.com/openai/finetune-transformer-lm)** (from OpenAI) released with the paper [Improving Language Understanding by Generative Pre-Training](https://blog.openai.com/language-unsupervised/) by Alec Radford, Karthik Narasimhan, Tim Salimans and Ilya Sutskever.\n3. **[GPT-2](https://blog.openai.com/better-language-models/)** (from OpenAI) released with the paper [Language Models are Unsupervised Multitask Learners](https://blog.openai.com/better-language-models/) by Alec Radford*, Jeffrey Wu*, Rewon Child, David Luan, Dario Amodei** and Ilya Sutskever**.\n4. **[Transformer-XL](https://github.com/kimiyoung/transformer-xl)** (from Google/CMU) released with the paper [Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/abs/1901.02860) by Zihang Dai*, Zhilin Yang*, Yiming Yang, Jaime Carbonell, Quoc V. Le, Ruslan Salakhutdinov.\n5. **[XLNet](https://github.com/zihangdai/xlnet/)** (from Google/CMU) released with the paper [\u200bXLNet: Generalized Autoregressive Pretraining for Language Understanding](https://arxiv.org/abs/1906.08237) by Zhilin Yang*, Zihang Dai*, Yiming Yang, Jaime Carbonell, Ruslan Salakhutdinov, Quoc V. Le.\n6. **[XLM](https://github.com/facebookresearch/XLM/)** (from Facebook) released together with the paper [Cross-lingual Language Model Pretraining](https://arxiv.org/abs/1901.07291) by Guillaume Lample and Alexis Conneau.\n7. **[RoBERTa](https://github.com/pytorch/fairseq/tree/master/examples/roberta)** (from Facebook), a [Robustly Optimized BERT Pretraining Approach](https://arxiv.org/abs/1907.11692) by Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du et al.\n\nThese implementations have been tested on several datasets (see the example scripts) and should match the performances of the original implementations (e.g. ~93 F1 on SQuAD for BERT Whole-Word-Masking, ~88 F1 on RocStories for OpenAI GPT, ~18.3 perplexity on WikiText 103 for Transformer-XL, ~0.916 Peason R coefficient on STS-B for XLNet). You can find more details on the performances in the Examples section of the [documentation](https://huggingface.co/pytorch-transformers/examples.html).\n\n| Section | Description |\n|-|-|\n| [Installation](#installation) | How to install the package |\n| [Quick tour: Usage](#quick-tour) | Tokenizers & models usage: Bert and GPT-2 |\n| [Quick tour: Fine-tuning/usage scripts](#quick-tour-of-the-fine-tuningusage-scripts) | Using provided scripts: GLUE, SQuAD and Text generation |\n| [Migrating from pytorch-pretrained-bert to pytorch-transformers](#Migrating-from-pytorch-pretrained-bert-to-pytorch-transformers) | Migrating your code from pytorch-pretrained-bert to pytorch-transformers |\n| [Documentation](https://huggingface.co/pytorch-transformers/) | Full API documentation and more |\n\n## Installation\n\nThis repo is tested on Python 2.7 and 3.5+ (examples are tested only on python 3.5+) and PyTorch 1.0.0+\n\n### With pip\n\nPyTorch-Transformers can be installed by pip as follows:\n\n```bash\npip install pytorch-transformers\n```\n\n### From source\n\nClone the repository and run:\n\n```bash\npip install [--editable] .\n```\n\n### Tests\n\nA series of tests is included for the library and the example scripts. Library tests can be found in the [tests folder](https://github.com/huggingface/pytorch-transformers/tree/master/pytorch_transformers/tests) and examples tests in the [examples folder](https://github.com/huggingface/pytorch-transformers/tree/master/examples).\n\nThese tests can be run using `pytest` (install pytest if needed with `pip install pytest`).\n\nYou can run the tests from the root of the cloned repository with the commands:\n\n```bash\npython -m pytest -sv ./pytorch_transformers/tests/\npython -m pytest -sv ./examples/\n```\n\n### Do you want to run a Transformer model on a mobile device?\n\nYou should check out our [`swift-coreml-transformers`](https://github.com/huggingface/swift-coreml-transformers) repo.\n\nIt contains an example of a conversion script from a Pytorch trained Transformer model (here, `GPT-2`) to a CoreML model that runs on iOS devices.\n\nAt some point in the future, you'll be able to seamlessly move from pre-training or fine-tuning models in PyTorch to productizing them in CoreML,\nor prototype a model or an app in CoreML then research its hyperparameters or architecture from PyTorch. Super exciting!\n\n\n## Quick tour\n\nLet's do a very quick overview of PyTorch-Transformers. Detailed examples for each model architecture (Bert, GPT, GPT-2, Transformer-XL, XLNet and XLM) can be found in the [full documentation](https://huggingface.co/pytorch-transformers/).\n\n```python\nimport torch\nfrom pytorch_transformers import *\n\n# PyTorch-Transformers has a unified API\n# for 6 transformer architectures and 27 pretrained weights.\n#          Model          | Tokenizer          | Pretrained weights shortcut\nMODELS = [(BertModel,       BertTokenizer,      'bert-base-uncased'),\n          (OpenAIGPTModel,  OpenAIGPTTokenizer, 'openai-gpt'),\n          (GPT2Model,       GPT2Tokenizer,      'gpt2'),\n          (TransfoXLModel,  TransfoXLTokenizer, 'transfo-xl-wt103'),\n          (XLNetModel,      XLNetTokenizer,     'xlnet-base-cased'),\n          (XLMModel,        XLMTokenizer,       'xlm-mlm-enfr-1024'),\n          (RobertaModel,    RobertaTokenizer,   'roberta-base')]\n\n# Let's encode some text in a sequence of hidden-states using each model:\nfor model_class, tokenizer_class, pretrained_weights in MODELS:\n    # Load pretrained model/tokenizer\n    tokenizer = tokenizer_class.from_pretrained(pretrained_weights)\n    model = model_class.from_pretrained(pretrained_weights)\n\n    # Encode text\n    input_ids = torch.tensor([tokenizer.encode(\"Here is some text to encode\")])\n    with torch.no_grad():\n        last_hidden_states = model(input_ids)[0]  # Models outputs are now tuples\n\n# Each architecture is provided with several class for fine-tuning on down-stream tasks, e.g.\nBERT_MODEL_CLASSES = [BertModel, BertForPreTraining, BertForMaskedLM, BertForNextSentencePrediction,\n                      BertForSequenceClassification, BertForMultipleChoice, BertForTokenClassification,\n                      BertForQuestionAnswering]\n\n# All the classes for an architecture can be initiated from pretrained weights for this architecture\n# Note that additional weights added for fine-tuning are only initialized\n# and need to be trained on the down-stream task\ntokenizer = BertTokenizer.from_pretrained('bert-base-uncased')\nfor model_class in BERT_MODEL_CLASSES:\n    # Load pretrained model/tokenizer\n    model = model_class.from_pretrained('bert-base-uncased')\n\n# Models can return full list of hidden-states & attentions weights at each layer\nmodel = model_class.from_pretrained(pretrained_weights,\n                                    output_hidden_states=True,\n                                    output_attentions=True)\ninput_ids = torch.tensor([tokenizer.encode(\"Let's see all hidden-states and attentions on this text\")])\nall_hidden_states, all_attentions = model(input_ids)[-2:]\n\n# Models are compatible with Torchscript\nmodel = model_class.from_pretrained(pretrained_weights, torchscript=True)\ntraced_model = torch.jit.trace(model, (input_ids,))\n\n# Simple serialization for models and tokenizers\nmodel.save_pretrained('./directory/to/save/')  # save\nmodel = model_class.from_pretrained('./directory/to/save/')  # re-load\ntokenizer.save_pretrained('./directory/to/save/')  # save\ntokenizer = tokenizer_class.from_pretrained('./directory/to/save/')  # re-load\n\n# SOTA examples for GLUE, SQUAD, text generation...\n```\n\n## Quick tour of the fine-tuning/usage scripts\n\nThe library comprises several example scripts with SOTA performances for NLU and NLG tasks:\n\n- `run_glue.py`: an example fine-tuning Bert, XLNet and XLM on nine different GLUE tasks (*sequence-level classification*)\n- `run_squad.py`: an example fine-tuning Bert, XLNet and XLM on the question answering dataset SQuAD 2.0 (*token-level classification*)\n- `run_generation.py`: an example using GPT, GPT-2, Transformer-XL and XLNet for conditional language generation\n- other model-specific examples (see the documentation).\n\nHere are three quick usage examples for these scripts:\n\n### `run_glue.py`: Fine-tuning on GLUE tasks for sequence classification\n\nThe [General Language Understanding Evaluation (GLUE) benchmark](https://gluebenchmark.com/) is a collection of nine sentence- or sentence-pair language understanding tasks for evaluating and analyzing natural language understanding systems.\n\nBefore running anyone of these GLUE tasks you should download the\n[GLUE data](https://gluebenchmark.com/tasks) by running\n[this script](https://gist.github.com/W4ngatang/60c2bdb54d156a41194446737ce03e2e)\nand unpack it to some directory `$GLUE_DIR`.\n\nYou should also install the additional packages required by the examples:\n\n```shell\npip install -r ./examples/requirements.txt\n```\n\n```shell\nexport GLUE_DIR=/path/to/glue\nexport TASK_NAME=MRPC\n\npython ./examples/run_glue.py \\\n    --model_type bert \\\n    --model_name_or_path bert-base-uncased \\\n    --task_name $TASK_NAME \\\n    --do_train \\\n    --do_eval \\\n    --do_lower_case \\\n    --data_dir $GLUE_DIR/$TASK_NAME \\\n    --max_seq_length 128 \\\n    --per_gpu_eval_batch_size=8   \\\n    --per_gpu_train_batch_size=8   \\\n    --learning_rate 2e-5 \\\n    --num_train_epochs 3.0 \\\n    --output_dir /tmp/$TASK_NAME/\n```\n\nwhere task name can be one of CoLA, SST-2, MRPC, STS-B, QQP, MNLI, QNLI, RTE, WNLI.\n\nThe dev set results will be present within the text file 'eval_results.txt' in the specified output_dir. In case of MNLI, since there are two separate dev sets, matched and mismatched, there will be a separate output folder called '/tmp/MNLI-MM/' in addition to '/tmp/MNLI/'.\n\n#### Fine-tuning XLNet model on the STS-B regression task\n\nThis example code fine-tunes XLNet on the STS-B corpus using parallel training on a server with 4 V100 GPUs.\nParallel training is a simple way to use several GPUs (but is slower and less flexible than distributed training, see below).\n\n```shell\nexport GLUE_DIR=/path/to/glue\n\npython ./examples/run_glue.py \\\n    --model_type xlnet \\\n    --model_name_or_path xlnet-large-cased \\\n    --do_train  \\\n    --do_eval   \\\n    --task_name=sts-b     \\\n    --data_dir=${GLUE_DIR}/STS-B  \\\n    --output_dir=./proc_data/sts-b-110   \\\n    --max_seq_length=128   \\\n    --per_gpu_eval_batch_size=8   \\\n    --per_gpu_train_batch_size=8   \\\n    --gradient_accumulation_steps=1 \\\n    --max_steps=1200  \\\n    --model_name=xlnet-large-cased   \\\n    --overwrite_output_dir   \\\n    --overwrite_cache \\\n    --warmup_steps=120\n```\n\nOn this machine we thus have a batch size of 32, please increase `gradient_accumulation_steps` to reach the same batch size if you have a smaller machine. These hyper-parameters should result in a Pearson correlation coefficient of `+0.917` on the development set.\n\n#### Fine-tuning Bert model on the MRPC classification task\n\nThis example code fine-tunes the Bert Whole Word Masking model on the Microsoft Research Paraphrase Corpus (MRPC) corpus using distributed training on 8 V100 GPUs to reach a F1 > 92.\n\n```bash\npython -m torch.distributed.launch --nproc_per_node 8 ./examples/run_glue.py   \\\n    --model_type bert \\\n    --model_name_or_path bert-large-uncased-whole-word-masking \\\n    --task_name MRPC \\\n    --do_train   \\\n    --do_eval   \\\n    --do_lower_case   \\\n    --data_dir $GLUE_DIR/MRPC/   \\\n    --max_seq_length 128   \\\n    --per_gpu_eval_batch_size=8   \\\n    --per_gpu_train_batch_size=8   \\\n    --learning_rate 2e-5   \\\n    --num_train_epochs 3.0  \\\n    --output_dir /tmp/mrpc_output/ \\\n    --overwrite_output_dir   \\\n    --overwrite_cache \\\n```\n\nTraining with these hyper-parameters gave us the following results:\n\n```bash\n  acc = 0.8823529411764706\n  acc_and_f1 = 0.901702786377709\n  eval_loss = 0.3418912578906332\n  f1 = 0.9210526315789473\n  global_step = 174\n  loss = 0.07231863956341798\n```\n\n### `run_squad.py`: Fine-tuning on SQuAD for question-answering\n\nThis example code fine-tunes BERT on the SQuAD dataset using distributed training on 8 V100 GPUs and Bert Whole Word Masking uncased model to reach a F1 > 93 on SQuAD:\n\n```bash\npython -m torch.distributed.launch --nproc_per_node=8 ./examples/run_squad.py \\\n    --model_type bert \\\n    --model_name_or_path bert-large-uncased-whole-word-masking \\\n    --do_train \\\n    --do_eval \\\n    --do_lower_case \\\n    --train_file $SQUAD_DIR/train-v1.1.json \\\n    --predict_file $SQUAD_DIR/dev-v1.1.json \\\n    --learning_rate 3e-5 \\\n    --num_train_epochs 2 \\\n    --max_seq_length 384 \\\n    --doc_stride 128 \\\n    --output_dir ../models/wwm_uncased_finetuned_squad/ \\\n    --per_gpu_eval_batch_size=3   \\\n    --per_gpu_train_batch_size=3   \\\n```\n\nTraining with these hyper-parameters gave us the following results:\n\n```bash\npython $SQUAD_DIR/evaluate-v1.1.py $SQUAD_DIR/dev-v1.1.json ../models/wwm_uncased_finetuned_squad/predictions.json\n{\"exact_match\": 86.91579943235573, \"f1\": 93.1532499015869}\n```\n\nThis is the model provided as `bert-large-uncased-whole-word-masking-finetuned-squad`.\n\n### `run_generation.py`: Text generation with GPT, GPT-2, Transformer-XL and XLNet\n\nA conditional generation script is also included to generate text from a prompt.\nThe generation script includes the [tricks](https://github.com/rusiaaman/XLNet-gen#methodology) proposed by by Aman Rusia to get high quality generation with memory models like Transformer-XL and XLNet (include a predefined text to make short inputs longer).\n\nHere is how to run the script with the small version of OpenAI GPT-2 model:\n\n```shell\npython ./examples/run_generation.py \\\n    --model_type=gpt2 \\\n    --length=20 \\\n    --model_name_or_path=gpt2 \\\n```\n\n## Migrating from pytorch-pretrained-bert to pytorch-transformers\n\nHere is a quick summary of what you should take care of when migrating from `pytorch-pretrained-bert` to `pytorch-transformers`\n\n### Models always output `tuples`\n\nThe main breaking change when migrating from `pytorch-pretrained-bert` to `pytorch-transformers` is that the models forward method always outputs a `tuple` with various elements depending on the model and the configuration parameters.\n\nThe exact content of the tuples for each model are detailed in the models' docstrings and the [documentation](https://huggingface.co/pytorch-transformers/).\n\nIn pretty much every case, you will be fine by taking the first element of the output as the output you previously used in `pytorch-pretrained-bert`.\n\nHere is a `pytorch-pretrained-bert` to `pytorch-transformers` conversion example for a `BertForSequenceClassification` classification model:\n\n```python\n# Let's load our model\nmodel = BertForSequenceClassification.from_pretrained('bert-base-uncased')\n\n# If you used to have this line in pytorch-pretrained-bert:\nloss = model(input_ids, labels=labels)\n\n# Now just use this line in pytorch-transformers to extract the loss from the output tuple:\noutputs = model(input_ids, labels=labels)\nloss = outputs[0]\n\n# In pytorch-transformers you can also have access to the logits:\nloss, logits = outputs[:2]\n\n# And even the attention weights if you configure the model to output them (and other outputs too, see the docstrings and documentation)\nmodel = BertForSequenceClassification.from_pretrained('bert-base-uncased', output_attentions=True)\noutputs = model(input_ids, labels=labels)\nloss, logits, attentions = outputs\n```\n\n### Serialization\n\nBreaking change in the `from_pretrained()`method:\n\n1. Models are now set in evaluation mode by default when instantiated with the `from_pretrained()` method. To train them don't forget to set them back in training mode (`model.train()`) to activate the dropout modules.\n\n2. The additional `*input` and `**kwargs` arguments supplied to the `from_pretrained()` method used to be directly passed to the underlying model's class `__init__()` method. They are now used to update the model configuration attribute instead which can break derived model classes build based on the previous `BertForSequenceClassification` examples. We are working on a way to mitigate this breaking change in [#866](https://github.com/huggingface/pytorch-transformers/pull/866) by forwarding the the model `__init__()` method (i) the provided positional arguments and (ii) the keyword arguments which do not match any configuratoin class attributes.\n\nAlso, while not a breaking change, the serialization methods have been standardized and you probably should switch to the new method `save_pretrained(save_directory)` if you were using any other serialization method before.\n\nHere is an example:\n\n```python\n### Let's load a model and tokenizer\nmodel = BertForSequenceClassification.from_pretrained('bert-base-uncased')\ntokenizer = BertTokenizer.from_pretrained('bert-base-uncased')\n\n### Do some stuff to our model and tokenizer\n# Ex: add new tokens to the vocabulary and embeddings of our model\ntokenizer.add_tokens(['[SPECIAL_TOKEN_1]', '[SPECIAL_TOKEN_2]'])\nmodel.resize_token_embeddings(len(tokenizer))\n# Train our model\ntrain(model)\n\n### Now let's save our model and tokenizer to a directory\nmodel.save_pretrained('./my_saved_model_directory/')\ntokenizer.save_pretrained('./my_saved_model_directory/')\n\n### Reload the model and the tokenizer\nmodel = BertForSequenceClassification.from_pretrained('./my_saved_model_directory/')\ntokenizer = BertTokenizer.from_pretrained('./my_saved_model_directory/')\n```\n\n### Optimizers: BertAdam & OpenAIAdam are now AdamW, schedules are standard PyTorch schedules\n\nThe two optimizers previously included, `BertAdam` and `OpenAIAdam`, have been replaced by a single `AdamW` optimizer which has a few differences:\n\n- it only implements weights decay correction,\n- schedules are now externals (see below),\n- gradient clipping is now also external (see below).\n\nThe new optimizer `AdamW` matches PyTorch `Adam` optimizer API and let you use standard PyTorch or apex methods for the schedule and clipping.\n\nThe schedules are now standard [PyTorch learning rate schedulers](https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate) and not part of the optimizer anymore.\n\nHere is a conversion examples from `BertAdam` with a linear warmup and decay schedule to `AdamW` and the same schedule:\n\n```python\n# Parameters:\nlr = 1e-3\nmax_grad_norm = 1.0\nnum_total_steps = 1000\nnum_warmup_steps = 100\nwarmup_proportion = float(num_warmup_steps) / float(num_total_steps)  # 0.1\n\n### Previously BertAdam optimizer was instantiated like this:\noptimizer = BertAdam(model.parameters(), lr=lr, schedule='warmup_linear', warmup=warmup_proportion, t_total=num_total_steps)\n### and used like this:\nfor batch in train_data:\n    loss = model(batch)\n    loss.backward()\n    optimizer.step()\n\n### In PyTorch-Transformers, optimizer and schedules are splitted and instantiated like this:\noptimizer = AdamW(model.parameters(), lr=lr, correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False\nscheduler = WarmupLinearSchedule(optimizer, warmup_steps=num_warmup_steps, t_total=num_total_steps)  # PyTorch scheduler\n### and used like this:\nfor batch in train_data:\n    loss = model(batch)\n    loss.backward()\n    torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)  # Gradient clipping is not in AdamW anymore (so you can use amp without issue)\n    scheduler.step()\n    optimizer.step()\n    optimizer.zero_grad()\n```\n\n## Citation\n\nAt the moment, there is no paper associated to PyTorch-Transformers but we are working on preparing one. In the meantime, please include a mention of the library and a link to the present repository if you use this work in a published or open-source project.\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/huggingface/pytorch-transformers",
+        "keywords": "NLP deep learning transformer pytorch BERT GPT GPT-2 google openai CMU",
+        "license": "Apache",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pytorch-transformers-nightly-unofficial",
+        "package_url": "https://pypi.org/project/pytorch-transformers-nightly-unofficial/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pytorch-transformers-nightly-unofficial/",
+        "project_urls": {
+            "Homepage": "https://github.com/huggingface/pytorch-transformers"
+        },
+        "release_url": "https://pypi.org/project/pytorch-transformers-nightly-unofficial/1.1.0.dev201908161445/",
+        "requires_dist": [
+            "torch (>=1.0.0)",
+            "numpy",
+            "boto3",
+            "requests",
+            "tqdm",
+            "regex",
+            "sentencepiece"
+        ],
+        "requires_python": "",
+        "summary": "Repository of pre-trained NLP Transformer models: BERT & RoBERTa, GPT & GPT-2, Transformer-XL, XLNet and XLM",
+        "version": "1.1.0.dev201908161445"
+    },
+    "last_serial": 5687980,
+    "releases": {
+        "1.0.0.dev201908130654": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "27bc88e8dc1863ef570d4326b569e33a",
+                    "sha256": "3210436e04367ddd77f91c9b374aa0c0a1055a9009d7b4b5411f815ae94c07e7"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.0.0.dev201908130654-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "27bc88e8dc1863ef570d4326b569e33a",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 147126,
+                "upload_time": "2019-08-13T06:55:09",
+                "url": "https://files.pythonhosted.org/packages/da/91/40f9c2844236cfd042f934a47db8f88657cd957bc0aac0a5e2f0f0f21b92/pytorch_transformers_nightly_unofficial-1.0.0.dev201908130654-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "910ee686810472e60833423dec76b37b",
+                    "sha256": "da915013c530de1998f19f9c0a6677ac4a76f72491b650c5468a385f36025edb"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.0.0.dev201908130654.tar.gz",
+                "has_sig": false,
+                "md5_digest": "910ee686810472e60833423dec76b37b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 132817,
+                "upload_time": "2019-08-13T06:55:11",
+                "url": "https://files.pythonhosted.org/packages/04/e8/cd752ba73f435e16cf178cc5ad99ff82f032d2e1222b294e4650b3e206a2/pytorch_transformers_nightly_unofficial-1.0.0.dev201908130654.tar.gz"
+            }
+        ],
+        "1.0.0.dev201908130700": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fb5728b54e1e2d261e942524dfed7d83",
+                    "sha256": "55334e710e4a3abb02a7ac5f6f9afa7ff9aff897316f35f0954b0f546faf70d1"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.0.0.dev201908130700-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fb5728b54e1e2d261e942524dfed7d83",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 147128,
+                "upload_time": "2019-08-13T07:00:48",
+                "url": "https://files.pythonhosted.org/packages/b3/e5/b643b73dcb38c956b6faa5e3077e27d57c1a7bdf6f40a78179be75bb7078/pytorch_transformers_nightly_unofficial-1.0.0.dev201908130700-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0071016c4dedbd583f68831c6ed1a797",
+                    "sha256": "99c8970daf61f104eb6871c11798f6c53348bce35ac1217eeabba4b235dba637"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.0.0.dev201908130700.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0071016c4dedbd583f68831c6ed1a797",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 132797,
+                "upload_time": "2019-08-13T07:00:51",
+                "url": "https://files.pythonhosted.org/packages/5b/f8/1b674ca39933c854ffd7ab3691b0d2087cb649ed06a9fe9fb7a89182ec21/pytorch_transformers_nightly_unofficial-1.0.0.dev201908130700.tar.gz"
+            }
+        ],
+        "1.0.0.dev201908140539": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c23cfbdbabd257fedda22847eb54d9df",
+                    "sha256": "545605a999ff72834525c7a686e1f30ee24084c895b00196d9e75566a6faab14"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.0.0.dev201908140539-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c23cfbdbabd257fedda22847eb54d9df",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 147127,
+                "upload_time": "2019-08-14T05:39:51",
+                "url": "https://files.pythonhosted.org/packages/c7/f2/d627b6826c22fc4a2b690883d4ee6e7be57a8f034d81f69514c17196b092/pytorch_transformers_nightly_unofficial-1.0.0.dev201908140539-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "12c07b1667c6ba5a15bbcd96675937d4",
+                    "sha256": "f641242aef47172bf4917d29f3ba9e0054d5b3a29971d3ed1613fc2ea5661ef8"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.0.0.dev201908140539.tar.gz",
+                "has_sig": false,
+                "md5_digest": "12c07b1667c6ba5a15bbcd96675937d4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 132782,
+                "upload_time": "2019-08-14T05:39:53",
+                "url": "https://files.pythonhosted.org/packages/1c/2f/7e7036b9c34d71bdc77cfcd31a6157c4e8bed4ecacaf235e7f08e1224dcf/pytorch_transformers_nightly_unofficial-1.0.0.dev201908140539.tar.gz"
+            }
+        ],
+        "1.0.0.dev201908150540": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b0dc1af34a73eab639e33bc7fc41f79e",
+                    "sha256": "b57648e46f2b921e45203ed944b644caaea8e5d51542073091405994ff76bdc7"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.0.0.dev201908150540-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b0dc1af34a73eab639e33bc7fc41f79e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 147127,
+                "upload_time": "2019-08-15T05:40:15",
+                "url": "https://files.pythonhosted.org/packages/6d/64/e311fa90ca0b060e26efd36b49465f9f4ab643c0ff3e35515bf17c7fa65d/pytorch_transformers_nightly_unofficial-1.0.0.dev201908150540-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3a44e615dc2611d62d6c2dd3ecfd85f4",
+                    "sha256": "fb4fa2f40ae0091d995c4bc27079fc1210b551c7e2f2ae58f958d914b6cbed02"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.0.0.dev201908150540.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3a44e615dc2611d62d6c2dd3ecfd85f4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 132791,
+                "upload_time": "2019-08-15T05:40:18",
+                "url": "https://files.pythonhosted.org/packages/da/4a/7e58b514186897e73502beb4123f70e05a9c411f41f3b714762435b46107/pytorch_transformers_nightly_unofficial-1.0.0.dev201908150540.tar.gz"
+            }
+        ],
+        "1.1.0.dev201908160540": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "53e353618e123b2217a92d7ce0b964d5",
+                    "sha256": "a058a40c43978c285b511ac24003efedf8f6392aff38a3db135ecb480b2b1e07"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.1.0.dev201908160540-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "53e353618e123b2217a92d7ce0b964d5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 158565,
+                "upload_time": "2019-08-16T05:40:40",
+                "url": "https://files.pythonhosted.org/packages/d7/94/11264f0765ffa7b57800554f118359a57e63d4cadb7f73d692f2c11472e7/pytorch_transformers_nightly_unofficial-1.1.0.dev201908160540-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c9e8bc50c14f3625a9a89271c0777ed3",
+                    "sha256": "2203d36b956ef6d447cf3eafa53f00637ed74ca5ea121b4996958faf0fe3f750"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.1.0.dev201908160540.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c9e8bc50c14f3625a9a89271c0777ed3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 141289,
+                "upload_time": "2019-08-16T05:40:42",
+                "url": "https://files.pythonhosted.org/packages/6f/a8/ebd084ad83200feafdab7ecf56e38c1e6c6607dada993521e5446ace7c9a/pytorch_transformers_nightly_unofficial-1.1.0.dev201908160540.tar.gz"
+            }
+        ],
+        "1.1.0.dev201908161445": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c9bc97507c38eff474908ab1a52cb404",
+                    "sha256": "e4b7be716783e8e229d7eeaddde9f24ef9ae08c9aa21bc658fb932aba7404254"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.1.0.dev201908161445-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c9bc97507c38eff474908ab1a52cb404",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 158569,
+                "upload_time": "2019-08-16T14:45:33",
+                "url": "https://files.pythonhosted.org/packages/06/cc/cf9b0dc5d77f74728f770ce15e7afe028516aad5680547ad225273c237b5/pytorch_transformers_nightly_unofficial-1.1.0.dev201908161445-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c43863661cc1fb824436d94262741c2",
+                    "sha256": "831a2696cca5a0d7fed926c49e20649c3636c057b2ff51ece8169249b5907030"
+                },
+                "downloads": -1,
+                "filename": "pytorch_transformers_nightly_unofficial-1.1.0.dev201908161445.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8c43863661cc1fb824436d94262741c2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 141296,
+                "upload_time": "2019-08-16T14:45:35",
+                "url": "https://files.pythonhosted.org/packages/74/71/8e81d6c62f389a7e415f42991a784cfce0923aa90d230634e42f204c82c2/pytorch_transformers_nightly_unofficial-1.1.0.dev201908161445.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "c9bc97507c38eff474908ab1a52cb404",
+                "sha256": "e4b7be716783e8e229d7eeaddde9f24ef9ae08c9aa21bc658fb932aba7404254"
+            },
+            "downloads": -1,
+            "filename": "pytorch_transformers_nightly_unofficial-1.1.0.dev201908161445-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "c9bc97507c38eff474908ab1a52cb404",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 158569,
+            "upload_time": "2019-08-16T14:45:33",
+            "url": "https://files.pythonhosted.org/packages/06/cc/cf9b0dc5d77f74728f770ce15e7afe028516aad5680547ad225273c237b5/pytorch_transformers_nightly_unofficial-1.1.0.dev201908161445-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "8c43863661cc1fb824436d94262741c2",
+                "sha256": "831a2696cca5a0d7fed926c49e20649c3636c057b2ff51ece8169249b5907030"
+            },
+            "downloads": -1,
+            "filename": "pytorch_transformers_nightly_unofficial-1.1.0.dev201908161445.tar.gz",
+            "has_sig": false,
+            "md5_digest": "8c43863661cc1fb824436d94262741c2",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 141296,
+            "upload_time": "2019-08-16T14:45:35",
+            "url": "https://files.pythonhosted.org/packages/74/71/8e81d6c62f389a7e415f42991a784cfce0923aa90d230634e42f204c82c2/pytorch_transformers_nightly_unofficial-1.1.0.dev201908161445.tar.gz"
+        }
+    ]
+}

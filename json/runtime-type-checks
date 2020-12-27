@@ -1,0 +1,119 @@
+{
+    "info": {
+        "author": "Anton Agestam",
+        "author_email": "git@antonagestam.se",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "**TODO**\n\n- [ ] Fully support complex typed dicts with mixed values for `total`, e.g.\n      correctly infer whether or not a field is required or not.\n- [ ] Support trivial `Union` types.\n\n# runtime-type-checks\n\n[![CircleCI](https://circleci.com/gh/antonagestam/runtime-type-checks.svg?style=svg)](https://circleci.com/gh/antonagestam/runtime-type-checks)\n\n`TypedDict` is a highly anticipated new feature of the typing ecosystem in the\nPython community. It allows us to describe the shape of dictionaries on an\narbitrarily detailed level. However, at this point no runtime checks are\nsupported out of the box. This makes sense, as Python is inherently a dynamic\nlanguage and we don't want the interpreter to go off and try to figure out\ncomplex `Union` types at runtime.\n\nOn the other hand, being able to reuse the same type definitions for annotations\nand runtime type checks would save us a lot of code duplication.\n\nThis leaves a gap that this library tries to fill by providing a small set of\ntools for defining how complex types should be checked at runtime. By abusing a\nfew private/undocumented APIs we can get a lot of information out from complex\ntypes and automatically build sanitizer functions for them at import-time to be\nused at runtime.\n\nFor the types that aren't yet supported or are too complex to ever be, the\nlibrary lets you supply your own runtime checks.\n\n### Supported Types\n\n- `TypedDict` (only `total=True` at the moment)\n- `Literal[A, B]`\n- `List[A]`, `Sequence[A]`\n- `Tuple[A, ...]`, `Tuple[A, B, C]`, `Tuple[()]`\n\n\n## Usage\n\nThe code below defines the shape of an `Author` dict and uses the\n`@sanitizable` decorator to create and register a sanitizing function for\nruntime checks of dicts.\n\n```python\nfrom typing import cast\nfrom typing_extensions import TypedDict\nfrom rtd import sanitizable\n\n\n@sanitizable\nclass Author(TypedDict):\n    name: str\n```\n\nNow we can use the `sanitize` function to make sure untyped data fulfills the\n`TypedDict`.\n\n```python\nfrom rtd import sanitize, SanitationError\n\n\ndef save_author(request_data: dict):\n    try:\n        author = sanitize(Author, request_data['author'])\n    except (SanitationError, KeyError):\n        return 'Invalid Request', 400\n\n    # At this point we can be confident that the  data we received contained\n    # was a dict where the key `\"name\"` was a string. Calling\n    # `reveal_type(author['name'])` will yield `str` here.\n    save(author)\n\n    return 'Author Saved', 200\n```\n\nThe framework lets us define sanitizers for nested dictionaries as well. We'll\nadd a `Book` type and a `Library` type as examples.\n\n```python\nfrom rtd import sanitizable, sanitize\n\n\n@sanitizable\nclass Book(TypedDict):\n    name: str\n    publication_year: int\n    author: Author\n\n\n@sanitizable\nclass Library(TypedDict):\n    name: str\n    city: str\n    books: List[Book]\n\n\nsanitize(Library, {\n    \"name\": \"Stadsbiblioteket G\u00f6teborg\",\n    \"city\": \"G\u00f6teborg\",\n    \"books\": [\n        {\n            \"name\": \"The Metamorphosis\",\n            \"publication_year\": 1915,\n            \"author\": {\"name\": \"Franz Kafka\"},\n        },\n    ],\n})\n```\n\n### Custom Sanitizers\n\nSome complex types are not yet supported and some likely will never be. For\nthose cases you can supply your own sanitizing function.\n\n```python\nfrom typing import Union, Any\nfrom functools import partial\nfrom rtd import sanitize, register_sanitizer\n\n\nT = Union[str, int]\n\n\n@partial(register_sanitizer, T)\ndef sanitize_t(value: Any) -> T:\n    assert isinstance(value, (str, int))\n    return value\n\n\nsanitize(T, \"str\")  # OK\nsanitize(T, 1)  # OK\nsanitize(T, ())  # raises SanitationError\n```\n\n\n",
+        "description_content_type": "text/markdown; charset=UTF-8",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/antonagestam/runtime-type-checks",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "runtime-type-checks",
+        "package_url": "https://pypi.org/project/runtime-type-checks/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/runtime-type-checks/",
+        "project_urls": {
+            "Homepage": "https://github.com/antonagestam/runtime-type-checks"
+        },
+        "release_url": "https://pypi.org/project/runtime-type-checks/0.0.0a0/",
+        "requires_dist": [
+            "typing-extensions"
+        ],
+        "requires_python": ">= 3.7",
+        "summary": "",
+        "version": "0.0.0a0"
+    },
+    "last_serial": 5917704,
+    "releases": {
+        "0.0.0a0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fe28727bde6be1e010de5df12abc3473",
+                    "sha256": "7a348d85c6e764e1216ef277ffada54e174926e8e10224211f2e03c01ec3c515"
+                },
+                "downloads": -1,
+                "filename": "runtime_type_checks-0.0.0a0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "fe28727bde6be1e010de5df12abc3473",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": ">= 3.7",
+                "size": 5881,
+                "upload_time": "2019-10-02T12:39:39",
+                "url": "https://files.pythonhosted.org/packages/0d/be/32cd1137231a9fc330b4dcc5d03180056c432c360450c3fad50d3c7bcfae/runtime_type_checks-0.0.0a0-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "365a1d80ec874a48ded20b48ee3a5f59",
+                    "sha256": "5a4b618c377ebf60a64ca455b7b33279e8483ff977d305aa0a9aa722aa4555ca"
+                },
+                "downloads": -1,
+                "filename": "runtime-type-checks-0.0.0a0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "365a1d80ec874a48ded20b48ee3a5f59",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">= 3.7",
+                "size": 5689,
+                "upload_time": "2019-10-02T12:39:42",
+                "url": "https://files.pythonhosted.org/packages/7e/8b/0cabee1dacf66e38dab208f709bb045cb6fc26b38f0ff602e340212c185a/runtime-type-checks-0.0.0a0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "fe28727bde6be1e010de5df12abc3473",
+                "sha256": "7a348d85c6e764e1216ef277ffada54e174926e8e10224211f2e03c01ec3c515"
+            },
+            "downloads": -1,
+            "filename": "runtime_type_checks-0.0.0a0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "fe28727bde6be1e010de5df12abc3473",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": ">= 3.7",
+            "size": 5881,
+            "upload_time": "2019-10-02T12:39:39",
+            "url": "https://files.pythonhosted.org/packages/0d/be/32cd1137231a9fc330b4dcc5d03180056c432c360450c3fad50d3c7bcfae/runtime_type_checks-0.0.0a0-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "365a1d80ec874a48ded20b48ee3a5f59",
+                "sha256": "5a4b618c377ebf60a64ca455b7b33279e8483ff977d305aa0a9aa722aa4555ca"
+            },
+            "downloads": -1,
+            "filename": "runtime-type-checks-0.0.0a0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "365a1d80ec874a48ded20b48ee3a5f59",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">= 3.7",
+            "size": 5689,
+            "upload_time": "2019-10-02T12:39:42",
+            "url": "https://files.pythonhosted.org/packages/7e/8b/0cabee1dacf66e38dab208f709bb045cb6fc26b38f0ff602e340212c185a/runtime-type-checks-0.0.0a0.tar.gz"
+        }
+    ]
+}

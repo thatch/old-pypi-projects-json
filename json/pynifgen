@@ -1,0 +1,78 @@
+{
+    "info": {
+        "author": "Alex Kaszynski",
+        "author_email": "akascap@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Scientific/Engineering :: Information Analysis"
+        ],
+        "description": "pynifgen\n========\n\nOverview\n--------\nThis Python package allows users to interface National Instruments signal generation hardware dirctly from Python and provides a viable alternative to using `LabVIEW <www.ni.com/en-us/shop/labview.html>`_ or the `MATLAB Instrument Control Toolbox <https://www.mathworks.com/products/instrument.html>`_.\n\nTo use this software you must install the NI-FGEN drivers provided by National Instruments, which can be downloaded at `NI-FGEN <http://www.ni.com/download/ni-fgen-17.1/6751/en/>`_.  Be aware that these drivers are not open-source and carry licensing restrictions, but still can be downloaded for free without purchasing LabVIEW.\n\nThis module supports Python2.7 and Python 3.3+ only under Windows.  National Instruments has not released a x64 version of their drivers for Linux or Mac OS.  Please ask them to support it.\n\nThis code was inspired by Pierre Clad\u00e9's `PyDAQmx <https://pypi.python.org/pypi/PyDAQmx>`_ and uses much of its documentation from National Instruments.  Thanks to all who directly and indirectly contributed to this code.\n\nFeel free to contribute or report bugs on `GitHub <https://github.com/akaszynski/pynifgen/>`_.\n\n\nInstallation\n------------\n\nThis package requires ``numpy`` and the NI-FGEN drivers.  Installation is straightforward using PyPi:\n\n.. code::\n\n    pip install pynifgen\n\nThe source code can also be downloaded from `GitHub <https://github.com/akaszynski/pynifgen/>`_ and installed with:\n\n.. code::\n\n    python setup.py install\n\nTest installation with:\n\n.. code::\n\n    >>> import pynifgen\n    >>> pynifgen.GetSoftwareInfo()\n\n    [u'Driver: niFgen 17.1.1',\n     u'Engine: IVI 17.00',\n     u'Compiler: MSVC 13.00',\n     u'Components: VISA-Spec 5.70']\n\n\nDocumentation\n-------------\n\nDetailed documentation and examples can be found at `pynifgen Documentation <http://pynifgen.readthedocs.io/en/latest/>`_.\n\nFunctions and classes are documented.  Run ``help`` on an individual function to see its doc_string.\n\n.. code::\n\n    >>> help(vi.ConfigureOutputEnabled)\n\n    Help on method ConfigureOutputEnabled in module pynifgen.functions:\n    \n    ConfigureOutputEnabled(self, channelName='0', enabled=True) method of pynifgen.functions.PyViSession instance\n        Configures the signal generator to generate a signal at the channel \n        output connector.\n        \n        \n        Parameters\n        ----------\n        channelName : string, optional\n            Specifies the channel name for which you want to enable the output.\n            Defaults to \"0\"\n            \n        enabled : bool, optional\n            Specifies whether you want to enable or disable the output.  \n            Defaults to True.\n        \n        \n        Returns\n        -------\n        vistatus : int\n            Status code of this operation\n\nDocumentation was built from National Instruments documentation web pages.  Please see their documentation for additional help at `NI Signal Generators Help <http://zone.ni.com/reference/en-XX/help/370524P-01/fgencref/nifgen_functions/>`_.\n\n\nQuick Example\n-------------\nThe ``pynifgen`` package allows you to build code using both the C approach as well as a more convenient object-orientated approach in which the user creates a ``PyViSession`` object to store ViSession variables.\n\nThe following two examples show how you can setup a simulated PCI-5402 to sweep a square wave between 100 and 1000.  The first approach demonstrates the object orientated approach, while the second shows how one would generate the signal using the classic C approach.\n\nThe ``PyViSession`` approach:\n\n.. code:: python\n\n    import pynifgen\n    import numpy as np\n\n    # initialize a simulated PCI-5402\n    option = 'Simulate=1,DriverSetup=Model:5402;BoardType:PCI'\n    vi = pynifgen.PyViSession('simdev', optionString=option)\n    \n    # open channel 0\n    vi.ConfigureChannels(\"0\")\n    \n    # Abort generation of any previously generated signal\n    vi.AbortGeneration()\n    \n    # Configure output mode to frequency list\n    vi.ConfigureOutputMode(\"NIFGEN_VAL_OUTPUT_FREQ_LIST\")\n    \n    # create frequency list\n    npart = 100\n    frequencyArray = np.linspace(100, 1000, npart)\n    durationArray = np.empty_like(frequencyArray)\n    durationArray[:] = 0.001                       # spend 1ms at each frequency\n    vistatus, frequencyListHandle = vi.CreateFreqList(\"IVIFGEN_VAL_WFM_SQUARE\",\n                                                      frequencyArray,\n                                                      durationArray)\n    \n    # set amplitude to 2V dcOffset to -0.1V\n    vi.ConfigureFreqList('0', frequencyListHandle, amplitude=2.0, dcOffset=0.1, \n                         startPhase=0)\n    \n        # Enable\n    vi.ConfigureOutputEnabled()\n    vi.InitiateGeneration()\n    \n    # get hardware state\n    vi.GetHardwareState()\n\n\nAgain, the same example, except directly using the C functions.\n\n.. code:: python\n\n    import pynifgen\n    import numpy as np\n    import ctypes\n    \n    # initialize a simulated PCI-5402\n    resourceName = 'simdev'\n    optionString = 'Simulate=1,DriverSetup=Model:5402;BoardType:PCI'\n    vi = ctypes.c_uint(0)\n    pynifgen.niFgen_InitWithOptions(resourceName, True, True, optionString,\n                                    vi)\n    \n    # Open channel 0\n    pynifgen.niFgen_ConfigureChannels(vi, '0')\n    \n    # Abort generation of any previously generated signal\n    pynifgen.niFgen_AbortGeneration(vi)\n    \n    # Configure output mode to frequency list\n    pynifgen.niFgen_ConfigureOutputMode(vi, pynifgen.NIFGEN_VAL_OUTPUT_FREQ_LIST)\n    \n    # Clear frequency list\n    pynifgen.niFgen_ClearFreqList(vi, -1)\n    \n    # Create frequency list\n    npart = 100\n    frequencyArray = np.linspace(100, 1000, npart)\n    durationArray = np.empty_like(frequencyArray)\n    durationArray[:] = 0.001                       # spend 1ms at each frequency\n    fListHandle = ctypes.c_int() # frequency list handle\n    pynifgen.niFgen_CreateFreqList(vi, pynifgen.IVIFGEN_VAL_WFM_SQUARE,\n                                   frequencyArray.size, frequencyArray,\n                                   durationArray,\n                                   fListHandle)\n    \n    # set amplitude to 2V dcOffset to -0.1V\n    pynifgen.niFgen_ConfigureFreqList(vi, '0', fListHandle, 2.0, -0.1, 0)\n    \n        # Enable and start generation\n    pynifgen.niFgen_ConfigureOutputEnabled(vi, '0', True)\n    pynifgen.niFgen_InitiateGeneration(vi)\n    \n    # get hardware state\n    state = ctypes.c_int() # frequency list handle\n    pynifgen.niFgen_GetHardwareState(vi, state)\n    print(state.value)\n\nThe biggest difference between the two examples is the ``PyViSession`` is that the ctypes interface takes place \"under the hood\".  For example, checking the hardware status is more pythonic as the state of the hardware is returned as an integer and the variable does not need to be created by the user or have its underlying value accessed.\n\nSupported Hardware\n------------------\nThe hardware supported by this software depends on the version of the NI-FGEN drivers and the OS being used.  NI-FGEN v17.1 supports:\n\n- PCI-5401\n- PCI-5402\n- PCI-5406\n- PCI-5411\n- PCI-5412\n- PCI-5421\n- PCI-5431\n- PXI-5401\n- PXI-5402\n- PXI-5404\n- PXI-5406\n- PXI-5411\n- PXI-5412\n- PXI-5421\n- PXI-5422\n- PXI-5431\n- PXI-5441\n- PXIe-5413\n- PXIe-5423\n- PXIe-5433\n- PXIe-5442\n- PXIe-5450\n- PXIe-5451\n\n\nBug Reporting and Feature Requests\n----------------------------------\nIf you find a bug, please open an issue here: `Issues <https://github.com/akaszynski/pynifgen/issues/>`_.  For feature requests or other questions, please contact me at akascap@gmail.com.\n\n\nLicense\n-------\nThis this Python software is under the MIT License.  See the ``LICENSE`` file.",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/akaszynski/pynifgen",
+        "keywords": "national instruments nifgen",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pynifgen",
+        "package_url": "https://pypi.org/project/pynifgen/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pynifgen/",
+        "release_url": "https://pypi.org/project/pynifgen/0.10.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Python Interface to National Instrument's NI-FGEN Driver",
+        "version": "0.10.0"
+    },
+    "last_serial": 3139977,
+    "releases": {
+        "0.10.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "86f0e6b58196c2e46461135579b6ce85",
+                    "sha256": "bee9df2d722762825d84d05b80c662e1b9f78d1745015919ddd8988b701c9ea9"
+                },
+                "downloads": -1,
+                "filename": "pynifgen-0.10.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "86f0e6b58196c2e46461135579b6ce85",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 38167,
+                "upload_time": "2017-09-01T09:43:06",
+                "url": "https://files.pythonhosted.org/packages/45/5c/bb9b2ad957a9f8cd40ba4380ab51240f6d3dbc8e81e8aaa4e0414cfdfbc8/pynifgen-0.10.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "86f0e6b58196c2e46461135579b6ce85",
+                "sha256": "bee9df2d722762825d84d05b80c662e1b9f78d1745015919ddd8988b701c9ea9"
+            },
+            "downloads": -1,
+            "filename": "pynifgen-0.10.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "86f0e6b58196c2e46461135579b6ce85",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 38167,
+            "upload_time": "2017-09-01T09:43:06",
+            "url": "https://files.pythonhosted.org/packages/45/5c/bb9b2ad957a9f8cd40ba4380ab51240f6d3dbc8e81e8aaa4e0414cfdfbc8/pynifgen-0.10.0.tar.gz"
+        }
+    ]
+}

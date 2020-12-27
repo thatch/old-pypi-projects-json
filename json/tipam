@@ -1,0 +1,173 @@
+{
+    "info": {
+        "author": "Myria Solutions (PTY) Ltd",
+        "author_email": "project@tachyonic.org",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 1 - Planning",
+            "Environment :: Other Environment",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: BSD License",
+            "Natural Language :: English",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Internet :: WWW/HTTP :: WSGI",
+            "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+            "Topic :: Software Development",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Software Development :: Libraries :: Application Frameworks",
+            "Topic :: Software Development :: Libraries :: Python Modules"
+        ],
+        "description": "================================\nTachyonic Project's IPAM (TIPAM)\n================================\n\nTIPAM is a very fast RESTFul IPv4/IPv6 Address Management tool.\n\nIt supports IPv4 and IPV6, and can find and allocate prefixes of arbitrary sizes.\n\nRequired Python Packages:\n=========================\n\n* luxon\n* pyipcalc\n\n\nInstallation\n============\n\n::\n\n    $ pip3 install tipam\n\n\nSetup\n=====\n\n::\n\n    $ mkdir tipam\n    $ luxon -i tipam tipam\n    $ luxon -d tipam\n\nThen serve with Apache2, nginx, `luxon -s`, or your favourite WSGI compliant server.\n\n\nTerminology and Usage\n=====================\n\nCreation\n--------\n\nWith regards to creation, you can do the following to/with prefixes in the IPAM:\n\n* Add Prefixes\n* Allocate Prefixes\n* Find Prefixes\n\nAs a first step, you have to *Add* a prefix. You can't *allocate* or *find* prefixes before you have *add* -ed a prefix::\n\n    $ curl -X POST \\\n      http://$TIPAM_URL/v1/prefix \\\n      -H 'Content-Type: application/json' \\\n      -d '{\n        \"prefix\": \"192.0.2.0/24\",\n        \"name\": \"My First IP block\"\n       }'\n\n\nAdding a prefix creates the prefix in the IPAM, and makes it available by setting ``free=True``.\n\nNow that a prefix has been added to the IPAM, you can *allocate* a prefix from it::\n\n\n    $ curl -X POST \\\n      http://$TIPAM_URL/v1/allocate \\\n      -H 'Content-Type: application/json' \\\n      -d '{\n\t    \"prefix\": \"192.0.2.0/30\",\n\t    \"name\": \"Customer 1\"\n       }'\n\nAllocating a prefix sets ``free=False``, which means no more prefixes can be added/allocated from the allocated prefix.\n\nYou can associate tags with prefixes::\n\n\n    $ curl -X POST \\\n      http://$TIPAM_URL/v1/tag \\\n      -H 'Content-Type: application/json' \\\n      -d '{\n        \"prefix\": \"58e27f46-7376-4147-a7d0-a31c05fe2b34\",\n        \"tag\": \"doc_example\"\n       }'\n\nYou can use *find* (``v1/find``) to search for, and allocate the first available/free prefix of a specific length.\nThe tag is used to indicate from which range to allocate::\n\n\n    $ curl -X POST \\\n      http://$TIPAM_URL/v1/find \\\n      -H 'Content-Type: application/json' \\\n      -d '{\n        \"prefix_len\": 29,\n        \"name\": \"Customer 2\",\n        \"tag\": \"doc_example\"\n       }'\n\nIf the search was successful, the found prefix is returned, and is also allocated automatically. A tag may reference\nmultiple prefixes, in such a case all prefixes will be searched, and the first free one of the requested size will\nbe allocated and returned.\n\nYou can add the same prefix in multiple *rib*'s (Routing Information Base)::\n\n    $ curl -X POST \\\n      http://$TIPAM_URL/v1/prefix \\\n      -H 'Content-Type: application/json' \\\n      -d '{\n        \"prefix\": \"192.0.2.0/24\",\n        \"name\": \"SAME prefix, different rib\",\n        \"rib\": \"other_context\"\n       }'\n\nWhen ``rib`` is omitted during prefix creation, prefixes are created in the default rib called \"default\".\nYou can't add the same prefix in the same rib:- Adding a prefix that already exists in a rib will result in an update\nof the existing prefix.\n\nYou can add prefixes underneath prefixes (e.g. 192.0.2.128/25), as well as prefixes over prefixes (e.g. 192.0.0.0/16).\nThis can be useful for reserving ranges to tag and allocate from.\n\n\nReading\n-------\n\nTo get a list of all created/allocated prefixes, perform a ``GET`` to ``/vi/prefixes/{version}``, where ``version`` is\n\"4\" for IPv4 and \"6\" for IPv6::\n\n    $ curl http://$TIPAM_URL/v1/prefixes/4\n\nTo view the data for a specific prefix, perform a ``GET`` to ``/vi/prefix/{id}``, where ``id`` is the UUID of the\nprefix in question::\n\n    $ curl http://$TIPAM_URL/v1/prefix/a7f22bd8-3791-4346-a167-8f329c576e0b\n\nIf the ID is not know, you can query the IPAM for the details of a prefix by sending a ``GET`` to\n``/v1/query/{ip}/{prefix_len}``, where ``ip`` is the address in question, and ``prefix_len`` the prefix length::\n\n    $ curl http://$TIPAM_URL/v1/query/192.0.2.0/24\n\nBy default, the \"default\" rib will be queried. To query another rib, add the query params ``?rib=XXX``::\n\n    $ curl http://$TIPAM_URL/v1/query/192.0.2.0/24?rib=other_context\n\n\nUpdating\n--------\n\nAfter prefixes have been added or allocated, they can be modified with ``PUT`` or ``PATCH`` methods::\n\n\n    $ curl -X PUT \\\n      http://$TIPAM_URL/v1/prefix/a7f22bd8-3791-4346-a167-8f329c576e0b \\\n      -H 'Content-Type: application/json' \\\n      -d '{\n        \"name\": \"updated_name\"\n      }'\n\nNote that ``PUT`` on ``/v1/prefix/{id}`` is equavalent to ``POST`` on ``/v1/prefix`` when the values for ``prefix``\nand ``rib`` is equal to that of prefix with UUID of ``id``.\n\nOnly the following fields can be updated:\n\n* name\n* description\n* prefix_type\n\nDeletion\n--------\n\nAllocated prefixes can be un-allocated by ``release`` -ing them::\n\n    $ curl -X POST \\\n      http://$TIPAM_URL/v1/release \\\n      -H 'Content-Type: application/json' \\\n      -d '{\n        \"prefix\": \"192.0.2.0/30\"\n      }'\n\nThis will set ``free=True`` again, making it available for allocation again.\n\nTo completely remove a prefix from the IPAM, perform a ``DELETE`` method to ``/v1/prefix/{id}``::\n\n    $ curl -X DELETE http://$TIPAM_URL/v1/prefix/a7f22bd8-3791-4346-a167-8f329c576e0b\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://www.tachyonic.org",
+        "keywords": "",
+        "license": "",
+        "maintainer": "Myria Solutions (PTY) Ltd",
+        "maintainer_email": "project@tachyonic.org",
+        "name": "tipam",
+        "package_url": "https://pypi.org/project/tipam/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/tipam/",
+        "project_urls": {
+            "Homepage": "http://www.tachyonic.org"
+        },
+        "release_url": "https://pypi.org/project/tipam/0.0.1/",
+        "requires_dist": [
+            "argparse",
+            "luxon",
+            "pyipcalc"
+        ],
+        "requires_python": "",
+        "summary": "Tachyonic Project's IP Address Manager",
+        "version": "0.0.1"
+    },
+    "last_serial": 4529632,
+    "releases": {
+        "0.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e051390956cd83e5ce951768e767d09d",
+                    "sha256": "d189b1ae7ddba963bc37239adb3a5edd13904233909d04bdc86b51c57596e0ed"
+                },
+                "downloads": -1,
+                "filename": "tipam-0.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e051390956cd83e5ce951768e767d09d",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 23630,
+                "upload_time": "2018-10-24T12:55:14",
+                "upload_time_iso_8601": "2018-10-24T12:55:14.328587Z",
+                "url": "https://files.pythonhosted.org/packages/0e/ac/a079937ecb512b160672968711a0f45040bb37ab84bdf6433b5af1d56eaf/tipam-0.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a9cd93fd236fad6901b9f1a87d271708",
+                    "sha256": "941336164b35fb945c7cc2e89d5a4811356b42159f7a6f094235dc41e37c8091"
+                },
+                "downloads": -1,
+                "filename": "tipam-0.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a9cd93fd236fad6901b9f1a87d271708",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32093,
+                "upload_time": "2018-10-24T12:55:16",
+                "upload_time_iso_8601": "2018-10-24T12:55:16.646134Z",
+                "url": "https://files.pythonhosted.org/packages/3b/89/31d38fb7ba0eff767e1a3f5788c19b198f5cb29d67e9090edc60f440a1d6/tipam-0.0.0.tar.gz"
+            }
+        ],
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61d8c34a3ed82e3b8e10fe4775412586",
+                    "sha256": "de456184bb657cb92b1172cf0a23f7291cf7d6ce85d4c8945f0df121041ebd31"
+                },
+                "downloads": -1,
+                "filename": "tipam-0.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "61d8c34a3ed82e3b8e10fe4775412586",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 23731,
+                "upload_time": "2018-10-25T12:13:45",
+                "upload_time_iso_8601": "2018-10-25T12:13:45.252341Z",
+                "url": "https://files.pythonhosted.org/packages/54/5f/0369063144338cc6e5b9f07fc454a57ed2b82500396520f0dd182ab7fb3c/tipam-0.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a95847cc5d9da7e5f7089bc12c6134de",
+                    "sha256": "f86e89466a9fd9b0a26e786dd3a7f02a22a20b43c22176f25d1092c905b0b7cb"
+                },
+                "downloads": -1,
+                "filename": "tipam-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a95847cc5d9da7e5f7089bc12c6134de",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 32275,
+                "upload_time": "2018-10-25T12:13:47",
+                "upload_time_iso_8601": "2018-10-25T12:13:47.343373Z",
+                "url": "https://files.pythonhosted.org/packages/7f/1c/bf291e8cf6497ab10168e172b64412c9793267bde20f36c1589274de0813/tipam-0.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "61d8c34a3ed82e3b8e10fe4775412586",
+                "sha256": "de456184bb657cb92b1172cf0a23f7291cf7d6ce85d4c8945f0df121041ebd31"
+            },
+            "downloads": -1,
+            "filename": "tipam-0.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "61d8c34a3ed82e3b8e10fe4775412586",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 23731,
+            "upload_time": "2018-10-25T12:13:45",
+            "upload_time_iso_8601": "2018-10-25T12:13:45.252341Z",
+            "url": "https://files.pythonhosted.org/packages/54/5f/0369063144338cc6e5b9f07fc454a57ed2b82500396520f0dd182ab7fb3c/tipam-0.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "a95847cc5d9da7e5f7089bc12c6134de",
+                "sha256": "f86e89466a9fd9b0a26e786dd3a7f02a22a20b43c22176f25d1092c905b0b7cb"
+            },
+            "downloads": -1,
+            "filename": "tipam-0.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "a95847cc5d9da7e5f7089bc12c6134de",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 32275,
+            "upload_time": "2018-10-25T12:13:47",
+            "upload_time_iso_8601": "2018-10-25T12:13:47.343373Z",
+            "url": "https://files.pythonhosted.org/packages/7f/1c/bf291e8cf6497ab10168e172b64412c9793267bde20f36c1589274de0813/tipam-0.0.1.tar.gz"
+        }
+    ]
+}

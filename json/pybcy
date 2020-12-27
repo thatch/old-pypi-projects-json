@@ -1,0 +1,1807 @@
+{
+    "info": {
+        "author": "Naville",
+        "author_email": "admin@mayuyu.io",
+        "bugtrack_url": null,
+        "classifiers": [],
+        "description": "PyBCY\n=====\n\nThis is a Python implementation for the cosplay website bcy.net. Tested\non Python2. Should work on Python3 as well\n\nCHANGELOGS\n----------\n\n1.2.4\n~~~~~\n\nFixed a legacy issue that WorkInfo is saved in Base64 encoded format. To\nupdate existing database, run this python script (Tested on Python2):\n\n.. code:: python\n\n   import sqlite3,os,sys,json,base64\n   savepath=\"/PATH/TO/DOWNLOAD/FOLDER/\"\n   InfoSQL=sqlite3.connect(os.path.join(savepath,\"BCYInfo.db\"))\n   Cursor=InfoSQL.execute(\"SELECT Info from WorkInfo\").fetchall()\n   i=1\n   for item in Cursor:\n       try:\n           print (\"Re-encoding \"+str(i)+\"/\"+str(len(Cursor)))\n           i=i+1\n           Info=item[0]\n           values=list()\n           DecodedData=base64.b64decode(Info)\n           DecodedInfo=json.loads(DecodedData)\n           values.append(json.dumps(DecodedInfo))\n           values.append(Info)\n           InfoSQL.execute(\"UPDATE WorkInfo SET Info=? WHERE Info=?\",values)\n       except:\n           pass\n\n   InfoSQL.commit()\n\n.. _section-1:\n\n1.2.6\n-----\n\nForce *DownloadWorker* to use ``/PATH/TO/DOWNLOAD/FOLDER/DownloadTemp/``\nas temporary file for less I/O cost ## 1.2.8 Use LIFO Queue for better\noverall performance with HTTPServer On\n\n.. _section-2:\n\n1.3.2\n-----\n\n| Rename SQL Database Columns For Better Extensibility and overall\n  performance.\n| Migrate Script From\n  http://stackoverflow.com/questions/75675/how-do-i-dump-the-data-of-some-sqlite3-tables.\n\n::\n\n     sqlite3 BCYInfo.db \".dump 'WorkInfo'\" |grep -v 'CREATE TABLE' > BCYInfodump.sql\n     echo \"CREATE TABLE IF NOT EXISTS WorkInfo (uid STRING NOT NULL DEFAULT '',Title STRING NOT NULL DEFAULT '',cp_id STRING NOT NULL DEFAULT '',rp_id STRING NOT NULL DEFAULT '',dp_id STRING NOT NULL DEFAULT '',ud_id STRING NOT NULL DEFAULT '',post_id STRING NOT NULL DEFAULT '',Info STRING NOT NULL DEFAULT '',UNIQUE(UID,cp_id,rp_id,dp_id,ud_id,post_id) ON CONFLICT REPLACE);CREATE TABLE IF NOT EXISTS UserInfo (uid STRING,UserName STRING);CREATE TABLE IF NOT EXISTS GroupInfo (gid STRING,GroupName STRING);\" > tmp.sql\n     sqlite3 BCYInfoNew.db < tmp.sql\n\n     sed -i.bak  's/NULL/'\"'0'\"'/g' ./BCYInfodump.sql\n     sqlite3 BCYInfoNew.db < BCYInfodump.sql\n     sqlite3 BCYUserNameUID.db \".dump 'GroupInfo'\" |grep -v 'CREATE TABLE' > GInfo.sql\n     sqlite3 BCYUserNameUID.db \".dump 'UserInfo'\" |grep -v 'CREATE TABLE' > UInfo.sql\n     sed -i.bak  's/GID/gid/g' ./GInfo.sql\n     sed -i.bak  's/UID/uid/g' ./UInfo.sql\n     sqlite3 BCYInfoNew.db < GInfo.sql\n     sqlite3 BCYInfoNew.db < UInfo.sql\n\n     rm BCYInfodump.sql\n     rm tmp.sql\n\nThen rename *BCYInfoNew.db* to *BCYInfo.db*, remove *BCYUserNameUID.db*.\nBackup old ones if needed\n\n.. _section-3:\n\n1.3.5\n-----\n\nAdded Seperate Columns For Tags, which contains JSON-Serialized Version\nof Tag-List\n\n::\n\n     ALTER TABLE WorkInfo ADD COLUMN Tags STRING;\n\nAnd run python script:\n\n.. code:: python\n\n     import sqlite3,os,sys,json\n     savepath=\"/PATH/TO/DOWNLOAD/ROOT/\"\n     InfoSQL=sqlite3.connect(os.path.join(savepath,\"BCYInfo.db\"))\n     Cursor=InfoSQL.execute(\"SELECT Info from WorkInfo\").fetchall()\n     i=1\n     for item in Cursor:\n         Info=None\n         try:\n             print (\"Re-encoding \"+str(i)+\"/\"+str(len(Cursor)))\n             i=i+1\n             values=list()\n             TagList=list()\n             raw=item[0]\n             Info=json.loads(raw)\n             for item in Info.get(\"post_tags\",list()):\n                 TagList.append(item[\"tag_name\"])\n             values.append(json.dumps(TagList,separators=(',', ':'),ensure_ascii=False, encoding='utf8'))\n             values.append(raw)\n             InfoSQL.execute(\"UPDATE WorkInfo SET Tags=? WHERE Info=?\",values)\n         except:\n             InfoSQL.commit()\n             print Info\n             raise\n\n.. _section-4:\n\n1.4.0\n-----\n\n| Renamed detail method signatures in **BCYCore**. Results in:\n| **+** Much Faster(And More Stable) Querying\n\nThis should have no effect on you unless you are not using the detail\nwrapper\n\n.. _section-5:\n\n1.4.4\n-----\n\n``since`` and ``to`` keywords has been added to ``BCYDownloadUtils`` \u2019s\niterating methods using ``**kwargs``. This would speed up list\niterations\n\n.. _section-6:\n\n1.6.1\n-----\n\nPython3 compatible\n\n.. _section-7:\n\n1.7.0\n-----\n\nAdd Like/Unlike Work. Report Work\n\n.. _section-8:\n\n1.7.1\n-----\n\nFix a issue in EncryptParam() results in failed Non-ASCII string\nencoding\n\n.. _section-9:\n\n1.7.5\n-----\n\nFix a issue in ``BCYDownloadUtils`` where GroupID is used to construct\ntitle instead of post id.\n\n.. code:: python\n\n   import sqlite3,os,sys,json,base64,os\n   savepath=\"/PATH/TO/FOLDER\"\n   InfoSQL=sqlite3.connect(os.path.join(savepath,\"BCYInfo.db\"))\n   GroupNameList=list()\n   GroupsCursor=InfoSQL.execute(\"SELECT GroupName from GroupInfo\").fetchall()\n   for item in GroupNameList:\n       print (\"Found GroupName:\"+item[0])\n       GroupNameList.append(item[0])\n   Cursor=InfoSQL.execute(\"SELECT uid,Title,Info from WorkInfo\").fetchall()\n   for item in Cursor:\n       try:\n           print (\"Re-encoding \"+str(i)+\"/\"+str(len(Cursor)))\n           UserName=InfoSQL.execute(\"SELECT UserName FROM UserInfo WHERE uid=?\",(item[0],)).next()[0]\n           Title=item[1]\n           DecodedInfo=json.loads(item[2])\n           for GName in GroupNameList:\n               if Title.beginsWith(GName+\"-\") and (\"post_id\" in DecodedInfo.keys()):\n                   newTitle=GName+\"-\"+DecodedInfo[\"post_id\"]\n                   InfoSQL.execute(\"UPDATE WorkInfo SET Title=? Title=?\",(newTitle,Title,))\n                   print(\"Replaced \"+UserName+\"'s GroupWorkTitle:\"+newTitle)\n                   #Move Folders\n                   PathRoot=os.path.join(savepath,UserName)\n                   OldPath=os.path.join(PathRoot,Title)\n                   newPath=os.path.join(PathRoot,newTitle)\n                   os.rename(OldPath,newPath)\n       except:\n           raise\n\n   InfoSQL.commit()\n\n.. _section-10:\n\n1.9.0\n-----\n\nAdd unique constraints to all tables. Better iterator status\npreservation\n\n.. code:: bash\n\n   sqlite3 /PATH/TO/NEW/TABLE/BCYInfo.db\n   CREATE TABLE IF NOT EXISTS UserInfo (uid STRING,UserName STRING,UNIQUE(uid) ON CONFLICT IGNORE);\n   CREATE TABLE IF NOT EXISTS GroupInfo (gid STRING,GroupName STRING,UNIQUE(gid) ON CONFLICT IGNORE);\n   CREATE TABLE IF NOT EXISTS WorkInfo (uid STRING NOT NULL DEFAULT '',Title STRING NOT NULL DEFAULT '',cp_id STRING NOT NULL DEFAULT '',rp_id STRING NOT NULL DEFAULT '',dp_id STRING NOT NULL DEFAULT '',ud_id STRING NOT NULL DEFAULT '',post_id STRING NOT NULL DEFAULT '',Info STRING NOT NULL DEFAULT '',Tags STRING,UNIQUE(UID,cp_id,rp_id,dp_id,ud_id,post_id) ON CONFLICT REPLACE);\n\nThen apply dump of old table\n\n.. code:: bash\n\n   sqlite3 /PATH/TO/OLD/TABLE/BCYInfo.db .dump >DUMP.SQL\n   sqlite3 /PATH/TO/NEW/TABLE/BCYInfo.db < DUMP.SQL\n\n.. _section-11:\n\n2.4.0\n-----\n\nUse INTEGER as the data type of WorkInfo\u2019s related columns.Below is a\npython3 migration script\n\n.. code:: python\n\n   import sqlite3\n   import json\n   InfoSQL=sqlite3.connect(\"OLD/DATABASE/\")\n   NewSQL=sqlite3.connect(\"NEW/DATABASE/\")\n   InfoSQL.text_factory = str\n   NewSQL.text_factory = str\n   NewSQL.execute(\"CREATE TABLE IF NOT EXISTS UserInfo (uid STRING,UserName STRING,UNIQUE(uid) ON CONFLICT IGNORE);\")\n   NewSQL.execute(\"CREATE TABLE IF NOT EXISTS GroupInfo (gid STRING,GroupName STRING,UNIQUE(gid) ON CONFLICT IGNORE);\")\n   NewSQL.execute(\"CREATE TABLE IF NOT EXISTS WorkInfo (uid INTEGER DEFAULT 0,Title STRING NOT NULL DEFAULT '',cp_id INTEGER DEFAULT 0,rp_id INTEGER DEFAULT 0,dp_id INTEGER DEFAULT 0,ud_id INTEGER DEFAULT 0,post_id INTEGER DEFAULT 0,Info STRING NOT NULL DEFAULT '',Tags STRING,UNIQUE(uid,cp_id,rp_id,dp_id,ud_id,post_id) ON CONFLICT REPLACE);\")\n   Cursor=InfoSQL.execute(\"SELECT Title,Info FROM WorkInfo\").fetchall()\n   index=1\n   for item in Cursor:\n       Title=item[0]\n       Info=json.loads(item[1])\n       tags=list()\n       args=list()\n       args.append(int(Info[\"uid\"]))\n       args.append(Title)\n       args.append(int(Info.get(\"cp_id\",0)))\n       args.append(int(Info.get(\"rp_id\",0)))\n       args.append(int(Info.get(\"dp_id\",0)))\n       args.append(int(Info.get(\"ud_id\",0)))\n       args.append(int(Info.get(\"post_id\",0)))\n       args.append(item[1])\n       for foo in Info.get(\"post_tags\",list()):\n           tags.append(foo[\"tag_name\"])\n       args.append(json.dumps(tags))\n       NewSQL.execute(\"INSERT OR REPLACE INTO WorkInfo(uid,Title,cp_id,rp_id,dp_id,ud_id,post_id,Info,Tags) VALUES(?,?,?,?,?,?,?,?,?)\",tuple(args))\n       print(\"WorkInfo Update:%i/%i\"%(index,len(Cursor)))\n       index=index+1\n\n   index=1\n   Cursor=InfoSQL.execute(\"SELECT gid,GroupName FROM GroupInfo\").fetchall()\n   for item in Cursor:\n       NewSQL.execute(\"INSERT OR REPLACE INTO GroupInfo(gid,GroupName) VALUES(?,?)\",(int(item[0]),item[1]))\n       print(\"GroupInfo Update:%i/%i\"%(index,len(Cursor)))\n       index=index+1\n   index=1\n   Cursor=InfoSQL.execute(\"SELECT uid,UserName FROM UserInfo\").fetchall()\n   for item in Cursor:\n       NewSQL.execute(\"INSERT OR REPLACE INTO UserInfo(uid,UserName) VALUES(?,?)\",(int(item[0]),item[1]))\n       print(\"UserInfo Update:%i/%i\"%(index,len(Cursor)))\n       index=index+1\n   NewSQL.commit()\n   NewSQL.close()\n   InfoSQL.close()\n\nthen replace the old database with the new one\n\n.. _section-12:\n\n2.5.2\n-----\n\nFix a legacy issue results in empty identifiers being saved. Re-run the\nmigration script for 2.4.0\n\n.. _section-13:\n\n2.7.0\n-----\n\n| Implement database version checks and distribute UID\u2019s into smaller\n  sub-folders to decrease the filesystem load.\n| migration Script:\n\n.. code:: python\n\n   import sqlite3,os,shutil,errno\n   BasePath=\"PATH/TO/DOWNLOAD/ROOT\"\n   SQL=sqlite3.connect(os.path.join(BasePath,\"BCYInfo.db\"))\n   Cursor=SQL.execute(\"SELECT UID,UserName FROM UserInfo\").fetchall()\n   index=1\n   length=len(Cursor)\n   for item in Cursor:\n       UID=int(item[0])\n       UserName=item[1]\n       L1Path=UID%10\n       L2Path=(int((UID-L1Path)/10))%10\n       OriginalPath=os.path.join(BasePath,str(UserName))\n       SavePath=os.path.join(BasePath,str(L1Path),str(L2Path),str(UID))\n       try:\n           os.makedirs(os.path.join(BasePath,str(L1Path),str(L2Path)))\n       except OSError as e:\n           if e.errno != errno.EEXIST:\n               raise e\n       if os.path.isdir(OriginalPath):\n           shutil.move(OriginalPath,SavePath)\n           print(\"Moved %s to %s\"%(OriginalPath,SavePath))\n       print(\"%i/%i\"%(index,length))\n       index=index+1\n   SQL.execute(\"INSERT OR REPLACE INTO PyBCY(Key,Value) VALUES(\\\"Version\\\",\\\"2.7.0\\\");\")\n   SQL.commit()\n   SQL.close()\n\n| Note that from now on UID\u2019s are stored in two-level subfolder.\n| Example: User with UID 12345 is now stored at SaveRoot/5/4/12345\n\n.. _section-14:\n\n2.7.8\n-----\n\nStore Filters in Database to simplify initializing process by caller Use\nsqlite3 to create a new database with the following:\n\n::\n\n   CREATE TABLE IF NOT EXISTS UserInfo (uid INTEGER,UserName STRING,UNIQUE(uid) ON CONFLICT IGNORE);\n   CREATE TABLE IF NOT EXISTS GroupInfo (gid INTEGER,GroupName STRING,UNIQUE(gid) ON CONFLICT IGNORE);\n   CREATE TABLE IF NOT EXISTS WorkInfo (uid INTEGER DEFAULT 0,Title STRING NOT NULL DEFAULT '',cp_id INTEGER DEFAULT 0,rp_id INTEGER DEFAULT 0,dp_id INTEGER DEFAULT 0,ud_id INTEGER DEFAULT 0,post_id INTEGER DEFAULT 0,Info STRING NOT NULL DEFAULT '',Tags STRING,UNIQUE(uid,cp_id,rp_id,dp_id,ud_id,post_id) ON CONFLICT REPLACE);\n   CREATE TABLE IF NOT EXISTS PyBCY (Key STRING DEFAULT '',Value STRING NOT NULL DEFAULT '',UNIQUE(Key) ON CONFLICT IGNORE);\n   PRAGMA journal_mode=WAL;\n   INSERT INTO PyBCY(Key,Value) VALUES(\"Version\",\"2.7.8\");\n\nThen apply the old dump\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/Naville/PyBCY",
+        "keywords": "",
+        "license": "GPL",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "PyBCY",
+        "package_url": "https://pypi.org/project/PyBCY/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/PyBCY/",
+        "project_urls": {
+            "Homepage": "https://github.com/Naville/PyBCY"
+        },
+        "release_url": "https://pypi.org/project/PyBCY/3.0.0/",
+        "requires_dist": [
+            "PyCrypto",
+            "requests"
+        ],
+        "requires_python": "",
+        "summary": "Python Interface For BCY.net API",
+        "version": "3.0.0"
+    },
+    "last_serial": 4396397,
+    "releases": {
+        "1.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "157313c89ffb0a8c0d8dc7e46e2f743e",
+                    "sha256": "48d3e49f8fa0e3442f07abe118e4f8bc4afea08bdfebd0c0e2b05c66dfb8e8f6"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "157313c89ffb0a8c0d8dc7e46e2f743e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 9569,
+                "upload_time": "2017-04-03T16:37:57",
+                "url": "https://files.pythonhosted.org/packages/01/35/20a0583966976b3dbc8c0dceca76f812da258a7df3d249bce03cdbff7729/PyBCY-1.2.3.tar.gz"
+            }
+        ],
+        "1.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ebbfb618ea5df7041d3c0125e531a8e6",
+                    "sha256": "4d1ac2029b00a4f09dfdb4ef82ab29437a78e0ff8389cb4f88469dc3e4b3cf72"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ebbfb618ea5df7041d3c0125e531a8e6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10448,
+                "upload_time": "2017-04-03T19:29:33",
+                "url": "https://files.pythonhosted.org/packages/bc/c3/6fa5aece0303841250fddf8f895996830ff958e9034512ee6c41cf650a4e/PyBCY-1.2.4.tar.gz"
+            }
+        ],
+        "1.2.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "23b447c0a2497f8a9f3fa8feefd8c199",
+                    "sha256": "8e24e5e356c54ce4fc691bf23c812a26f58683c9a1c61834a14961debe4b0c39"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.2.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "23b447c0a2497f8a9f3fa8feefd8c199",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10514,
+                "upload_time": "2017-04-03T19:39:18",
+                "url": "https://files.pythonhosted.org/packages/85/2d/7332cc188d63f309520956f0df7e392b1bbecd5f7353e7492601c4f07bfd/PyBCY-1.2.5.tar.gz"
+            }
+        ],
+        "1.2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c789a1551b75f3bae2ec04d9b19bfd1a",
+                    "sha256": "f9e252a2644dd78cf3b1b3bb99ad5afc089504328b82f67fdd180d87a71146c1"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c789a1551b75f3bae2ec04d9b19bfd1a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10604,
+                "upload_time": "2017-04-03T19:57:02",
+                "url": "https://files.pythonhosted.org/packages/62/fd/b08fd7e7d73b4fb491fc3bb40c5550ffde6b7f97679f1eafe342c78bdcbb/PyBCY-1.2.6.tar.gz"
+            }
+        ],
+        "1.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "902bbf607c54c79533920bbf0d27c196",
+                    "sha256": "874584aae7fadecf4f198433d66e8b7db1f9118c5155f9c8dca2e5be67d31446"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "902bbf607c54c79533920bbf0d27c196",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10615,
+                "upload_time": "2017-04-03T19:59:50",
+                "url": "https://files.pythonhosted.org/packages/e5/fa/d30b511978fe76cfdab6f729c66ff47992cbb1f1a445682457edc4ebbcc1/PyBCY-1.2.7.tar.gz"
+            }
+        ],
+        "1.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c7842d99d4a02095fc2ef6ad53a89ba6",
+                    "sha256": "25afb4d832065188dfc7cda372496128d66ac3ef06e7857f384bc4236bfefe3f"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.2.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c7842d99d4a02095fc2ef6ad53a89ba6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10642,
+                "upload_time": "2017-04-03T20:35:39",
+                "url": "https://files.pythonhosted.org/packages/f0/7b/c6ca6647b801510df6c6d9514666cb0149a00ac01217802f02c24ea3b4f6/PyBCY-1.2.8.tar.gz"
+            }
+        ],
+        "1.2.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b709d15c102379ecbb6dd5361967c5d6",
+                    "sha256": "3f18f34e4df15cf24c934bd4b3630c1506e5d4f1eccad0bca5cdbc9d55c503f7"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.2.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b709d15c102379ecbb6dd5361967c5d6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10716,
+                "upload_time": "2017-04-04T10:02:55",
+                "url": "https://files.pythonhosted.org/packages/90/38/87d80c8798228d66556b0f5f8e94f383b46ea01d55e4b0943d4fe9a16f1c/PyBCY-1.2.9.tar.gz"
+            }
+        ],
+        "1.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2bbe8004ca3e41ef567d46a84802d18b",
+                    "sha256": "47e18fd0b1fd3441595bca49246cb7430926ebb32ef9604cf981eeb8e77901c5"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2bbe8004ca3e41ef567d46a84802d18b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10690,
+                "upload_time": "2017-04-04T11:27:16",
+                "url": "https://files.pythonhosted.org/packages/73/3d/565351234e45565e95b016e940ef559025925b8acafa2e4aaa3d96f62541/PyBCY-1.3.0.tar.gz"
+            }
+        ],
+        "1.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "efbf3b41b4b5bd3fff597b1a79ea4a15",
+                    "sha256": "3ffcaeee18b1d069f82bb4744c763b0542eee9871b47ba6d683763bd57883535"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "efbf3b41b4b5bd3fff597b1a79ea4a15",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 10695,
+                "upload_time": "2017-04-04T11:56:41",
+                "url": "https://files.pythonhosted.org/packages/b0/84/a37638f18c35dc588f8bd9dd632253599eecd6f347a7a9fbcad63bf7a7b9/PyBCY-1.3.1.tar.gz"
+            }
+        ],
+        "1.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "27eda48dc0f0c10d01333792063a91d4",
+                    "sha256": "c245c2122a5869a52860673832201e4ab35f8fd176a80929c1652694d7eae5e8"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "27eda48dc0f0c10d01333792063a91d4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11128,
+                "upload_time": "2017-04-04T16:36:32",
+                "url": "https://files.pythonhosted.org/packages/63/cf/6f8bb04b609c67ce92cdc18a5670e949ee6918113f36539b07a34579577b/PyBCY-1.3.2.tar.gz"
+            }
+        ],
+        "1.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ec96602e6133fe9a14fd13e1c1c9d2b",
+                    "sha256": "36f1fbdff2706f8b2a461be013468d853f90aef4f142ee494f687093194d29bd"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2ec96602e6133fe9a14fd13e1c1c9d2b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11099,
+                "upload_time": "2017-04-05T17:37:08",
+                "url": "https://files.pythonhosted.org/packages/f3/46/6c5f9f5384c3f9d509873253dff7db6bb8690f4501ab95373aa551785925/PyBCY-1.3.3.tar.gz"
+            }
+        ],
+        "1.3.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "767d639d6b8c6dbc4db435c1766bfba1",
+                    "sha256": "7f2cc80d1a7ad6ec9be11bee5591c4d522748a53a6d1200be70850aed2d0a572"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "767d639d6b8c6dbc4db435c1766bfba1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11618,
+                "upload_time": "2017-04-09T10:35:49",
+                "url": "https://files.pythonhosted.org/packages/1d/d4/44b615ae6b5aa8b63707f02e632906d87b9810961112808b764040245cd0/PyBCY-1.3.5.tar.gz"
+            }
+        ],
+        "1.3.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c6bc4d992fe0e47b30f3411bd8904147",
+                    "sha256": "8432403de0e0267bb3c27b79570eca55531f91f2b7004d8be40d3a9e9d780808"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c6bc4d992fe0e47b30f3411bd8904147",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11611,
+                "upload_time": "2017-04-09T10:37:49",
+                "url": "https://files.pythonhosted.org/packages/6b/6f/e625d5a5652117f5afad898368edbb40cf0c1a7bfe5b74d99b135850b91a/PyBCY-1.3.6.tar.gz"
+            }
+        ],
+        "1.3.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5f56bcc7fcbeb87edb93af8df3c8de9e",
+                    "sha256": "1d7de7a84937e5b6dc812ec146c30cda57eee261e594790e6f9f121bee1b7a52"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5f56bcc7fcbeb87edb93af8df3c8de9e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11525,
+                "upload_time": "2017-04-09T10:40:02",
+                "url": "https://files.pythonhosted.org/packages/06/69/36f37cb7066a9be1f7f323de9cf4b159ea3b2825fff0d09a6d77f3002ce6/PyBCY-1.3.7.tar.gz"
+            }
+        ],
+        "1.3.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b05ebc85d13a2f3cf9dd5bec25dfd8ad",
+                    "sha256": "25b338ba7d1806eb79a6b29d1e1e2d4006a13767e62535d2a37c0fa38e98119a"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b05ebc85d13a2f3cf9dd5bec25dfd8ad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11513,
+                "upload_time": "2017-04-09T16:07:23",
+                "url": "https://files.pythonhosted.org/packages/f0/68/b1a96fbd66ed2d1aac74c6d5302098e84c7cf266605d32186e3f5289fa54/PyBCY-1.3.8.tar.gz"
+            }
+        ],
+        "1.3.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a1bb9e086ba2b356a06360ac0fc3fb77",
+                    "sha256": "8ba44568b0d64d783c4c399403d7e90a3a6526cf38af6c392320d882a57c6dcb"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.3.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a1bb9e086ba2b356a06360ac0fc3fb77",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11515,
+                "upload_time": "2017-04-09T16:10:01",
+                "url": "https://files.pythonhosted.org/packages/da/d3/62264ba7ae848ecc97b597edce2a9eca0983fa65c9a20a94bdafb549be2b/PyBCY-1.3.9.tar.gz"
+            }
+        ],
+        "1.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e2fb86d319f0fccfbce5fe656e22fa25",
+                    "sha256": "a419e2c26edc77c07e9113df2896c8597556004dd7e4d216f5112341020368db"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e2fb86d319f0fccfbce5fe656e22fa25",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11672,
+                "upload_time": "2017-04-12T20:59:40",
+                "url": "https://files.pythonhosted.org/packages/ce/49/d2d67d83b94d555184119a9fa9a1893c6fcc4fe6fae1f0e54c4359f94da8/PyBCY-1.4.0.tar.gz"
+            }
+        ],
+        "1.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1604fba0c4c395f1d27fba0972fe0afb",
+                    "sha256": "9ee12419d4ab7ac997fb0ba0682b3352d89710574360c6ba2ff59beef1ed9553"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1604fba0c4c395f1d27fba0972fe0afb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11707,
+                "upload_time": "2017-04-12T21:03:38",
+                "url": "https://files.pythonhosted.org/packages/d8/3c/6bf5246a0260c05f03c4ea7ca7f5637615bee4b4a86da839b7616d1c035a/PyBCY-1.4.1.tar.gz"
+            }
+        ],
+        "1.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fa81d1e72f12b9ba6abe1f75ca0a1cf5",
+                    "sha256": "b5204902f2ee9b47a27a8fb6e8b13e49d4ce98d7236953906734ef727942742d"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fa81d1e72f12b9ba6abe1f75ca0a1cf5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11796,
+                "upload_time": "2017-04-12T21:33:14",
+                "url": "https://files.pythonhosted.org/packages/de/51/1abf3a42aff1e326bab92ba176dddef7738ca946779f92c62c5e0b3243be/PyBCY-1.4.2.tar.gz"
+            }
+        ],
+        "1.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "21848dba2c56323618eb21cc008a940f",
+                    "sha256": "0d190dbddf649d0bd7783073553fdd248db988586b712e8ef89953aa1e8e107e"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "21848dba2c56323618eb21cc008a940f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 11976,
+                "upload_time": "2017-04-12T22:11:38",
+                "url": "https://files.pythonhosted.org/packages/4b/a2/3f49b9f887763b86bf8f3ff5cc0e210922002caa4331be1504d596bdacd6/PyBCY-1.4.3.tar.gz"
+            }
+        ],
+        "1.4.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "04e6db2b22e9dd0e15d56dcc700d0d64",
+                    "sha256": "28688184479d8adaf314203fd2a8945a2a91698ec6374b21ff7e7a7d841fceb7"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.4.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "04e6db2b22e9dd0e15d56dcc700d0d64",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12059,
+                "upload_time": "2017-04-22T23:55:55",
+                "url": "https://files.pythonhosted.org/packages/a7/67/810b9fc25dc0d7fc234432c0027359cd325ca4b8303eb07fcfba932bfe45/PyBCY-1.4.4.tar.gz"
+            }
+        ],
+        "1.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "74d194648b862e926bc173e0e1bebd5c",
+                    "sha256": "a6091d22b09e30f32605dd4eeb5df421c0ad2f8ab9c0a6c0991bd9e70f5ff2ad"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "74d194648b862e926bc173e0e1bebd5c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12584,
+                "upload_time": "2017-04-27T23:23:52",
+                "url": "https://files.pythonhosted.org/packages/50/19/05ce7e0c6598b0c181c3a53b0d851fbfca7225325da8d696ca44230c130c/PyBCY-1.5.0.tar.gz"
+            }
+        ],
+        "1.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b5ee13f3c3c0a0f8e684b1e6f8102a9f",
+                    "sha256": "880ad645ab80b65874682b1b2840fe5b590415e17ccfcbc33ca5c822eec13a03"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b5ee13f3c3c0a0f8e684b1e6f8102a9f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12574,
+                "upload_time": "2017-04-28T05:29:54",
+                "url": "https://files.pythonhosted.org/packages/f6/9c/840f6bbc6f7a0273fce0f8d63b289e100328cb3a9c10615e77d457408df7/PyBCY-1.5.1.tar.gz"
+            }
+        ],
+        "1.6.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ef73d458682c0290b433d15adbc8ed35",
+                    "sha256": "9698d12faae4783556456b54c74624f4d6b61d01722222b27993af39c95f865b"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.6.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ef73d458682c0290b433d15adbc8ed35",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12745,
+                "upload_time": "2017-04-30T08:56:58",
+                "url": "https://files.pythonhosted.org/packages/89/53/1c2574ee44540c0730c862f85772b6a18a4925c729795fedcf5db834b877/PyBCY-1.6.0.tar.gz"
+            }
+        ],
+        "1.6.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5fd118206ad9d858168c9f1bb36f68bc",
+                    "sha256": "c9d88e9251fb022e2205e1e78c9f9467e3e11e1ceba181f928fc49d87c7c35b8"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.6.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5fd118206ad9d858168c9f1bb36f68bc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12755,
+                "upload_time": "2017-04-30T08:59:48",
+                "url": "https://files.pythonhosted.org/packages/40/d4/80ae9209cc4d9c937313913ca9c9d9384acc9ccb36d92a8740bc054b6468/PyBCY-1.6.1.tar.gz"
+            }
+        ],
+        "1.6.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "71e0bf0ca2162cc34a0067fdfb371fcc",
+                    "sha256": "b273107b5dc12b8ca4884794fef246e4121299888e57857ab7de791798b04ccc"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.6.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "71e0bf0ca2162cc34a0067fdfb371fcc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 12777,
+                "upload_time": "2017-04-30T11:30:33",
+                "url": "https://files.pythonhosted.org/packages/f1/b8/ec288404aeeab584ce1d096fca9ad8b036b805069e891f8aa7b5f6e37188/PyBCY-1.6.2.tar.gz"
+            }
+        ],
+        "1.7.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cfffc34d1a06926578aa28b579418716",
+                    "sha256": "71bb2e9a7e18cb134070eb35dc323469fe8e3a0c39c423bfc8535ec9471e2efc"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.7.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cfffc34d1a06926578aa28b579418716",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13302,
+                "upload_time": "2017-04-30T16:39:25",
+                "url": "https://files.pythonhosted.org/packages/28/cd/303eb9865de094a0b725c3e89c811ee92d5d70efbf61f344c4554d95f983/PyBCY-1.7.0.tar.gz"
+            }
+        ],
+        "1.7.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e4e5934b3a4f2093de9da77370a8b8a4",
+                    "sha256": "aa0ce18ab865c61064603d099c7dd427d156336c588bc666102d0f971af54890"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.7.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e4e5934b3a4f2093de9da77370a8b8a4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13851,
+                "upload_time": "2017-04-30T17:53:33",
+                "url": "https://files.pythonhosted.org/packages/1e/5b/663c9af62aad0172c7528a2326eea0ca55fc8091ab25600b7fb2036fb778/PyBCY-1.7.2.tar.gz"
+            }
+        ],
+        "1.7.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d2366a81e0a7f8a7e6d85fb83a0a3e47",
+                    "sha256": "5ea671bbeb5cfb2e68becc4c16a10e52f63ff4a3e03a13a492d298ae64be1c1a"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.7.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d2366a81e0a7f8a7e6d85fb83a0a3e47",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13626,
+                "upload_time": "2017-05-01T06:59:23",
+                "url": "https://files.pythonhosted.org/packages/54/ac/dbed75aab7e17e8b2f0f4079758eeb6f76d914bfccf55522f9d9585dabf6/PyBCY-1.7.4.tar.gz"
+            }
+        ],
+        "1.7.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca39a19042660182ea299253feaf620e",
+                    "sha256": "e3fc4aff1e77ed788e8f174d3f537f291f87b8f1f54f5543f2e0ea10d955dcc1"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.7.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ca39a19042660182ea299253feaf620e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13986,
+                "upload_time": "2017-06-11T06:28:48",
+                "url": "https://files.pythonhosted.org/packages/1d/06/749868ec06ac6e397516af51e82e9dc43ca0ab0880eca620b3cff5b36b54/PyBCY-1.7.5.tar.gz"
+            }
+        ],
+        "1.7.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b74a9e6537f30833ddd4711009dea48d",
+                    "sha256": "fdf43b68805e18631b162b897fe4c423792e5e55cbb5545c75ad6fd70cf7d011"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.7.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b74a9e6537f30833ddd4711009dea48d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14008,
+                "upload_time": "2017-06-11T06:35:12",
+                "url": "https://files.pythonhosted.org/packages/83/28/eb8379377e14fdd8a4825e23439fecddbdcbe20f3526d3010dac5480c0b1/PyBCY-1.7.6.tar.gz"
+            }
+        ],
+        "1.7.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "954987dcba73c34474a8baff855a6ab7",
+                    "sha256": "55bc72f1ac749ade28c0047861cc76c6ef8149a3f27adc5a30edece0884690a3"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.7.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "954987dcba73c34474a8baff855a6ab7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14042,
+                "upload_time": "2017-06-11T09:27:19",
+                "url": "https://files.pythonhosted.org/packages/70/7b/a3fb690cdbb47190742d2a8dfbcfa4ee68d8749cf0150565d9c096c21daa/PyBCY-1.7.7.tar.gz"
+            }
+        ],
+        "1.7.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b801d10d430c68e06c21ee83f3d0225f",
+                    "sha256": "acd440c557c1eb6454da81695b3e21bc4ff4c439d0eda9a1df28032a7c8bb72e"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.7.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b801d10d430c68e06c21ee83f3d0225f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13993,
+                "upload_time": "2017-06-17T01:18:51",
+                "url": "https://files.pythonhosted.org/packages/1e/d3/bbd5448457db976c2e9b7d3dc4e6b2d18cda59167a351809aa25e6539481/PyBCY-1.7.8.tar.gz"
+            }
+        ],
+        "1.7.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b75b14d67d21c96c0d3b3f84672cbcac",
+                    "sha256": "c4161ff45fb29d56ffda2cd89b4a96dfe2c3d815f2217966fda2e25d93a957e9"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.7.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b75b14d67d21c96c0d3b3f84672cbcac",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13986,
+                "upload_time": "2017-06-17T01:26:06",
+                "url": "https://files.pythonhosted.org/packages/ee/81/dce57fd17bba41292ef8205ab76105fea0f771c10ee0015959f95aecc6e3/PyBCY-1.7.9.tar.gz"
+            }
+        ],
+        "1.8.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "34c64828209394edeb92cc0f66d33dde",
+                    "sha256": "d2a55a153794e39e2463c30f9f0ab34341f0eaed68172887efd15ba20d0baec0"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.8.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "34c64828209394edeb92cc0f66d33dde",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14001,
+                "upload_time": "2017-06-17T05:47:43",
+                "url": "https://files.pythonhosted.org/packages/f2/41/1444d1e54ee1aa37638afd1b2bf3782cbf30c7088057d9adf05c36f09645/PyBCY-1.8.0.tar.gz"
+            }
+        ],
+        "1.8.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a7d4df679a2a6ccc9ad252ca113a97ec",
+                    "sha256": "b87fc3d4a7a4516dfd21ba57bc971d048b731c44dbdb6d56e31fb47ca07fb34a"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.8.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a7d4df679a2a6ccc9ad252ca113a97ec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14147,
+                "upload_time": "2017-07-01T05:40:16",
+                "url": "https://files.pythonhosted.org/packages/96/73/37417b1a88e697cdae4ba8d47d42ffcadc74ee3ac598d815875aca73de83/PyBCY-1.8.2.tar.gz"
+            }
+        ],
+        "1.8.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2a5d94e6705aeb56e941ca52826f8f55",
+                    "sha256": "c9b3bd6d5210ae2e2e7b5f70c4dc28d15b8eec1d873dccc10976d4bdbaf13f53"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.8.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2a5d94e6705aeb56e941ca52826f8f55",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14394,
+                "upload_time": "2017-07-01T07:34:01",
+                "url": "https://files.pythonhosted.org/packages/54/7b/23297161e23aa0733c2d40f9c1908c2b1cc7bff646e9a6439c747315cc21/PyBCY-1.8.3.tar.gz"
+            }
+        ],
+        "1.8.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "64c0ea4ff16789b7eed5bdff6a59bef7",
+                    "sha256": "0b093171183c2a865ee7345e222c17416a370d8b7f020aac009c238a056f326b"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.8.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "64c0ea4ff16789b7eed5bdff6a59bef7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14486,
+                "upload_time": "2017-07-01T10:12:01",
+                "url": "https://files.pythonhosted.org/packages/d2/c3/3700f2079235a477de66e156f0b02780a7e8cb03540b66a7f0be3bac715b/PyBCY-1.8.4.tar.gz"
+            }
+        ],
+        "1.8.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d57f9d784187b9400d78dbb46ab1178f",
+                    "sha256": "a3f64d005a69ea5d3e4676b6cddadbd9c0928f4f243a8f333983a3fea0026948"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.8.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d57f9d784187b9400d78dbb46ab1178f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14429,
+                "upload_time": "2017-07-01T10:13:18",
+                "url": "https://files.pythonhosted.org/packages/4e/e6/19c7e3e680248e119abfa123f15aac6ceefe65f65807d5f7bb6f80a158e3/PyBCY-1.8.5.tar.gz"
+            }
+        ],
+        "1.8.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f3fa04f88bae68ae5d00b4173562a76b",
+                    "sha256": "a4f0cabc726d872e020b1246fdaf7e1b59581e7b9a434a410dab89526ca8a380"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.8.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f3fa04f88bae68ae5d00b4173562a76b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14420,
+                "upload_time": "2017-07-01T10:13:42",
+                "url": "https://files.pythonhosted.org/packages/78/ef/359751cf13f118c9ef604f302400149d2878aef82204ab806da43fa1aa44/PyBCY-1.8.6.tar.gz"
+            }
+        ],
+        "1.9.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a239307997a2674195937857d90b6c3d",
+                    "sha256": "e06d9913e7c4412e774869c3bd265598962c687e112f9834ad886cd1d52d1101"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.9.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a239307997a2674195937857d90b6c3d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15174,
+                "upload_time": "2017-07-02T18:26:13",
+                "url": "https://files.pythonhosted.org/packages/32/39/22ed3c2cbb0c66f86cf7b69a0333aa88ff06c5a9fb26de05448ada6e2e0a/PyBCY-1.9.0.tar.gz"
+            }
+        ],
+        "1.9.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4857ee4de60a7eafac696df1036ae62c",
+                    "sha256": "2bc4beaf97daeea81904ec913cfc29f1d018946b283f0553017678672e6ef27c"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.9.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4857ee4de60a7eafac696df1036ae62c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14697,
+                "upload_time": "2017-07-03T03:31:53",
+                "url": "https://files.pythonhosted.org/packages/11/be/2e69766fd54c7a1ef3c2a141ad30a8047d266077522ce3fde0bbdff2a292/PyBCY-1.9.2.tar.gz"
+            }
+        ],
+        "1.9.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a38502208389cd7a457c6fa22fbe4dfc",
+                    "sha256": "4aad0d8c9cf5fb0f1bd4b4fc1911e49774df689c323acb985c79cc0af86b510c"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.9.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a38502208389cd7a457c6fa22fbe4dfc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15482,
+                "upload_time": "2017-07-03T03:53:35",
+                "url": "https://files.pythonhosted.org/packages/45/dc/bb11205c04966ac437e6465ca18c742207207372a9a00e8b7c4b967f0b1a/PyBCY-1.9.3.tar.gz"
+            }
+        ],
+        "1.9.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8398d071504ebcc49c8b66c90f4c1cec",
+                    "sha256": "08a020019a8d30fc6198dc8c1c9e7b1c573c496e41b427856a516c52ae1099fe"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.9.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8398d071504ebcc49c8b66c90f4c1cec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13323,
+                "upload_time": "2017-07-05T02:26:55",
+                "url": "https://files.pythonhosted.org/packages/d5/1c/47b75322897195d7b734c2f181ae6a18ab83356ae26f16747d72f617cb05/PyBCY-1.9.5.tar.gz"
+            }
+        ],
+        "1.9.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6ae61ce825051af2c754b92b5cae3ba4",
+                    "sha256": "f0e0aeb2aaaf3f4b654bd58063c42bf8014f0d6aab2be3ab294dea2ba963d47d"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.9.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6ae61ce825051af2c754b92b5cae3ba4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13413,
+                "upload_time": "2017-07-14T18:21:36",
+                "url": "https://files.pythonhosted.org/packages/de/a6/e228d7e5f28e57d86a1348dfc922a5cf8abcc13a27f0a2d817128476833a/PyBCY-1.9.7.tar.gz"
+            }
+        ],
+        "1.9.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1356b15d2473ca6812ac68e197afa2fe",
+                    "sha256": "409ad85b9e01ac463ec52358f3c337ed57260a6a68f6f4c5394be1598bced610"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.9.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1356b15d2473ca6812ac68e197afa2fe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13790,
+                "upload_time": "2017-07-16T02:56:19",
+                "url": "https://files.pythonhosted.org/packages/04/ec/0aebef5f0c7edcf02e21ddf7eeb99a93986a19ceceed00706ee3a462b679/PyBCY-1.9.8.tar.gz"
+            }
+        ],
+        "1.9.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "df20bd112f4f98bad6b21247445f27dd",
+                    "sha256": "50ced364585f68f662c8725036e4a0e80daa33dd62c4d5e1d059d103a68794c6"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-1.9.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "df20bd112f4f98bad6b21247445f27dd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13778,
+                "upload_time": "2017-07-16T02:59:33",
+                "url": "https://files.pythonhosted.org/packages/cc/d9/a521ba360b08f8df8c47848f73fe527e270af2e25ff2e8df688fa32c4a0e/PyBCY-1.9.9.tar.gz"
+            }
+        ],
+        "2.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fa2a3d7591b7d7277784a87199cdf313",
+                    "sha256": "490a7b2abc5dda758c6d3aa8c958cf7ec5d9171e72b4e2e6d32db23fa022b4f7"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fa2a3d7591b7d7277784a87199cdf313",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 13814,
+                "upload_time": "2017-07-16T09:38:44",
+                "url": "https://files.pythonhosted.org/packages/1e/70/af33ce2d681f0fa3d2142ce9d9f9cb82b831b7312935daf52f4f20deb752/PyBCY-2.0.0.tar.gz"
+            }
+        ],
+        "2.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "75ab5c232f7f3b28e7230d2fb6801579",
+                    "sha256": "97cfc1e2ee0ed85847a0ace8635373a6ba445507659cfe46cd9ee1db6b298295"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "75ab5c232f7f3b28e7230d2fb6801579",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14026,
+                "upload_time": "2017-07-18T08:17:08",
+                "url": "https://files.pythonhosted.org/packages/e7/7f/889fcb4d8e81326bfe946c0bff37afa421d2abaaa8605f096847429979ba/PyBCY-2.1.0.tar.gz"
+            }
+        ],
+        "2.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "41894c50e8429d7fcaa4892127bf7c24",
+                    "sha256": "65066def647f2fd6616c1dca008f6166f9a2d80455dfc25b425c45fa08201c37"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "41894c50e8429d7fcaa4892127bf7c24",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14016,
+                "upload_time": "2017-07-18T08:25:03",
+                "url": "https://files.pythonhosted.org/packages/83/77/fdf3706b30085da95c8fb3c0c4b1313a5760f14a5c9565dc08d338d48005/PyBCY-2.1.1.tar.gz"
+            }
+        ],
+        "2.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "75e7cc3e7e739358cb03f8cdf1971d51",
+                    "sha256": "452a128d3ead5d8f96825808a60c528da8ad45ee61712639d016e97aadbc0cf2"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "75e7cc3e7e739358cb03f8cdf1971d51",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14036,
+                "upload_time": "2017-07-18T08:47:01",
+                "url": "https://files.pythonhosted.org/packages/05/1e/bc929f4d993b4c759f80cdceed40cb07b7798ccf03e7b8e014429fd4790f/PyBCY-2.1.2.tar.gz"
+            }
+        ],
+        "2.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "abbdb6d8af55e9e67d7ce14ae1710c66",
+                    "sha256": "a8ecbf0171cdf945b4d3b05b70f48223645dd9c1436ffd44a0423bff6033afb2"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "abbdb6d8af55e9e67d7ce14ae1710c66",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14196,
+                "upload_time": "2017-07-18T09:24:11",
+                "url": "https://files.pythonhosted.org/packages/1d/2f/25848d911ae245b68d0fef88ddd99cd45086e7d72891dd032e35b6f7cddd/PyBCY-2.1.3.tar.gz"
+            }
+        ],
+        "2.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "33ad80bdb2d5fd66a9b29fef9b4a15a4",
+                    "sha256": "fa95598bb8dd3f2cb7bfbc1c203b7af71b1b4570952c91c8ab1ca4ff55440fa3"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "33ad80bdb2d5fd66a9b29fef9b4a15a4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14186,
+                "upload_time": "2017-07-18T10:23:02",
+                "url": "https://files.pythonhosted.org/packages/7d/6b/ffea3ed9c2f2bdeccbe683a19a3b92547ee0451121d0cc4fb4b0f7a8a727/PyBCY-2.1.4.tar.gz"
+            }
+        ],
+        "2.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3eea6246f11b38ac98433d1cd1047ed",
+                    "sha256": "2aee9df97136f4cf79ef6d18b4c46ae448eb383273215cf7fb214dbec54cf6b1"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c3eea6246f11b38ac98433d1cd1047ed",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14231,
+                "upload_time": "2017-07-29T11:09:33",
+                "url": "https://files.pythonhosted.org/packages/67/a6/bb04c61e0768fa0b74bc34429585467b7aa4d0be753eb366e9d76eb4d01f/PyBCY-2.1.5.tar.gz"
+            }
+        ],
+        "2.1.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ced7503456624fae220ac21995946730",
+                    "sha256": "e17d2501b55386cde0820d9c5f0d4c20d3841263a596d7e370ffb686838e2b65"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ced7503456624fae220ac21995946730",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14412,
+                "upload_time": "2017-07-30T17:16:28",
+                "url": "https://files.pythonhosted.org/packages/dd/cf/f03fe91667291c08252454fa149b4d4ab218837365622295da76c5784674/PyBCY-2.1.7.tar.gz"
+            }
+        ],
+        "2.1.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a13ad38a39a0254e3092019532670687",
+                    "sha256": "a226907604dbe460b81578691f0f1ed640c9e5d479ccea5c59f157a9fc9c0251"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a13ad38a39a0254e3092019532670687",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14346,
+                "upload_time": "2017-08-03T02:23:11",
+                "url": "https://files.pythonhosted.org/packages/0b/07/80e9e8c3059971fb20d559f75e3d633d98d36d2739c857350568807fe5e3/PyBCY-2.1.8.tar.gz"
+            }
+        ],
+        "2.1.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "daad22114d4364facebae4f62b10dd7a",
+                    "sha256": "d36e1086f104cb7066f79439f56655cf28312d4ea898c5c1db538035907fc5a5"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.1.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "daad22114d4364facebae4f62b10dd7a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14338,
+                "upload_time": "2017-08-12T17:12:11",
+                "url": "https://files.pythonhosted.org/packages/85/d0/9a02cad9e0129d1ead6c315c5f2edf5c173328c3d88c8799e9ef52c8312b/PyBCY-2.1.9.tar.gz"
+            }
+        ],
+        "2.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "00e57a5141eae61c0dc47cd3855ee440",
+                    "sha256": "14c07ac13910b70d58f26e13d7039ffeecf09a56b23502a1d2d125f96d09af6f"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "00e57a5141eae61c0dc47cd3855ee440",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14621,
+                "upload_time": "2017-10-08T05:28:26",
+                "url": "https://files.pythonhosted.org/packages/8a/f1/dcd28daeccd46e281aae92e5290fa20bd3753f60a0b0a393f912dcf91437/PyBCY-2.2.0.tar.gz"
+            }
+        ],
+        "2.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aecb86a9a4a88b9cbcfd19143f9feb0b",
+                    "sha256": "95edafffb56a572be52ba9a00740e57cf2abc3723bb1baa35f81144b4322bf60"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aecb86a9a4a88b9cbcfd19143f9feb0b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14641,
+                "upload_time": "2017-10-15T22:40:24",
+                "url": "https://files.pythonhosted.org/packages/0d/e8/9ad9b8ea036ea094bd1f2fa38d9c8db7c0765d13442c3825b8b0020eafb9/PyBCY-2.2.1.tar.gz"
+            }
+        ],
+        "2.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "799cbf66437447c6a0b3474030ab02ae",
+                    "sha256": "33bdfbdbf6a9768d849ebd2326b3629cba4a2552e5094f1fcafae7af9c523041"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "799cbf66437447c6a0b3474030ab02ae",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14645,
+                "upload_time": "2017-10-17T21:14:47",
+                "url": "https://files.pythonhosted.org/packages/c5/38/c79b73897acb490e633cccab6c5f267e4c9a17a04c3697ea03f342e1cbbd/PyBCY-2.2.2.tar.gz"
+            }
+        ],
+        "2.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "42cac1c15787d624b036a58b0002d606",
+                    "sha256": "57d8edeb008e0444c63dc9406d344eeb081742ce0afbd25796fb2d40d281f791"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "42cac1c15787d624b036a58b0002d606",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14629,
+                "upload_time": "2017-10-17T22:05:57",
+                "url": "https://files.pythonhosted.org/packages/ef/51/9b87874d75382578d07bef8fddb0fe7e14b23148d86c7004c4210da90e97/PyBCY-2.2.3.tar.gz"
+            }
+        ],
+        "2.2.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b8e3064442cbcb6c1159e8219c9e68dd",
+                    "sha256": "ab5e1455fc1c96789386efdf772c8208f6a868020dd23218c7f61a6fa7418209"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b8e3064442cbcb6c1159e8219c9e68dd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14695,
+                "upload_time": "2017-10-17T22:27:18",
+                "url": "https://files.pythonhosted.org/packages/39/5e/a52aa705d859ab19dea0b515f5a6ef7a8c6075aff11d683a37f6da2bd97f/PyBCY-2.2.4.tar.gz"
+            }
+        ],
+        "2.2.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9b396662ad329a921b86d104d94357b1",
+                    "sha256": "e55baa21e76c83f7547e0dc97a68e17661afcd9135cecc01cac0f629404fae4f"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9b396662ad329a921b86d104d94357b1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14691,
+                "upload_time": "2017-10-17T22:43:39",
+                "url": "https://files.pythonhosted.org/packages/cc/ff/6a0810749ba21d434c43687eab483bca6d90553f955064e1ce0671a5d32d/PyBCY-2.2.5.tar.gz"
+            }
+        ],
+        "2.2.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "857ef51052b1df6783588a3b13c1b7f2",
+                    "sha256": "47d21514efe10657743eb6db6403de4030c0b4cc2b83eede1f87c4600ee79ea1"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "857ef51052b1df6783588a3b13c1b7f2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14700,
+                "upload_time": "2017-10-18T20:54:41",
+                "url": "https://files.pythonhosted.org/packages/3a/1c/0b1857a8c6bff2e227d2ab0b252a2547250d564519ccc1351e19e8ce6582/PyBCY-2.2.6.tar.gz"
+            }
+        ],
+        "2.2.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "34ce5abb0b856a04b685e159d5285d11",
+                    "sha256": "ab90b6fe019a7d5d15c627a524559f99b00ab13cc6e55d6df8a510a419b62862"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "34ce5abb0b856a04b685e159d5285d11",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14697,
+                "upload_time": "2017-10-18T20:57:14",
+                "url": "https://files.pythonhosted.org/packages/c8/ad/d154d95e3d25cd2f6e7b417c624b70e4775fa54904016c8e8135d8f8356d/PyBCY-2.2.7.tar.gz"
+            }
+        ],
+        "2.2.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aedde8ca32ad89da4138918dd4af4e41",
+                    "sha256": "b54fce8174cdab40b4d22c95861a6ced3c49a86511c6f90be6d7bee921957923"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.2.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "aedde8ca32ad89da4138918dd4af4e41",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14697,
+                "upload_time": "2017-10-20T22:10:35",
+                "url": "https://files.pythonhosted.org/packages/3d/cd/08b2328d8f9d84d402ae7ba88db581e324728778a1fe0a1097c7e1d7ed2c/PyBCY-2.2.8.tar.gz"
+            }
+        ],
+        "2.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6304acf30ec8b90caf918f0d755d2973",
+                    "sha256": "683ad4191ac8b0ab2266aa6f75c576fd68310baa6655b4b77c1c602853271db8"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6304acf30ec8b90caf918f0d755d2973",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14923,
+                "upload_time": "2017-11-05T23:37:40",
+                "url": "https://files.pythonhosted.org/packages/4c/c7/e391d8ec1c2b761cecd7a7972e5f3affeda37fda2670dcf150e9eea1fb71/PyBCY-2.3.0.tar.gz"
+            }
+        ],
+        "2.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5e6c8924970f482b3ade6ea3c2499e8f",
+                    "sha256": "6f0b61a3338aeded673e7ced15fdb511ecec648c10b11213c2b4c360fb0a8819"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5e6c8924970f482b3ade6ea3c2499e8f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 14851,
+                "upload_time": "2017-11-06T00:37:14",
+                "url": "https://files.pythonhosted.org/packages/80/95/8d3676a868ef07da0012b39bab868039226cd010655a6feb64be7338e541/PyBCY-2.3.1.tar.gz"
+            }
+        ],
+        "2.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "93ba64bfe793a45479d7026edeb9d238",
+                    "sha256": "a1b5718bf1d1b66d39fda12907e1957579c33fa6ed100ef08a955f1620e6016f"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "93ba64bfe793a45479d7026edeb9d238",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15386,
+                "upload_time": "2017-11-07T02:23:29",
+                "url": "https://files.pythonhosted.org/packages/2f/59/d5621adb12eca19caac6242b57a1c4ec437f3f0340202f16071ea574bdcf/PyBCY-2.4.0.tar.gz"
+            }
+        ],
+        "2.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "164de4535ff14412bce7fa3a5cec6146",
+                    "sha256": "7f2ab0ee9fe1b5fbc3692fb5c6e8f69b9ddff0bc74739d562ee0d02e3e2ebc5d"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "164de4535ff14412bce7fa3a5cec6146",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15378,
+                "upload_time": "2017-11-07T02:26:51",
+                "url": "https://files.pythonhosted.org/packages/3c/bd/875e298a13849b4562a359a35774ddee2c0d9846274b4e6022b0c392b228/PyBCY-2.4.1.tar.gz"
+            }
+        ],
+        "2.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4575275a925b53363faea7a5d10e0409",
+                    "sha256": "5eae2832499cbc2f02304f28c4a2eff7446bc4362b01fa81536f65878d3c78c5"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4575275a925b53363faea7a5d10e0409",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15544,
+                "upload_time": "2017-11-08T06:57:40",
+                "url": "https://files.pythonhosted.org/packages/9e/fe/e305ec90b766e8ed413062e157c17e0c47694a3103c40fea6542b7b02b0a/PyBCY-2.5.1.tar.gz"
+            }
+        ],
+        "2.5.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6d6ca98eabfecff0ab2721491e0f2c93",
+                    "sha256": "b6f78f8c573a89b7e96d79e6ac51270f44a0a8d357021b67b3d8e33a70ee8646"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.5.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6d6ca98eabfecff0ab2721491e0f2c93",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 15565,
+                "upload_time": "2017-11-08T06:59:53",
+                "url": "https://files.pythonhosted.org/packages/8d/dc/fa1b860a8c6a4bd89c38d4e7b255412f0ef10ee44389ca6e95d5c121effc/PyBCY-2.5.2.tar.gz"
+            }
+        ],
+        "2.5.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "843b933ead4b1e230f4d6f9334cfbbf4",
+                    "sha256": "46d1b2e8821a2bf7716fca4c499a7c48cb822a238d479226a335ad79eabb6f7d"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.5.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "843b933ead4b1e230f4d6f9334cfbbf4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19094,
+                "upload_time": "2017-11-08T07:07:15",
+                "url": "https://files.pythonhosted.org/packages/a8/88/ceebdf51bd2deccab2e666f01f9e440fdaa5cf8aafd0c5d59786d5929d70/PyBCY-2.5.3.tar.gz"
+            }
+        ],
+        "2.5.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "68e16e3f12a02cfa18c9e02cd4354ac8",
+                    "sha256": "54d3c956c303a911fa949d75b1d3fb950120bb7f8a1ea9119efb1d9ffb5e06b5"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.5.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "68e16e3f12a02cfa18c9e02cd4354ac8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19098,
+                "upload_time": "2017-11-08T08:09:23",
+                "url": "https://files.pythonhosted.org/packages/d1/fb/4646222025e8c8d56aeaf08164a6d9dd2169b24e4197441dc77938407c1d/PyBCY-2.5.4.tar.gz"
+            }
+        ],
+        "2.6.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c4e1fddd4efb5b9800e4e898a25ae772",
+                    "sha256": "329c9221c9a74f718e22fa39739854dcd6a96448ccfacc068658f2a2d76d4759"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.6.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c4e1fddd4efb5b9800e4e898a25ae772",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18639,
+                "upload_time": "2017-11-12T08:05:33",
+                "url": "https://files.pythonhosted.org/packages/c8/23/418387bb4810d10abd35f518781f83dd95a7b101fddfa90972a56e889602/PyBCY-2.6.1.tar.gz"
+            }
+        ],
+        "2.6.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "09ead5f57434a687503f277c96a5527d",
+                    "sha256": "fdcc34cb1156d0185dd886ae7a571f75e67cea197cda2d00f39f45ae32c1849a"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.6.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "09ead5f57434a687503f277c96a5527d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18576,
+                "upload_time": "2017-11-13T18:19:18",
+                "url": "https://files.pythonhosted.org/packages/f6/6a/909f542da91658cb51314420b2f9b24b2f352402fc3ffb87c837d16ebb00/PyBCY-2.6.2.tar.gz"
+            }
+        ],
+        "2.6.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ab4817be9d599170bbf16a6e7c74c3cf",
+                    "sha256": "50a5016a8a81cb4d3262d2577684f42dd60b200ffb4c8e8a11ad72d16bcaa531"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.6.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ab4817be9d599170bbf16a6e7c74c3cf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18575,
+                "upload_time": "2017-11-15T16:40:07",
+                "url": "https://files.pythonhosted.org/packages/17/0c/436c173b9bd0a2c87f23dd74500590e2809a59ec0d1605daa0a2cf2b5384/PyBCY-2.6.3.tar.gz"
+            }
+        ],
+        "2.6.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d90fee791a97195afab8be9199b9fa91",
+                    "sha256": "37f833a26d20df6982ac43e38f52304e1d2445033eaaa2506d41139488f8aec0"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.6.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d90fee791a97195afab8be9199b9fa91",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18606,
+                "upload_time": "2017-11-17T09:20:36",
+                "url": "https://files.pythonhosted.org/packages/b4/24/658184f50ade3af5b517535c9e71ee5c722cb49305401ba3d11867f8600f/PyBCY-2.6.4.tar.gz"
+            }
+        ],
+        "2.7.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b2b02868a18a25a8757b411fdbfa99ec",
+                    "sha256": "43bb0fde1f3fa0e1518fa4622b08b2b310c24a5d8bfdd1a2fcd3739ac81c3f90"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.7.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b2b02868a18a25a8757b411fdbfa99ec",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19828,
+                "upload_time": "2017-11-18T10:10:18",
+                "url": "https://files.pythonhosted.org/packages/89/88/6001f177154044b071f1eb829467802689dc91d9063533588e725538a261/PyBCY-2.7.0.tar.gz"
+            }
+        ],
+        "2.7.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "616a9cb0283a046bd66c42eca6ab57fe",
+                    "sha256": "7de66bebdfe9cd76510bd2bf9c08775048e7dd91674a98cacf224fbb2ed1126d"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.7.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "616a9cb0283a046bd66c42eca6ab57fe",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19827,
+                "upload_time": "2017-11-18T10:23:12",
+                "url": "https://files.pythonhosted.org/packages/f4/dd/354932b6ba6c21d15b41ad6ee831ea1af37161ca36accb1558c8fa9d74e4/PyBCY-2.7.1.tar.gz"
+            }
+        ],
+        "2.7.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "84d3a5c4e7a89ece3dcd9d621e864c7c",
+                    "sha256": "f0e508f1cea1dcf97a23dd838df1ddf8e9e7f0b0eeaaef72ecd74bd73e2dd222"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.7.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "84d3a5c4e7a89ece3dcd9d621e864c7c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19602,
+                "upload_time": "2017-11-18T12:29:47",
+                "url": "https://files.pythonhosted.org/packages/a4/c8/0e308b819d1c71608717f444f62f7c56f549fe21432c0862576e8a8900d0/PyBCY-2.7.3.tar.gz"
+            }
+        ],
+        "2.7.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6b4ae0bf1718f554eef19afce47cb392",
+                    "sha256": "a43871de14ad32cacabccc742873f9455b426a56c06967eb47356d58d65a2fbc"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.7.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6b4ae0bf1718f554eef19afce47cb392",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19606,
+                "upload_time": "2017-11-18T12:32:30",
+                "url": "https://files.pythonhosted.org/packages/68/b0/5f3366e065238e462cc440a0e7b7811f326823e07f253a24ff0e49be5b95/PyBCY-2.7.4.tar.gz"
+            }
+        ],
+        "2.7.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d3993319acde72b35b08d6eccc2e957a",
+                    "sha256": "5ce6936d68e59a5c67d238103580bd08b81e80858a047a87599584c8a6ed8da0"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.7.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d3993319acde72b35b08d6eccc2e957a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 19570,
+                "upload_time": "2017-11-18T17:02:19",
+                "url": "https://files.pythonhosted.org/packages/4e/52/7ba76951d80f18244484c7f89c1a657ec50e6c99848adc230285c37776a7/PyBCY-2.7.5.tar.gz"
+            }
+        ],
+        "2.7.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4ed5adb1006b8006be8e299935ad9515",
+                    "sha256": "20b015c5f4ca0db065e58b97d1e2a0a234507b311430fcb20f29d6c202a8f9ee"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.7.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4ed5adb1006b8006be8e299935ad9515",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20400,
+                "upload_time": "2017-12-03T22:01:06",
+                "url": "https://files.pythonhosted.org/packages/0d/df/79c415ab7bd39a854c6ae2b5b6300e061b93dc9ab4cbeae7e60fc236ba3b/PyBCY-2.7.8.tar.gz"
+            }
+        ],
+        "2.7.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0b6fbba7f2979428548f343d6c7dfb77",
+                    "sha256": "94e5e1cb386c9008cf89ed84fdb594f059f95dd56a3b64ef3de39aae06575252"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.7.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0b6fbba7f2979428548f343d6c7dfb77",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20395,
+                "upload_time": "2017-12-03T22:07:18",
+                "url": "https://files.pythonhosted.org/packages/60/7c/d148f295987b70cafe5bcf23ed19142519f360b04185d9925e60043c6d12/PyBCY-2.7.9.tar.gz"
+            }
+        ],
+        "2.8.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7e24de2e4010583a0502bc57523b53e5",
+                    "sha256": "028faf7299a7e11bbe65fc685eff9076bba9082db75c1ca0ca891048bfd1cfbf"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.8.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7e24de2e4010583a0502bc57523b53e5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20284,
+                "upload_time": "2017-12-03T23:14:40",
+                "url": "https://files.pythonhosted.org/packages/b1/7f/9e47d0c3a8c42b740d9c9de420d4d9d866e31c985eb2cf3358b25af4f98b/PyBCY-2.8.0.tar.gz"
+            }
+        ],
+        "2.8.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7b781f3b5699af460dd2418acce06794",
+                    "sha256": "ec36cb2f47b10d2b5c1d620d68c6e7137a39644797081858ce1abcb2333793d8"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.8.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7b781f3b5699af460dd2418acce06794",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20265,
+                "upload_time": "2017-12-05T19:30:48",
+                "url": "https://files.pythonhosted.org/packages/a3/44/1f87ee040d0aa974b3de7122d5cd454d7db48f4b0a4a579cddc6bdfe903d/PyBCY-2.8.1.tar.gz"
+            }
+        ],
+        "2.8.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b7f199db9c370901da84e27db6149c8f",
+                    "sha256": "70fb777cdf4b5ebf08946854e0dd0783bb979f536fc34d69ae933db270859943"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.8.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b7f199db9c370901da84e27db6149c8f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20471,
+                "upload_time": "2017-12-15T16:24:13",
+                "url": "https://files.pythonhosted.org/packages/b0/52/ab5d1cc9ecdb0e515281c74678000596d515fb316036bd9ff41c61b5b2ef/PyBCY-2.8.2.tar.gz"
+            }
+        ],
+        "2.9.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ff5620c201e578d44b59b2cde9ed7281",
+                    "sha256": "118ded8f7f745aecdc846f69776cb0c3e7ce07f665e7cb7d2b53b6398c0483d3"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.9.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ff5620c201e578d44b59b2cde9ed7281",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20486,
+                "upload_time": "2018-01-15T02:06:20",
+                "url": "https://files.pythonhosted.org/packages/14/e0/6f87b62980c28498e98e96ba64c24c97f68166fc16cea30087e67b7379e1/PyBCY-2.9.0.tar.gz"
+            }
+        ],
+        "2.9.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78c72e249e74705a854419d12e5a8d53",
+                    "sha256": "4af84529008f09c551399103cd79316dad424730b3f26353dd883dcb548b1110"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.9.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "78c72e249e74705a854419d12e5a8d53",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20536,
+                "upload_time": "2018-04-12T21:02:44",
+                "url": "https://files.pythonhosted.org/packages/e0/5c/32dd27a4e1513fab5bdbfb2d8c4f10a0861011f5cb125b98643187317f2f/PyBCY-2.9.1.tar.gz"
+            }
+        ],
+        "2.9.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bafac48842a2e4bbbd647c2e2c3d69d0",
+                    "sha256": "2fdd0b2e7858eb2a3acbf39786c2a9de3f0f7c5a53d602e184f38d8c4b360d67"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-2.9.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bafac48842a2e4bbbd647c2e2c3d69d0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 20538,
+                "upload_time": "2018-04-12T21:15:35",
+                "url": "https://files.pythonhosted.org/packages/2f/57/025b0af23f8b606b8204f89b4c748c8f9c8a26b089b1af8f5592d1db49c6/PyBCY-2.9.2.tar.gz"
+            }
+        ],
+        "3.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "aa19f742ba39963162716a62b90543ee",
+                    "sha256": "ff4d856df07fd40f43c837a23b500cfa5d6e1a1cf005fc4efbb10a2a7ef0efe7"
+                },
+                "downloads": -1,
+                "filename": "PyBCY-3.0.0-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "aa19f742ba39963162716a62b90543ee",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 29953,
+                "upload_time": "2018-10-20T03:35:47",
+                "url": "https://files.pythonhosted.org/packages/3d/e1/da15c75c57aa7dc1a96cb11ecc91bf8c3b86685f0d08f130c0cdbb373acc/PyBCY-3.0.0-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "aa19f742ba39963162716a62b90543ee",
+                "sha256": "ff4d856df07fd40f43c837a23b500cfa5d6e1a1cf005fc4efbb10a2a7ef0efe7"
+            },
+            "downloads": -1,
+            "filename": "PyBCY-3.0.0-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "aa19f742ba39963162716a62b90543ee",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 29953,
+            "upload_time": "2018-10-20T03:35:47",
+            "url": "https://files.pythonhosted.org/packages/3d/e1/da15c75c57aa7dc1a96cb11ecc91bf8c3b86685f0d08f130c0cdbb373acc/PyBCY-3.0.0-py2.py3-none-any.whl"
+        }
+    ]
+}

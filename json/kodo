@@ -1,0 +1,175 @@
+{
+    "info": {
+        "author": "Steinwurf ApS",
+        "author_email": "pip@steinwurf.com",
+        "bugtrack_url": "",
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "Intended Audience :: Telecommunications Industry",
+            "License :: Free For Educational Use",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: C++",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4"
+        ],
+        "description": "kodo-python\n===========\n\nkodo-python contains a set of high-level Python bindings for the Kodo Network\nCoding C++ library. The bindings provide access to basic functionality provided\nby Kodo, such as encoding and decoding data. The examples folder contains\nsample applications showing the usage of the Python API.\n\n.. image:: http://buildbot.steinwurf.dk/svgstatus?project=kodo-python\n    :target: http://buildbot.steinwurf.dk/stats?projects=kodo-python\n    :alt: Buildbot status\n.. image:: https://badge.fury.io/py/kodo.svg\n    :target: http://badge.fury.io/py/kodo\n.. image:: https://pypip.in/download/kodo/badge.svg\n    :target: https://pypi.python.org/pypi/kodo\n    :alt: Downloads\n.. image:: https://pypip.in/py_versions/kodo/badge.svg\n    :target: https://pypi.python.org/pypi/kodo\n    :alt: Supported Python versions\n.. image:: https://pypip.in/format/kodo/badge.svg\n    :target: https://pypi.python.org/pypi/kodo\n    :alt: Download format\n.. image:: https://pypip.in/license/kodo/badge.svg\n    :target: https://pypi.python.org/pypi/kodo\n    :alt: License\n\nIf you have any questions or suggestions about this library, please contact\nus at our developer mailing list (hosted at Google Groups):\n\n* http://groups.google.com/group/steinwurf-dev\n\n.. contents:: Table of Contents:\n   :local:\n\nLicense\n-------\n\nA valid license is required if you wish to use and install this library. Please\nrequest a license by **filling out the license request** form_.\n\nThis project is available under a research- and education-friendly license,\nsee the details in the `LICENSE.rst file\n<https://github.com/steinwurf/kodo-python/blob/master/LICENSE.rst>`_.\n\n.. _form: http://steinwurf.com/license/\n\n\nRequirements\n------------\n\nFirst of all, follow `this Getting Started guide\n<http://kodo-docs.steinwurf.com/en/latest/getting_started.html>`_ to install\nthe basic tools required for the compilation (C++11 compiler, Git, Python).\n\nThe compilers used by Steinwurf are listed at the bottom of the\n`buildbot page <http://buildbot.steinwurf.com>`_.\n\nLinux\n.....\n\nThese steps may not work with your specific Linux distribution, but they may\nguide you in the right direction.\n\nFirst, acquire the required packages from your package management system::\n\n  sudo apt-get update\n  sudo apt-get install python build-essential libpython-dev python-dev\n\nIf you are using Python 3, you'll need to install ``libpython3-dev`` instead.\n\nMacOSX\n......\n\nInstall the latest XCode and Command Line Tools from the Mac Store.\n\nPython 2.7 is pre-installed on OSX, and the required Python headers should\nalso be available. If you are having trouble with the pre-installed Python\nversion, then you can install a more recent Python version with MacPorts or\nHomebrew.\n\nWindows\n.......\n\nInstall Python 2.7 (32-bit) and Visual Studio Express 2013 for Windows Desktop.\nThen set the ``VS90COMNTOOLS`` environment variable to::\n\n  C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\Common7\\Tools\\\n\nso that Python distutils can detect your new compiler.\n\n\nBuilding From Source\n--------------------\n\nIt is recommended to build the Python bindings from source (the other option\nis installing with pip as described below).\n\nFirst, clone the project::\n\n  git clone git@github.com:steinwurf/kodo-python.git\n\nConfigure and build the project::\n\n  cd kodo-python\n  python waf configure\n  python waf build\n\nAfter building the project, you should find the resulting ``kodo.so``,\n``kodo.dylib`` or ``kodo.pyd`` file here (the actual path and extension\ndepend on your OS)::\n\n  build/linux/src/kodo_python/kodo.so\n  build/darwin/src/kodo_python/kodo.dylib\n  build/win32/src/kodo_python/kodo.pyd\n\nYou can copy this file to the same folder as your Python scripts, or you\ncan copy it to your PYTHONPATH (so that you can import it from anywhere).\n\nThen you can import the module in your Python script::\n\n  >>> import kodo\n\nCompilation Issues on Linux\n...........................\n\nThe compilation process might take a long time on certain Linux systems if\nless than 4 GB RAM is available. The g++ optimizer might consume a lot of RAM\nduring the compilation, so if you see that all your RAM is used up, then\nit is recommended to constrain the number of parallel jobs to one during the\nbuild step::\n\n    python waf build -j 1\n\nWith this change, a fast compilation is possible with 2 GB RAM.\n\nThis issue is specific to g++ (which is the default compiler on Linux), but\nthe RAM usage and the compilation time could be much better with clang.\nThe code produced by clang is also fast.\n\nIf the compilation does not work with g++, then you can install clang like\nthis (on Ubuntu and Debian)::\n\n    sudo apt-get install clang-3.5\n\nThen you should configure the project with the appropriate mkspec. Use the\nfollowing command on 32-bit Linux::\n\n    python waf configure --options=cxx_mkspec=cxx_clang35_x86\n\nOr use this one on 64-bit Linux::\n\n    python waf configure --options=cxx_mkspec=cxx_clang35_x64\n\nCompiling on the Raspberry Pi\n.............................\n\nThe detailed instructions for compiling the project on the Raspberry Pi\nare found in our `Raspberry guide\n<https://github.com/steinwurf/kodo-python/blob/master/RASPBERRY_GUIDE.rst>`_.\n\n\nPip Package\n-----------\n\nWe also provide a pip package for the installation of kodo-python with a\nsingle command.\n\nIf you don't have pip installed, then you can\n`follow this guide <https://pip.pypa.io/en/latest/installing.html>`_.\n\nOf course, you also need to install the required tools specified above.\n\nNote that the pip package might not contain the latest version of kodo-python,\nand it might not work on all systems. In fact, pip will also build the project\nfrom source, download its dependencies, configure the compiler, but these\ndetails are largely hidden from you. Debugging pip errors could be difficult,\nso please build the project from source if pip does not work for you.\n\nLinux/MacOSX\n............\n\nInstall the package with this command::\n\n  sudo pip install kodo\n\nWindows\n.......\n\nTo enable the use of pip from the command line, ensure that the ``Scripts``\nsubdirectory of your Python installation is available on the system ``PATH``.\n(This is not done automatically.)\n\nInstall the package with this command::\n\n  pip install kodo",
+        "description_content_type": null,
+        "docs_url": null,
+        "download_url": "UNKNOWN",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/steinwurf/kodo-python",
+        "keywords": "steinwurf network coding rlnc random linear network coding",
+        "license": "Steinwurf Research License",
+        "maintainer": null,
+        "maintainer_email": null,
+        "name": "kodo",
+        "package_url": "https://pypi.org/project/kodo/",
+        "platform": "Windows,Linux,MacOS X",
+        "project_url": "https://pypi.org/project/kodo/",
+        "release_url": "https://pypi.org/project/kodo/8.0.1/",
+        "requires_dist": null,
+        "requires_python": null,
+        "summary": "RLNC Network Coding Library",
+        "version": "8.0.1"
+    },
+    "last_serial": 1691115,
+    "releases": {
+        "6.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dda2f46f9199a6388f70975ed012d3c7",
+                    "sha256": "623a5cc19932d09c7cd8bca26bfbe9eb644f2c6fb7f36f36a911d3829989a26a"
+                },
+                "downloads": -1,
+                "filename": "kodo-6.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dda2f46f9199a6388f70975ed012d3c7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 5989,
+                "upload_time": "2015-01-07T09:04:56",
+                "url": "https://files.pythonhosted.org/packages/69/5f/9bb5cc304bff6cffc77b4cf504eb3251e28700d80a6a794ed514862c0b3a/kodo-6.0.0.tar.gz"
+            }
+        ],
+        "6.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9db5ca940ff41f108044f4f2d469c64e",
+                    "sha256": "f3fabf436f653b17e0acf99c949d81e69b39eb92e4089a45d0029e11124e07cf"
+                },
+                "downloads": -1,
+                "filename": "kodo-6.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9db5ca940ff41f108044f4f2d469c64e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 5978,
+                "upload_time": "2015-01-09T12:49:43",
+                "url": "https://files.pythonhosted.org/packages/16/b0/7b511e4f13e4c6963193b4bfd72990dae7e2a389af31544e6b24c971d97a/kodo-6.0.1.tar.gz"
+            }
+        ],
+        "6.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cdb9c81c49a49cca4ee95b992b1a735a",
+                    "sha256": "ff5eee66d7bc1fcd177670e361449e1876890fcdf1fab971146ded02e2e0a896"
+                },
+                "downloads": -1,
+                "filename": "kodo-6.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cdb9c81c49a49cca4ee95b992b1a735a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 5982,
+                "upload_time": "2015-01-15T12:47:45",
+                "url": "https://files.pythonhosted.org/packages/7a/02/721684e4fdb9809efdf6296b508175e9fff3476c1b5c7ed4b13a538f4109/kodo-6.0.2.tar.gz"
+            }
+        ],
+        "7.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1f10c8f7dee96c2dfdd9002dd9b1b4a1",
+                    "sha256": "83b346931029908dd8623d1ebbc6764aed87f5001c2c35978417a350dc6953cb"
+                },
+                "downloads": -1,
+                "filename": "kodo-7.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1f10c8f7dee96c2dfdd9002dd9b1b4a1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 6032,
+                "upload_time": "2015-04-13T11:56:30",
+                "url": "https://files.pythonhosted.org/packages/9e/0f/17814aa8921df104abd077d077c7b787e2e0a08ff5193de985011066c1f8/kodo-7.0.0.tar.gz"
+            }
+        ],
+        "8.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8bfec99c89c4cabe50e8027667d39482",
+                    "sha256": "b71901f841cc2b3c9ec2c6e0a33a428c36ba75e9f7ff50c0cb463178e769cbe4"
+                },
+                "downloads": -1,
+                "filename": "kodo-8.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8bfec99c89c4cabe50e8027667d39482",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7011,
+                "upload_time": "2015-08-05T14:31:41",
+                "url": "https://files.pythonhosted.org/packages/d3/6e/d74a849f2fc5b9d23c6ddd1b91a8f4f6db8e26ee8c505a4460a0a27fdd1a/kodo-8.0.0.tar.gz"
+            }
+        ],
+        "8.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0b5fd073265f8770fe6c02d5484aa950",
+                    "sha256": "ac7978f937ac555ae87ad20f024b66133812862b414103722d0b8395017f11ed"
+                },
+                "downloads": -1,
+                "filename": "kodo-8.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0b5fd073265f8770fe6c02d5484aa950",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "size": 7022,
+                "upload_time": "2015-08-24T14:43:12",
+                "url": "https://files.pythonhosted.org/packages/69/46/1dd2d3b319ef9b786653f3a62eb1e80bf563759f93891b6d5503a19cbd75/kodo-8.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "0b5fd073265f8770fe6c02d5484aa950",
+                "sha256": "ac7978f937ac555ae87ad20f024b66133812862b414103722d0b8395017f11ed"
+            },
+            "downloads": -1,
+            "filename": "kodo-8.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "0b5fd073265f8770fe6c02d5484aa950",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "size": 7022,
+            "upload_time": "2015-08-24T14:43:12",
+            "url": "https://files.pythonhosted.org/packages/69/46/1dd2d3b319ef9b786653f3a62eb1e80bf563759f93891b6d5503a19cbd75/kodo-8.0.1.tar.gz"
+        }
+    ]
+}

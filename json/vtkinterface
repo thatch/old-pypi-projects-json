@@ -1,0 +1,862 @@
+{
+    "info": {
+        "author": "Alex Kaszynski",
+        "author_email": "akascap@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Scientific/Engineering :: Information Analysis"
+        ],
+        "description": "vtkInterface\n============\n..\n   PyPi\n.. image:: https://img.shields.io/pypi/v/vtkInterface.svg\n    :target: https://pypi.org/project/vtkInterface/\n\n.. image:: https://travis-ci.org/akaszynski/vtkInterface.svg?branch=master\n    :target: https://travis-ci.org/akaszynski/vtkInterface\n\n.. image:: https://readthedocs.org/projects/vtkinterface/badge/?version=latest\n    :target: https://vtkinterface.readthedocs.io/en/latest/?badge=latest\n\nvtkInterface is a VTK helper module that takes a different approach on interfacing with VTK through numpy and direct array access.  This module simplifies mesh creation and plotting by adding functionality to existing VTK objects.\n\nThis module can be used for scientific plotting for presentations and research papers as well as a supporting module for other mesh dependent Python modules.\n\n\nDocumentation\n-------------\nRefer to the detailed `readthedocs <http://vtkinterface.readthedocs.io/en/latest/index.html>`_ documentation for detailed installation and usage details.\n\nAlso see the `wiki <https://github.com/akaszynski/vtkInterface/wiki>`_ for brief code snippets.\n\nInstallation\n------------\nInstallation is simply::\n\n    pip install vtkInterface\n    \nYou can also visit `PyPi <http://pypi.python.org/pypi/vtkInterface>`_ or `GitHub <https://github.com/akaszynski/vtkInterface>`_ to download the source.\n\nSee the `Installation <http://vtkinterface.readthedocs.io/en/latest/installation.html#install-ref.>`_ for more details if the installation through pip doesn't work out.\n\n\nQuick Examples\n--------------\n\nLoading and Plotting a Mesh from File\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nLoading a mesh is trivial\n\n.. code:: python\n\n    import vtkInterface as vtki\n    mesh = vtki.PolyData('airplane.ply')\n    mesh.Plot(color='orange')\n\n.. figure:: https://github.com/akaszynski/vtkInterface/raw/master/docs/images/airplane.png\n    :width: 500pt\n\nIn fact, the code to generate the previous screenshot was created with::\n\n    mesh.Plot(screenshot='airplane.png', color='orange')\n\nThe points and faces from the mesh are directly accessible as a numpy array:\n\n.. code:: python\n\n    >>> print(mesh.points)\n    [[ 896.99401855   48.76010132   82.26560211]\n     [ 906.59301758   48.76010132   80.74520111]\n     [ 907.53900146   55.49020004   83.65809631]\n     ..., \n     [ 806.66497803  627.36297607    5.11482   ]\n     [ 806.66497803  654.43200684    7.51997995]\n     [ 806.66497803  681.5369873     9.48744011]]\n    \n.. code:: python\n\n    >>> print(mesh.GetNumpyFaces())\n    [[   0    1    2]\n     [   0    2    3]\n     [   4    5    1]\n     ..., \n     [1324 1333 1323]\n     [1325 1216 1334]\n     [1325 1334 1324]]\n    \n    \nCreating a Structured Surface\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nThis example creates a simple surface grid and plots the resulting grid and its curvature:\n\n.. code:: python\n\n    import vtkInterface as vtki\n    import numpy as np\n\n    # Make data\n    x = np.arange(-10, 10, 0.25)\n    y = np.arange(-10, 10, 0.25)\n    x, y = np.meshgrid(x, y)\n    r = np.sqrt(x**2 + y**2)\n    z = np.sin(r)\n    \n    # create and plot structured grid\n    grid = vtki.StructuredGrid(x, y, z)\n    grid.Plot()  # basic plot\n    \n    # Plot mean curvature\n    grid.PlotCurvature()\n\n.. figure:: https://github.com/akaszynski/vtkInterface/raw/master/docs/images/curvature.png\n    :width: 500pt\n\n\nGenerating a structured grid is a one liner in this module, and the points from the resulting surface are also a numpy array:\n\n.. code:: python\n\n    >>> grid.points\n    [[-10.         -10.           0.99998766]\n     [ -9.75       -10.           0.98546793]\n     [ -9.5        -10.           0.9413954 ]\n     ..., \n     [  9.25         9.75         0.76645876]\n     [  9.5          9.75         0.86571785]\n     [  9.75         9.75         0.93985707]]\n\n\nCreating a GIF Movie\n~~~~~~~~~~~~~~~~~~~~\nThis example shows the versatility of the plotting object by generating a moving gif:\n\n.. code:: python\n    \n    import vtkInterface as vtki\n    import numpy as np\n\n    x = np.arange(-10, 10, 0.25)\n    y = np.arange(-10, 10, 0.25)\n    x, y = np.meshgrid(x, y)\n    r = np.sqrt(x**2 + y**2)\n    z = np.sin(r)\n    \n    # Create and structured surface\n    grid = vtki.StructuredGrid(x, y, z)\n    \n    # Make copy of points\n    pts = grid.points.copy()\n    \n    # Start a plotter object and set the scalars to the Z height\n    plotter = vtki.PlotClass()\n    plotter.AddMesh(grid, scalars=z.ravel())\n    plotter.Plot(autoclose=False)\n    \n    # Open a gif\n    plotter.OpenGif('wave.gif')\n    \n    # Update Z and write a frame for each updated position\n    nframe = 15\n    for phase in np.linspace(0, 2*np.pi, nframe + 1)[:nframe]:\n        z = np.sin(r + phase)\n        pts[:, -1] = z.ravel()\n        plotter.UpdateCoordinates(pts)\n        plotter.UpdateScalars(z.ravel())\n    \n        plotter.WriteFrame()\n    \n    # Close movie and delete object\n    plotter.Close()\n\n.. figure:: https://github.com/akaszynski/vtkInterface/raw/master/docs/images/wave.gif\n    :width: 500pt",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/akaszynski/vtkInterface",
+        "keywords": "vtk numpy plotting mesh",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "vtkInterface",
+        "package_url": "https://pypi.org/project/vtkInterface/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/vtkInterface/",
+        "project_urls": {
+            "Homepage": "https://github.com/akaszynski/vtkInterface"
+        },
+        "release_url": "https://pypi.org/project/vtkInterface/0.11.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Easier Pythonic interface to VTK",
+        "version": "0.11.3"
+    },
+    "last_serial": 4475170,
+    "releases": {
+        "0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d550ee91b3470f2102a1f3c59b14188d",
+                    "sha256": "5d049515bc86b177081f4b4b1097698b7006049cef311f031ca7b2a0f11b4953"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d550ee91b3470f2102a1f3c59b14188d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2584353,
+                "upload_time": "2017-05-31T22:28:39",
+                "url": "https://files.pythonhosted.org/packages/94/fa/74530a3eb4c58075a5b158b29d663b2d50f54ee26aea2cbcc65863fb0dbf/vtkInterface-0.1.tar.gz"
+            }
+        ],
+        "0.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1c5e995e72c8958f5ca0f761842bc9be",
+                    "sha256": "7e65f6dfde1efe5608d2fdccc7a1dfa8099e6b34c1231e582a2398d7533a0b12"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1c5e995e72c8958f5ca0f761842bc9be",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2584404,
+                "upload_time": "2017-05-31T22:33:09",
+                "url": "https://files.pythonhosted.org/packages/c7/b7/453e507c9fd86b8c50371a8713a39153a0c90bae27672c5872db78aee92a/vtkInterface-0.1.1.tar.gz"
+            }
+        ],
+        "0.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e014d1763c16cdb84c5510c61413e28f",
+                    "sha256": "de0ad42f945d3aee83c1355e6e831d575e0329a1f6066242d7cbdae14368a6ef"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e014d1763c16cdb84c5510c61413e28f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2584965,
+                "upload_time": "2017-06-01T14:56:26",
+                "url": "https://files.pythonhosted.org/packages/20/d5/2cac7f367242a3385b58a28de2b6ecc24de82792eb33da135a6605131eee/vtkInterface-0.1.2.tar.gz"
+            }
+        ],
+        "0.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b84afd6e33f31d5fbc0a7e39863115ee",
+                    "sha256": "50e19a92c96716078200e884696ddaa7e90cbf335f196613707a8e83cd7d0671"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b84afd6e33f31d5fbc0a7e39863115ee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2585390,
+                "upload_time": "2017-06-16T16:45:58",
+                "url": "https://files.pythonhosted.org/packages/7b/dc/ed76e6bf791c0fc2ab07bdc53eaca3eba335c859aff79640d62e88139032/vtkInterface-0.1.3.tar.gz"
+            }
+        ],
+        "0.1.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "307b8d49dd8883c73368f7d8fab2a376",
+                    "sha256": "d4221ac227bbe524b1f6b190f986cf2eced8a5ce6bb89773995ca15a5c2b449a"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.1.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "307b8d49dd8883c73368f7d8fab2a376",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2587544,
+                "upload_time": "2017-07-26T09:22:07",
+                "url": "https://files.pythonhosted.org/packages/9a/51/68ba3164343f203583601da871532d733ee304b4176e3ba44dae74b5b421/vtkInterface-0.1.4.tar.gz"
+            }
+        ],
+        "0.1.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "224c92611adf835b81805800adc5b7cf",
+                    "sha256": "15b7f371021680d0b437d4d6d4060b2bab2bbe1bb2ba94977840b84032ad4d2e"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.1.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "224c92611adf835b81805800adc5b7cf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2587540,
+                "upload_time": "2017-07-26T10:48:11",
+                "url": "https://files.pythonhosted.org/packages/16/ca/b8156b927edb3d941262ef0394476138a14cd64a0492c00d91a4da92b79d/vtkInterface-0.1.5.tar.gz"
+            }
+        ],
+        "0.10.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d518c55ab687d35341b76bd08c529fef",
+                    "sha256": "72c9f99089ef3c752c7e461e573fa3d23bc4f640c690beefef43c2d4119122c9"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.10.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d518c55ab687d35341b76bd08c529fef",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1688355,
+                "upload_time": "2018-08-24T07:11:09",
+                "url": "https://files.pythonhosted.org/packages/3f/a0/7f14142c60243ebb118e24343a9e03b7ed4344eb12d87612a08ead14e7f4/vtkInterface-0.10.0.tar.gz"
+            }
+        ],
+        "0.10.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2124de1ea96415d19184628e24764a05",
+                    "sha256": "ddac2a8c64549355946a2911c189492a1e5f374e9d5fca4cb7e5888c28ce10b4"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.10.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2124de1ea96415d19184628e24764a05",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 90816,
+                "upload_time": "2018-08-30T15:14:01",
+                "url": "https://files.pythonhosted.org/packages/34/96/55dd6e1b7f56aecde3115621a87144356bc081e45795b216e1b381751969/vtkInterface-0.10.1.tar.gz"
+            }
+        ],
+        "0.10.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "95cf7f1e784d696ffe0cc40e74748af3",
+                    "sha256": "95861d4e3b12d9a68c7d7f90f339a447464ed98c39411eff8badb12494f04d0e"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.10.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "95cf7f1e784d696ffe0cc40e74748af3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 91453,
+                "upload_time": "2018-09-03T22:23:07",
+                "url": "https://files.pythonhosted.org/packages/ac/30/929ef6ee8ebc8171bdb91a12d0dc99955e6451b1e50a256d5f5d2e7e2c61/vtkInterface-0.10.2.tar.gz"
+            }
+        ],
+        "0.11.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9f7c5a4a4d82eb472decd2344200fef2",
+                    "sha256": "338d8cf4214ef231a089332aa95cfbcf6cae8c8e719991cd2802bc52037230b6"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.11.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9f7c5a4a4d82eb472decd2344200fef2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 92101,
+                "upload_time": "2018-09-24T13:41:58",
+                "url": "https://files.pythonhosted.org/packages/c3/42/3b2814cc14520d99b7eeb3e57f3e9ee3cfe2f09059c8b632c27a480b410e/vtkInterface-0.11.0.tar.gz"
+            }
+        ],
+        "0.11.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dcafb0a57642464d401c5ac511b8509c",
+                    "sha256": "fe4fadaf07df1b1df87d561ffee10cac8de9d8292c2b33d05598e49e92962d57"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.11.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dcafb0a57642464d401c5ac511b8509c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 92239,
+                "upload_time": "2018-10-05T12:22:49",
+                "url": "https://files.pythonhosted.org/packages/f0/de/56030b1bcc47801c3fc8712603ae18c96ad3bd1b7af1b7e20872cac6c941/vtkInterface-0.11.1.tar.gz"
+            }
+        ],
+        "0.11.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "929dd63abf45a7e5c6a4fee650bf3faf",
+                    "sha256": "b54c1b3955c95f104cc888c723e2837b4b565fc964e8b515a45e841b196551dd"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.11.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "929dd63abf45a7e5c6a4fee650bf3faf",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1689739,
+                "upload_time": "2018-10-18T08:54:05",
+                "url": "https://files.pythonhosted.org/packages/00/52/57444c4e02bdb332c46c1dad9939380f4760b2267798f9237fc8f69a0206/vtkInterface-0.11.2.tar.gz"
+            }
+        ],
+        "0.11.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "32398dd794782295df559409fe307eee",
+                    "sha256": "98299b0be21a639becd64aa1149dc5a6c1c1a713b6ba5a63b41ec403a0aed950"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.11.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "32398dd794782295df559409fe307eee",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 91708,
+                "upload_time": "2018-11-11T21:36:12",
+                "url": "https://files.pythonhosted.org/packages/90/6d/c429c87b557ae6294b784bcbd0afc50d10eefd4e5d3de0494eb063325f29/vtkInterface-0.11.3.tar.gz"
+            }
+        ],
+        "0.2.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "346efe02b41aab804a7a6d7daf9700f3",
+                    "sha256": "1d4f37dd6194282ced04231b6450522f01087fd91081f39330a64b95164c8a3e"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.2.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "346efe02b41aab804a7a6d7daf9700f3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2589836,
+                "upload_time": "2017-08-04T12:39:17",
+                "url": "https://files.pythonhosted.org/packages/a7/b4/2a9b9e6f2a45bee32df52987a419dde118db6675df438186d65663b8a45c/vtkInterface-0.2.0.tar.gz"
+            }
+        ],
+        "0.2.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6fd10f1e58be19a252c59ad43d488cf8",
+                    "sha256": "9c41cb5e0d2582f232ec06d9750ffb5194339763156c8dae492c279de6be022b"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.2.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6fd10f1e58be19a252c59ad43d488cf8",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2589823,
+                "upload_time": "2017-08-04T12:47:54",
+                "url": "https://files.pythonhosted.org/packages/a6/99/55380030c070fca99cd2463640fba31947d2bb495c33dc7a97e827ba36da/vtkInterface-0.2.1.tar.gz"
+            }
+        ],
+        "0.2.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ea613475a7628a0165fc7144a772ed13",
+                    "sha256": "c5835e23e8dae7752ef151b2a2726d1d7c484fd3034e8d22494a640895acd9e8"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.2.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ea613475a7628a0165fc7144a772ed13",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2589953,
+                "upload_time": "2017-08-28T19:56:20",
+                "url": "https://files.pythonhosted.org/packages/ce/fb/5ed7fa701eabbfdfcf2d019e8c0020f384ef0c56b36ef90653dfe17aebc6/vtkInterface-0.2.2.tar.gz"
+            }
+        ],
+        "0.2.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a1727e17a6a9e93319382859d21ce04c",
+                    "sha256": "a74d32a3f348609ced691ec1690472a733ca68dc379238a37f66cfd01a136977"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.2.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a1727e17a6a9e93319382859d21ce04c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2589839,
+                "upload_time": "2017-11-03T08:34:12",
+                "url": "https://files.pythonhosted.org/packages/d0/54/e7b727d8138458f940f38921b032abebdc1f04ac004a5e084a1da15edc79/vtkInterface-0.2.3.tar.gz"
+            }
+        ],
+        "0.3.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7f250efaa4f54cacee784965b98d18a5",
+                    "sha256": "876d659d2f98111b3ebf2e4e4bfe81d9f3c5bcbe1ef6f92aea037b4caa8b44bf"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.3.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7f250efaa4f54cacee784965b98d18a5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2590109,
+                "upload_time": "2017-11-14T11:34:40",
+                "url": "https://files.pythonhosted.org/packages/03/f6/08fec3b8e0f9d3372c9f15940dca6d6499eb7c28809d0beca1622289368a/vtkInterface-0.3.0.tar.gz"
+            }
+        ],
+        "0.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "7e85166f894804e9109d3913bc4c4866",
+                    "sha256": "86a01c5836e8d5f4c3796965521964ab062c1662f90129f3aceb3a4f9d7bdcee"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "7e85166f894804e9109d3913bc4c4866",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2590119,
+                "upload_time": "2017-11-14T12:42:41",
+                "url": "https://files.pythonhosted.org/packages/0d/7d/a311b5704eb04b72c9dda61dbd28cc64a8bd20b866c19e26b2d7a4943c6f/vtkInterface-0.3.1.tar.gz"
+            }
+        ],
+        "0.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f0c95a80856cea5c196d13351d8dc615",
+                    "sha256": "ee13bcbba151e463400b79cb2c672ae9c7db7f303d589938c221637cdd1bdcd0"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f0c95a80856cea5c196d13351d8dc615",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2590117,
+                "upload_time": "2017-11-14T18:10:43",
+                "url": "https://files.pythonhosted.org/packages/b2/65/f27fd5226376ae5ebd36bbd1058514a1f1a269a749f82e7bd3dea8ad1ba3/vtkInterface-0.3.2.tar.gz"
+            }
+        ],
+        "0.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e9d1199bf1e991a313a2b4627dec45fd",
+                    "sha256": "ad1bdc5c41288eaf077aa21c7d526450ef5e9694dbc458e7e8e56898d7c2c3ad"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e9d1199bf1e991a313a2b4627dec45fd",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1679792,
+                "upload_time": "2017-11-27T09:18:55",
+                "url": "https://files.pythonhosted.org/packages/66/b9/0af539f08254b9e84968c24648f5fa428f4b781e99ee9b16434fdc5ca508/vtkInterface-0.4.0.tar.gz"
+            }
+        ],
+        "0.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0c2d358a498cc18caa1cdd8f11f150e1",
+                    "sha256": "b673e76e5d370a22f52a0251c1d5c6dd0ee91d1d6213ed45bc777a559324894b"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0c2d358a498cc18caa1cdd8f11f150e1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1678358,
+                "upload_time": "2017-12-28T14:37:20",
+                "url": "https://files.pythonhosted.org/packages/87/2f/6d174afa3d5cc916a906386d576187dbac265fd43221aaec7ee35d469e2c/vtkInterface-0.4.2.tar.gz"
+            }
+        ],
+        "0.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9a4c65ce8187aad743118562a92c9c20",
+                    "sha256": "0e17b4e88ad91da5ec4f361b2f10520705748e82462752f1ac9ef98b18fc1ecd"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9a4c65ce8187aad743118562a92c9c20",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1678382,
+                "upload_time": "2017-12-28T16:07:06",
+                "url": "https://files.pythonhosted.org/packages/49/e1/1f22579e8bc2b9bbf2d526c414d1f445e5e4efe1088d84db26f4cb182327/vtkInterface-0.4.3.tar.gz"
+            }
+        ],
+        "0.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6657b40f1c9151bd1ba4cba29af5d993",
+                    "sha256": "f6f428e272084fa81380c8a9a2682c162846b3052ae211dac1b8d7c171886a4d"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6657b40f1c9151bd1ba4cba29af5d993",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1677607,
+                "upload_time": "2018-01-16T12:09:31",
+                "url": "https://files.pythonhosted.org/packages/72/13/449cfe1a91cba63bf4d691cae84bc02ae66a33e7c06a3644364c6f0f631e/vtkInterface-0.5.0.tar.gz"
+            }
+        ],
+        "0.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6189e7dea6f6b408f3acabd2f627adf7",
+                    "sha256": "a2be77d4ea78aee2f0aeb7b04f65c45aa8c4316e24a3975584473dcb265b2092"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "6189e7dea6f6b408f3acabd2f627adf7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1677690,
+                "upload_time": "2018-01-19T10:45:35",
+                "url": "https://files.pythonhosted.org/packages/06/db/f2d78e8f7e38f4705dae98155c5b2d4d52cc8a38063a791e56c0d52dcf04/vtkInterface-0.5.1.tar.gz"
+            }
+        ],
+        "0.6.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f6723b59d35f9b2758a140593d84fdc5",
+                    "sha256": "c3b2a1f9ec865145787d8c881b1257d8b0776bb95a2aa50ee2dbe44f32b0d581"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f6723b59d35f9b2758a140593d84fdc5",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1678010,
+                "upload_time": "2018-02-07T15:41:51",
+                "url": "https://files.pythonhosted.org/packages/ea/2b/417c7fb13a47a81dab3980491a4f5a4c66a46edf73c24044eed1412b286a/vtkInterface-0.6.0.tar.gz"
+            }
+        ],
+        "0.6.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9feb188d2915530bc721177cb8aff439",
+                    "sha256": "0a785591ba94f2a73af65dd639106cd9d5c92ca7e51bdc32657dbcae4192f2d4"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9feb188d2915530bc721177cb8aff439",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1678187,
+                "upload_time": "2018-02-10T23:41:08",
+                "url": "https://files.pythonhosted.org/packages/e0/b3/99f3868af20a07a91f58b974ab8850ce47d39749f45974f0b6af03f7b991/vtkInterface-0.6.1.tar.gz"
+            }
+        ],
+        "0.6.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c28a7f86a81c47afe828ee5ff15b66f1",
+                    "sha256": "3b773159f59838ac9660dc67a209f1213634bff515464232236f48edfaf48544"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c28a7f86a81c47afe828ee5ff15b66f1",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1678340,
+                "upload_time": "2018-02-15T21:52:52",
+                "url": "https://files.pythonhosted.org/packages/cf/d6/928252ff465c2c5848dcbaced2b3aa9377be6fa293ce6de683882980804b/vtkInterface-0.6.2.tar.gz"
+            }
+        ],
+        "0.6.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1c4c31584ff3663cb3b3dd84c1bf9f6a",
+                    "sha256": "5198e7c8a26aec57d2740578a4219f30836c4634659b8452f4c8e81635937f99"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1c4c31584ff3663cb3b3dd84c1bf9f6a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1678680,
+                "upload_time": "2018-03-07T12:16:30",
+                "url": "https://files.pythonhosted.org/packages/49/c0/6514e7a5b0d0bccf755d0fe1e8ec934e976c25e5b7557f2bf30c9bb5f852/vtkInterface-0.6.4.tar.gz"
+            }
+        ],
+        "0.6.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a0ae3401590c2707a976829796e060fc",
+                    "sha256": "d642d47c82b2111b133d130fb7d18b6f56a0d9d0f0bd204b08c9aa1823b0087e"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a0ae3401590c2707a976829796e060fc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1679009,
+                "upload_time": "2018-03-07T22:56:27",
+                "url": "https://files.pythonhosted.org/packages/cd/5b/226d1fbe06a1322ca21e20b330c002022afa185b4d54887f72e9f67c6d67/vtkInterface-0.6.5.tar.gz"
+            }
+        ],
+        "0.6.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a52e562bef202e1dbafba73b11840434",
+                    "sha256": "0aa1bf4866af986c407c5fd36003552838e331ea40b9f3425f6b8e2d5d0e3592"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a52e562bef202e1dbafba73b11840434",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1679384,
+                "upload_time": "2018-03-19T20:10:05",
+                "url": "https://files.pythonhosted.org/packages/fa/2f/d466967f75beb84538a7e0d6d8d87d09e8f2c18f139f99fdef3a5988232c/vtkInterface-0.6.6.tar.gz"
+            }
+        ],
+        "0.6.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e03c1d4816b0e3e9b9aeef13b071615f",
+                    "sha256": "000a7e928c75f6a9ef4de10dcc18c949aed8be3ca1ece09b29e53420f72d1198"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e03c1d4816b0e3e9b9aeef13b071615f",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1681333,
+                "upload_time": "2018-03-21T12:20:02",
+                "url": "https://files.pythonhosted.org/packages/a1/34/c93d72a2f64641c8e3c10f6e9f4d19d29cbc61eb319c5fa0a73ef8ca9ac4/vtkInterface-0.6.7.tar.gz"
+            }
+        ],
+        "0.6.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d7a844e6d2d316e2cf5a2033658dc9f7",
+                    "sha256": "2ee6944d98944112d1c17787ff78dbf8b3f9d5918a0e187587cb039e634e02aa"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d7a844e6d2d316e2cf5a2033658dc9f7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1680340,
+                "upload_time": "2018-04-08T21:34:35",
+                "url": "https://files.pythonhosted.org/packages/8a/fa/1cc2f71c68d74b98e5e79c8d3c8b02546d679facec9ecd96911f0521a06e/vtkInterface-0.6.8.tar.gz"
+            }
+        ],
+        "0.6.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8d6dfad99401b4d3c7dc609c80bdd337",
+                    "sha256": "958561ac77071592ba6c5f456b8823293389aa3f36ce8e895e82ca04ae224930"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.6.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8d6dfad99401b4d3c7dc609c80bdd337",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1680381,
+                "upload_time": "2018-04-09T09:04:59",
+                "url": "https://files.pythonhosted.org/packages/f0/f3/78913c0718ecfeaa4ba0050dbccc94ca3b3eb934b4e56d2b9bec40eb7e95/vtkInterface-0.6.9.tar.gz"
+            }
+        ],
+        "0.7.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a583218b5cc8b172020e8a568794d10a",
+                    "sha256": "c723b9e87174083a1ebd59cbbfa446587faaa1fbcfd35a3d70172b66660a03b4"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.7.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a583218b5cc8b172020e8a568794d10a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1680662,
+                "upload_time": "2018-05-03T13:52:05",
+                "url": "https://files.pythonhosted.org/packages/ef/4d/6e86b8ad8768a1bcbaddb9715ee95abb4a134cf6c9805bd5be182aff3e58/vtkInterface-0.7.1.tar.gz"
+            }
+        ],
+        "0.8.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5501145b3d4179721254d4c4210d3c4e",
+                    "sha256": "1b2d6187ee03eea06d1f1e5b33a3461d0cd5a157b47377fef603579d0738fc61"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.8.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5501145b3d4179721254d4c4210d3c4e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1680491,
+                "upload_time": "2018-05-18T16:01:24",
+                "url": "https://files.pythonhosted.org/packages/1b/41/6ba6feb101d6d1eebb3eae9c2cdf4e4596fdbd8537535dff7ffbe24711e6/vtkInterface-0.8.0.tar.gz"
+            }
+        ],
+        "0.8.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9ef151eb29ce61432f75137a76fa6f4b",
+                    "sha256": "76e0d122fbe8085df9fa9613e8803057e225889c4f42217dc5f7edc4a446647c"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.8.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9ef151eb29ce61432f75137a76fa6f4b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1684176,
+                "upload_time": "2018-06-22T10:30:23",
+                "url": "https://files.pythonhosted.org/packages/9c/25/ff3d7e8880fb7836ae17f8582706d7aac993e56393a2753f28082a973222/vtkInterface-0.8.3.tar.gz"
+            }
+        ],
+        "0.8.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0e919a0ed521da97027606131a9551ad",
+                    "sha256": "48ca33b3ae1a4b139f0a0c1fd9ac95e60848f33faea34a0d5221a69489295551"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.8.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "0e919a0ed521da97027606131a9551ad",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1684704,
+                "upload_time": "2018-07-06T09:51:43",
+                "url": "https://files.pythonhosted.org/packages/58/49/20eef6674cc29f37ad35cc7a5bddf93153aa456aeb1b76c617e65f22c2e4/vtkInterface-0.8.5.tar.gz"
+            }
+        ],
+        "0.9.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b2279fb930e75928a98d758b7796a758",
+                    "sha256": "09e579f445cf590104080c8dff92e34d5a6f26b471e434cfe326325202fd4eed"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.9.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b2279fb930e75928a98d758b7796a758",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1685628,
+                "upload_time": "2018-07-09T08:54:44",
+                "url": "https://files.pythonhosted.org/packages/4d/01/ee259b07cc145a1677372ece9eaa31917f2b357693bd051402e2351357d2/vtkInterface-0.9.0.tar.gz"
+            }
+        ],
+        "0.9.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8bfa6ef17d3caa4a2b322bb3bccea19",
+                    "sha256": "b276ced6e11d294fc8c975026df6c3cbdb538c0df7f842ee7c6236191d462a42"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.9.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c8bfa6ef17d3caa4a2b322bb3bccea19",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 87745,
+                "upload_time": "2018-07-10T09:07:34",
+                "url": "https://files.pythonhosted.org/packages/84/9b/c15760372d12424fc7b5f6c06022e0a4bb723606f2600cc950edc83830f9/vtkInterface-0.9.1.tar.gz"
+            }
+        ],
+        "0.9.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d697542aaa791ce08a6ad93fb3100a86",
+                    "sha256": "9a04f3954a072f305ae7dba29bbb488cbeec813d8be4756dd1e75af2c4b9e309"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.9.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d697542aaa791ce08a6ad93fb3100a86",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 87741,
+                "upload_time": "2018-07-10T14:00:43",
+                "url": "https://files.pythonhosted.org/packages/fb/81/95a84b1b9f255badd2216efa4200e64320a7bed64023ab93f87c373f3a34/vtkInterface-0.9.2.tar.gz"
+            }
+        ],
+        "0.9.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ad074e6c582bf0ed1fbcc42653d9c1a6",
+                    "sha256": "ed6cd20fc77fe19adea20808427b9ac0535fe9e6b94d5dd8dba33acc43a3692e"
+                },
+                "downloads": -1,
+                "filename": "vtkInterface-0.9.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "ad074e6c582bf0ed1fbcc42653d9c1a6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 87804,
+                "upload_time": "2018-07-16T17:02:48",
+                "url": "https://files.pythonhosted.org/packages/17/3c/bcb5310ba37fd90fb3d4d66734a289961307f3214fcdf4523b1a78751352/vtkInterface-0.9.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "32398dd794782295df559409fe307eee",
+                "sha256": "98299b0be21a639becd64aa1149dc5a6c1c1a713b6ba5a63b41ec403a0aed950"
+            },
+            "downloads": -1,
+            "filename": "vtkInterface-0.11.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "32398dd794782295df559409fe307eee",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 91708,
+            "upload_time": "2018-11-11T21:36:12",
+            "url": "https://files.pythonhosted.org/packages/90/6d/c429c87b557ae6294b784bcbd0afc50d10eefd4e5d3de0494eb063325f29/vtkInterface-0.11.3.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,151 @@
+{
+    "info": {
+        "author": "Tyler Kennedy",
+        "author_email": "tk@tkte.ch",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# BuildAssist\n\nBuildAssist is a set of utilities for building C/C++ Python extensions. It\nincludes a dockerfile for building manylinux binary wheels using modern\nversions of GCC.\n\nIt also includes an extension to assist in customizing C/C++ configuration when\nrunning setup.py.\n\n## Example\n\nHere's an example of using the buildassist extension to modify build flags to\nsupport building a C++17 extension. In our setup.py, we have:\n\n```python\nfrom setuptools import setup\nfrom buildassist import BuildAssist\n\nclass CPP17Build(BuildAssist):\n    def using_msvc(self, compiler):\n        return {\n            'extra_compile_args': [\n                '/std:c++17',\n                '/arch:AVX2'\n            ]\n        }\n\n    def using_unix(self, compiler):\n        return {\n            'extra_compile_args': [\n                '-std=c++17',\n                '-march=native'\n            ]\n        }\n\n    def using_unix_on_darwin(self, compiler):\n        if self.darwin_version.major >= 10 and self.darwin_version.minor >= 7:\n            # After OS X Lion libstdc is deprecated, so we need to make sure we\n            # link against libc++ instead.\n            return {\n                'extra_compile_args': [\n                    '-march=native',\n                    '-stdlib=libc++'\n                ],\n                'extra_link_args': [\n                    '-lc++',\n                    '-nodefaultlibs'\n                ]\n            }\n\n        return {\n            'extra_compile_args': [\n                '-std=c++17',\n                '-march=native'\n            ]\n        }\n\n    setup(\n        name='example',\n        ext_modules=[\n            Extension(\n                'example',\n                sources=[\n                    'example.cpp'\n                ],\n                language='c++'\n            )\n        ],\n        cmdclass={\n            'build_ext': CPP17Build\n        }\n    )\n```\n\nBut this introduces a chicken-and-egg scenario, where our setup.py depends on\nan external package. We fix this by having a `setup.cfg` next to our\n`setup.py`. Inside this file we tell setuptools that we need a helper package.\n\n```\n[options]\ninstall_requires = setuptools>=38.3\nsetup_requires =\n    buildassist\n```\n\nDone!\n\n## Supporting platforms\n\nBuildAssist will look for methods on your subclass called\n`using_{compiler}_{platform}`. If it doesn't find a match, it will look for a\nmethod called `using_{compiler}`. If we wanted to override the build options\nfor unix-y compilers on Linux, we'd do:\n\n```python\nclass Builder(BuildAssist):\n    def using_unix_on_linux(self, compiler):\n        return {\n            'extra_compile_args': [\n                '-linux-specific-flag'\n            ]\n        }\n```\n\n## Overriding CFLAGS/CL and LDFLAGS/LINK\n\nBy default BuildAssist will ignore your flags if the user's build environment\nhas specified CFLAGS/CL or LDFLAGS/LINK. If you really, really want to ignore\nthe user's settings and overwrite them you can use a couple special flags:\n\n```python\nclass Builder(BuildAssist):\n    DO_NOT_REPLACE_CLFAGS = False\n    DO_NOT_REPLACE_LDFLAGS = False\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "http://github.com/TkTech/buildassist",
+        "keywords": "setuptools,packaging",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "buildassist",
+        "package_url": "https://pypi.org/project/buildassist/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/buildassist/",
+        "project_urls": {
+            "Homepage": "http://github.com/TkTech/buildassist"
+        },
+        "release_url": "https://pypi.org/project/buildassist/1.0.1/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "setuptools build utilities",
+        "version": "1.0.1"
+    },
+    "last_serial": 4878511,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "0f31010fc121873b83e2219af517b3f7",
+                    "sha256": "475cd6933081fd34c8ad8a9afc8377de704a19b6db21b41a9aa974da316c696d"
+                },
+                "downloads": -1,
+                "filename": "buildassist-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "0f31010fc121873b83e2219af517b3f7",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 1243,
+                "upload_time": "2019-02-28T09:38:08",
+                "url": "https://files.pythonhosted.org/packages/6d/e3/a860b95e8786e0b69db53ea42ce471e24f591a1805b80367509607fde234/buildassist-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "55230607102dfff5e8c4b549d55ad3db",
+                    "sha256": "f918dcf241e96fe31564d2b51b678f7cd5ece88517f1a660c9acbbb0d1cf1e4b"
+                },
+                "downloads": -1,
+                "filename": "buildassist-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "55230607102dfff5e8c4b549d55ad3db",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 1094,
+                "upload_time": "2019-02-28T09:38:10",
+                "url": "https://files.pythonhosted.org/packages/d9/d6/4105ff0ab3b2c773cfbd3c241332b88465f074533ab8d0b91d412682f438/buildassist-1.0.0.tar.gz"
+            }
+        ],
+        "1.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b364aba69ba1e2c60b69a6f64025c47b",
+                    "sha256": "cb2153905d1a99aa40e669a80e6bbf44858f6b495ba8936e7d32fff64b613874"
+                },
+                "downloads": -1,
+                "filename": "buildassist-1.0.1-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b364aba69ba1e2c60b69a6f64025c47b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 2331,
+                "upload_time": "2019-02-28T10:00:45",
+                "url": "https://files.pythonhosted.org/packages/a7/05/ffb3b8fcf606f9d54e2f03ed9a147361f91276dc1886f96e59a5e9fa0c17/buildassist-1.0.1-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "000b53e4a6de4a26ace6d8f186721d50",
+                    "sha256": "fd8d752131ba0f01b1aaf1af795c3ad84beacc09968cc4c0a555a7b927f581a1"
+                },
+                "downloads": -1,
+                "filename": "buildassist-1.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "000b53e4a6de4a26ace6d8f186721d50",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 2532,
+                "upload_time": "2019-02-28T10:00:46",
+                "url": "https://files.pythonhosted.org/packages/63/ab/613a04bd2527ddb8026c06f7cbcacfc16818f5068bc0131aa2632a41a623/buildassist-1.0.1.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b364aba69ba1e2c60b69a6f64025c47b",
+                "sha256": "cb2153905d1a99aa40e669a80e6bbf44858f6b495ba8936e7d32fff64b613874"
+            },
+            "downloads": -1,
+            "filename": "buildassist-1.0.1-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "b364aba69ba1e2c60b69a6f64025c47b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 2331,
+            "upload_time": "2019-02-28T10:00:45",
+            "url": "https://files.pythonhosted.org/packages/a7/05/ffb3b8fcf606f9d54e2f03ed9a147361f91276dc1886f96e59a5e9fa0c17/buildassist-1.0.1-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "000b53e4a6de4a26ace6d8f186721d50",
+                "sha256": "fd8d752131ba0f01b1aaf1af795c3ad84beacc09968cc4c0a555a7b927f581a1"
+            },
+            "downloads": -1,
+            "filename": "buildassist-1.0.1.tar.gz",
+            "has_sig": false,
+            "md5_digest": "000b53e4a6de4a26ace6d8f186721d50",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 2532,
+            "upload_time": "2019-02-28T10:00:46",
+            "url": "https://files.pythonhosted.org/packages/63/ab/613a04bd2527ddb8026c06f7cbcacfc16818f5068bc0131aa2632a41a623/buildassist-1.0.1.tar.gz"
+        }
+    ]
+}

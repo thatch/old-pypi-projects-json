@@ -1,0 +1,406 @@
+{
+    "info": {
+        "author": "Pablo Suana",
+        "author_email": "pablosuana21@hotmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.6"
+        ],
+        "description": "# nyc_taxi_analysis\n\nThis module contains several functionalities to explore the famous taxi dataset combined with meteorological measurements\nfrom a National Climatic Data Center and city zone look up, as well a shapefile containing the city map.\n\n## Instalation\n\nPython version used to develop it was >= 3.6.4\n#### Dependencies\nnyc_taxi_analysis has been developed using:\n\n* matplotlib (v. 3.0.3)\n* numpy\t(v. 1.16.2)\n* pandas (v. 0.24.1)\n* scipy (v. 1.2.1)\n* sklearn (v. 0.0)\n* Shapely (v. 1.6.4.post1): Instalation's guide: https://pypi.org/project/Shapely/\n* descartes\t(v. 1.1.0)\n\n#### User Installation\n\nThe easiest way to install the module is using pip, through:\n`pip install nyc_taxi_analysis`\n\n### Structure of library\n\n```\n\\nyc_taxi_analysis\n    __init__.py\n    headers_config.py\n\n    \\bonus_part\n        __init__.py\n        part1_visualization.py\n\n    \\compulsory_part\n        __init__.py\n        part1_filter_rides_per_route.py\n        part2_correlation.py\n```\n\n### Use of library\n\nPublic methods in library are explained in doc public_methods_docstring.md, as well variables used.\n\n#### Input data\n\nAs I told before, this module receive data from three parts. First source is city taxi records.\nThis source is actually composed by three kind of files, as we can see in official page.\nEach of them has a different number of columns as well different names to represent the same information. \nEven they have different fields in the same kind of files between them, what make necessary a preprocessing stage to \nunify input columns and rename those which represent the same information.\nThis preprocess depends on each functionality because each functionality has owned requirements\nColumn requirements are saved in headers_config.py file.\n\nIn the other hand, the module receive meteorological measurements and zone look up, has a perfect format to be used.\n\nTaxi rides filenames: yellow_tripdata_yyyy-mm.csv, green_tripdata_yyyy-mm.csv and fhv_tripdata_yyyy-mm.csv\n\nMeteorological measures filename: NOAA_Central_Park_data.csv\n\nLookup Zones filename: taxi+_zone_lookup.csv\n\n#### Functionalities\n\nThis library has three main functionalities:\n\n1. Filter taxi rides according starting point and ending point. \n\n    This functionality let you filter your ride information using several starting points, \n    several ending points as well applying the filter only to starting or ending point.\n\n    As first step, this process check if files (with taxi information) in specified dir has the required field to carry \n    on the filter. That is a column which contains starting point, another one containing ending point of the ride and the date \n    of the ride. This process returns a dictionary which key is file's name and value is true or false depending on headers\n    that file has.\n\n    Since information about starting and ending point comes as number and filter want to be done by Borough, Zone or other field, \n    both columns have to be mapped using look up zone file. In addition, as you could want filter each point using distinct information\n    (zone, borough,...), each point is ready to apply different masters over them.\n\n    As the first exercise says: Select the rides which started from Manhattan (**Borough**) and ended in John Fitzgerald\n    Kennedy International Airport (**Zone**), so starting point has to be mapped using Borough master's column while \n    ending point has to be mapped using Zone master's column.\n\n    The process takes 35 mins to filter 2016 and 2017 files which have a correct format, 48 files with correct format in total.\n    Output rows are 1768894 rows and total input rows are 386644243.\n\n\n2. Find correlation between weather and number of rides\n\n    In this part, we need to join the file with weather information with files where rides info are stored. Since we \n    only want to know how many rides were doing per day, it is not necessary to check if starting point col or ending point\n    are in headers. But column renamed will be done to unify the treatment for different file type.\n\n    This functionality let you compute correlation between weather conditions and number of rides in three different ways.\n    1. Point biserial correlation: Coefficient that measure correlation between one continuous and one dichotomous variable.\n    Continuous variables will be number of rides per day while dichotomous will be created from weather file. \n    Meteorological measure file contains continuous fields about how much it rains, snows, etc. \n    So it is needed to choose a value to dichotomize this continuous variable into, p.e., RAIN or NOT RAIN. \n    So, this electable value give us a freedom degree to explore possible correlations between number of rides and the value \n    used to dichotomized the precipitation levels. This method save an image with graph where can be seen how correlation \n    varies along this value also varies.\n\n    2. Pearson correlation: Coefficient to measure the correlation between continuous variables\n\n    3. Linear regression: This method consist in trying to simulate the behaviour of experimental points \n    (p.e. number of rides~mm of precipitation) through a straight line, so correlation between variables should be linear.\n    As the result, a graph of scatter points and adjust line is saved.\n\n    The result of three methods is consistent between them and, as incredible as it may seem, the number of rides does not \n    depend on weather condition as much as we can think. \n    We can see in first method graphs that correlation increases a bit as increase the value used to dichotomized the \n    continuous variable, but it is not remarkable. As well we can see that snow shows higher correlation with number of rides than\n    rain.\n\n3. Visualization of filtered data in first point.\n\n    This stage represents on shapefile map a heatmap. Since first point asked for filtering for rides that began on Manhattan, \n    all points will be in this area. But there are several zones inside it. So what this point returns is an image where \n    zones will be colored depending on how many rides have come out from there.\n\n#### Examples of use\n\n##### Compulsory part\n###### Part 1: Filter rides which start in Manhattan and end in JFK airport\nDefault values of args are set to obtain requested rows, so to obtain it, we only\nhave to pass the paths where files are:\n\n```\nfrom nyc_taxi_analysis.compulsory_part.part1_filter_rides_per_route import select_desired_rides\n\nselect_desired_rides(dir_where_taxi_files_are,\n                     lookup_location_path,\n                     path_where_save_resultant_dataframe_as_csv)\n```\n\n###### Part 2: Compute correlation between weather and number of rides\n\n```\nfrom nyc_taxi_analysis.compulsory_part.part2_correlation import ComputeRidesWeatherCorrelation\n\nDfTotal = ComputeRidesWeatherCorrelation('dir_where_files_are', path_of_meteorological_file)\n\nDfTotal.compute_point_biserial_corr('RIDES', 'PRCP', 'SNOW')\n\nDfTotal.scanning_point_biserial_corr('RIDES', dir_where_save_graphs, 'PRCP', 'SNOW')\n\nDfTotal.compute_pearson_coef('RIDES', 'PRCP')\nDfTotal.compute_pearson_coef('RIDES', 'PRCP', 'SNOW')\n\nDfTotal.build_linear_regresion_model('RIDES', 'PRCP', dir_to_save_graphs=dir_where_save_graphs)\nDfTotal.build_linear_regresion_model('RIDES', 'PRCP', 'SNOW')\nDfTotal.build_linear_regresion_model('RIDES', 'SNOW', dir_to_save_graphs=dir_where_save_graphs)\n```\n\n##### Bonus part\n###### Part 1\n```\nfrom nyc_taxi_analysis.bonus_part.part1_visualization import VisualizeInstance\n\nVisualizeInstance = VisualizeRides(path_of_shapefile_file,\n                    path_of_filtered_data)\nVisualizeInstance.plot_filled_shapes()\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "nyc-taxis-analysis",
+        "package_url": "https://pypi.org/project/nyc-taxis-analysis/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/nyc-taxis-analysis/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/nyc-taxis-analysis/0.0.10/",
+        "requires_dist": [
+            "pandas",
+            "matplotlib",
+            "descartes",
+            "scipy",
+            "sklearn",
+            "pyshp"
+        ],
+        "requires_python": "",
+        "summary": "Module to complete some analysis on taxi ride data of NYC",
+        "version": "0.0.10"
+    },
+    "last_serial": 4938122,
+    "releases": {
+        "0.0.10": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4d8bc81ad2f62fda4628e16043a5235b",
+                    "sha256": "c9ea389489f18e480a21254f895a65c285082ef14e24bf6f0ce3ddc5c9f5159a"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.10-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4d8bc81ad2f62fda4628e16043a5235b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18424,
+                "upload_time": "2019-03-14T07:34:13",
+                "url": "https://files.pythonhosted.org/packages/20/b5/cd3981fdefabc469080644a557f8d24c001f3eaa3bbe3a28c0c3991faf1c/nyc_taxis_analysis-0.0.10-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f8d2bb2e66a74addd1bfa2ef888c17c4",
+                    "sha256": "4497388f98ff598c3cc6f245cc6c0111f968fd6f1d17d81490eea60421e9d453"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.10.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f8d2bb2e66a74addd1bfa2ef888c17c4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17913,
+                "upload_time": "2019-03-14T07:34:15",
+                "url": "https://files.pythonhosted.org/packages/41/b6/ed2b3c448bba88c8f4125beaacbc9f2132d54f323efb2c29da5c2963b6f6/nyc_taxis_analysis-0.0.10.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4cce6fd50434385569b84af0d76416ff",
+                    "sha256": "20b05ae1527e5264417505484b4d3e18de8e7ae4119b13e60a64d44e4654ff67"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "4cce6fd50434385569b84af0d76416ff",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18134,
+                "upload_time": "2019-03-14T00:40:11",
+                "url": "https://files.pythonhosted.org/packages/ef/6e/7b10c56e58236ebfd7571b9859228951bca2c2c37ac173acc1adf94279d4/nyc_taxis_analysis-0.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4808d242dbd35f4320d83f35d603cba7",
+                    "sha256": "1830812f67d8fb528ca4a76b07c89556e2b3b5356b7cefd57626784534c893aa"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4808d242dbd35f4320d83f35d603cba7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 17861,
+                "upload_time": "2019-03-14T00:40:13",
+                "url": "https://files.pythonhosted.org/packages/02/57/4d888c5a65088f75a3938bcc26595ccccdeef5535a39d99dadd459a701ec/nyc_taxis_analysis-0.0.2.tar.gz"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "63e9a794966977d775bc6971a500cb1b",
+                    "sha256": "a98f83563eff906526b24e5de33c90b8837a99235b3486f8a1bf2595d6a488f3"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "63e9a794966977d775bc6971a500cb1b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18456,
+                "upload_time": "2019-03-14T01:10:36",
+                "url": "https://files.pythonhosted.org/packages/20/51/14c0534139976210ca30c977250af8b3f40798b8faa87e790fedf050b62a/nyc_taxis_analysis-0.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e00085e5e1f9af8a78ef0fa07dd93f9b",
+                    "sha256": "eff9c95512d90d96514d8529ecb4b4afe2457dd9d9c0697a74729643d2afaa07"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e00085e5e1f9af8a78ef0fa07dd93f9b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18018,
+                "upload_time": "2019-03-14T01:10:37",
+                "url": "https://files.pythonhosted.org/packages/b7/2e/d428d9b59e83642e8a2bc0fdcafc73621aa00e81cf92e36b794451f2575c/nyc_taxis_analysis-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b88b0bd67ffbbd1bbff10fbe930b7da8",
+                    "sha256": "424697e84ba4a4f116a058c028f3b18160809d41f1e4b52df4be349dc2f6ea06"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.4-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b88b0bd67ffbbd1bbff10fbe930b7da8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18545,
+                "upload_time": "2019-03-14T01:24:50",
+                "url": "https://files.pythonhosted.org/packages/10/64/1ef60a68d23ee7dd88229aecd24adfae22fa961e600ced129d9b27ec4347/nyc_taxis_analysis-0.0.4-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5a5a278a56cf492155bf184af97b01e0",
+                    "sha256": "5226f2907f7797f9413f9c059b59daef89f1007262c1419f346844f9d9190dc9"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5a5a278a56cf492155bf184af97b01e0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18211,
+                "upload_time": "2019-03-14T01:24:51",
+                "url": "https://files.pythonhosted.org/packages/17/1e/4ee340bf61890e5e361cc7d241a8a2ba8b6d52aea145ec7970c6e8c1f3d2/nyc_taxis_analysis-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ca22526cc5ed27a4213170038c9546b0",
+                    "sha256": "4660235b3e4e672cb2a8f1d4252b77aa390c4cf9058a839c8743682fc1741213"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.5-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ca22526cc5ed27a4213170038c9546b0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18490,
+                "upload_time": "2019-03-14T01:37:31",
+                "url": "https://files.pythonhosted.org/packages/31/51/469a1b9b49a1d2751f7c70f2133158883a10a6cc43be5f40a913333e1f2e/nyc_taxis_analysis-0.0.5-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a24af9c7ad590432d126aaa88c3c0905",
+                    "sha256": "610974776b0ded3f25f429570d6668c59bc855969591132d9c5af57b4e6bfbd4"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a24af9c7ad590432d126aaa88c3c0905",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18144,
+                "upload_time": "2019-03-14T01:37:32",
+                "url": "https://files.pythonhosted.org/packages/9e/94/d7279d5e66167528a2ab6a88ee8050ed9b106ae0040f19c863af2a7a238b/nyc_taxis_analysis-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "893fad8c6c945b465b9c298297d2bb72",
+                    "sha256": "9ad98b271898c4582137e6b465094fcde07537d9c3d3ada8be10fecdf74414d9"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.6-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "893fad8c6c945b465b9c298297d2bb72",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18494,
+                "upload_time": "2019-03-14T01:48:34",
+                "url": "https://files.pythonhosted.org/packages/c2/21/f1e9c473511789ddcecef98d0993c6446f6974212ea29cf15bfd03f8dac9/nyc_taxis_analysis-0.0.6-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9d59c844ff9ee06f4f9509c6fdb2631a",
+                    "sha256": "68b2814903b108482aa9be0434261677b47bd4de20e6ff670a3b0d732ddea84c"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "9d59c844ff9ee06f4f9509c6fdb2631a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18156,
+                "upload_time": "2019-03-14T01:48:35",
+                "url": "https://files.pythonhosted.org/packages/fc/d6/99ded4ed99d1cd6f39df7a317b54db55e7ebb8b9d6572609853593666014/nyc_taxis_analysis-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "89a5bcce1fa9d2c0f5be9e0d25c251e8",
+                    "sha256": "b7aaa56ba2a345bc02040d424222f3dca7ed825c33a93de5a528d054fd26e531"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.7-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "89a5bcce1fa9d2c0f5be9e0d25c251e8",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18501,
+                "upload_time": "2019-03-14T02:07:48",
+                "url": "https://files.pythonhosted.org/packages/fc/8c/278d07ad88d71aad9d08c76a3fd20c80360f82ad8f9aecd440b573b73655/nyc_taxis_analysis-0.0.7-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61f371115c2d4504699214dc5276762b",
+                    "sha256": "292df775817e2570343311f5ad59cfb012afead696a92529a2fbccae0bcd9d92"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "61f371115c2d4504699214dc5276762b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18175,
+                "upload_time": "2019-03-14T02:07:49",
+                "url": "https://files.pythonhosted.org/packages/61/8b/2452dd90ba7f0b87738cdd4eec5f4f4074c4935cf743fd6f10e1b8de296f/nyc_taxis_analysis-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8c4f4447661e7a93da1501a7b9136e05",
+                    "sha256": "55d891b410aada1f2827cf4380b64bbd4245aeb11b0400fedaadbf22851005a5"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.8-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "8c4f4447661e7a93da1501a7b9136e05",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18564,
+                "upload_time": "2019-03-14T02:16:39",
+                "url": "https://files.pythonhosted.org/packages/2b/1d/a4b108c9e24646e22764f5a1d56551c08e7b3da59d6f79510c2f393a350c/nyc_taxis_analysis-0.0.8-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bbee9bcbd46a061c53ac708be0b23927",
+                    "sha256": "57e67d51d59fa96c0c14e655c81c58a4c9a04e219bb6d9f5dccdf2cb97e753dd"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "bbee9bcbd46a061c53ac708be0b23927",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18232,
+                "upload_time": "2019-03-14T02:16:41",
+                "url": "https://files.pythonhosted.org/packages/de/0d/14cabb7f0197adb1e4d7c652ed9505a7c2d2177e972848974b3beb74df72/nyc_taxis_analysis-0.0.8.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "bfb42c8b9ad5f89a9f96cb153707d84e",
+                    "sha256": "ba41e2886ece3908d1298fe4c0389ced2ee84f53e3c0acbdcc8a4d2079c883db"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.9-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "bfb42c8b9ad5f89a9f96cb153707d84e",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 18563,
+                "upload_time": "2019-03-14T02:21:09",
+                "url": "https://files.pythonhosted.org/packages/cf/8d/8e32933c2b4a3a5cddd3861733b2d19a048ec1af23772b13589802d0d80f/nyc_taxis_analysis-0.0.9-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b1ed76f834bbd92f84b73636af8f9910",
+                    "sha256": "8d9a337606cbd52eb0738e20c845da0a31045eca4800cfb66f2c2ba650ad2df5"
+                },
+                "downloads": -1,
+                "filename": "nyc_taxis_analysis-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b1ed76f834bbd92f84b73636af8f9910",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 18244,
+                "upload_time": "2019-03-14T02:21:10",
+                "url": "https://files.pythonhosted.org/packages/ba/a1/0c1f40b09db2e8f101834a41e116972f96ae205e19fdc63442f604c329b3/nyc_taxis_analysis-0.0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4d8bc81ad2f62fda4628e16043a5235b",
+                "sha256": "c9ea389489f18e480a21254f895a65c285082ef14e24bf6f0ce3ddc5c9f5159a"
+            },
+            "downloads": -1,
+            "filename": "nyc_taxis_analysis-0.0.10-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "4d8bc81ad2f62fda4628e16043a5235b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 18424,
+            "upload_time": "2019-03-14T07:34:13",
+            "url": "https://files.pythonhosted.org/packages/20/b5/cd3981fdefabc469080644a557f8d24c001f3eaa3bbe3a28c0c3991faf1c/nyc_taxis_analysis-0.0.10-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "f8d2bb2e66a74addd1bfa2ef888c17c4",
+                "sha256": "4497388f98ff598c3cc6f245cc6c0111f968fd6f1d17d81490eea60421e9d453"
+            },
+            "downloads": -1,
+            "filename": "nyc_taxis_analysis-0.0.10.tar.gz",
+            "has_sig": false,
+            "md5_digest": "f8d2bb2e66a74addd1bfa2ef888c17c4",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 17913,
+            "upload_time": "2019-03-14T07:34:15",
+            "url": "https://files.pythonhosted.org/packages/41/b6/ed2b3c448bba88c8f4125beaacbc9f2132d54f323efb2c29da5c2963b6f6/nyc_taxis_analysis-0.0.10.tar.gz"
+        }
+    ]
+}

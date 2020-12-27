@@ -1,0 +1,508 @@
+{
+    "info": {
+        "author": "Lucas Vazquez",
+        "author_email": "lucas5zvazquez@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3 :: Only"
+        ],
+        "description": "[![Build Status](https://api.travis-ci.org/lucasvazq/cushead.py.svg?branch=master)](https://travis-ci.org/lucasvazq/cushead.py)\n[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ce412113e4144c9f9739a99a0d0b77f5)](https://app.codacy.com/app/lucasvazq/cushead.py?utm_source=github.com&utm_medium=referral&utm_content=lucasvazq/cushead.py&utm_campaign=Badge_Grade_Dashboard)\n[![codecov](https://codecov.io/gh/lucasvazq/cushead.py/branch/master/graph/badge.svg)](https://codecov.io/gh/lucasvazq/cushead.py)\n[![PyPI version](https://badge.fury.io/py/cushead.py.svg)](https://badge.fury.io/py/cushead.py)\n\n<p align=\"center\">\n  <img src=\"./logo.png\">\n</p>\n\n# cushead.py\n\n**A CLI that help you to improve the SEO and UX of your websites.**\n\n**Works with:** _meta-tags, favicons, manifest, robots, browserconfig, sitemap, opensearch_\n\n**Python Versions:** _>=3.5, <4.0_\n\n**Package Version**: _3.1.3_\n\n**Status:** _Production/Stable_\n\n## Description\n\nThis script edits an html file adding some meta-tags and other stuff for\nimproving the **SEO** and the **UX** of your website. Also, it generate a lot\nof useful files that are vinculated to that tags or stuff. For example, icons\nfor apple devices and manifest.json file. The info and the files generated can\nbe set through a config file.\n\nThe script can generate a full default config file running:\n\n`cushead.py -preset settings.txt`\n\nYou can edit that file how you want, and then run the script with that settings\nusing:\n\n`cushead.py -file settings.txt`\n\n## MENU\n\n[Install](#install)\n\n[Arguments](#arguments)\n\n1) [-h](#-h)\n\n2) [-preset](#-preset)\n\n3) [-file](#-file)\n\n[Testing](#testing)\n\n[Considerations](#considerations)\n\n[License](#license)\n\n## Install\n\n`python3 -m pip install cushead.py`\n\n## Arguments\n\n### -h\n\n`python3 cushead.py -h`\n\n```txt\nusage: cushead.py -file FILEPATH\n\nOptions (one required):\n  -preset FILENAME  Name of config file. Generate an example config file. That\n                    file contains a variable named 'config' that can be\n                    customized. It has some required values: 'html_file' (FILE\n                    PATH), 'output' (FOLDER PATH) and 'static_url' (STRING).\n                    Also, if 'icon_png' (IMAGE FILE PATH) is declared, this\n                    key need to have a value related to a path of an existing\n                    image.\n  -file FILEPATH    Path to config file. Read a config file that contains\n                    configurable values related to SEO and UX. After it, the\n                    script edits an html file and generate complementary files\n                    like icons, robots.txt, etc.\n\nExamples:\n1) Generate config file:\n    cushead.py -preset settings.txt\n2) Execute with using that config file:\n    cushead.py -file settings.txt\n```\n\n### -preset\n\nThis command generate a full config file in python syntax.\nExample:\n\n`cushead.py -preset settings.txt`\n\n_(settings.txt)_\n```python\n\"\"\"\nPython syntax\ncushead.py config file\nGit: https://github.com/lucasvazq/cushead.py\nDocumentation: https://github.com/lucasvazq/cushead.py/blob/master/README.md\n\nCONFIG VARIABLES:\n\n  html_file (FILE PATH):\n    Required, can't be void, need to exist and referrer to a file\n\n  output (FOLDER PATH):\n    Required, need to exist and referrer to a folder\n\n  static_url (STRING):\n      Required\n\n  icon_png (FILE PATH):\n    If declared, need to exist and referrer to an image file\n    Recomended 310x310 png image\n\"\"\"\n\n# Don't delete or change the name of this variable\nconfig = {\n\n  # MAIN CONFIG\n  'html_file':        './index.html',\n  'output':           './output/', # e.g. for manifest.json\n  'static_url':       '/static/',\n\n  # GENERAL CONFIG\n  'content-type':     'text/html; charset=utf-8',\n  'X-UA-Compatible':  'ie=edge',\n  'viewport':         {'width': 'device-width', 'initial-scale': '1'},\n  'language':         'en',\n  'territory':        'US', # language territory\n  'type':             'website', # http://ogp.me/#types\n  'color':            '#FFFFFF',\n  'url':              'microsoft.com', # Without \"www.\" and protocol (e.g. \"http://\")\n  'protocol':         'https://',\n  'robots':           'index, follow',\n  'browserconfig':    'browserconfig.xml',\n  'manifest':         'manifest.json',\n  'opensearch':       'opensearch.xml',\n  'sitemap':          'sitemap.xml',\n\n  # BASIC CONFIG\n  'title':            'Microsoft',\n  'description':      'Technology Solutions',\n  'subject':          'Home Page',\n  'keywords':         'Microsoft, Windows',\n\n  # IMAGES\n  'preview':          'preview.png', # Big image preview\n  'preview_type':     'image/png', # image/jpeg, image/gif or image/png\n  'icon':             'favicon.ico', # *.ico\n  'icon_png':         './favicon.png', # FILEPATH PNG IMAGE 310x310\n  'mask-icon':        'maskicon.svg', # svg file type\n\n  # SOCIAL MEDIA\n  'fb:app_id':        '12345', # Facebook App ID\n  'tw:site':          '@Microsoft', # Twitter account\n  'tw:creator:id':    '123456', # Page editor ID\n\n  # PWA\n  'dir':              'ltr',\n  'start_url':        '/',\n  'orientation':      'landscape',\n  'scope':            '/',\n  'display':          'browser',\n  'platform':        'web',\n  'applications':     [\n    {\n      'platform': 'play',\n      'url':      'https://play.google.com/store/apps/details?id=com.example.app',\n      'id':       'com.example.app'\n    },\n    {\n      'platform': 'itunes',\n      'url':      'https://itunes.apple.com/app/example-app/id123456',\n    }\n  ],\n\n  # AUTHOR\n  'author':           'Lucas Vazquez'\n\n}\n```\n\n#### html_file\n\nRequires for a *.html file path.\nThat file needs to contain a literally `<html>` element and a $head$ variable.\nThe `<html>`element is used to add the lang attribute.\nThe $head$ variable is used to be replaced with custom elements like meta-tags.\nExample struct:\n\n_(index.html)_\n```html\n<html>\n  <head>\n    $head$\n  </head>\n</html>\n```\n\n#### output\n\nThe folder where all generated files are going to be saved.\nIt must exist.\n\n#### static_url\n\nThe URL path of statics files.\n\n#### icon_png\n\nA PNG image file used to generate the icons. 310x310 size recommended.\n\n### -file\n\nThis argument uses a config file to run the script.\nUsing the default config file generated with -preset, we run the script with\n-file:\n\n`cushead.py -file settings.txt`\n\nOutput:\n```txt\n<html lang=\"en\">\n\nHEAD:\n<!-- Custom head elements -->\n<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />\n<meta http-equiv='X-UA-Compatible' content='ie=edge' />\n<meta name='viewport' content='width=device-width, initial-scale=1' />\n<meta http-equiv='Content-Language' content='en' />\n<meta name='theme-color' content='#FFFFFF' />\n<meta name='msapplication-TileColor' content='#FFFFFF' />\n<meta name='robots' content='index, follow' />\n<title>Microsoft</title>\n<meta name='application-name' content='Microsoft'>\n<meta name='description' content='Technology Solutions' />\n<meta name='subject' content='Home Page' />\n<meta name='keywords' content='Microsoft, Windows' />\n<link rel='icon' type=\"image/png\" sizes='16x16' href='/static/favicon-16x16.png' />\n<link rel='icon' type=\"image/png\" sizes='24x24' href='/static/favicon-24x24.png' />\n<link rel='icon' type=\"image/png\" sizes='32x32' href='/static/favicon-32x32.png' />\n<link rel='icon' type=\"image/png\" sizes='48x48' href='/static/favicon-48x48.png' />\n<link rel='icon' type=\"image/png\" sizes='57x57' href='/static/favicon-57x57.png' />\n<link rel='icon' type=\"image/png\" sizes='60x60' href='/static/favicon-60x60.png' />\n<link rel='icon' type=\"image/png\" sizes='64x64' href='/static/favicon-64x64.png' />\n<link rel='icon' type=\"image/png\" sizes='70x70' href='/static/favicon-70x70.png' />\n<link rel='icon' type=\"image/png\" sizes='72x72' href='/static/favicon-72x72.png' />\n<link rel='icon' type=\"image/png\" sizes='76x76' href='/static/favicon-76x76.png' />\n<link rel='icon' type=\"image/png\" sizes='96x96' href='/static/favicon-96x96.png' />\n<link rel='icon' type=\"image/png\" sizes='114x114' href='/static/favicon-114x114.png' />\n<link rel='icon' type=\"image/png\" sizes='120x120' href='/static/favicon-120x120.png' />\n<link rel='icon' type=\"image/png\" sizes='128x128' href='/static/favicon-128x128.png' />\n<link rel='icon' type=\"image/png\" sizes='144x144' href='/static/favicon-144x144.png' />\n<link rel='icon' type=\"image/png\" sizes='150x150' href='/static/favicon-150x150.png' />\n<link rel='icon' type=\"image/png\" sizes='152x152' href='/static/favicon-152x152.png' />\n<link rel='icon' type=\"image/png\" sizes='167x167' href='/static/favicon-167x167.png' />\n<link rel='icon' type=\"image/png\" sizes='180x180' href='/static/favicon-180x180.png' />\n<link rel='icon' type=\"image/png\" sizes='192x192' href='/static/favicon-192x192.png' />\n<link rel='icon' type=\"image/png\" sizes='195x195' href='/static/favicon-195x195.png' />\n<link rel='icon' type=\"image/png\" sizes='196x196' href='/static/favicon-196x196.png' />\n<link rel='icon' type=\"image/png\" sizes='228x228' href='/static/favicon-228x228.png' />\n<link rel='icon' type=\"image/png\" sizes='310x310' href='/static/favicon-310x310.png' />\n<meta name='msapplication-TileImage' content='/static/ms-icon-144x144.png' />\n<link rel='apple-touch-icon' href='/static/apple-touch-icon-57x57.png' />\n<link rel='apple-touch-icon' sizes='57x57' href='/static/apple-touch-icon-57x57.png' />\n<link rel='apple-touch-icon' sizes='60x60' href='/static/apple-touch-icon-60x60.png' />\n<link rel='apple-touch-icon' sizes='72x72' href='/static/apple-touch-icon-72x72.png' />\n<link rel='apple-touch-icon' sizes='76x76' href='/static/apple-touch-icon-76x76.png' />\n<link rel='apple-touch-icon' sizes='114x114' href='/static/apple-touch-icon-114x114.png' />\n<link rel='apple-touch-icon' sizes='120x120' href='/static/apple-touch-icon-120x120.png' />\n<link rel='apple-touch-icon' sizes='144x144' href='/static/apple-touch-icon-144x144.png' />\n<link rel='apple-touch-icon' sizes='152x152' href='/static/apple-touch-icon-152x152.png' />\n<link rel='apple-touch-icon' sizes='180x180' href='/static/apple-touch-icon-180x180.png' />\n<link rel='fluid-icon' href='/static/fluidicon-512x512.png' title='Microsoft' />\n<link rel='shortcut icon' href='/static/favicon.ico' type='image/x-icon' />\n<link rel='mask-icon' href='maskicon.svg' color='#FFFFFF' />\n<meta name='msapplication-config' content='/static/browserconfig.xml' />\n<link rel='manifest' href='/static/manifest.json' />\n<link rel='search' type='application/opensearchdescription+xml' title='Microsoft' href='/static/opensearch.xml' />\n<meta porperty='fb:app_id' content='12345' />\n<meta property='og:locale' content='en_US' />\n<meta property='og:type' content='website' />\n<meta property='og:url' content='https://microsoft.com' />\n<meta property='og:site_name' content='Microsoft' />\n<meta property='og:title' content='Microsoft' />\n<meta property='og:description' content='Technology Solutions' />\n<meta property='og:image' content='/static/preview.png' />\n<meta property='og:image:secure_url' content='/static/preview.png' />\n<meta name='twitter:image' content='/static/preview.png' />\n<meta property='og:image:type' content='image/png' />\n<meta property='og:image:alt' content='Microsoft - Technology Solutions' />\n<meta name='twitter:image:alt' content='Microsoft - Technology Solutions' />\n<meta name='twitter:card' content='summary' />\n<meta name='twitter:site' content='@Microsoft' />\n<meta name='twitter:title' content='Microsoft' />\n<meta name='twitter:description' content='Technology Solutions' />\n<meta property='twitter:creator:id' content='123456' />\n<meta name='author' content='Lucas Vazquez' />\n\nNEW FILES:\n./output/favicon-16x16.png\n./output/favicon-24x24.png\n./output/favicon-32x32.png\n./output/favicon-48x48.png\n./output/favicon-57x57.png\n./output/favicon-60x60.png\n./output/favicon-64x64.png\n./output/favicon-70x70.png\n./output/favicon-72x72.png\n./output/favicon-76x76.png\n./output/favicon-96x96.png\n./output/favicon-114x114.png\n./output/favicon-120x120.png\n./output/favicon-128x128.png\n./output/favicon-144x144.png\n./output/favicon-150x150.png\n./output/favicon-152x152.png\n./output/favicon-167x167.png\n./output/favicon-180x180.png\n./output/favicon-192x192.png\n./output/favicon-195x195.png\n./output/favicon-196x196.png\n./output/favicon-228x228.png\n./output/favicon-310x310.png\n./output/ms-icon-144x144.png\n./output/apple-touch-icon-57x57.png\n./output/apple-touch-icon-57x57.png\n./output/apple-touch-icon-60x60.png\n./output/apple-touch-icon-72x72.png\n./output/apple-touch-icon-76x76.png\n./output/apple-touch-icon-114x114.png\n./output/apple-touch-icon-120x120.png\n./output/apple-touch-icon-144x144.png\n./output/apple-touch-icon-152x152.png\n./output/apple-touch-icon-180x180.png\n./output/fluidicon-512x512.png\n./output/ms-icon-30x30.png\n./output/ms-icon-44x44.png\n./output/ms-icon-70x70.png\n./output/ms-icon-150x150.png\n./output/ms-icon-310x310.png\n./output/ms-icon-310x150.png\n./output/android-icon-36x36.png\n./output/android-icon-48x48.png\n./output/android-icon-72x72.png\n./output/android-icon-96x96.png\n./output/android-icon-144x144.png\n./output/android-icon-192x192.png\n./output/opensearch-16x16.png\n./output/browserconfig.xml\n./output/manifest.json\n./output/opensearch.xml\n./output/robots.txt\n./output/sitemap.xml\n\nHTML FILE: ./index.html\n(full path): /home/user/Projects/Example/./index.html\nOUTPUT FILES: ./output/\n(full path): /home/user/Projects/Example/./output/\n```\n\n#### Edited html file\n\nSupposing we provide the html file declared previously (index.html), the result\nwill be:\n\n_(index.html)_\n```html\n<html lang=\"en\">\n  <head>\n    <!-- Custom head elements -->\n    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <meta http-equiv=\"Content-Language\" content=\"en\" />\n    <meta name=\"theme-color\" content=\"#FFFFFF\" />\n    <meta name=\"msapplication-TileColor\" content=\"#FFFFFF\" />\n    <meta name=\"robots\" content=\"index, follow\" />\n    <title>Microsoft</title>\n    <meta name=\"application-name\" content=\"Microsoft\">\n    <meta name=\"description\" content=\"Technology Solutions\" />\n    <meta name=\"subject\" content=\"Home Page\" />\n    <meta name=\"keywords\" content=\"Microsoft, Windows\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/static/favicon-16x16.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"24x24\" href=\"/static/favicon-24x24.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/static/favicon-32x32.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"48x48\" href=\"/static/favicon-48x48.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"57x57\" href=\"/static/favicon-57x57.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"60x60\" href=\"/static/favicon-60x60.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"64x64\" href=\"/static/favicon-64x64.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"70x70\" href=\"/static/favicon-70x70.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"72x72\" href=\"/static/favicon-72x72.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"76x76\" href=\"/static/favicon-76x76.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"96x96\" href=\"/static/favicon-96x96.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"114x114\" href=\"/static/favicon-114x114.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"120x120\" href=\"/static/favicon-120x120.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"128x128\" href=\"/static/favicon-128x128.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"144x144\" href=\"/static/favicon-144x144.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"150x150\" href=\"/static/favicon-150x150.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"152x152\" href=\"/static/favicon-152x152.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"167x167\" href=\"/static/favicon-167x167.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"180x180\" href=\"/static/favicon-180x180.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"192x192\" href=\"/static/favicon-192x192.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"195x195\" href=\"/static/favicon-195x195.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"196x196\" href=\"/static/favicon-196x196.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"228x228\" href=\"/static/favicon-228x228.png\" />\n    <link rel=\"icon\" type=\"image/png\" sizes=\"310x310\" href=\"/static/favicon-310x310.png\" />\n    <meta name=\"msapplication-TileImage\" content=\"/static/ms-icon-144x144.png\" />\n    <link rel=\"apple-touch-icon\" href=\"/static/apple-touch-icon-57x57.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"57x57\" href=\"/static/apple-touch-icon-57x57.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"60x60\" href=\"/static/apple-touch-icon-60x60.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"72x72\" href=\"/static/apple-touch-icon-72x72.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"76x76\" href=\"/static/apple-touch-icon-76x76.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"114x114\" href=\"/static/apple-touch-icon-114x114.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"120x120\" href=\"/static/apple-touch-icon-120x120.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"144x144\" href=\"/static/apple-touch-icon-144x144.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"152x152\" href=\"/static/apple-touch-icon-152x152.png\" />\n    <link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/static/apple-touch-icon-180x180.png\" />\n    <link rel=\"fluid-icon\" href=\"/static/fluidicon-512x512.png\" title=\"Microsoft\" />\n    <link rel=\"shortcut icon\" href=\"/static/favicon.ico\" type=\"image/x-icon\" />\n    <link rel=\"mask-icon\" href=\"maskicon.svg\" color=\"#FFFFFF\" />\n    <meta name=\"msapplication-config\" content=\"/static/browserconfig.xml\" />\n    <link rel=\"manifest\" href=\"/static/manifest.json\" />\n    <link rel=\"search\" type=\"application/opensearchdescription+xml\" title=\"Microsoft\" href=\"/static/opensearch.xml\" />\n    <meta porperty=\"fb:app_id\" content=\"12345\" />\n    <meta property=\"og:locale\" content=\"en_US\" />\n    <meta property=\"og:type\" content=\"website\" />\n    <meta property=\"og:url\" content=\"https://microsoft.com\" />\n    <meta property=\"og:site_name\" content=\"Microsoft\" />\n    <meta property=\"og:title\" content=\"Microsoft\" />\n    <meta property=\"og:description\" content=\"Technology Solutions\" />\n    <meta property=\"og:image\" content=\"/static/preview.png\" />\n    <meta property=\"og:image:secure_url\" content=\"/static/preview.png\" />\n    <meta name=\"twitter:image\" content=\"/static/preview.png\" />\n    <meta property=\"og:image:type\" content=\"image/png\" />\n    <meta property=\"og:image:alt\" content=\"Microsoft - Technology Solutions\" />\n    <meta name=\"twitter:image:alt\" content=\"Microsoft - Technology Solutions\" />\n    <meta name=\"twitter:card\" content=\"summary\" />\n    <meta name=\"twitter:site\" content=\"@Microsoft\" />\n    <meta name=\"twitter:title\" content=\"Microsoft\" />\n    <meta name=\"twitter:description\" content=\"Technology Solutions\" />\n    <meta property=\"twitter:creator:id\" content=\"123456\" />\n    <meta name=\"author\" content=\"Lucas Vazquez\" />\n  </head>\n</html>\n```\n\n#### New files\n\n48 new icons with different sizes, coming from 'icon_png' config value.\nNew files: browserconfig.xml, manifest.json, opensearch.xml, robots.txt and\nsitemap.xml\n\n_(browserconfig.xml)_ _BEAUTY VERSION_\n```xml\n<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<browserconfig>\n  <msapplication>\n    <tile>\n      <square30x30logo src=\"/static/ms-icon-30x30.png\" />\n      <square44x44logo src=\"/static/ms-icon-44x44.png\" />\n      <square70x70logo src=\"/static/ms-icon-70x70.png\" />\n      <square150x150logo src=\"/static/ms-icon-150x150.png\" />\n      <square310x310logo src=\"/static/ms-icon-310x310.png\" />\n      <wide310x150logo src=\"/static/ms-icon-310x150.png\" />\n      <TileColor>#FFFFFF</TileColor>\n    </tile>\n  </msapplication>\n</browserconfig>\n```\n\n_(manifest.json)_ _BEAUTY VERSION_\n```json\n{\n  \"name\": \"Microsoft\",\n  \"short_name\": \"Microsoft\",\n  \"description\": \"Technology Solutions\",\n  \"dir\": \"ltr\",\n  \"start_url\": \"/\",\n  \"orientation\": \"landscape\",\n  \"background_color\": \"#FFFFFF\",\n  \"theme_color\": \"#FFFFFF\",\n  \"default_locale\": \"en\",\n  \"scope\": \"/\",\n  \"display\": \"browser\",\n  \"platform\": \"web\",\n  \"related_applications\": [\n    {\n      \"platform\": \"play\",\n      \"url\": \"https://play.google.com/store/apps/details?id=com.example.app\",\n      \"id\": \"com.example.app\"\n    },\n    {\n      \"platform\": \"itunes\",\n      \"url\": \"https://itunes.apple.com/app/example-app/id123456\"\n    }\n  ],\n  \"icons\": [\n    {\n      \"src\": \"/static/android-icon-36x36\",\n      \"sizes\": \"36x36\",\n      \"type\": \"image/png\",\n      \"density\": \"0.75\"\n    },\n    {\n      \"src\": \"/static/android-icon-48x48\",\n      \"sizes\": \"48x48\",\n      \"type\": \"image/png\",\n      \"density\": \"1.0\"\n    },\n    {\n      \"src\": \"/static/android-icon-72x72\",\n      \"sizes\": \"72x72\",\n      \"type\": \"image/png\",\n      \"density\": \"1.5\"\n    },\n    {\n      \"src\": \"/static/android-icon-96x96\",\n      \"sizes\": \"96x96\",\n      \"type\": \"image/png\",\n      \"density\": \"2.0\"\n    },\n    {\n      \"src\": \"/static/android-icon-144x144\",\n      \"sizes\": \"144x144\",\n      \"type\": \"image/png\",\n      \"density\": \"3.0\"\n    },\n    {\n      \"src\": \"/static/android-icon-192x192\",\n      \"sizes\": \"192x192\",\n      \"type\": \"image/png\",\n      \"density\": \"4.0\"\n    }\n  ]\n}\n```\n\n_(opensearch.xml)_ _BEAUTY VERSION_\n```xml\n<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<OpenSearchDescription xmlns:moz=\"http://www.mozilla.org/2006/browser/search/\" xmlns=\"http://a9.com/-/spec/opensearch/1.1/\">\n  <ShortName>Microsoft</ShortName>\n  <Description>Search Microsoft</Description>\n  <InputEncoding>UTF-8</InputEncoding>\n  <Url method=\"get\" type=\"text/html\" template=\"http://www.google.com/search?q={searchTerms}+site%3Amicrosoft.com\" />\n  <Image height=\"16\" width=\"16\" type=\"image/png\">/static/opensearch-16x16.png</Image>\n</OpenSearchDescription>\n```\n\n_(robots.txt)_\n```txt\nUser-agent: *\nAllow: /\n\nSitemap: https://microsoft.com/sitemap.xml\n```\n\n_(sitemap.xml)_ _BEAUTY VERSION_\n```xml\n<?xml version=\"1.0\" encoding=\"uft-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">\n  <url>\n    <loc>https://microsoft.com/</loc>\n  </url>\n</urlset>\n```\n\n## Testing\n\n### Files\n\n[manifest.json](https://manifest-validator.appspot.com/)\n\n[robots.txt](https://sitechecker.pro/es/robots-tester/)\n\n[sitemap.xml](https://www.xml-sitemaps.com/validate-xml-sitemap.html)\n\n### Headers\n\n[Favicons](https://realfavicongenerator.net/favicon_checker)\n\n[Meta-tags](https://www.heymeta.com/)\n\n[Facebook Debugger](https://developers.facebook.com/tools/debug/)\n\n[Twitter Card validator](https://cards-dev.twitter.com/validator)\n\n## Considerations\n\nHere is a list of concepts that comprise good practices to improve **SEO** and\n**UX**:\n\n1) Structured data: RDFa, JSON-D, Microdata, GoodRelations, vCard, hCard\n2) rel profile attribute for referring to author or website owner\n3) Maskable icons\n4) Accelerated Mobiles Pages\n5) Progressive Web Apps\n6) Screenshots in manifest for PWA\n7) Add PWA to App stores (like the Play Store of Google)\n8) Javascript and css minified and purged with short variables names\n9) Responsive Design\n10) Mobile call and Whatsapp sms for mobiles websites\n11) Google my Business integration\n12) gzip and bzip2 compression\n13) Server Side Rendering\n14) HTTP caching in Client Side\n15) Content Delivery Network\n\n## License\n\n**cushead.py** \u00a9 2019 Lucas Vazquez. Released under the [MIT](http://mit-license.org/) License.",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/lucasvazq/cushead.py",
+        "keywords": "SEO,UX,front-end",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "cushead.py",
+        "package_url": "https://pypi.org/project/cushead.py/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/cushead.py/",
+        "project_urls": {
+            "Documentation": "https://github.com/lucasvazq/cushead.py/blob/master/README.md",
+            "Homepage": "https://github.com/lucasvazq/cushead.py",
+            "Source": "https://github.com/lucasvazq/cushead.py"
+        },
+        "release_url": "https://pypi.org/project/cushead.py/3.1.3/",
+        "requires_dist": null,
+        "requires_python": ">=3.5, <4.0",
+        "summary": "CLI that help you to improve the SEO and UX of your websites.",
+        "version": "3.1.3"
+    },
+    "last_serial": 5674949,
+    "releases": {
+        "2.3.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f5fa88bbf48c4255082aab985d788473",
+                    "sha256": "86c1e74df04cedd6791ef37b470fa5586661bbda87928822c673a823f88b91f2"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.3.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f5fa88bbf48c4255082aab985d788473",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 8442,
+                "upload_time": "2019-08-11T02:44:17",
+                "url": "https://files.pythonhosted.org/packages/dc/52/e4a1c4c140c839a5b27240da0162a385ebc123a8df3c1c20f6703349f7e1/cushead.py-2.3.1.tar.gz"
+            }
+        ],
+        "2.3.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e2e8f9aa50a40b80ed7dbc2362e18547",
+                    "sha256": "6abeddde1a37b10b294747ca5d3dce559ad33a7182f8fa2b78ae1a6cda2e77d9"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.3.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e2e8f9aa50a40b80ed7dbc2362e18547",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 10854,
+                "upload_time": "2019-08-11T03:58:22",
+                "url": "https://files.pythonhosted.org/packages/98/46/728a756a204e5addf6a3f7159264e73cfbda1670e8f28a634a2672a430a4/cushead.py-2.3.2.tar.gz"
+            }
+        ],
+        "2.3.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "5c0ca410afc7a7a4d842c7463200dd86",
+                    "sha256": "0a9f37819370acea6e60050c75294dd37f0ba9f7830ea98d3a4fdf3aa3750d7f"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.3.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "5c0ca410afc7a7a4d842c7463200dd86",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 10861,
+                "upload_time": "2019-08-11T04:13:34",
+                "url": "https://files.pythonhosted.org/packages/e4/aa/2277c94c543d1d9829876078193c7ee6fbae88d5e5f3349dde28ed04f16e/cushead.py-2.3.3.tar.gz"
+            }
+        ],
+        "2.3.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "092fa06ebc0ee9201b819bffb75b5220",
+                    "sha256": "7da6d05b06c07206e70acf98020b8c4f0a6b71c0e870f2231430d6798ad61f91"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.3.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "092fa06ebc0ee9201b819bffb75b5220",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 11082,
+                "upload_time": "2019-08-11T04:18:01",
+                "url": "https://files.pythonhosted.org/packages/36/6d/1da2362a821a023b4de3749c74700228867e63feed07397bb98693fc52bc/cushead.py-2.3.4.tar.gz"
+            }
+        ],
+        "2.4.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "45e7c406149a20789b1b82ed7bd7673c",
+                    "sha256": "ba9c1f6ba2f43f0eac695f14f51eca58ecbf347fe44cd8a7ec6dbaaaa732a1e8"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "45e7c406149a20789b1b82ed7bd7673c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 6120,
+                "upload_time": "2019-08-11T04:21:18",
+                "url": "https://files.pythonhosted.org/packages/3c/81/3eff9d81bedb74ceb896011c09d3ca4424f364d6ec0461eb28e0c650421c/cushead.py-2.4.0.tar.gz"
+            }
+        ],
+        "2.4.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8bced36a234215f5548f7f9d016c8097",
+                    "sha256": "488912a4029edecdc5cf32b3fecf53db472a7c8d0bef7218a94748a14d243efb"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8bced36a234215f5548f7f9d016c8097",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 6084,
+                "upload_time": "2019-08-11T04:24:43",
+                "url": "https://files.pythonhosted.org/packages/9b/dd/c60e900e675945430f631af634fda62aa26e295d5b2dcffe67f246573dec/cushead.py-2.4.1.tar.gz"
+            }
+        ],
+        "2.4.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2a551d320f825bdd3d4295fdf9b3f4e4",
+                    "sha256": "41869b549275587025691e67191291bc30f532b9dfb050ea45390ad766c2a53f"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2a551d320f825bdd3d4295fdf9b3f4e4",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 6092,
+                "upload_time": "2019-08-11T04:32:04",
+                "url": "https://files.pythonhosted.org/packages/d5/00/1021b4c1b7f14221a7e54f1f3c89247589707630ee91db60d3c715c91ac3/cushead.py-2.4.2.tar.gz"
+            }
+        ],
+        "2.4.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d0fb7b281f757c0edbbfa0314ad300e6",
+                    "sha256": "691e7181a6ed56c4030d8e9da0c21479f559701a1759b1b2058744ebd886a56b"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "d0fb7b281f757c0edbbfa0314ad300e6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 6083,
+                "upload_time": "2019-08-11T05:08:32",
+                "url": "https://files.pythonhosted.org/packages/6a/41/2c2944db7e7356b6140b2a5fde2638dc5cbeafbd2b12699600c177240a2b/cushead.py-2.4.3.tar.gz"
+            }
+        ],
+        "2.4.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "88abbefa32ed6f3a5129843e5ab5c210",
+                    "sha256": "3d9cadd29b3d4285934d2233d31ad8ada25a022c035c3376230c3df347d2fb68"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "88abbefa32ed6f3a5129843e5ab5c210",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 6427,
+                "upload_time": "2019-08-11T06:03:07",
+                "url": "https://files.pythonhosted.org/packages/52/a3/a05ea718aa64a76264c0081926f8f56a99db5639211824f691da2c65452b/cushead.py-2.4.5.tar.gz"
+            }
+        ],
+        "2.4.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "73138adf8a6ed0c6c8ca6b60094702a6",
+                    "sha256": "7883c69422592c1493d04a4a0f1f3e5e608026a636a7e6e9f4bd0f70baa1ebeb"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "73138adf8a6ed0c6c8ca6b60094702a6",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 6561,
+                "upload_time": "2019-08-11T06:21:08",
+                "url": "https://files.pythonhosted.org/packages/35/b3/914ebbacea0b64296c01f771e71bf969a24cd9068081523c3b11da24862c/cushead.py-2.4.6.tar.gz"
+            }
+        ],
+        "2.4.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "3445c2f8de8a15a271875aeb7eeab760",
+                    "sha256": "55b73287e12dcad3f720701861623dba081c75af236e27321adc17ce8b755c7d"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "3445c2f8de8a15a271875aeb7eeab760",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 6600,
+                "upload_time": "2019-08-11T06:24:46",
+                "url": "https://files.pythonhosted.org/packages/9d/aa/7213535ee6990a17128af0f0557ba1048c00df4b62dce67e1c69c908cd54/cushead.py-2.4.7.tar.gz"
+            }
+        ],
+        "2.4.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2d31c9e1140b36f25525e534357822f2",
+                    "sha256": "e11157821854cb8027557d4454c35713cef657ae206c898656afdf3e5675ac36"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2d31c9e1140b36f25525e534357822f2",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 12280,
+                "upload_time": "2019-08-11T06:30:59",
+                "url": "https://files.pythonhosted.org/packages/df/c0/1d8beea289cb369ea4445adeb6fb0a3a29705014aa475bf279c6a80909b6/cushead.py-2.4.8.tar.gz"
+            }
+        ],
+        "2.4.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b65f5d3afe843d8a412a1f31ffa0f206",
+                    "sha256": "28f2faf6a38446488c450db1f0f7ce4a6c3f72c9eb4419cf2964d25cdf21d619"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.4.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "b65f5d3afe843d8a412a1f31ffa0f206",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 12075,
+                "upload_time": "2019-08-11T06:38:53",
+                "url": "https://files.pythonhosted.org/packages/71/dd/6c426170126383d3d8366e014be3e3e388dd9bab46b27ad6ca8e7e16e456/cushead.py-2.4.9.tar.gz"
+            }
+        ],
+        "2.5.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "2ac29ee14894f85fb28d6217318f03a0",
+                    "sha256": "7a87adaed33b0aa4079f55edb29aa1ffd89293c4cd1323b3c90d57c1472548ca"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.5.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "2ac29ee14894f85fb28d6217318f03a0",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 12140,
+                "upload_time": "2019-08-11T06:48:51",
+                "url": "https://files.pythonhosted.org/packages/46/56/fb9290e060af1f7f50b0f31c9c5376f74dcac13aa3da34a8de816f426da5/cushead.py-2.5.0.tar.gz"
+            }
+        ],
+        "2.5.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "99243eaebc1022fb9db3be5531f0a4f3",
+                    "sha256": "9eeab0135f165503a4cf76f784c3e2ee9a7e161624ef27f209c2184fc41c4aad"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.5.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "99243eaebc1022fb9db3be5531f0a4f3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 12119,
+                "upload_time": "2019-08-11T06:53:07",
+                "url": "https://files.pythonhosted.org/packages/a7/72/946f490d292264248ad409f33cf9515eeb88bf3151071310440147a6a8ab/cushead.py-2.5.1.tar.gz"
+            }
+        ],
+        "2.5.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "fb10d54940e8406d17466092aa3c233d",
+                    "sha256": "59c16ddc60a5369b9402bbb67f230681292c7d731ce4a3eb065a043e14071e6a"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-2.5.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "fb10d54940e8406d17466092aa3c233d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4",
+                "size": 12126,
+                "upload_time": "2019-08-11T06:55:57",
+                "url": "https://files.pythonhosted.org/packages/fb/02/d7c89260e52b8f3ab90ee26dce7c6aaa5057141147b0f10ab6c86532220e/cushead.py-2.5.2.tar.gz"
+            }
+        ],
+        "3.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "1188c772518da506c82c9f26cf38ea62",
+                    "sha256": "51bcffc122d2dd57d76fb38a1a26ef842b3f5fa114ef163f3e111af6be44c6dc"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-3.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "1188c772518da506c82c9f26cf38ea62",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4.0",
+                "size": 19164,
+                "upload_time": "2019-08-13T23:32:07",
+                "url": "https://files.pythonhosted.org/packages/c4/02/2ea5207d1b272a25bdc3fd85152b8d8b33fac5198548b42a2b2401118c4a/cushead.py-3.0.0.tar.gz"
+            }
+        ],
+        "3.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c8624a9642b02841fbcc88d88e881f7d",
+                    "sha256": "c950b94e60d034d8be129215e3153bfb513232e789b1f6e326e8bf39db773da8"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-3.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c8624a9642b02841fbcc88d88e881f7d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4.0",
+                "size": 19629,
+                "upload_time": "2019-08-13T23:37:55",
+                "url": "https://files.pythonhosted.org/packages/20/57/66e475e3abf725054855b36bbb21ab17af8052d51b31bcec308280528f08/cushead.py-3.0.1.tar.gz"
+            }
+        ],
+        "3.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c3debff9ee5b6c86d1000a0bd8b3a7f7",
+                    "sha256": "a86268bfcd06a76f88929f283ff0bc52c5677dc80d26a561f477138aef0bfd3e"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-3.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "c3debff9ee5b6c86d1000a0bd8b3a7f7",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4.0",
+                "size": 19212,
+                "upload_time": "2019-08-14T02:59:36",
+                "url": "https://files.pythonhosted.org/packages/ea/ce/6d9a4daa7a3c4666d4273fc6604d3ea01a35ec70edb24f86c3d7aa58ed9d/cushead.py-3.0.2.tar.gz"
+            }
+        ],
+        "3.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "8ee0019dda8340922a28d1d736025e1e",
+                    "sha256": "4f362c2d935a275b8f46b668dff10475eb1c1aaecfc3ce47740454816732825b"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-3.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "8ee0019dda8340922a28d1d736025e1e",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4.0",
+                "size": 21646,
+                "upload_time": "2019-08-14T05:40:19",
+                "url": "https://files.pythonhosted.org/packages/87/d8/bb74820e43b136e0c4b26ee9da47ad1590365bb9c14d7286d05fa1720b5d/cushead.py-3.1.0.tar.gz"
+            }
+        ],
+        "3.1.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "205377648c0a06c2619b99d25de71179",
+                    "sha256": "9d743fd8b98f0880def8bd9e41f804e2de44a45113469ccea7b00f468be09584"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-3.1.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "205377648c0a06c2619b99d25de71179",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4.0",
+                "size": 21738,
+                "upload_time": "2019-08-14T05:58:07",
+                "url": "https://files.pythonhosted.org/packages/0c/91/53fe923782680145391342e61314dc5b22c81ab4db1b8b8d54ad8af0cedf/cushead.py-3.1.1.tar.gz"
+            }
+        ],
+        "3.1.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "627d4edd248d20f5322e5ab2e3364f90",
+                    "sha256": "da8b1fd15877f88a1986d0e3756059de1e2bf28959d55ce4c4da01ccc3e74c8e"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-3.1.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "627d4edd248d20f5322e5ab2e3364f90",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4.0",
+                "size": 21740,
+                "upload_time": "2019-08-14T06:00:45",
+                "url": "https://files.pythonhosted.org/packages/ce/71/8ef2c84dcfa30b20b1dd0d3aa5cdb8f1b38f9a6c347a42202b004188f2d7/cushead.py-3.1.2.tar.gz"
+            }
+        ],
+        "3.1.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "91255a9d67bf7eca218ae352a3981ffc",
+                    "sha256": "9b358b5c68c5c5202147f497cde608f0f9ef4f64eef8db80ef0f5191ba45039a"
+                },
+                "downloads": -1,
+                "filename": "cushead.py-3.1.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "91255a9d67bf7eca218ae352a3981ffc",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.5, <4.0",
+                "size": 20529,
+                "upload_time": "2019-08-14T06:08:19",
+                "url": "https://files.pythonhosted.org/packages/dd/e8/b42dc011ecd8e65f3125f694113e6c2faa2fd5946dbaa3d6fc80da984bab/cushead.py-3.1.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "91255a9d67bf7eca218ae352a3981ffc",
+                "sha256": "9b358b5c68c5c5202147f497cde608f0f9ef4f64eef8db80ef0f5191ba45039a"
+            },
+            "downloads": -1,
+            "filename": "cushead.py-3.1.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "91255a9d67bf7eca218ae352a3981ffc",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.5, <4.0",
+            "size": 20529,
+            "upload_time": "2019-08-14T06:08:19",
+            "url": "https://files.pythonhosted.org/packages/dd/e8/b42dc011ecd8e65f3125f694113e6c2faa2fd5946dbaa3d6fc80da984bab/cushead.py-3.1.3.tar.gz"
+        }
+    ]
+}

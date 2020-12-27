@@ -1,0 +1,149 @@
+{
+    "info": {
+        "author": "Jeff Levensailor",
+        "author_email": "jeff@levensailor.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Python SDK for Cisco CUCM AXL API\n\n## AXL API Documentation\n - https://developer.cisco.com/docs/axl-schema-reference/\n\n## Installation\n```bash\npip install py-cisco-axl\n```\n\n## Example Usage\n```python\nfrom axl import AXL\ncucm = os.getenv('cucm', '10.10.20.1')\nusername = os.getenv('username', 'administrator')\npassword = os.getenv('password', 'ciscopsdt')\nversion = os.getenv('version', '11.5')\n```\n\n## Users\n\n#### Get All Users\n```python\nfor user in ucm.get_users():\n    print(user.firstName)\n```\n\n#### Get Specific User\n```python\nthis_user = ucm.get_user(user_id='mscott')\nif this_user['success']:\n    print(this_user['response'])\n```\n\n#### Add User\n```python\nthis_add_user = ucm.add_user(user_id='jlevensailor', last_name='Levensailor', first_name='Jeff')\nif this_add_user['success']:\n    print(this_add_user['response'])\n```\n\n#### Delete User\n```python\nthis_delete_user = ucm.delete_user(user_id='jlevensailor')\nif this_delete_user['success']:\n    print(this_delete_user['response'])\n```\n\n#### Update User\n```python\nthis_update_user = ucm.update_user(user_id='jlevensailor', password='Lagavulin16', pin='5432')\nif this_update_user['success']:\n    print(this_update_user['response'])\n```\n\n## Phones\n\n#### Get Phones\n\n```python\nfor phone in ucm.get_phones():\n    print(phone.name)\n```\n\n#### Get Specific Phone\n\n```python\nthis_phone = ucm.get_user(user_id='lsimpson')\nif this_phone['success']:\n    print(this_phone['response'])\n```\n\n#### Add Phone\n\n```python\nthis_add_phone = ucm.add_phone(\n    name='SEP0023AF482340',\n    description='Robert - 1102',\n    product='Cisco 8861',\n    device_pool='RTP_DP',\n    location='RTP_LOC',\n    phone_template='Standard 8861 SIP',\n    protocol='SIP',\n    css='AVST-CSS',\n    subscribe_css='AVST-CSS',\n    lines=[\n        ('1102', 'ABQ_PT', 'Robert Smith', 'Robert Smith', 'Robert Smith - 1102', '+1408202XXXX')\n    ]\n)\nif this_add_phone['success']:\n    print(this_add_phone['response'])\n```\n\n#### Delete Phone\n\n```python\nthis_delete_phone = ucm.delete_phone('SEP004433220043')\nif this_delete_phone['success']:\n    print(this_delete_phone['response'])\n```\n\n## Translations and Transformations\n\n\n#### Get Translation Patterns\n\n```python\nfor trans in ucm.get_translations():\n        this_trans = ucm.get_translation(uuid=trans._uuid)\n        if this_trans['success']:\n            mask = this_trans['response'].calledPartyTransformationMask\n            if mask == \"3001\":\n                print(this_trans['response'].pattern)\n```\n\n#### Get Specific Translation Pattern\n\n```python\nthis_trans = ucm.get_translation(pattern='2XXX', partition='xlates-pt')\nif this_trans['success']:\n    print(this_trans['response'].description)\n```\n\n#### Add Translation Pattern\n\n```python\nported = ['12324625544', '12324625545', '12324625546']\n\nfor num in ported:\n    this_add_trans = ucm.add_translation(pattern=num, partition='pstn_pt',calledPartyTransformationMask='1102', callingSearchSpaceName='GW_CSS')\n    if this_add_trans['success']:\n        print(this_add_trans['response'])\n```\n\n#### Delete Translation Pattern\n\n```python\nthis_delete_trans = ucm.delete_translation(pattern='34567', partition='xlates-pt')\nif this_delete_trans['success']:\n    print(this_delete_trans['response'])\n```\n\n#### Update Translation Pattern\n\n```python\nthis_update_trans = ucm.update_translation(pattern='1234', partition='xlates-pt', newPattern='4567')\nif this_update_trans['success']:\n    print(this_update_trans['response'])\n```\n\n## Device Pools\n\n\n#### Get Device Pools\n\n```python\nfor dp in ucm.get_device_pools():\n    print(dp)\n```\n\n#### Get Specific Device Pool\n\n```python\nthis_dp = ucm.get_device_pool(name='RTP_DP')\nif this_dp['success']:\n    print(this_dp['response'])\n```\n\n#### Add Device Pool\n\n```python\nthis_add_dp = ucm.add_device_pool(device_pool='Hollywood_DP')\nif this_add_dp['success']:\n    print(this_add_dp['response'])\n```\n\n#### Delete Device Pool\n\n```python\nthis_delete_dp = ucm.delete_device_pool(device_pool='Hollywood_DP')\nif this_delete_dp['success']:\n    print(this_delete_dp['response'])\n```\n\n#### Update Device Pool\n\n```python\nthis_update_dp = ucm.update_device_pool(name='RTP_DP', regionName='G711_RGN')\nif this_update_dp['success']:\n    print(this_update_dp['response'])\n```\n\n## CSS and Partitions\n\n\n#### Get Calling Search Spaces\n\n```python\nfor css in ucm.get_calling_search_spaces():\n    print(css.name)\n```\n\n#### Get Specific Calling Search Space\n\n```python\nthis_css = ucm.get_calling_search_space(calling_search_space='pstn-css')\nif this_css['success']:\n    print(this_css['response']._uuid)\n```\n\n#### Add Calling Search Space\n\n```python\nthis_add_css = ucm.add_calling_search_space(\n    calling_search_space='VIP_CSS',\n    description='Very Important Stuff'\n    members=['losfeliz-pt','silverlake-pt','pstn-pt']\n    )\nif this_add_css['success']:\n    print(this_add_css['response'])\n```\n\n#### Delete Calling Search Space\n\n```python\nthis_update_css = ucm.update_calling_search_space(calling_search_space='VIP_CSS')\nif this_update_css['success']:\n    print(this_update_css['response'])\n```\n\n#### Delete Calling Search Space\n\n```python\nthis_delete_css = ucm.delete_calling_search_space(calling_search_space='VIP_CSS')\nif this_delete_css['success']:\n    print(this_delete_css['response'])\n```\n\n#### Get Partitions\n\n```python\nfor pt in ucm.get_partitions():\n    print(pt.name)\n```\n\n#### Get Specific Partition\n\n```python\nthis_pt = ucm.get_partition(partition='pstn-pt')\nif this_pt['success']:\n    print(this_pt['response']._uuid)\n```\n\n#### Add Partition\n\n```python\nthis_add_pt = ucm.add_partition(partition='VIP_PT', description='Very Important Peep')\nif this_add_pt['success']:\n    print(this_add_pt['response'])\n```\n\n#### Delete Partition\n\n```python\nthis_delete_pt = ucm.delete_partition(name='VIP_PT')\nif this_delete_pt['success']:\n    print(this_delete_pt['response'])\n```\n\n## Regions and Locations\n\n#### Get Regions\n\n```python\nfor reg in ucm.get_regions():\n    print(reg._uuid)\n```\n\n#### Get Specific Region\n\n```python\nthis_reg = ucm.get_region(region='losfeliz_reg')\nif this_reg['success']:\n    print(this_reg['response']._uuid)\n```\n\n#### Add Region\n\n```python\nthis_add_reg = ucm.add_region(region='Hollywood-REG')\nif this_add_reg['success']:\n    print(this_add_reg['response'])\n```\n\n#### Delete Region\n\n```python\nthis_delete_reg = ucm.delete_region(region='Hollywood-REG')\nif this_delete_reg['success']:\n    print(this_delete_reg['response'])\n```\n\n#### Get Locations\n\n```python\nfor loc in ucm.get_locations():\n    print(loc.name)\n```\n\n#### Get Specific Location\n\n```python\nthis_loc = ucm.get_location(name='Shadow')\nif this_loc['success']:\n    print(this_loc['response'])\n```\n\n#### Add Location\n\n```python\nthis_add_location = ucm.add_location(location='Hollywood-LOC')\nif this_add_location['success']:\n    print(this_add_location['response'])\n```\n\n#### Delete Location\n\n```python\nthis_delete_location = ucm.delete_location(location='Hollywood-LOC')\nif this_delete_location['success']:\n    print(this_delete_location['response'])\n```\n\n## Directory Numbers\n\n#### Get Directory Numbers\n\n```python\nfor dn in ucm.get_directory_numbers():\n    print(dn)\n```\n\n#### Get Specific Directory Number\n\n```python\nthis_dn = ucm.get_directory_number(directory_number='2888',partition='losfeliz-pt')\nif this_dn['success']:\n    print(this_dn['response']._uuid)\n```\n\n#### Add Directory Number\n\n```python\nthis_add_dn = ucm.add_directory_number(\n    pattern='1102',\n    partition='ABQ_PT'\n    )\nif this_add_dn['success']:\n    print(this_add_dn['response'])\n```\n\n#### Delete Directory Number\n\n```python\nthis_delete_dn = ucm.delete_directory_number(uuid='{0B0CDC93-EC9C-7255-1B09-40A3CE727D5A}')\nif this_delete_dn['success']:\n    print(this_delete_dn['response'])\n```\n\n## Device Profiles\n\n#### Get User Device Profiles\n\n```python\nfor udp in ucm.get_device_profiles():\n    print(udp.name)\n```\n\n#### Get Specific User Device Profile\n\n```python\nthis_udp = ucm.get_device_profile(profile='udp-bsimpson')\nif this_udp['success']:\n    print(this_udp['response']._uuid)\n```\n\n#### Add User Device Profile\n\n```python\nthis_add_udp = ucm.add_device_profile(\n    profile='UDP_MScott',\n    description='Michael Scott - 2901',\n    product='Cisco 8861',\n    phone_template='Standard 8861 SIP',\n    protocol='SIP',\n    lines=[\n        ('2901', 'losfeliz-pt', 'Michael Scott', 'Michael Scott', 'Michael Scott - 2901', '+1408202XXXX'),\n        ('2902', 'losfeliz-pt', 'Pam Beesley', 'Pam Beesley', 'Pam Beesley - 2902', '+1408202XXXX')\n    ]\n)\nif this_add_udp['success']:\n    print(this_add_udp['response'])\n```\n\n#### Delete User Device Profile\n\n```python\nthis_delete_udp = ucm.delete_device_profile('UDP_Mscott')\nif this_delete_udp['success']:\n    print(this_delete_udp['response'])\n```\n\n## CTI Route Points\n\n#### Get CTI Route Points\n\n```python\nfor cti in ucm.get_cti_route_points():\n    print(cti.name)\n```\n\n#### Get Specific CTI Route Point\n\n```python\nthis_cti = ucm.get_cti_route_point(cti_route_point='AutoAttendant')\nif this_cti['success']:\n    print(this_cti['response'])\n```\n\n#### Add CTI Route Point\n\n```python\nthis_add_cti = ucm.add_cti_route_point(\n    cti_route_point='aa-pilot',\n    description='pilot to unity',\n    device_pool='LosFeliz_DP',\n    css='allphone-css',\n    lines=[\n        ('2908', 'losfeliz-pt'), \n        ('2909', 'losfeliz-pt')\n    ]\n)\nif this_add_cti['success']:\n    print(this_add_cti['response'])\n```\n\n#### Delete CTI Route Point\n\n```python\nthis_delete_cti = ucm.delete_cti_route_point(name='OneArch')\nif this_delete_cti['success']:\n    print(this_delete_cti['response'])\n```\n\n## Route Groups, Lists, and Patterns\n\n#### List Route Plan\n\n```python\nnums = ['19197016707', '19197016712', '19197016713', '19197016706', '191970167016']\n\nfor num in nums:\n    for route in ucm.list_route_plan(num):\n        print(route.dnOrPattern)\nfor route in ucm.list_route_plan('2901'):\n    print(route._uuid)\n```\n\n#### Get Route Groups\n\n```python\nfor rg in ucm.get_route_groups():\n    print(rg.name)\n```\n\n#### Get Specific Route Group\n\n```python\nthis_rg = ucm.get_route_group(route_group='losfeliz-rg')\nif this_rg['success']:\n    print(this_rg['response']._uuid)\n```\n\n#### Add Route Group\n\n```python\nthis_add_rg = ucm.add_route_group(\n    route_group='hollywood-rg', \n    distribution_algorithm='Circular', \n    members=[('america-online-sip'), ('h323')])\nif this_add_rg['success']:\n    print(this_add_rg['response'])\n```\n\n#### Delete Route Group\n\n```python\nthis_delete_rg = ucm.delete_route_group(route_group='hollywood-rg')\nif this_delete_rg['success']:\n    print(this_delete_rg['response'])\n```\n\n#### Get Route Lists\n\n```python\nfor rl in ucm.get_route_lists():\n    print(rl.name)\n```\n\n#### Get Specific Route List\n\n```python\nthis_rl = ucm.get_route_list(route_list='stdloc-rl')\nif this_rl['success']:\n    print(this_rl['response'].description)\n```\n\n#### Add Route List\n\n```python\nthis_add_rl = ucm.add_route_list(\n    route_list='hollywood-rl', \n    description='hollywood', \n    run_on_all_nodes='true', \n    cm_group_name='Default', \n    members=[\n        ('losfeliz-rg'), \n        ('silverlake-rg')\n    ])\nif this_add_rl['success']:\n    print(this_add_rl['response'])\n```\n\n#### Delete Route List\n\n```python\nthis_delete_rl = ucm.delete_route_list(route_list='hollywood-rl')\nif this_delete_rl['success']:\n    print(this_delete_rl['response'])\n```\n\n#### Get Route Patterns\n\n```python\nfor rp in ucm.get_route_patterns():\n    print(rp.pattern)\n```\n\n#### Get Specific Route Pattern\n\n```python\nthis_rp = ucm.get_route_pattern(pattern='911')\nif this_rp['success']:\n    print(this_rp['response'].description)\n```\n\n#### Add Route Pattern\n\n```python\nthis_add_rp = ucm.add_route_pattern(\n    pattern='999', \n    partition='losfeliz-pt', \n    description='Movie Times', \n    route_list='stdloc-rl'\n    )\nif this_add_rp['success']:\n    print(this_add_rp['response'])\n```\n\n#### Delete Route Pattern\n\n```python\nthis_delete_rp = ucm.delete_route_pattern(pattern='999', partition='losfeliz-pt')\nif this_delete_rp['success']:\n    print(this_delete_rp['response'])\n```\n\n## Runs and Dos\n\n#### Execute SQL Query\n\n```sh\nfor sql in ucm.execute_sql_query('select * from device where description like \"Bart%\"'):\n    print(sql.name)\n```\n\n#### Do LDAP Sync on all agreements\n\n```sh\nfor ldap in ucm.get_ldap_dir():\n    this_sync = ucm.do_ldap_sync(uuid=ldap._uuid)\n    if this_sync['success']:\n            print(this_sync['response'])\n```\n\n#### Reset Device\n\n```python\nthis_reset = ucm.do_device_reset(device='SEP001100220033')\nif this_reset['success']:\n    print(this_reset['response'])\n```\n\n#### Extension Mobility Login\n\n```python\nthis_device_login = ucm.do_device_login(device='SEP001100220033', userId='bsimpson')\nif this_device_login['success']:\n    print(this_device_login['response'])\n```\n\n#### Extension Mobility Logout\n\n```python\nthis_device_logout = ucm.do_device_logout(device='SEP001100220033', userId='bsimpson')\nif this_device_logout['success']:\n    print(this_device_logout['response'])\n```\n\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/levensailor/py_cisco_axl",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "py-cisco-axl",
+        "package_url": "https://pypi.org/project/py-cisco-axl/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/py-cisco-axl/",
+        "project_urls": {
+            "Homepage": "https://github.com/levensailor/py_cisco_axl"
+        },
+        "release_url": "https://pypi.org/project/py-cisco-axl/1.0.3/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "Cisco AXL library with with a goal of simple use.",
+        "version": "1.0.3"
+    },
+    "last_serial": 4975384,
+    "releases": {
+        "1.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "671b0f561c142753396b23abf0c6c157",
+                    "sha256": "75f6b8d07a95d796c72e402742d78b00f3e93f2230bc1d1166562af2a27ccfb7"
+                },
+                "downloads": -1,
+                "filename": "py_cisco_axl-1.0.2-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "671b0f561c142753396b23abf0c6c157",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4135,
+                "upload_time": "2019-03-23T08:40:20",
+                "url": "https://files.pythonhosted.org/packages/c4/8b/8c12eb99035d8282dcd367fdd1b27dc843f3aa08fce325fc148ca7323637/py_cisco_axl-1.0.2-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "514c64a77ec7d139e11cc3e0b05ce4cb",
+                    "sha256": "e0b6db6d8ad71ed97af374c3fe5b41af778207661f512478a4645358ef92223a"
+                },
+                "downloads": -1,
+                "filename": "py_cisco_axl-1.0.2.tar.gz",
+                "has_sig": false,
+                "md5_digest": "514c64a77ec7d139e11cc3e0b05ce4cb",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6955,
+                "upload_time": "2019-03-23T08:40:22",
+                "url": "https://files.pythonhosted.org/packages/4e/ea/79f568c08bc179c9be7a488db2da79e93e0e0deb8a64dd9fcdf086d34bbd/py_cisco_axl-1.0.2.tar.gz"
+            }
+        ],
+        "1.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "b298a09fdfb462d897a2fb71c1230c98",
+                    "sha256": "5e6c795015ba158b1e19ce239489b602dfc7d6cfd2fe0f30daa650f9656bdbc0"
+                },
+                "downloads": -1,
+                "filename": "py_cisco_axl-1.0.3-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "b298a09fdfb462d897a2fb71c1230c98",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": null,
+                "size": 4132,
+                "upload_time": "2019-03-23T08:43:34",
+                "url": "https://files.pythonhosted.org/packages/c9/12/4722a5285c26b6220d4d353da5c1e3a105efbc973cd211a780693f499442/py_cisco_axl-1.0.3-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "dbf5aff1657aeb59e0d2c33ab6d8bed3",
+                    "sha256": "55c62a380f9035e74f982a93d08a3c292cd860af10521e0daa4c99158ba0959d"
+                },
+                "downloads": -1,
+                "filename": "py_cisco_axl-1.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "dbf5aff1657aeb59e0d2c33ab6d8bed3",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6955,
+                "upload_time": "2019-03-23T08:43:36",
+                "url": "https://files.pythonhosted.org/packages/ea/98/b19800cdc7cc8e0fc562fd884b0689e67d95deeb54783a82ebcf86326cdf/py_cisco_axl-1.0.3.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "b298a09fdfb462d897a2fb71c1230c98",
+                "sha256": "5e6c795015ba158b1e19ce239489b602dfc7d6cfd2fe0f30daa650f9656bdbc0"
+            },
+            "downloads": -1,
+            "filename": "py_cisco_axl-1.0.3-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "b298a09fdfb462d897a2fb71c1230c98",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": null,
+            "size": 4132,
+            "upload_time": "2019-03-23T08:43:34",
+            "url": "https://files.pythonhosted.org/packages/c9/12/4722a5285c26b6220d4d353da5c1e3a105efbc973cd211a780693f499442/py_cisco_axl-1.0.3-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "dbf5aff1657aeb59e0d2c33ab6d8bed3",
+                "sha256": "55c62a380f9035e74f982a93d08a3c292cd860af10521e0daa4c99158ba0959d"
+            },
+            "downloads": -1,
+            "filename": "py_cisco_axl-1.0.3.tar.gz",
+            "has_sig": false,
+            "md5_digest": "dbf5aff1657aeb59e0d2c33ab6d8bed3",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 6955,
+            "upload_time": "2019-03-23T08:43:36",
+            "url": "https://files.pythonhosted.org/packages/ea/98/b19800cdc7cc8e0fc562fd884b0689e67d95deeb54783a82ebcf86326cdf/py_cisco_axl-1.0.3.tar.gz"
+        }
+    ]
+}

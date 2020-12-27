@@ -1,0 +1,78 @@
+{
+    "info": {
+        "author": "Christian Tragesser",
+        "author_email": "christian@evoen.net",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# Python docker-in-docker delivery pipeline library\n[![pipeline status](https://gitlab.com/christianTragesser/dind-py/badges/master/pipeline.svg)](https://gitlab.com/christianTragesser/dind-py/commits/master)\n\n### Why?\nI'm currently experimenting with docker-in-docker delivery pipelines written in a *high-level language* hoping to capitalize on object-oriented concepts native to Python.  While bash does provide the simple ability to script docker-in-docker pipelines; at a certain scale, creating and maintaining independent scripts across multiple repositories or projects becomes cumbersome and inefficient.\n\n##### Why Python 2.7 by default?\nFor most Docker development workstations(popular Linux distros or MacOS) Python 2.7 is as natively available as bash. A major focus of this tooling is minimal dependencies however, this library should be compatible with Python 3 as well.\n\n#### Examples\n* Build image and run container\n```python\nimport os\nfrom dind import Pipeline\n\ndirPath = os.path.dirname(os.path.realpath(__file__))\nbuildPath = dirPath+'/docker/'\nlocalTag = 'local/foo:latest'\n\npipeline = Pipeline()\npipeline.buildImage(buildPath, localTag)\npipeline.runContainerDetached(localTag)\n```\n\n* Run testing framework from a dedicated testing image\n```python\nimport os\nfrom dind import Pipeline\n\ndirPath = os.path.dirname(os.path.realpath(__file__))\nvolumes = { dirPath: { 'bind': '/tmp', 'mode': 'rw' } }\ntestDir = '/tmp/tests'\n\npipeline = Pipeline(dockerRegistry='registry.gitlab.com/christiantragesser/')\npipeline.runContainerInteractive(\n    image=pipeline.dockerRegistry+'dind:latest',\n    name='foo-test', working_dir=testDir,\n    volumes=volumes, command='pytest')\n```\n\n* Orchestrate application stack for UAT testing then remove all containers if tests are successful\n```python\nimport os\nfrom dind import Pipeline\n\ndirPath = os.path.dirname(os.path.realpath(__file__))\ncleanUp = []\n\nuat_volume = { dirPath: { 'bind': '/tmp', 'mode': 'rw' } }\ntestDir = '/tmp/tests'\ndb_env_vars = {\n            'MYSQL_ROOT_PASSWORD': 'root',\n            'MYSQL_DATABASE': 'foo-db',\n            'MYSQL_ROOT_HOST': '%'\n}\napp_env_vars = {\n            'DB_HOST': 'mysql-test',\n            'DB_USER': 'root',\n            'DB_PASSWORD': 'root',\n            'DATABASE': 'foo-db'\n}\n\npl = Pipeline()\ncleanUp.append(pl.runContainerDetached(image='mysql:5.7', name='mysql-test', environment=db_env_vars))\ncleanUp.append(pl.runContainerDetached(image='local/poc_app', name='foo-app-test', environment=app_env_vars))\npl.runContaineInteractive(image='tutum/curl:latest', name='foo-uat',\n                      working_dir=testDir, volumes=uat_volume,\n                      command='./uat.sh foo-app-test:5000')\npl.purgeContainers(cleanUp)\n``` \n* Perform CVE scan on a docker image\n```python\nfrom dind import Pipeline\n\npl = Pipeline()\npl.cveScan('nginx:latest')\n```\n#### API reference\n* **Pipeline**(_network='ci_net', dockerRegistry='library/'_)\n\n  ```class dind.dind.Pipeline```\n  - **createNetwork(** _network_ **)** | Create docker pipeline network.  \n  parameters:\n    + network(_str_) - Name of pipeline network, default `ci_net`\n  - **buildImage(** _path, tag_ **)** | Build docker image.  \n  parameters:\n    + path(_str_) - Path to the directory containing the Dockerfile.\n    + tag(_str_) - Tag applied to newly built image.\n  - **pullImage(** _image_ **)** | Pull an image of the given name, similar to the `docker pull` command. If no tag is specified, all tags from that repository will be pulled.  \n  parameters:\n    + image(_str_) - Image name to pull.\n  - **runContainerDetached(** _image, stderr=None, ports=None, volumes=None, name=None, environment=None, network=_<obj network\\>_, command=None, detach=True, remove=False_ **)** |\n  Performs pull action on provided image, runs a daemonized container, then returns the container ID.  \n  parameters:\n    + environment(_dict or list_) - Environment variables to set inside the container.\n    + image(_str_) - The image to update and run.\n    + name(_str_) - The name for this container.\n    + ports(_dict_) - Port bindings to the container. The keys of the dictionary are the ports to bind inside the container, either as an integer or a string in the form port/protocol, where the protocol is either tcp or udp. The values of the dictionary are the corresponding ports to open on the host.\n    + volumes(_dict_) - Configure volumes mounted inside the container.\n  - **runContainerInteractive(** _image, command, name=None, volumes=None, working_dir='/root', tty=True, environment=None, stdin_open=True, network=_<obj network\\>_, auto_remove=False_ **)** | Performs pull action on provided image, runs an interactive container implementing provided command, then returns container stdout logs and command exit status(zero or non-zero).  \n  parameters:\n    + command(_str_) - The command to run in the container.\n    + environment(_dict or list_) - Environment variables to set inside the container.\n    + image(_str_) - The image to update and run.\n    + name(_str_) - The name for this container.\n    + ports(_dict_) - Port bindings to the container. The keys of the dictionary are the ports to bind inside the container, either as an integer or a string in the form port/protocol, where the protocol is either tcp or udp. The values of the dictionary are the corresponding ports to open on the host.\n    + volumes(_dict_) - Configure volumes mounted inside the container.\n    + working_dir(_str_) - Path to the working directory.\n  - **purgeContainers(** _ids_ **)** | Force deletion of container by container ID.  \n  parameters:\n    + ids(_list_) - List of container IDs to delete.\n  - **cveScan(** _scanImage_ **)** | Perform CVE scan of docker image using [CoreOS Clair](https://coreos.com/clair/docs/latest/).  \n  parameters:\n    + scanImage(_str_) - The image to scan.\n\n#### Install\nInstall on docker host:\n* From [PyPi](https://pypi.org/project/dind-py/)\n```sh\n$ pip install dind-py\n```\n\nor\n\n* Via docker:\n\n```sh\n$ docker run --rm -it \\\n    -v /var/run/docker.sock:/var/run/docker.sock \\\n    -v $PWD:/tmp \\\n    -w /tmp \\\n    registry.gitlab.com/christiantragesser/dind-py:latest /bin/sh\n```\n\n* For Python 3:\n\n```sh\n$ docker run --rm -it \\\n    -v /var/run/docker.sock:/var/run/docker.sock \\\n    -v $PWD:/tmp \\\n    -w /tmp \\\n    registry.gitlab.com/christiantragesser/dind-py:3 /bin/sh\n```",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "",
+        "keywords": "",
+        "license": "MIT",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "pypeline-ci",
+        "package_url": "https://pypi.org/project/pypeline-ci/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/pypeline-ci/",
+        "project_urls": null,
+        "release_url": "https://pypi.org/project/pypeline-ci/0.1.0/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "A docker pipeline library",
+        "version": "0.1.0"
+    },
+    "last_serial": 4597393,
+    "releases": {
+        "0.1.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "4a0879d11357cef7d82cb0b868481f82",
+                    "sha256": "37ad3abf21491f9ea48591d214ca59bdadc5ff9ec4e1d862b8057bdf4cbed523"
+                },
+                "downloads": -1,
+                "filename": "pypeline-ci-0.1.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "4a0879d11357cef7d82cb0b868481f82",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4927,
+                "upload_time": "2018-12-14T00:03:31",
+                "url": "https://files.pythonhosted.org/packages/85/4e/3fad2e535a27d9a00e0999191d39a5660ab2205a107ff3e02e4a78df11c0/pypeline-ci-0.1.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "4a0879d11357cef7d82cb0b868481f82",
+                "sha256": "37ad3abf21491f9ea48591d214ca59bdadc5ff9ec4e1d862b8057bdf4cbed523"
+            },
+            "downloads": -1,
+            "filename": "pypeline-ci-0.1.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "4a0879d11357cef7d82cb0b868481f82",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 4927,
+            "upload_time": "2018-12-14T00:03:31",
+            "url": "https://files.pythonhosted.org/packages/85/4e/3fad2e535a27d9a00e0999191d39a5660ab2205a107ff3e02e4a78df11c0/pypeline-ci-0.1.0.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,113 @@
+{
+    "info": {
+        "author": "Kyle James Catterall",
+        "author_email": "kylejamescatterall@protonmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3"
+        ],
+        "description": "# kjc-harmonics\nThis is a small, random package I made for personal use that I decided to distribute for practice distributing, I guess. It doesn't do much but it does have some features such as displaying chords and showing key information etc.\n\n\n# GitHub\n[Click here to view the github page.](https://github.com/TheLoveableBananaNoodle/kjc-harmonics)\n\n\n# Scales\n```\nsharp_scale = ('C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B')\nflat_scale = ('C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B')\n```\n\n# CheckNote\n```\ncheckNoteError = False  # This variable can be used to chose what happens if checkNote() has exitOnError set to False. This variable is also used by checkNote().\n\n# checkNote(): This function checks if note entered by the user (stored in a variable) is a real note or not. It can be configured on what to do if the note is false.\ndef checkNote(base_note, showErrorMessage=True, errorMessage=\"\\nThe note you have entered does not exist.\", exitOnError=False, timeBeforeExit=2):\n    global checkNoteError\n    if base_note not in sharp_scale and base_note not in flat_scale:  # Looks through the scale tuples and compares the notes to the note the user inputted.\n        checkNoteError = True\n    else:\n        checkNoteError = False\n    if checkNoteError == True:\n        if showErrorMessage:\n            print(errorMessage)   # This can be disabled and have its message changed.\n        if exitOnError == True:\n            time.sleep(timeBeforeExit)   # This can be disabled and have its time changed.\n            os._exit(0)   # This can be disabled.\n```\n\n# swapEquivilance\n```\n# swapEquivilance: This function will swap a note from its respective sign to the equivilant oposite. For example: C# -> Db.\ndef swapEquivilance(base_note):\n    checkNote(base_note, exitOnError=False)  # Checks if the note you entered was even a real note.\n    # SHARPS -> FLATS.\n    if base_note == 'C#':\n        base_note = 'Db'\n        return(base_note)\n    elif base_note == 'D#':\n        base_note = 'Eb'\n        return(base_note)\n    elif base_note == 'F#':\n        base_note = 'Gb'\n        return(base_note)\n    elif base_note == 'G#':\n        base_note = 'Ab'\n        return(base_note)\n    elif base_note == 'A#':\n        base_note = 'Bb'\n        return(base_note)\n\n    # FLATS -> SHARPS.\n    elif base_note == 'Db':\n        base_note = 'C#'\n        return(base_note)\n    elif base_note == 'Eb':\n        base_note = 'D#'\n        return(base_note)\n    elif base_note == 'Gb':\n        base_note = 'F#'\n        return(base_note)\n    elif base_note == 'Ab':\n        base_note = 'G#'\n        return(base_note)\n    elif base_note == 'Bb':\n        base_note = 'A#'\n        return(base_note)\n\n    # If the note is normal, we don't want the note to change. If the checkNote function spotted an error earlier one, we don't want to return the random note.\n    else:\n        if checkNoteError == False:\n            return(base_note)\n        else:\n            # Error message from the checkNote function will be displayed one line above this message:\n            return('The list of notes you can use are C, C#/Db, D#/Eb, E, F, F#/Gb, G, G#/Ab, A, A#/Bb and B.\\n')\n```\n\n# Chord Functions\nThis is what the chord functions look like (each one with slight differences, obviously). \n```\ndef major(base_note, scale=sharp_scale):  # Takes the note given by the user (base_note) and either the sharp or flat scale tuple.\n    if scale == sharp_scale:\n        try:\n            base_note_index = scale.index(base_note)  # Goes to the first index of that note.\n        except ValueError:  # If there is a value error, due to perhaps the wrong scale being used, it'll try the equivilant opposite.\n            base_note = swapEquivilance(base_note)\n            base_note_index = scale.index(base_note)  # If there's another value error, the program will crash. You can prevent this by using checkNote() before these functions are called to filter bad results out.\n        secondNote = scale[base_note_index + 4]  # Second Note is (+ x) semitones away from root.\n        finalNote = scale[base_note_index + 7]  # Thrid Note is (+ x) semitones away from root.\n        return f\"{base_note} maj: {base_note} {secondNote} {finalNote}\"  # Prints out the chord name and the notes in the chord.\n\n    if scale == flat_scale:\n        try:\n            base_note_index = scale.index(base_note)\n        except ValueError:\n            base_note = swapEquivilance(base_note)\n            base_note_index = scale.index(base_note)  # Does all the stuff again but this time using the flat scale.\n        secondNote = scale[base_note_index + 4]\n        finalNote = scale[base_note_index + 7]  # Notes will be different due to the different tuples.\n        return f\"{base_note} maj: {base_note} {secondNote} {finalNote}\"\n```\n\n# Key Function\n```\ndef key(key, tonality):  # Takes in the key (A note) and a tonality (Major or Minor).\n    checkNote(key)\n    if checkNoteError == True:\n        return('The list of notes you can use are C, C#/Db, D#/Eb, E, F, F#/Gb, G, G#/Ab, A, A#/Bb and B.\\n')\n    if tonality.lower() == 'major':\n        if key == 'C':\n            return('\\nKey: C Major\\nSharps: 0\\nFlats: 0\\nNotes: C D E F G A B\\n')\n        elif key == 'G':\n            return('\\nKey: G Major\\nSharps: 1\\nFlats: 0\\nNotes: G A B C D E F#\\n')\n        elif key == 'D':\n            return('\\nKey: D Major\\nSharps: 2\\nFlats: 0\\nNotes: D E F# G A B C#\\n')\n        elif key == 'A':\n            return('\\nKey: A Major\\nSharps: 3\\nFlats: 0\\nNotes: A B C# D E F# G#\\n')\n        elif key == 'E':\n            return('\\nKey: E Major\\nSharps: 4\\nFlats: 0\\nNotes: E F# G# A B C# D#\\n')\n        elif key == 'B':\n            return('\\nKey: B Major\\nSharps: 5\\nFlats: 0\\nNotes: B C# D# E F# G# A#\\n')\n        elif key == 'Gb':\n            return('\\nKey: Gb Major\\nSharps: 0\\nFlats: 6\\nNotes: Gb Ab Bb Cb Db Eb F\\n')\n        elif key == 'F#':\n            return('\\nKey: F# Major\\nSharps: 6\\nFlats: 0\\nNotes: F# G# A# B C# D# E#\\n')\n        elif key == 'Db':\n            return('\\nKey: Db Major\\nSharps: 0\\nFlats: 5\\nNotes: Db Eb F Gb Ab Bb C\\n')\n        elif key == 'C#':\n            return('\\nKey: C# Major\\nSharps: 7\\nFlats: 0\\nNotes: C# D# E# F# G# A# B#\\n')\n        elif key == 'Ab':\n            return('\\nKey: Ab Major\\nSharps: 0\\nFlats: 4\\nNotes: Ab Bb C Db Eb F G\\n')\n        elif key == 'Eb':\n            return('\\nKey: Eb Major\\nSharps: 0\\nFlats: 3\\nNotes: Eb F G Ab Bb C D\\n')\n        elif key == 'Bb':\n            return('\\nKey: Bb Major\\nSharps: 0\\nFlats: 2\\nNotes: Bb C D Eb F G A\\n')\n        elif key == 'F':\n            return('\\nKey: F Major\\nSharps: 0\\nFlats: 1\\nNotes: F G A Bb C D E\\n')\n        else:\n            return(f'\\n{key} {tonality.lower()} is not a valid key.\\n')\n    elif tonality.lower() == 'minor':\n        if key == 'A':\n            return('\\nKey: A Minor\\nSharps: 0\\nFlats: 0\\nNotes: A B C D E F G\\n')\n        elif key == 'E':\n            return('\\nKey: E Minor\\nSharps: 1\\nFlats: 0\\nNotes: E F# G A B C D\\n')\n        elif key == 'B':\n            return('\\nKey: B Minor\\nSharps: 2\\nFlats: 0\\nNotes: B C# D E F# G A\\n')\n        elif key == 'F#':\n            return('\\nKey: F# Minor\\nSharps: 3\\nFlats: 0\\nNotes: F# G# A B C# D E\\n')\n        elif key == 'C#':\n            return('\\nKey: C# Minor\\nSharps: 4\\nFlats: 0\\nNotes: C# D# E F# G# A B\\n')\n        elif key == 'G#':\n            return('\\nKey: G# Minor\\nSharps: 5\\nFlats: 0\\nNotes: G# A B# C# D# E F#\\n')\n        elif key == 'Eb':\n            return('\\nKey: Eb Minor\\nSharps: 0\\nFlats: 6\\nNotes: Eb F Gb Ab Bb Cb Db\\n')\n        elif key == 'D#':\n            return('\\nKey: D# Minor\\nSharps: 6\\nFlats: 0\\nNotes: D# E# F# G# A# B C#\\n')\n        elif key == 'Bb':\n            return('\\nKey: Bb Minor\\nSharps: 0\\nFlats: 5\\nNotes: Bb C Db Eb F Gb Ab\\n')\n        elif key == 'A#':\n            return('\\nKey: A# Minor\\nSharps: 7\\nFlats: 0\\nNotes: A# B# C# D# E# F# G#\\n')\n        elif key == 'F':\n            return('\\nKey: F Minor\\nSharps: 0\\nFlats: 4\\nNotes: F G Ab Bb C Db Eb\\n')\n        elif key == 'C':\n            return('\\nKey: C Minor\\nSharps: 0\\nFlats: 3\\nNotes: C D Eb F G Ab Bb\\n')\n        elif key == 'G':\n            return('\\nKey: G Minor\\nSharps: 0\\nFlats: 2\\nNotes: G A Bb C D Eb F\\n')\n        elif key == 'D':\n            return('\\nKey: D Minor\\nSharps: 0\\nFlats: 1\\nNotes: D E F G A Bb C\\n')\n        else:\n            return(f'\\n{key} {tonality.lower()} is not a valid key.\\n')\n    else:\n        return(f'\\n\"{tonality}\" is not a tonality recognised by kjc-harmonics. Please use either major or minor.\\n')\n```\n\n",
+        "description_content_type": "text/markdown",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/TheLoveableBananaNoodle/kjc-music",
+        "keywords": "",
+        "license": "",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "kjc-harmonics",
+        "package_url": "https://pypi.org/project/kjc-harmonics/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/kjc-harmonics/",
+        "project_urls": {
+            "Homepage": "https://github.com/TheLoveableBananaNoodle/kjc-music"
+        },
+        "release_url": "https://pypi.org/project/kjc-harmonics/1.0.0/",
+        "requires_dist": null,
+        "requires_python": ">=3.6",
+        "summary": "A small package containing some musical features like viewing chords.",
+        "version": "1.0.0"
+    },
+    "last_serial": 6025857,
+    "releases": {
+        "1.0.0": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e1190bcdb9308280dbe73ea88392bf6b",
+                    "sha256": "6e040d1528be01f7a20993f4da885698562b1cc9059b1d19d86de42ea65f57e2"
+                },
+                "downloads": -1,
+                "filename": "kjc_harmonics-1.0.0-py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "e1190bcdb9308280dbe73ea88392bf6b",
+                "packagetype": "bdist_wheel",
+                "python_version": "py3",
+                "requires_python": ">=3.6",
+                "size": 7398,
+                "upload_time": "2019-10-24T20:25:53",
+                "url": "https://files.pythonhosted.org/packages/a6/da/d5fbaf94a46a6ff513250cca4b4c3508aa977e1376fe9d46540ce89bffbd/kjc_harmonics-1.0.0-py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cc1479e3cdd65b128759c0a6c0b7fc91",
+                    "sha256": "d177d23720f81453f8a4265ae61202422225e58a1597cd79995eb068d2bf3d9e"
+                },
+                "downloads": -1,
+                "filename": "kjc-harmonics-1.0.0.tar.gz",
+                "has_sig": false,
+                "md5_digest": "cc1479e3cdd65b128759c0a6c0b7fc91",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": ">=3.6",
+                "size": 8109,
+                "upload_time": "2019-10-24T20:25:56",
+                "url": "https://files.pythonhosted.org/packages/ef/48/ac19791d5e8871b6a5a97766d7457646b18138f242d1c648ba1819d3b9b8/kjc-harmonics-1.0.0.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "e1190bcdb9308280dbe73ea88392bf6b",
+                "sha256": "6e040d1528be01f7a20993f4da885698562b1cc9059b1d19d86de42ea65f57e2"
+            },
+            "downloads": -1,
+            "filename": "kjc_harmonics-1.0.0-py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "e1190bcdb9308280dbe73ea88392bf6b",
+            "packagetype": "bdist_wheel",
+            "python_version": "py3",
+            "requires_python": ">=3.6",
+            "size": 7398,
+            "upload_time": "2019-10-24T20:25:53",
+            "url": "https://files.pythonhosted.org/packages/a6/da/d5fbaf94a46a6ff513250cca4b4c3508aa977e1376fe9d46540ce89bffbd/kjc_harmonics-1.0.0-py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "cc1479e3cdd65b128759c0a6c0b7fc91",
+                "sha256": "d177d23720f81453f8a4265ae61202422225e58a1597cd79995eb068d2bf3d9e"
+            },
+            "downloads": -1,
+            "filename": "kjc-harmonics-1.0.0.tar.gz",
+            "has_sig": false,
+            "md5_digest": "cc1479e3cdd65b128759c0a6c0b7fc91",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": ">=3.6",
+            "size": 8109,
+            "upload_time": "2019-10-24T20:25:56",
+            "url": "https://files.pythonhosted.org/packages/ef/48/ac19791d5e8871b6a5a97766d7457646b18138f242d1c648ba1819d3b9b8/kjc-harmonics-1.0.0.tar.gz"
+        }
+    ]
+}

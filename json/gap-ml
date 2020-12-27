@@ -1,0 +1,92 @@
+{
+    "info": {
+        "author": "Andrew Ferlitsch",
+        "author_email": "aferlitsch@gmail.com",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Healthcare Industry",
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.0",
+            "Programming Language :: Python :: 3.1",
+            "Programming Language :: Python :: 3.2",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Topic :: Text Processing"
+        ],
+        "description": "# Gap : NLP/CV Data Engineering Framework, v0.9.2 (Pre-launch: alpha)\n\n## Natural Language Processing for PDF, TIFF, and Camera Captured Documents, and\n## Computer Vision Processing for Images\n\n### Framework\n\nThe Gap NLP/CV data engineering framework provides an easy to get started into the world of machine learning for your unstructured data in PDF documents, scanned documents, TIFF facsimiles and camera captured documents, and your image data in image files and image repositories.\n\n*NLP*\n\n  - Automatic OCR of scanned PDF and camera captured images.\n  - Automatic Text Extraction from documents.\n  - Automatic Syntax Analysis.\n  - Optional Romanization of Latin-1 diacritic characters.\n  - Optional Spell Correction.\n  - Programmatic control for data extraction or redaction (de-identification).\n\n    - Names, Addresses, Proper Places\n    - Social Security Numbers, Data of Birth, Gender, Age\n    - Telephone Numbers\n    - Numerical Information (e.g., medical, financial, \u2026) and units of measurement.\n    - Unit conversion from US Standard to Metric, and vice-versa\n    - Unicode character recognition\n\n  - Machine Training of Document and Page Classification.\n  - Asynchronous processing of documents.\n  - Automatic generation of NLP machine learning ready data.\n\n*CV*\n\n  - Automatic storage and retrieval with high performance HDF5 files.\n  - Automatic handling of mixed channels (grayscale, RGB and RGBA) and pixel size.\n  - Programmatic control of resizing.\n  - Programmatic control of conversion into machine learning ready data format: decompression, normalize, flatten.\n  - Programmatic control of minibatch generation.\n  - Programmatic control of image augmentation.\n  - Asynchronous processing of images.\n  - Automatic generation of CV machine learning ready data.\n\nThe framework consists of a sequence of Python modules which can be retrofitted into a variety of configurations. The framework is designed to fit seamlessly and scale with an accompanying infrastructure. To achieve this, the design incorporates:\n\n  - Problem and Modular Decomposition utilizing Object Oriented Programming Principles.\n  - Isolation of Operations and Parallel Execution utilizing Functional Programming Principles.\n  - High Performance utilizing Performance Optimized Python Structures and Libraries.\n  - High Reliability and Accuracy using Test Driven Development Methodology.\n\n## Audience\n\nThis framework is ideal for any organization planning to do:\n\n  * Data extraction from their repository of documents into an RDBMS system for CART analysis, linear/logistic regressions,            \n    or generating word vectors for natural language deep learning (DeepNLP).\n  * Generating machine learning ready datan from their repository of images for computer vision.\n\n## License\n\nThe source code is made available under the Apache 2.0 license: [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)\n\n## Prerequites\n\nThe Gap framework extensively uses a number of open source applications/modules. The following applications and modules will be downloaded and installed on your computer/laptop, when the package is installed.\n\n  1. Artifex's Ghostscript - extracting text from text PDF\n  2. ImageMagic's Magick - extracting image from scanned PDF\n  3. Google's Tesseract - OCR of scanned/image captured text\n  4. NLTK (Natural Language Toolkit) - stemming/lemmatizer/parts of speech annotation\n  5. unidecode - romanization of latin character codes\n  6. numpy - high performance in-memory arrays (tensors)\n  7. HDF5 - high performance of on-disk data (tensors) access\n  8. openCV - image manipulation and processing for computer vision\n  9. imutils - image manipulation for computer vision\n  \n## Installation: \n\nThe Gap framework is supported on Windows, MacOS, and Linux. It has been packaged for distribution via PyPi on launch. \n\nFor pre-launch, after you have clone the source code, from the root of the source tree do the following to complete the install:\n\n    python setup.py install\n\n#### PyPi Dependencies\n\nThe dependencies for python packages distributed at PyPi are automatically checked for and installed by the setup.py script. These include:\n\n  - nltk : http://www.nltk.org/\n  - numpy : http://www.numpy.org/\n  - h5py : https://www.h5py.org/\n  - unidecode : https://pypi.org/project/Unidecode/\n  - openCV : https://www.opencv.org/\n  - imultils : https://github.com/jrosebr1/imutils\n  - pyaspeller : https://pypi.org/project/pyaspeller/\n  \n #### 3rd Party Dependencies\n \n The dependencies for non-python packages are automatically checked for and installed by the setup.py script. These include:\n \n  - Ghostscript : https://www.ghostscript.com\n  - Tesseract : https://github.com/tesseract-ocr/tesseract/wiki\n  - Imagik :  https://www.imagemagick.org\n\n\n## Modules\n\nThe framework provides the following pipeline of modules to support your data and knowledge extraction from both digital and scanned PDF documents, TIFF facsimiles and image captured documents.\n\n#### <span style='color: saddlebrown'>SPLITTER</span>\n\nThe splitter module is the NLP entry point into the pipeline. It consists of a Document and Page class. The Document class handles the splitting of PDF documents into PDF pages, TIFF facsimiles into TIFF pages, OCR and raw text extraction. PDF splitting and image extraction is handled by the open source Artifex\u2019s Ghostscript \u00a9, and TIFF splitting by open source Image Magic\u2019s Magick \u00a9. OCR is handled by the open source Google\u2019s Tesseract \u00a9. The Document object stores the individual PDF/TIFF/image pages and corresponding raw text and optionally page images (when scanned PDF, TIFF or images) in the specified storage path. The splitting process can be done synchronously or asynchronously, where in the latter case an event handler signals when the splitting/OCR has been completed and the page table is accessible.\n\nFor OCR, the resolution of the image extraction is settable, which will affect the quality of the OCR, and corresponding processing time. If the resolution of the original scanned page is lower than the setting, it will be up-sampled, and conversely if it is higher it will be down-sampled.\n\nThe Page class handles access to the individual pages, via the page table of the document class. Access is provided to the individual PDF, TIFF or image page, the scanned image (when scanned PDF, TIFF or images), raw text and the Natural Language Processing (NLP) processed tokens (when SYNTAX module is installed).\n\nNLP processing of the raw text is deferred until first access (JIT), and then preserved in memory as long as the corresponding page object is referenced. The NLP processed tokens may be further segmented into regions, consisting of tables, paragraphs, columns, etc. when the SEGMENTATION module is installed.\n\nThe document and corresponding pages may be classified (i.e., category of the content) when the CLASSIFICATION module is installed.\n\n[Specification](specs/splitter_spec.docx)\n\n#### <span style='color: saddlebrown'>SYNTAX</span>\n\nThe syntax module follows the splitter module in the pipeline. It consists of the Words and Vocabulary classes. The Words class handles natural language processing (NLP) of the extracted text. The NLP processing can be configured for tokenization, stemming, lemmatizing, stop word removal, syntax analysis and word classification, with Unicode support.\n\nThe word classifier recognizes:\n\n  - Syntax Units: Articles, Demonstratives, Prepositions, Pronouns, Conjunctions, Quantifiers, Questions\n  - Abbreviations\n  - Acronyms\n  - Gender (inclusive of Transgender)\n  - Date of Birth\n  - USA and Canadian Addresses\n  - USA and Canadian Telephone Numbers\n  - USA Social Security numbers\n  - USA and ISO Standard for Dates\n  - USA and ISO Standard for Numbers and units of measure.\n  - Geographic Locations\n  - Sentiment\n\nDates, numbers and units of measure can be converted to either USA Standard or ISO Standard.  USA and Canadian postal addresses are converted to the USPO standard for address matching.\n\nAlong with the builtin stemmer and lemmatizer, the module can optionally be configured to use the NLTK (open source) stemmers, lemmatizer and parts of speech annotations.\n\n[Specification](specs/syntax_spec.docx)\n\n\n#### <span style='color: saddlebrown'>SEGMENTATION</span>\n\nThe segmentation module was introduced as part of the pre-launch of Gap v0.9. It currently is in the demonstration stage, and not ready for commericial-product code ready. The segmentation module examines the whitespace layout of the text to identify 'human' layout of text and corresponding context, such as paragraphs, headings, columns, page numbering, letterhead, etc. The text is then separated into segments based on recognized layout and within the segments the text is NLP preprocessed. In this mode, the NLP preprocessed text is hierarchical. At the top level are the segments, with corresponding segment tag, and the child is the NLP preprocessed text within the segment.\n\n[Specification](specs/segment_spec.docx)\n\n#### <span style='color: saddlebrown'>VISION</span>\n\nThe splitter module is the CV entry point into the pipeline. It consists of a Images and Image class. The Images class handles the storage and (random access) batch retrieval of CV machine learning ready data, using open source openCV image processing, numpy high performance arrays (tensors) and HDF5 high performance disk (tensor) access. The Image class handles preprocessing of individual images into CV machine learning ready data. The batch and image preprocessing can be done synchronously or asynchronously, where in the latter case an event handler signals when the preprocessing of an image or batch has been completed and the machine learning ready data is accessible.\n\nThe vision module handles:\n\n  - Mixed image size, format, resolution, number of channels\n  - Decompression, Resizing, Normalizing, Flattening\n\n[Specification](specs/vision_spec.docx)\n\n## User's Guide\n\nThe User's (Programming) Quick Start Guide can be found [here](specs/quick%20start%20guide.docx)\n\n## Releases\n\n-- describe here\n\n## Testing\n\nThe GAP framework is developed using Test Driven Development methodology. The automated unit tests for the framework use pytest, which is a xUnit style form of testing (e.g., jUnit, nUnit, jsUnit, etc).\n\n#### Installation and Documentation\n\nThe pytest application can be installed using pip:\n\n    pip install pytest\n\nOnline documentation for [pytest](https://docs.pytest.org)\n\n#### Execution\n\nThe following are the pre-built automated unit tests, which are located under the subdirectory tests:\n\n    document_test.py    # Tests the Document Class in the Splitter Module\n    page_test.py        # Tests the Page Class in the Splitter Module\n    words_test.py       # Tests the Words and Addresses Class in the Syntax Module\n    segment_test.py     # Tests the Segment Class in the Segment Module\n    image_test.py       # Tests the Image and Images Class in the Vision Module\n\nThe automated tests are executed as follows:\n\n    pytest -v document_test.py\n    pytest -v page_test.py\n    pytest -v words_test.py\n    pytest -v segment_test.py\n    pytest -v image_test.py\n\n#### Code Coverage\n\nInformation on the percent of code that is covered (and what source lines not covered) by the automated tests is obtained using pytest-cov. This version of pytest is installed using pip:\n\n    pip install pytest-cov\n\nTesting with code coverage is executed as follows:\n\n    pytest --cov=splitter document_test.py page_test.py\n\n        Statements=456, Missed=60, Percent Covered: 87%\n\n    pytest --cov=syntax words_test.py\n\n        Statements=456, Missed=60, Percent Covered: 93%\n\n    pytest --cov=address words_test.py\n\n        Statements=456, Missed=60, Percent Covered: 90%\n\n    pytest --cov=vision image_test.py\n\n        Statements=456, Missed=60, Percent Covered: 89%\n```",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://github.com/andrewferlitsch/Gap",
+        "keywords": "",
+        "license": "Apache 2.0",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "Gap-ML",
+        "package_url": "https://pypi.org/project/Gap-ML/",
+        "platform": "",
+        "project_url": "https://pypi.org/project/Gap-ML/",
+        "project_urls": {
+            "Homepage": "https://github.com/andrewferlitsch/Gap"
+        },
+        "release_url": "https://pypi.org/project/Gap-ML/0.7.5/",
+        "requires_dist": null,
+        "requires_python": "",
+        "summary": "NLP and CV Data Engineering Framework",
+        "version": "0.7.5"
+    },
+    "last_serial": 4186311,
+    "releases": {
+        "0.7.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "96985664b96d45395a12cd7721884f6d",
+                    "sha256": "5e0191c135d2c74f89cffa50ec32462495ba7703ebe9f345038115b6c5b5e313"
+                },
+                "downloads": -1,
+                "filename": "gap-ml-0.7.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "96985664b96d45395a12cd7721884f6d",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 371806,
+                "upload_time": "2018-08-19T20:44:40",
+                "url": "https://files.pythonhosted.org/packages/75/b7/0cd7c263a457f16e4512a3158d87c09f6a10eaceaf0101b731a8c384d32d/gap-ml-0.7.5.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "96985664b96d45395a12cd7721884f6d",
+                "sha256": "5e0191c135d2c74f89cffa50ec32462495ba7703ebe9f345038115b6c5b5e313"
+            },
+            "downloads": -1,
+            "filename": "gap-ml-0.7.5.tar.gz",
+            "has_sig": false,
+            "md5_digest": "96985664b96d45395a12cd7721884f6d",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 371806,
+            "upload_time": "2018-08-19T20:44:40",
+            "url": "https://files.pythonhosted.org/packages/75/b7/0cd7c263a457f16e4512a3158d87c09f6a10eaceaf0101b731a8c384d32d/gap-ml-0.7.5.tar.gz"
+        }
+    ]
+}

@@ -1,0 +1,445 @@
+{
+    "info": {
+        "author": "M. Farrajota",
+        "author_email": "",
+        "bugtrack_url": null,
+        "classifiers": [
+            "Development Status :: 3 - Alpha",
+            "Environment :: MacOS X",
+            "Environment :: Win32 (MS Windows)",
+            "Environment :: X11 Applications",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Scientific/Engineering"
+        ],
+        "description": ".. note::\n   For the latest source, discussion, etc, please visit the\n   `GitLab repository <https://gitlab.com/farrajota/jungle.ai-challenge-data-digest>`_\n\n\ndata_digest: Quickly process bigger-than-memory data sets without a sweat!\n==========================================================================\n\nThis repository hosts the code for the ``data_digest`` tool used for computing simple statistics such as mean,\nstandard deviation, max value and the histogram for data sets larger than available memory on a system. It was\ndesigned to allows users to process large data files on a laptop or small VM in a timely manner by taking advantage\nof all cpu cores and memory available for executing its computations, and spilling to disk whenever is necessary.\n\nThe main features of this tool are the following:\n\n- Simple and lean API to process large data files\n- Spills to disk if there is not sufficient memory available\n- Runs on as many cpu cores as the system has available for use\n- You can use it either programmatically or via a terminal\n\nRequirements\n------------\n\n- Python 3.7+\n- Docker (optional)\n\nInstallation\n------------\n\nYou can install ``data_digest`` using either ``pip`` or by installing from source.\n\nPip\n~~~\n\nInstalling from pip is simple and easy as:\n\n::\n\n    $ pip install data_digest\n\nInstall from Source\n~~~~~~~~~~~~~~~~~~~\n\nTo install ``data_digest`` from source, clone the repository from GitLab:\n\n::\n\n    $ git clone https://gitlab.com/farrajota/jungle.ai-challenge-data-digest\n    $ cd jungle.ai-challenge-data-digest\n    $ make install\n    or\n    $ python setup.py install\n\nHow-to use\n----------\n\nVia Python\n~~~~~~~~~~\n\nTo start processing large datasets that don't fit in the available memory on a laptop or VM using ``data_digest``,\nyou first need to import the package lib in Python and access the ``data_digest()`` method to compute the data\nstored in ``csv`` files:\n\n.. code:: python\n\n    >>> from data_digest import data_digest\n\nNext, to use this method you are required to pass the location of the file path in the filesystem where the data\nis stored that you wan't to process:\n\n.. code:: python\n\n    >>> output = data_digest('/path/to/file.csv')\n\nThe method will load the ``.csv`` file from disk and process the data using `Dask`_ to\nexecute the computations and returns a summary of the statistics processed for each column\nof the data set. Because we are using **dask** as our processing backend, data sets that are bigger than memory\ncan be executed using the available memory and, if needed, it can use disk as temporary storage for computations,\nallowing for effective use of resources.\n\nFurthermore, you can select which metrics to compute by enabling / disabling them when calling ``data_digest()``.\nBy default, all metrics are disabled when calling the main method. But if you want to select a metric or set of metrics\nto compute, say only the mean and max values of each column of the data set, here is an example of how\nyou can do this:\n\n.. code:: python\n\n    >>> output = data_digest('/path/to/file.csv',\n                             compute_mean=True,\n                             compute_max=True)\n\nThis will compute the mean and max values of the data set. Moreover, you can enable or disable any metric you want\nand get exactly want you need.\n\nVia Terminal\n~~~~~~~~~~~~\n\nYou can perform the same operations in Python with the ``data_digest`` module in the terminal.\nWhen installing the package, a cli api is also installed on your system which allows you to\nquickly start using the tool with little to no effort by calling ``data-digest`` in the terminal.\n\nTo list check all available options, simply do:\n\n::\n\n    $ data-digest --help\n    Usage: data-digest [OPTIONS] PATH_TO_DATASET\n\n    Quickly process bigger-than-memory data sets without a sweat!\n\n    Options:\n    --mean               Compute the mean value for each column of the dataset.\n    --stddev             Compute the standard deviation for each column of the\n                         dataset.\n    --max                Compute the max value for each column of the dataset.\n    --histogram INTEGER  Compute the histogram for each column of the dataset.\n    --output-path TEXT   Store the output report into a json file\n    --help               Show this message and exit.\n\nYou can see that it has the same options than the ``data_digest()`` method in\n``data_digest`` module. Just And like with the  Using the last example in the previous section, we\ncan compute the mean and the max values of each column of a data set by typping\nthe following command on the terminal:\n\n::\n\n    $ data-digest --mean --max </path/to/file.csv>\n\nSo, computing what you need is as simply as giving a path of the data file, selecting\nthe metrics you want to compute, and let the tool do the rest.\n\nDocumentation\n-------------\n\nDocumentation for the package can be found `here`_.\n\nRunning it on a Docker container\n--------------------------------\n\nYou can run the package on a docker container with limited memory very easily. First,\nyou need to build the docker image with the package installed:\n\n::\n\n    docker build -t <docker_image_name> -f docker/dockerfile .\n\nAfter the image is built, you need to create a directory in your filesystem and put the\ndata file you want to process inside, because you will need to pass that dir path as a\nvolume when running the docker container. For example, create a temporary folder in the\nrepo's directory:\n\n::\n\n    mkdir -p tmp\n\nThen, run the following command to start and run a docker container to process the data file:\n\n::\n\n    docker run --name my_data_digest_512mb \\\n        --rm \\\n\t\t-v $(PWD)/tmp:/home/temp_cache \\\n\t\t--memory=\"512m\" \\\n\t\t<docker_image_name> /home/temp_cache/<filename.csv> --mean  # computes only the mean metric\n\nThis command will process the data set using only 512mb of memory and, depending on its size, it may\ntake a few minutes to complete. You can change the amount of memory assigned to the container to test\ndifferent settings.\n\nAdditionally, you can do this steps using the following commands as well:\n\n1. Build the docker image\n\n    ::\n\n        make docker-build\n\n2. Run a the previous example of computing the mean metric for a data set\n\n    ::\n\n        make docker-run FILE_PATH=/home/temp_cache/<filename.csv>\n\n\nLicense\n=======\n\n`MIT License`_\n\n.. _Dask: https://docs.dask.org/en/latest/\n.. _here: https://farrajota.gitlab.io/jungle.ai-challenge-data-digest/\n.. _MIT License: LICENSE.txt\n\n\n",
+        "description_content_type": "",
+        "docs_url": null,
+        "download_url": "",
+        "downloads": {
+            "last_day": -1,
+            "last_month": -1,
+            "last_week": -1
+        },
+        "home_page": "https://gitlab.com/farrajota/jungle.ai-challenge-data-digest",
+        "keywords": "",
+        "license": "MIT License",
+        "maintainer": "",
+        "maintainer_email": "",
+        "name": "data-digest",
+        "package_url": "https://pypi.org/project/data-digest/",
+        "platform": "any",
+        "project_url": "https://pypi.org/project/data-digest/",
+        "project_urls": {
+            "Homepage": "https://gitlab.com/farrajota/jungle.ai-challenge-data-digest"
+        },
+        "release_url": "https://pypi.org/project/data-digest/0.0.9/",
+        "requires_dist": [
+            "click (==7.0)",
+            "dask[dataframe] (==2.8.1)",
+            "fsspec (==0.6.1)",
+            "locket (==0.2.0)",
+            "numpy (==1.17.4)",
+            "pandas (==0.25.3)",
+            "partd (==1.1.0)",
+            "python-dateutil (==2.8.1)",
+            "pytz (==2019.3)",
+            "six (==1.13.0)",
+            "toolz (==0.10.0)"
+        ],
+        "requires_python": "",
+        "summary": "A data ingestion tool for bigger-than-memory data sets.",
+        "version": "0.0.9"
+    },
+    "last_serial": 6214296,
+    "releases": {
+        "0.0.1": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f97beaa689f64bf1173fbfaacfb69ee3",
+                    "sha256": "d62e689f95ca63279c1cde70ceb864b8b121d897ffdbcc76cd353ff8418252ff"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.1-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f97beaa689f64bf1173fbfaacfb69ee3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 5651,
+                "upload_time": "2019-11-16T19:01:25",
+                "upload_time_iso_8601": "2019-11-16T19:01:25.288287Z",
+                "url": "https://files.pythonhosted.org/packages/d4/8c/0cb7df64353dfc2e1b6ddeb6ad5a68661c6748baf3b660d4fe1f323d358e/data_digest-0.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "28517039eb8b89369bdfecb9a438dbee",
+                    "sha256": "f42c4f0cc8e6d219899d98ab03cdab9c9635b58206c0a363ba4b8e4106a73826"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.1-py3.7.egg",
+                "has_sig": false,
+                "md5_digest": "28517039eb8b89369bdfecb9a438dbee",
+                "packagetype": "bdist_egg",
+                "python_version": "3.7",
+                "requires_python": null,
+                "size": 7394,
+                "upload_time": "2019-11-16T19:01:27",
+                "upload_time_iso_8601": "2019-11-16T19:01:27.487650Z",
+                "url": "https://files.pythonhosted.org/packages/2d/38/af71bc6612b3f51f83716b43164203cc0714ba07b8c10e0443c4fab44fee/data_digest-0.0.1-py3.7.egg"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "acdfeeca8a556706598ddf62389b786a",
+                    "sha256": "c4b5b10a1d9c369ccbc4846e024e7bcf76c734b1d392e0271711ca90a2e6bcd2"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.1.tar.gz",
+                "has_sig": false,
+                "md5_digest": "acdfeeca8a556706598ddf62389b786a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4686,
+                "upload_time": "2019-11-16T19:01:28",
+                "upload_time_iso_8601": "2019-11-16T19:01:28.793838Z",
+                "url": "https://files.pythonhosted.org/packages/2d/d2/762bcfec211cc56ce04089564a67c2735543db6844a6b4587e6333e21941/data_digest-0.0.1.tar.gz"
+            }
+        ],
+        "0.0.2": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f86cafcb8d1075c3cf6497a3f02463cd",
+                    "sha256": "65977de7ec19940d978b0bd11f7c61fb89abc510b42a35b40d6c293937a28ecc"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.2-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "f86cafcb8d1075c3cf6497a3f02463cd",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 6282,
+                "upload_time": "2019-11-17T11:27:16",
+                "upload_time_iso_8601": "2019-11-17T11:27:16.041867Z",
+                "url": "https://files.pythonhosted.org/packages/8d/cd/9cb909b426fa378bc2b1c4d564e59b8d447fc2d87e61b2836e381a1cb857/data_digest-0.0.2-py2.py3-none-any.whl"
+            }
+        ],
+        "0.0.3": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "41bfc4a7d2862be708483f93d52a2ef3",
+                    "sha256": "1876625a7f48002e9ba5e07b6a25605c91221ca8b2964d233841cadb9a87a71c"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.3-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "41bfc4a7d2862be708483f93d52a2ef3",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 6376,
+                "upload_time": "2019-11-17T15:18:01",
+                "upload_time_iso_8601": "2019-11-17T15:18:01.871863Z",
+                "url": "https://files.pythonhosted.org/packages/a9/4a/71358fef284dd3f74f6aad346370d987c00316dc1addea87084c65cb5911/data_digest-0.0.3-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f1d828985b9af2aa11eac886e91bb6f9",
+                    "sha256": "4c16153a1710af05fd045438903627ccd85ca42879382f8c0354a5933b37a7f5"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.3.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f1d828985b9af2aa11eac886e91bb6f9",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5054,
+                "upload_time": "2019-11-17T15:18:04",
+                "upload_time_iso_8601": "2019-11-17T15:18:04.014781Z",
+                "url": "https://files.pythonhosted.org/packages/d5/48/accf0f4f9696a7c39aafa3247fb9dd7147d5e2efe8544d01fb58fce2e56e/data_digest-0.0.3.tar.gz"
+            }
+        ],
+        "0.0.4": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "d5c374ee55414595f62f11c8b2d860eb",
+                    "sha256": "b78a8c32dba70986ffd1b738047e011d9f15b249b2cb639764266fe18056adde"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.4-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "d5c374ee55414595f62f11c8b2d860eb",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 5806,
+                "upload_time": "2019-11-17T15:47:29",
+                "upload_time_iso_8601": "2019-11-17T15:47:29.017218Z",
+                "url": "https://files.pythonhosted.org/packages/1c/e6/d7e674f39d2081a4d1bebb8ddba3179019ae342d35d40ca637d06413c53a/data_digest-0.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "e68abeb35bf2a6313be7a7771e2f736a",
+                    "sha256": "50889fb335c7a15934bed116cb6c00f2e997f5c405e71545f1463e4fd8cbbd6d"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.4.tar.gz",
+                "has_sig": false,
+                "md5_digest": "e68abeb35bf2a6313be7a7771e2f736a",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 4872,
+                "upload_time": "2019-11-17T15:47:30",
+                "upload_time_iso_8601": "2019-11-17T15:47:30.489712Z",
+                "url": "https://files.pythonhosted.org/packages/28/21/479f9ec57786cfbd8cb0de1a13362f5c804c8fbc55c02c6564f45097a36b/data_digest-0.0.4.tar.gz"
+            }
+        ],
+        "0.0.5": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "cf243e3b794c1f130a3e5442b7f7c7c0",
+                    "sha256": "5c2342a7d06ed05fddc10849997980dec67a039aaa1307d758b3627b7452fc16"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.5-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "cf243e3b794c1f130a3e5442b7f7c7c0",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 6697,
+                "upload_time": "2019-11-17T21:48:48",
+                "upload_time_iso_8601": "2019-11-17T21:48:48.417902Z",
+                "url": "https://files.pythonhosted.org/packages/62/9c/d02a4890ff6093dc87999272176a952513024d895ffdeb984d1d28635287/data_digest-0.0.5-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "61beddea01f003256f08b59afdbd2f97",
+                    "sha256": "5458d1001118ac9c5dd2db3a192e68c4effe5c1b07ab14e19b12993743088ce4"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.5.tar.gz",
+                "has_sig": false,
+                "md5_digest": "61beddea01f003256f08b59afdbd2f97",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 5651,
+                "upload_time": "2019-11-17T21:48:49",
+                "upload_time_iso_8601": "2019-11-17T21:48:49.602385Z",
+                "url": "https://files.pythonhosted.org/packages/b3/69/25511db562ff3ac8d2e11228898c8bd4fbfdfa14d8e9f9b76b5a387e39cf/data_digest-0.0.5.tar.gz"
+            }
+        ],
+        "0.0.6": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "6c2df0f0aa5c71dc91631c93b96519b5",
+                    "sha256": "9aecd0300f30cddfe2a0275f030a6b139eaf7a34aefb1f7b510bb38a6273c326"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.6-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "6c2df0f0aa5c71dc91631c93b96519b5",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 7598,
+                "upload_time": "2019-11-18T01:04:15",
+                "upload_time_iso_8601": "2019-11-18T01:04:15.154561Z",
+                "url": "https://files.pythonhosted.org/packages/89/9c/40f4282348ce8eb073281422444eb2bc3a6c99463b03c8d2c63e55d2b537/data_digest-0.0.6-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "a08a6f0a00ef0b72fe1ad482157cfd77",
+                    "sha256": "15ff960f75b8bf4698999af61417416a864671b24e7aa0298d954e025729314b"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.6.tar.gz",
+                "has_sig": false,
+                "md5_digest": "a08a6f0a00ef0b72fe1ad482157cfd77",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6021,
+                "upload_time": "2019-11-18T01:04:16",
+                "upload_time_iso_8601": "2019-11-18T01:04:16.352408Z",
+                "url": "https://files.pythonhosted.org/packages/09/36/f1442317523f36b05f32b326d727626b1994294f55dec1b2c2a583a09ff5/data_digest-0.0.6.tar.gz"
+            }
+        ],
+        "0.0.7": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "c56479bf63ac1ef10614febe5133361c",
+                    "sha256": "ed0b452018d333bcdef6cb9b48132e9d21b2551017d4345174de7781f8b1fb1e"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.7-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "c56479bf63ac1ef10614febe5133361c",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 8424,
+                "upload_time": "2019-11-18T01:36:20",
+                "upload_time_iso_8601": "2019-11-18T01:36:20.131485Z",
+                "url": "https://files.pythonhosted.org/packages/ea/94/b9145ae53686297de1d9af059a8ad448f038145c56418482839c38d7c9b6/data_digest-0.0.7-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "78a650ba0b92842da7b2044a3d65820c",
+                    "sha256": "072b27e59e12e93ff039a2b2a7f18c3ce854acb4fe8b846ec2dcefa808164c65"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.7.tar.gz",
+                "has_sig": false,
+                "md5_digest": "78a650ba0b92842da7b2044a3d65820c",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 6984,
+                "upload_time": "2019-11-18T01:36:21",
+                "upload_time_iso_8601": "2019-11-18T01:36:21.586912Z",
+                "url": "https://files.pythonhosted.org/packages/9f/9b/acb5222571a68348af61ffc938b22a622fb1788640c34f5eb462ec664189/data_digest-0.0.7.tar.gz"
+            }
+        ],
+        "0.0.8": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "ce50d161cd624c4188438a64cdac12a4",
+                    "sha256": "2b0b74b754eae29efef63c682ebbfc72150bfd36680bb58d3fea8b5845b3953f"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.8-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "ce50d161cd624c4188438a64cdac12a4",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 8975,
+                "upload_time": "2019-11-27T22:01:02",
+                "upload_time_iso_8601": "2019-11-27T22:01:02.484719Z",
+                "url": "https://files.pythonhosted.org/packages/0c/cb/ce5ecc3e3ffc338fc36ff3a12760783f56e6f6440d8c2e883d563199cea4/data_digest-0.0.8-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "f918c7ae9442206c6de67dbfc8fe5c30",
+                    "sha256": "b4c5bff44b06e0aa04d8bacac9935fea1e9bf1eb4aa8b7fecca5e803958d25d5"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.8.tar.gz",
+                "has_sig": false,
+                "md5_digest": "f918c7ae9442206c6de67dbfc8fe5c30",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8621,
+                "upload_time": "2019-11-27T22:01:04",
+                "upload_time_iso_8601": "2019-11-27T22:01:04.065736Z",
+                "url": "https://files.pythonhosted.org/packages/f5/30/2e57ba2df3449f5e81102d5cbf4854a3d28d5b2caffc3108597dcf46be4f/data_digest-0.0.8.tar.gz"
+            }
+        ],
+        "0.0.9": [
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "9df55efa274a536adf7ee207c9fbf61f",
+                    "sha256": "eceb47aeab5742e65996d670f7a2056e0d64253ce15c1350d7071986fcb82697"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.9-py2.py3-none-any.whl",
+                "has_sig": false,
+                "md5_digest": "9df55efa274a536adf7ee207c9fbf61f",
+                "packagetype": "bdist_wheel",
+                "python_version": "py2.py3",
+                "requires_python": null,
+                "size": 8975,
+                "upload_time": "2019-11-28T14:03:22",
+                "upload_time_iso_8601": "2019-11-28T14:03:22.159563Z",
+                "url": "https://files.pythonhosted.org/packages/0f/53/a4b47acf7d07bd2320f3b8175eefe3f87f6fb28492a643c0849798aa3cbc/data_digest-0.0.9-py2.py3-none-any.whl"
+            },
+            {
+                "comment_text": "",
+                "digests": {
+                    "md5": "32e32f2d64dde88126860d9ff0fe319b",
+                    "sha256": "6c10a55f47ca42a952b2a7009ef73c55402bdad0a12b087a2b2e0a26069b2832"
+                },
+                "downloads": -1,
+                "filename": "data_digest-0.0.9.tar.gz",
+                "has_sig": false,
+                "md5_digest": "32e32f2d64dde88126860d9ff0fe319b",
+                "packagetype": "sdist",
+                "python_version": "source",
+                "requires_python": null,
+                "size": 8624,
+                "upload_time": "2019-11-28T14:03:23",
+                "upload_time_iso_8601": "2019-11-28T14:03:23.707501Z",
+                "url": "https://files.pythonhosted.org/packages/1d/69/e2a6fc1d680b7549d33fcd1ff1cd9dcb9062ed591ded98f63ba32910ce31/data_digest-0.0.9.tar.gz"
+            }
+        ]
+    },
+    "urls": [
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "9df55efa274a536adf7ee207c9fbf61f",
+                "sha256": "eceb47aeab5742e65996d670f7a2056e0d64253ce15c1350d7071986fcb82697"
+            },
+            "downloads": -1,
+            "filename": "data_digest-0.0.9-py2.py3-none-any.whl",
+            "has_sig": false,
+            "md5_digest": "9df55efa274a536adf7ee207c9fbf61f",
+            "packagetype": "bdist_wheel",
+            "python_version": "py2.py3",
+            "requires_python": null,
+            "size": 8975,
+            "upload_time": "2019-11-28T14:03:22",
+            "upload_time_iso_8601": "2019-11-28T14:03:22.159563Z",
+            "url": "https://files.pythonhosted.org/packages/0f/53/a4b47acf7d07bd2320f3b8175eefe3f87f6fb28492a643c0849798aa3cbc/data_digest-0.0.9-py2.py3-none-any.whl"
+        },
+        {
+            "comment_text": "",
+            "digests": {
+                "md5": "32e32f2d64dde88126860d9ff0fe319b",
+                "sha256": "6c10a55f47ca42a952b2a7009ef73c55402bdad0a12b087a2b2e0a26069b2832"
+            },
+            "downloads": -1,
+            "filename": "data_digest-0.0.9.tar.gz",
+            "has_sig": false,
+            "md5_digest": "32e32f2d64dde88126860d9ff0fe319b",
+            "packagetype": "sdist",
+            "python_version": "source",
+            "requires_python": null,
+            "size": 8624,
+            "upload_time": "2019-11-28T14:03:23",
+            "upload_time_iso_8601": "2019-11-28T14:03:23.707501Z",
+            "url": "https://files.pythonhosted.org/packages/1d/69/e2a6fc1d680b7549d33fcd1ff1cd9dcb9062ed591ded98f63ba32910ce31/data_digest-0.0.9.tar.gz"
+        }
+    ]
+}
